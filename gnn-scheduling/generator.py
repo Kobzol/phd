@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from estee.common import DataObject, TaskGraph
+from estee.generators.elementary import triplets
 from estee.generators.utils import normal
 from estee.schedulers import BlevelGtScheduler
 from estee.simulator import MaxMinFlowNetModel, Simulator, Worker
@@ -32,12 +33,19 @@ def simulate_graph(graph: TaskGraph):
 def generate_dataset_1(count=100):
     np.random.seed(0)
     graphs = []
-    makespans = []
 
     for i in range(count):
-        graph = merge_neighbours(10)
+        graph = merge_neighbours(5)
         graphs.append(graph)
+
+    # for i in range(count):
+    #     graph = triplets(10, cpus=1)
+    #     graphs.append(graph)
+
+    makespans = []
+    for graph in graphs:
         makespans.append(simulate_graph(graph))
+
     return pd.DataFrame({
         "graph": graphs,
         "makespan": makespans

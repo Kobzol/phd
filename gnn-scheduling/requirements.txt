@@ -10,3 +10,4 @@ torch-spline-conv==1.2.1
 torchmetrics==0.5.1
 tqdm==4.62.3
 pytorch-lightning==1.4.7
+git+https://github.com/spirali/kitt
