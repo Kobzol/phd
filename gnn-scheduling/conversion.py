@@ -5,11 +5,14 @@ import networkx as nx
 import torch
 from estee.common import TaskGraph
 
+from data import TrainExample
 
-def estee_to_pyg(graph: TaskGraph):
+
+def estee_to_pyg(example: TrainExample):
     """
     Returns (node_features, edge_index)
     """
+    graph = example.graph
     edges_from = []
     edges_to = []
     features = [None] * len(graph.tasks)
@@ -21,8 +24,9 @@ def estee_to_pyg(graph: TaskGraph):
         if node in visited:
             continue
         visited.add(node)
-        features[node.id] = node.duration
-        consumers = chain.from_iterable(o.consumers for o in node.outputs)
+        consumers = list(chain.from_iterable(o.consumers for o in node.outputs))
+        feats = [node.duration, example.worker_count]
+        features[node.id] = feats
         for consumer in consumers:
             if consumer not in visited:
                 edges_from.append(node.id)
@@ -32,7 +36,7 @@ def estee_to_pyg(graph: TaskGraph):
     assert len(edges_from) == len(edges_to)
     edge_index = torch.tensor([edges_from, edges_to], dtype=torch.long)
 
-    node_features = torch.tensor([[feature] for feature in features], dtype=torch.float)
+    node_features = torch.tensor(features, dtype=torch.float)
 
     return node_features, edge_index
 

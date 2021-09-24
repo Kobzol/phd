@@ -8,6 +8,7 @@ import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
 import torchmetrics
+from estee.generators.irw import mapreduce
 from estee.serialization.dask_json import deserialize_graph, serialize_graph
 from kitt.data import train_test_split
 from torch_geometric.data import Data
@@ -16,33 +17,31 @@ from torch_geometric.nn import GCNConv, global_add_pool, global_max_pool, global
 from torchmetrics import MeanAbsoluteError
 
 from conversion import estee_to_pyg
-from generator import generate_dataset_1
+from data import TrainExample
+from generator import simulate_graph
 from utils import timer
 
-MAX_DURATION = 50
 
-
-class Normalizer:
-    def normalize(self, value):
-        return value / MAX_DURATION
-
-    def denormalize(self, value):
-        return value * MAX_DURATION
+class Denormalizer:
+    def denormalize(self, value, batch):
+        return value * batch.normalization_factor.unsqueeze(1)
 
 
 def df_to_geometric_data(df: pd.DataFrame) -> List[Data]:
     dataset = []
     for row in range(len(df)):
-        graph = df["graph"].iloc[row]
+        example = df["example"].iloc[row]
+        graph = example.graph
         makespan = df["makespan"].iloc[row]
-        (node_features, edge_index) = estee_to_pyg(graph)
+        (node_features, edge_index) = estee_to_pyg(example)
 
-        max_duration = MAX_DURATION  # max(t.duration for t in graph.tasks.values())
+        max_duration = max(t.duration for t in graph.tasks.values())
         node_features = node_features / max_duration
         makespan = makespan / max_duration
 
         data = Data(x=node_features, edge_index=edge_index,
-                    y=torch.tensor([makespan], dtype=torch.float32))
+                    y=torch.tensor([makespan], dtype=torch.float32),
+                    normalization_factor=max_duration)
         dataset.append(data)
     return dataset
 
@@ -75,25 +74,26 @@ class GCN(torch.nn.Module):
 
 
 class MakespanPredictor(pl.LightningModule):
-    def __init__(self, num_features: int, normalizer: Normalizer):
+    def __init__(self, num_features: int, learning_rate: float, denormalizer: Denormalizer):
         super().__init__()
         self.module = GCN(num_features)
-        self.normalizer = normalizer
+        self.learning_rate = learning_rate
+        self.denormalizer = denormalizer
         self.mae = MeanAbsoluteError()
 
     def forward(self, x):
         return self.module(x)
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.01, weight_decay=5e-4)
+        return torch.optim.Adam(self.parameters(), lr=self.learning_rate, weight_decay=5e-4)
 
     def training_step(self, train_batch, batch_idx):
         return self.step(train_batch, "loss")[2]
 
     def validation_step(self, val_batch, batch_idx):
         pred, gt, loss = self.step(val_batch, "val_loss")
-        pred_dn = self.normalizer.denormalize(pred)
-        gt_dn = self.normalizer.denormalize(gt)
+        pred_dn = self.denormalizer.denormalize(pred, val_batch)
+        gt_dn = self.denormalizer.denormalize(gt, val_batch)
         acc = self.mae(pred_dn, gt_dn)
         self.log("val_mae", acc, prog_bar=True)
 
@@ -107,10 +107,17 @@ class MakespanPredictor(pl.LightningModule):
 
 
 def save_dataset(path: str, dataset: pd.DataFrame):
-    graphs = [serialize_graph(g) for g in dataset["graph"]]
+    examples = []
+    for example in dataset["example"]:
+        graph = serialize_graph(example.graph)
+        examples.append({
+            "graph": graph,
+            "worker_count": example.worker_count
+        })
+
     makespans = list(dataset["makespan"])
     data = {
-        "graphs": graphs,
+        "examples": examples,
         "makespans": makespans
     }
 
@@ -118,13 +125,48 @@ def save_dataset(path: str, dataset: pd.DataFrame):
         f.write(json.dumps(data))
 
 
-def load_dataset(path: str):
+def load_dataset(path: str) -> pd.DataFrame:
     with open(path) as f:
         data = json.load(f)
+
+        examples = []
+        for example in data["examples"]:
+            graph = deserialize_graph(example["graph"])
+            examples.append(TrainExample(graph, example["worker_count"]))
+
         return pd.DataFrame({
-            "graph": [deserialize_graph(g) for g in data["graphs"]],
+            "example": examples,
             "makespan": data["makespans"]
         })
+
+
+def create_dataframe(examples: List[TrainExample]):
+    makespans = []
+    for example in examples:
+        makespans.append(simulate_graph(example))
+
+    return pd.DataFrame({
+        "example": examples,
+        "makespan": makespans
+    })
+
+
+def generate_dataset_1(count=100) -> pd.DataFrame:
+    examples = []
+
+    for i in range(count):
+        # example = merge_neighbours(np.random.randint(5, 25))
+        # example = merge_neighbours(5)
+        worker_count = random.randint(1, 2)
+        graph = mapreduce(5)
+        example = TrainExample(graph=graph, worker_count=worker_count)
+        examples.append(example)
+
+    # for i in range(count):
+    #     example = triplets(5, cpus=1)
+    #     examples.append(example)
+
+    return create_dataframe(examples)
 
 
 if __name__ == "__main__":
@@ -133,9 +175,17 @@ if __name__ == "__main__":
     random.seed(0)
 
     with timer("generate"):
-        dataset = generate_dataset_1(3)
+        dataset = generate_dataset_1(10)
         save_dataset("dataset1.json", dataset)
         # dataset = load_dataset("dataset1.json")
+
+    print(dataset.head(5))
+
+    # for graph in dataset["graph"]:
+    #     nx_graph = estee_to_nx(graph)
+    #     nx.draw_kamada_kawai(nx_graph)
+    #     plt.show()
+    #     exit()
 
     with timer("convert"):
         dataset = df_to_geometric_data(dataset)
@@ -149,9 +199,12 @@ if __name__ == "__main__":
     else:
         val_loader = None
 
-    model = MakespanPredictor(dataset[0].num_features, Normalizer())
+    learning_rate = 0.001
+    denormalizer = Denormalizer()
+    model = MakespanPredictor(dataset[0].num_features, learning_rate=learning_rate,
+                              denormalizer=denormalizer)
 
-    max_epochs = 1000
+    max_epochs = 2500
     trainer = pl.Trainer(max_epochs=max_epochs, log_every_n_steps=batch_size)
     trainer.fit(model, train_loader, val_loader)
 
@@ -160,10 +213,18 @@ if __name__ == "__main__":
 
 
     def eval_dataset(dataset):
-        batch = list(dataset)[0]
-        pred = model(batch)
-        error = mae(pred, batch.y.unsqueeze(1)).detach().numpy()
-        print(error, pred, batch.y)
+        errors = []
+        for (index, batch) in enumerate(dataset):
+            pred = model(batch)
+            gt = batch.y.unsqueeze(1)
+            pred = denormalizer.denormalize(pred, batch)
+            gt = denormalizer.denormalize(gt, batch)
+
+            error = mae(pred, gt).detach().numpy()
+            errors.append(error)
+            if index == 0:
+                print(error, pred, gt)
+        print(f"Average error: {np.mean(errors)}")
 
 
     print("Train")
