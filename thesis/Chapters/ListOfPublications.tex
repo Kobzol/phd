@@ -1,0 +1,40 @@
+\chapter*{List of own publication activities and other outcomes}
+\label{sec:ListOfStudentsOwnPublicationActivitiesAndOtherOutcomes}
+\addcontentsline{toc}{chapter}{\nameref{sec:ListOfStudentsOwnPublicationActivitiesAndOtherOutcomes}}
+\verb|biblatex| can be used to compile a list of own publications and other outputs, whether related or not related to the dissertation. Individual bibliographic records of own publications are marked, in \verb|.bib| file, using keywords such as \verb|OwnRelated | and \verb|OwnNonRelated|. Package \verb|biblatex| allows you to filter individual records based on these keywords.
+
+Adapt the page to individual needs, the formatting example of this page is not binding.
+
+\begin{refsection}
+\nocite{MyRelatedArticle1, MyRelatedArticle2}
+\printbibliography[keyword={OwnRelated}, heading=subbibintoc, title={Publications and Outcomes Related to Thesis}]
+\end{refsection}
+
+\begin{refsection}
+\nocite{MyNonrelatedArticle1}
+\printbibliography[keyword={OwnNonRelated}, heading=subbibintoc, title={Publications and Outcomes Not Related to Thesis}]
+\end{refsection}
+
+\section*{Other Outcomes}
+\begin{enumerate}
+	\item Specification of outcome A
+	\item Specification of outcome B
+	\item Specification of outcome C
+\end{enumerate}
+
+
+\chapter*{List of Projects}
+\label{sec:ListOfProjects}
+\addcontentsline{toc}{chapter}{\nameref{sec:ListOfProjects}}
+During my doctoral studies, I participated in these projects:
+\begin{itemize}
+	\item as team member
+		\begin{enumerate}
+			\item ANTAREX
+			\item EVEREST
+			\item GROMACS
+			\item ACROSS
+		\end{enumerate}
+\end{itemize}
+
+\endinput

@@ -1,0 +1,61 @@
+\documentclass[english,phd]{diploma}
+
+\usepackage[autostyle=true]{csquotes} % enhanced support for quotation marks, support for biblatex package
+\usepackage[backend=biber, style=iso-numeric, alldates=iso]{biblatex} % bibliography\\\\
+\usepackage{dcolumn} % numeric column type
+\usepackage{subfig} % subtables and subfigures
+\usepackage[cpp]{diplomalst}
+
+%\usepackage{todonotes}
+
+\ThesisAuthor{Jakub Beránek}
+
+\ThesisSupervisor{Ing. Jan Martinovič, Ph.D.}
+
+\CzechThesisTitle{Spouštění úloh na superpočítačích}
+\EnglishThesisTitle{Task Graphs on HPC clusters}
+
+\SubmissionYear{2023}
+
+\Acknowledgement{I would like to thank all those who helped me with the work, because without
+them this work would not have happened.}
+
+\CzechAbstract{TODO}
+\CzechKeywords{TODO}
+
+\EnglishAbstract{TODO}
+\EnglishKeywords{TODO}
+
+\addbibresource{references.bib}
+\addbibresource{publications.bib}
+
+\begin{document}
+\MakeTitlePages
+
+% Teze
+% \section{Introduction}
+% \section{Definitions}
+% \section{Work so far}
+% \section{Future work}
+% \section{Thesis proposal}
+
+% Do theses contain any figures? If so, print the list of figures and then move to the next page.
+% If not, delete the next two macros.
+\listoffigures
+\clearpage
+
+% Do theses contain any tables? If so, print the list of table and then move to the next page.
+% If not, delete the next two macros.
+\listoftables
+\clearpage
+
+\input{Chapters/Introduction.tex}
+\input{Chapters/Conclusion.tex}
+
+\printbibliography[heading=bibintoc]
+
+\input{Chapters/ListOfPublications.tex}
+
+\appendix
+
+\end{document}

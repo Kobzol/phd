@@ -1,0 +1,77 @@
+% Orco-like tools
+Features
+- reproducibility
+- recomputation avoidance
+- dependencies
+- configuration/parametrization (cfggen)
+- seeding
+- result viewer
+- DB queries
+
+Implementation
+- heartbeats
+- removing?
+- logging inputs, outputs and errors into a DB
+- storing code into DB
+- tracking resources (inputs) vs artifacts (outputs)
+
+Existing tools
+
+Dask
+- resiliency is handled by recomputing tasks
+- if data is stored somewhere in the cluster, it is fetched from other workers
+- otherwise input tasks are recomputed
+
+Guild.AI (https://guild.ai/)
+- mainly for AI
+- too opinionated
+
+DeepDiva (https://diva-dia.github.io/DeepDIVAweb/)
+- very ML-specific
+
+datreant (https://datreant.readthedocs.io/en/latest/index.html)
+- data management and storage
+
+dagger (https://github.com/facebookresearch/dagger)
+- unmaintained
+
+signac (https://www.youtube.com/watch?v=CCKQH1M2uR4)
+- workflow management tool + DB
+- supports dependencies
+    - dependencies are specified with decorators (inflexible)
+- allows querying job results
+- allows modifying schema of stored results
+- supports recomputation avoidance
+
+Sacred
+- tracks a lot of things
+- no recomputation avoidance nor dependencies
+- very basic configuration
+
+Sumatra
+- tagging of experiment runs
+- main usage is through cmdline interface
+- input configuration files
+- integration into Latex
+- can run simple parallel computations (MPI)
+
+FGLab
+- machine learning dashboard
+- unmaintained
+
+
+AI based tools
+Comet.ml
+- no self hosting
+- free for one user, 100 GiB
+
+W&B
+- nice integration
+- self hosting needs a license
+
+MLFlow
+
+Neptune.ai
+- free for one user, 100 GiB
+
+ClearML
