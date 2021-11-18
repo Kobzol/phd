@@ -1,31 +1,20 @@
 \chapter*{List of own publication activities and other outcomes}
-\label{sec:ListOfStudentsOwnPublicationActivitiesAndOtherOutcomes}
-\addcontentsline{toc}{chapter}{\nameref{sec:ListOfStudentsOwnPublicationActivitiesAndOtherOutcomes}}
-\verb|biblatex| can be used to compile a list of own publications and other outputs, whether related or not related to the dissertation. Individual bibliographic records of own publications are marked, in \verb|.bib| file, using keywords such as \verb|OwnRelated | and \verb|OwnNonRelated|. Package \verb|biblatex| allows you to filter individual records based on these keywords.
-
-Adapt the page to individual needs, the formatting example of this page is not binding.
+\label{ch:listofstudentsownpublicationactivitiesandotheroutcomes}
+\addcontentsline{toc}{chapter}{\nameref{ch:listofstudentsownpublicationactivitiesandotheroutcomes}}
 
 \begin{refsection}
-\nocite{MyRelatedArticle1, MyRelatedArticle2}
-\printbibliography[keyword={OwnRelated}, heading=subbibintoc, title={Publications and Outcomes Related to Thesis}]
+\nocite{bohm_runtime_2020, di_girolamo_network-accelerated_2019, di_girolamo_risc-v_2021}
+\printbibliography[heading=subbibintoc, title={Publications Related to Thesis}]
 \end{refsection}
 
 \begin{refsection}
-\nocite{MyNonrelatedArticle1}
-\printbibliography[keyword={OwnNonRelated}, heading=subbibintoc, title={Publications and Outcomes Not Related to Thesis}]
+\nocite{besta_graphminesuite_2021, besta_sisa_2021, bohm_haydi_2018, golasowski_alternative_2020,
+martinovic_distributed_2020}
+\printbibliography[heading=subbibintoc, title={Publications Not Related to Thesis}]
 \end{refsection}
-
-\section*{Other Outcomes}
-\begin{enumerate}
-	\item Specification of outcome A
-	\item Specification of outcome B
-	\item Specification of outcome C
-\end{enumerate}
-
 
 \chapter*{List of Projects}
-\label{sec:ListOfProjects}
-\addcontentsline{toc}{chapter}{\nameref{sec:ListOfProjects}}
+\label{ch:listofprojects}~\addcontentsline{toc}{chapter}{\nameref{ch:listofprojects}}
 During my doctoral studies, I participated in these projects:
 \begin{itemize}
 	\item as team member
@@ -36,5 +25,3 @@ During my doctoral studies, I participated in these projects:
 			\item ACROSS
 		\end{enumerate}
 \end{itemize}
-
-\endinput
