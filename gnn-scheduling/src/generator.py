@@ -1,10 +1,10 @@
 from estee.common import DataObject, TaskGraph
 from estee.generators.utils import normal
 from estee.schedulers import BlevelGtScheduler
-from estee.simulator import MaxMinFlowNetModel, Simulator, Worker
-from estee.simulator.netmodels import InstantNetModel, NetModel
+from estee.simulator import Simulator, Worker
+from estee.simulator.netmodels import InstantNetModel
 
-from data import TrainExample
+from .data import TrainExample
 
 
 def merge_neighbours(count, normal_center=20):

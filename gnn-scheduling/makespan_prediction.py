@@ -16,10 +16,10 @@ from torch_geometric.loader import DataLoader
 from torch_geometric.nn import GCNConv, global_add_pool, global_max_pool, global_mean_pool
 from torchmetrics import MeanAbsoluteError
 
-from conversion import estee_to_pyg
-from data import TrainExample
-from generator import simulate_graph
-from utils import timer
+from src.conversion import estee_to_pyg
+from src.data import TrainExample
+from src.generator import simulate_graph
+from src.utils import timer
 
 
 class Denormalizer:
@@ -49,20 +49,28 @@ def df_to_geometric_data(df: pd.DataFrame) -> List[Data]:
 class GCN(torch.nn.Module):
     def __init__(self, num_features: int):
         super().__init__()
-        self.conv1 = GCNConv(num_features, 32)
-        self.conv2 = GCNConv(32, 32)
-        self.node_head1 = torch.nn.Linear(32, 32)
-        self.node_head2 = torch.nn.Linear(32, 32)
+        self.conv1 = GCNConv(num_features, 32, flow="target_to_source")
+        self.conv2 = GCNConv(num_features, 32, flow="source_to_target")
+        self.conv3 = GCNConv(64, 64)
+        self.node_head1 = torch.nn.Linear(64, 32)
         self.graph_head = torch.nn.Linear(96, 1)
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
 
-        x = self.conv1(x, edge_index)
+        input = x
+
+        x1 = self.conv1(input, edge_index)
+        x2 = self.conv2(input, edge_index)
+
+        x = torch.cat([x1, x2], axis=-1)
         x = F.relu(x)
-        # x = F.dropout(x, p=0.2, training=self.training)
-        # x = self.conv2(x, edge_index)
-        # x = self.node_head1(x)
+
+        x = self.conv3(x, edge_index)
+        x = F.relu(x)
+
+        x = self.node_head1(x)
+        x = F.relu(x)
 
         sum = global_add_pool(x, data.batch)
         mean = global_mean_pool(x, data.batch)
@@ -91,11 +99,12 @@ class MakespanPredictor(pl.LightningModule):
         return self.step(train_batch, "loss")[2]
 
     def validation_step(self, val_batch, batch_idx):
-        pred, gt, loss = self.step(val_batch, "val_loss")
-        pred_dn = self.denormalizer.denormalize(pred, val_batch)
-        gt_dn = self.denormalizer.denormalize(gt, val_batch)
-        acc = self.mae(pred_dn, gt_dn)
-        self.log("val_mae", acc, prog_bar=True)
+        with torch.inference_mode():
+            pred, gt, loss = self.step(val_batch, "val_loss")
+            pred_dn = self.denormalizer.denormalize(pred, val_batch)
+            gt_dn = self.denormalizer.denormalize(gt, val_batch)
+            acc = self.mae(pred_dn, gt_dn)
+            self.log("val_mae", acc, prog_bar=True)
 
     def step(self, batch: Data, loss_name: str):
         pred = self.module(batch)
@@ -158,12 +167,14 @@ def generate_dataset_1(count=100) -> pd.DataFrame:
         # example = merge_neighbours(np.random.randint(5, 25))
         # example = merge_neighbours(5)
         worker_count = random.randint(1, 2)
-        graph = mapreduce(5)
+        task_count = 5#random.randint(3, 50)
+        graph = mapreduce(task_count)
         example = TrainExample(graph=graph, worker_count=worker_count)
         examples.append(example)
 
     # for i in range(count):
-    #     example = triplets(5, cpus=1)
+    #     task_count = random.randint(3, 50)
+    #     example = TrainExample(graph=triplets(task_count, cpus=1), worker_count=1)
     #     examples.append(example)
 
     return create_dataframe(examples)
@@ -192,7 +203,7 @@ if __name__ == "__main__":
 
     train_dataset, val_dataset = train_test_split(dataset, 0.2)
 
-    batch_size = 32
+    batch_size = 64
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     if val_dataset:
         val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
@@ -204,8 +215,9 @@ if __name__ == "__main__":
     model = MakespanPredictor(dataset[0].num_features, learning_rate=learning_rate,
                               denormalizer=denormalizer)
 
-    max_epochs = 2500
-    trainer = pl.Trainer(max_epochs=max_epochs, log_every_n_steps=batch_size)
+    gpus = None
+    max_epochs = 1500
+    trainer = pl.Trainer(gpus=gpus, max_epochs=max_epochs, log_every_n_steps=batch_size)
     trainer.fit(model, train_loader, val_loader)
 
     mae = torchmetrics.MeanAbsoluteError()

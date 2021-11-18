@@ -5,7 +5,7 @@ import networkx as nx
 import torch
 from estee.common import TaskGraph
 
-from data import TrainExample
+from .data import TrainExample
 
 
 def estee_to_pyg(example: TrainExample):
