@@ -1,0 +1,29 @@
+\begin{abstract}
+HPC infrastructures are crucial for the advancement of scientific research, as they offer
+unparalleled computing resources that can be leveraged to compute the most complex scientific
+experiments.
+HPC software was traditionally built using rather low-level communication interfaces, such as MPI.
+This approach enables truly high performance execution, but it also requires rather low-level
+programming knowledge, which can be hard to attain for scientists that are not primarily programmers.
+It also results in monolithic applications that are difficult to reuse.
+
+In recent years, it is thus becoming common to execute experiments using a set of reusable computing
+blocks (tasks) composed together in a task graph (workflow).
+These workflows are commonly defined using high-level languages, such as DSLs or Python, which
+makes them more approachable to scientists.
+It enables them to focus on the problem they want to solve, not on low-level
+implementation details, and thus they can iterate much more quickly.
+
+Task graphs are executed using workflow execution systems, which are designed to execute them as
+efficiently as possible.
+While there is a large number of various workflow execution systems, they
+have various shortcomings when deployed on HPC clusters.
+Either their implementation is not efficient enough to fully leverage the massive scale of HPC
+clusters, or their usage pattern is not a good fit on HPC clusters that have their own quirks.
+This breaks the high-level abstraction of workflows and requires users to delve into the low-level
+details again to work around these issues.
+
+This thesis aims to identify what are the various bottlenecks of scientific workflows executed on
+HPC workflows and design improvements that could help them become more efficient, both in terms
+of computing performance and developer experience.
+\end{abstract}

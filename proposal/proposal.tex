@@ -1,0 +1,105 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+
+% Biobliography setup
+\usepackage[giveninits=true, style=ieee]{biblatex}
+\addbibresource{references.bib}
+
+\DeclareSourcemap{
+  \maps[datatype=bibtex] {
+    \map{
+      \step[fieldsource=meta, match=thesis_related, final]
+      \step[fieldset=keywords, fieldvalue=related]
+    }
+  }
+}
+\DeclareSourcemap{
+  \maps[datatype=bibtex] {
+    \map{
+      \step[fieldsource=meta, match=thesis_unrelated, final]
+      \step[fieldset=keywords, fieldvalue=unrelated]
+    }
+  }
+}
+\DeclareSourcemap{
+  \maps[datatype=bibtex] {
+    \map{
+      \step[notfield=meta, final]
+      \step[fieldset=keywords, fieldvalue=foreign]
+    }
+  }
+}
+
+\begin{document}
+
+\begin{titlepage}
+    \begin{center}
+        \vspace*{1cm}
+        \par
+        \Huge
+        \textbf{Executing Scientific Workflows on HPC clusters}
+        \par
+        \vspace{0.5cm}
+        \LARGE
+        Doctoral Thesis Proposal
+        \par
+        \vspace{1.5cm}
+        \par
+        \textbf{Jakub Beránek}
+        \par
+        \vspace{9.cm}
+        \par
+        {
+            \Large
+            IT4Innovations National Supercomputing Center\par
+            VSB -- Technical University of Ostrava\par
+            Czech Republic\par
+            January 2022
+        }
+    \end{center}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+\section{Introduction}
+\label{sec:introduction}
+\input{introduction.tex}
+
+\section{Challenges}
+\label{sec:challenges}
+\input{challenges.tex}
+
+\section{State of the art}
+\label{sec:state_of_the_art}
+\input{state-of-the-art.tex}
+
+\section{Current progress}
+\label{sec:current_progress}
+\input{current-progress.tex}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+\section{Publications}
+\label{sec:publications}
+\subsection*{Publications related to the thesis}
+\begin{refsection}
+    \nocite{*}
+    \printbibliography[keyword=related,heading=none]
+\end{refsection}
+
+\subsection*{Publications unrelated to the thesis}
+
+\begin{refsection}
+    \nocite{*}
+    \printbibliography[keyword=unrelated,heading=none]
+\end{refsection}
+
+\begin{refsection}
+    \nocite{*}
+    \printbibliography[keyword=foreign]
+\end{refsection}
+
+\end{document}
