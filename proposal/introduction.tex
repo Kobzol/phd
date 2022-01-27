@@ -2,11 +2,11 @@ High Performance Computing (HPC) infrastructures are crucial for the advancement
 research, as they offer unparalleled computing resources that can be leveraged to perform the most
 complex scientific experiments.
 
-Over the last several decades, the performance of HPC clusters has been increasing steadily, effectively
-doubling every few years. However, such gains are not always for free. One notable cost associated with
-the growth of HPC performance is its increasing complexity. Computing nodes now consist of hundreds of
-cores; it is quite challenging to write programs that can scale to such high core counts.
-They contain hundreds of gigabytes of memory, which necessitates non-uniform
+Over the last several decades, the performance of HPC clusters has been increasing steadily,
+effectively doubling every few years. However, such gains are not always for free. One notable cost
+associated with the growth of HPC performance is its increasing complexity. Computing nodes now
+consist of hundreds of cores; it is quite challenging to write programs that can scale to such
+high core counts. They contain hundreds of gigabytes of memory, which necessitates non-uniform
 (NUMA) memory architectures that require specialized programming techniques to achieve optimal
 performance. HPC clusters are also becoming increasingly heterogenous, with devices such as
 graphics accelerators (GPUs) or reconfigurable hardware (FPGAs) providing most of their
@@ -14,7 +14,8 @@ graphics accelerators (GPUs) or reconfigurable hardware (FPGAs) providing most o
 using further specialized programming languages and interfaces.
 
 Historically, optimized HPC software was usually written using system or scientifically focused
-programming languages (e.g.~C, C++ or Fortran) and specialized libraries for parallelizing and distributing
+programming languages (e.g.~C, C++ or Fortran) and specialized libraries for parallelizing and
+distributing
 computation (such as OpenMP and MPI). While these rather low-level technologies are able to provide
 the best possible performance, it can be quite challenging to develop (and maintain) applications
 using them. And with the advent of heterogenous clusters, even more technologies (such as CUDA for
@@ -22,39 +23,34 @@ GPUs or HLS for FPGAs) have to be adopted. It is unreasonable to expect that mos
 use HPC (who are often not primarily programmers) will use these low-level technologies directly,
 as it would make the development simply too slow.
 
-Providing a fast way to prototype and develop HPC applications is important, because the science part
-of HPC is also getting more demanding. Areas such as weather prediction, training machine learning
-models or big data analysis require launching thousands or even millions of simulations and
-experiments and require a lot of prototyping during development. The experiments are also more complex,
-instead of a single monolithic application, the computation is typically divided into multiple steps,
-such as data ingestion, preprocessing, actual computation, postprocessing, visualisation etc.
+Providing a fast way to prototype and develop HPC applications is important, because the science
+part of HPC is also getting more demanding. Areas such as weather prediction, training machine
+learning models or big data analysis require launching thousands or even millions of simulations
+and experiments and require a lot of prototyping during development. The experiments are also more
+complex, instead of a single monolithic application, the computation is typically divided into
+multiple steps, such as data ingestion, preprocessing, actual computation, postprocessing,
+visualisation etc.
 
 That is why in recent years, HPC users are increasingly moving towards programming paradiagms that
 allow them to focus on the problem domain, abstract away most of the complexity of the underlying
 system and describe computation that consists of a large number of individual steps.
 A popular way of performing complex computations on distributed clusters is to describe them
 using a set of reusable computing blocks (\emph{tasks}) that are composed together in a task graph,
-which captures the dependencies between the individual tasks.
-
-Among other benefits, task graphs (also called pipelines or workflows) are \emph{implicitly parallel}.
-With MPI, the user has to explicitly state which nodes should communicate together, how should the
-data be serialized and what communication patterns should be used. Using task graphs, the user
-simply describes what should be computed (tasks) and how is the computation logically ordered
-(dependencies between tasks). The available parallelism is then extracted automatically from the
-task graph by a task runtime system, which also schedules tasks to individual nodes and handles
-data communication. Combined with the fact that task graphs are usually written in high-level languages,
+which captures the dependencies between the individual tasks. Using task graphs abstracts away most
+of the complexity of network communication and parallelization and allows the user to focus on the
+problem domain. Combined with the fact that task graphs are usually written in high-level
+languages,
 such as Python, or various DSLs, it makes them an ideal tool for rapid scientific prototyping.
 
 While task graphs are commonly used and deployed on various distributed systems, there are certain
 factors that limit their performance scaling and also development productivity when deployed on HPC
-systems.
+systems. The aim of the proposed thesis is to analyse the effectiveness of task graphs executed
+on HPC clusters,identify current bottlenecks and research, design and implement tools and
+approaches that would enable task graphs to scale properly (both in terms of performance and
+usage ergonomics) on HPC systems.
 
-The aim of the proposed thesis is to analyse the effectiveness of task graphs executed on HPC clusters,
-identify current bottlenecks and research, design and implement tools and approaches that would
-enable task graphs to scale properly (both in terms of performance and usage ergonomics) on HPC systems.
-
-The proposal is structured as follows. Section~\ref{sec:challenges} describes challenges of task graph
-execution on HPC systems and defines objectives of this proposal. Section~\ref{sec:state_of_the_art}
-mentions existing task runtime systems and related works. Section~\ref{sec:current_progress} enumerates
-what has been achieved so far and outlines plans for future work. Section~\ref{sec:conclusion}
-summarizes the thesis proposal.
+The proposal is structured as follows. Section~\ref{sec:task_graph_definition} introduces task
+graphs. Section~\ref{sec:challenges} then describes challenges of task graph execution on HPC
+systems. Section~\ref{sec:state_of_the_art} mentions existing task runtime systems and related
+works. Section~\ref{sec:current_progress} enumerates what has been achieved so far and outlines
+objectives of this proposal. Section~\ref{sec:conclusion} summarizes the thesis proposal.

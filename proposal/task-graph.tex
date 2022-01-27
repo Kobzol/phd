@@ -1,0 +1,110 @@
+This section contains definitions of elementary terms that will be used throughout this proposal.
+The definitions will correspond with terminology used in existing tools that use task graphs,
+therefore they might slightly differ from definitions found in more theoretical related works.
+
+\subsection{Task}
+A \emph{task} is a unit of computation that describes how should input(s) be transformed
+into output(s). Tasks are usually represented either as functions, where inputs might correspond to
+parameters and outputs to the return value, or binaries, where inputs might correspond to
+command-line arguments or environment variables and outputs to the standard output or files created
+on a disk.
+
+Task is a description (a template) of some computation, therefore it can be computed multiple
+times, with various input parameters and other configuration. We will use the term
+\emph{task instance} for some instantiation of a task with specific inputs. In cases where this
+distinction is not important, task and task instance will be used interchangeably in this proposal.
+
+A task instance is executed on a \emph{worker}, an abstract computational provider. In a
+distributed task system, a worker usually corresponds to a single node, but it can also be
+a local process or even a single thread. In most cases, a single task instance is executed on a
+single worker, but it can be also executed on multiple workers (this will be further discussed in
+Section~\ref{sec:challenges}).
+
+Tasks can also define various constraints that influence which workers are capable of executing
+them. We will use the term \emph{resource requirements} for such constraints. As an example, a task
+that describes the training of a machine learning model might require a GPU (Graphics Processing
+Unit) to be present on a worker that wants to compute the task. Other resources might include
+e.g.\ a minimum required amount of memory (RAM) or a required amount of processor cores.
+
+\subsection{Task graph}
+To describe a complex computational workflow, tasks are composed together into a \emph{task
+graph}, a directed acyclic graph (DAG) of task instances. The semantics of the vertices and edges
+within a task graph depend on its specific implementation. In the most basic form,
+edges within the graph define dependencies between tasks, but other things can also be encoded
+in the graph, e.g.\ data transfers between tasks or nested tasks where tasks might be composed
+of other task graphs.
+
+For simplicity, we will formally define a simple form of a task graph that captures the basic
+structure of dependencies between task instances, without considering more advanced scenarios.
+Formally, a task graph is a pair $(V, E)$, where $V$ is a set of task instances and
+$E \subseteq \{(x, y) \mid (x, y) \in V\times{}V \land x \neq y \}$ is a set of dependencies
+between task instances.
+
+When there exists a dependency $(x, y)$, task $y$ cannot start executing before $x$ has finished
+executing (successfully). This usually signifies that task $x$ produces some output that will be
+used as an input for task $y$.
+
+%This transfer of data might be direct, when the system executing the handled by the task runtime
+%explicitly, but it might also be indirect. For example, $x$ might write a file with a specific
+%name to a filesystem and then $y$ will attempt to read that file, without the runtime ever knowing
+%about this form of communication.
+
+\subsection{Task runtime}
+We will use the term \emph{task runtime} for a system that actually executes programs defined using
+task graphs. There are many existing task runtimes, with varying architectures, features and
+trade-offs, that affect factors like performance, fault tolerance or developer productivity.
+All task runtimes have two main responsibilities, state management and task scheduling.
+
+Runtimes have to manage both the state of the workers and of the tasks. Worker management
+encompasses connecting and disconnecting workers, handling data transfers between them,
+handling worker crashes and many other bookkeeping actions. Task management involves
+mainly handling task state transitions. Task instances might be in various states at any given
+time, waiting for a dependency to finish executing, finished, failed, currently executing on
+some worker, etc. This state management is especially complex in a distributed setting, where the
+workers operate on remote nodes connected by a network.
+
+\subsection{Task scheduling}
+Task scheduling is described in its own section to emphasize that it is a crucial part of task
+graph execution.
+
+One of the main benefits of programming paradigms that leverage task graphs is that they are
+\emph{implicitly parallel}. With e.g.\ MPI, the user has to explicitly state which nodes should
+communicate together, how should the data be serialized and what communication patterns should
+be used. Using task graphs, the user simply describes what should be computed (tasks) and how is
+the computation logically ordered (task dependencies).
+
+The goal of a task runtime is to analyse the available parallelism contained within a task graph
+and plan (\emph{schedule}) the execution of task instances on specific workers in a way that
+optimizes some key metric. There are multiple metrics being used, such as latency to execute
+specific tasks, but the most common metric is \emph{makespan} -- the duration between the start of
+the execution of the first task to the completion of all tasks within the task graph.
+
+The problem of optimal scheduling of tasks onto workers is NP-hard~\cite{Ullman1975}, even in
+the most basic scenarios (e.g.\ even with known task durations and without considering
+data transfer costs between workers). Task runtimes thus have to resort to various
+heuristics tailored to their users' needs. Some classic task scheduling heuristics and their
+comparisons can be found in~\cite{hlfet1974,kwok1998benchmarking,hagras2003static,wang2018list}.
+
+The scheduling heuristics of the runtime have to take many factors into consideration when
+deciding on which worker should a task execute.
+
+\begin{description}
+    \item[\textbf{Resource requirements}] If a task specifies any resource requirements, they
+    have to be respected by the scheduler, therefore the runtime must observe the
+    dynamically changing available resources of each worker and schedule tasks accordingly to
+    uphold their requirements.
+    \item[\textbf{Data transfer cost}] If the runtime operates in a distributed cluster, one of
+    the most important scheduling aspects that it needs to consider is the transfer cost of data
+    between workers over the network. All benefits gained by computing a task on another worker to
+    achieve parallelization might be lost if it takes too much time to send the data (task
+    outputs) to that worker.
+
+    The scheduler thus has to carefully balance the communication-to-computation ratio, based on
+    the available network bandwidth, sizes of outputs produced by tasks and the current utilization
+    of workers.
+    \item[\textbf{Scheduling overhead}] The overhead of computing the scheduling decisions
+    itself also cannot be underestimated. As already stated, computing an optimal solution is
+    infeasible, but even heuristical approaches can have wildly different performance
+    characteristics. Producing a lower quality schedule sooner, rather than a higher quality
+    schedule later, can be sometimes beneficial, as we have demonstrated~\cite{rsds}.
+\end{description}
