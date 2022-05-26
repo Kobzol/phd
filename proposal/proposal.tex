@@ -1,9 +1,16 @@
 \documentclass[11pt]{article}
 
 \usepackage[utf8]{inputenc}
+\usepackage{todonotes}
+\usepackage{hyperref}
 
 % Biobliography setup
-\usepackage[giveninits=true, style=ieee]{biblatex}
+\usepackage[
+    backend=biber,
+    sortlocale=en_US,
+    hyperref=true,
+    defernumbers=true
+]{biblatex}
 \addbibresource{references.bib}
 
 \DeclareSourcemap{
@@ -38,7 +45,7 @@
         \vspace*{1cm}
         \par
         \Huge
-        \textbf{Executing Scientific Workflows on HPC clusters}
+        \textbf{Ergonomics and efficiency of workflows on HPC clusters}
         \par
         \vspace{0.5cm}
         \LARGE
@@ -55,8 +62,9 @@
             IT4Innovations National Supercomputing Center\par
             VSB -- Technical University of Ostrava\par
             Czech Republic\par
-            January 2022
+            February 2022
         }
+        \todo{supervisor}
     \end{center}
 \end{titlepage}
 
@@ -79,31 +87,23 @@
 \label{sec:state_of_the_art}
 \input{state-of-the-art.tex}
 
-\section{Current progress}
-\label{sec:current_progress}
-\input{current-progress.tex}
+\section{Thesis objectives}
+\label{sec:objectives}
+\input{objectives.tex}
 
 \section{Conclusion}
 \label{sec:conclusion}
 
 \section{Publications}
-\label{sec:publications}
+\label{sec:publications}\nocite{*}
+% TODO: remove nocite
+
 \subsection*{Publications related to the thesis}
-\begin{refsection}
-    \nocite{*}
-    \printbibliography[keyword=related,heading=none]
-\end{refsection}
+\printbibliography[keyword=related,heading=none]
 
 \subsection*{Publications unrelated to the thesis}
+\printbibliography[keyword=unrelated,heading=none]
 
-\begin{refsection}
-    \nocite{*}
-    \printbibliography[keyword=unrelated,heading=none]
-\end{refsection}
-
-\begin{refsection}
-    \nocite{*}
-    \printbibliography[keyword=foreign]
-\end{refsection}
+\printbibliography[keyword=foreign]
 
 \end{document}
