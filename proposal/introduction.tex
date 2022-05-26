@@ -7,23 +7,23 @@ effectively doubling every few years. However, such gains are not always for fre
 associated with the growth of HPC performance is its increasing complexity. Computing nodes now
 consist of hundreds of cores; it is quite challenging to write programs that can scale to such
 high core counts. They contain hundreds of gigabytes of memory, which necessitates non-uniform
-(NUMA) memory architectures that require specialized programming techniques to achieve optimal
-performance. HPC clusters are also becoming increasingly heterogenous, with devices such as
+memory architectures (NUMA) that require specialized programming techniques to achieve optimal
+performance. HPC clusters are also becoming increasingly heterogeneous, with devices such as
 graphics accelerators (GPUs) or reconfigurable hardware (FPGAs) providing most of their
 (theoretically attainable) performance. Reaching the full potential of these accelerators requires
 using further specialized programming languages and interfaces.
 
 Historically, optimized HPC software was usually written using system or scientifically focused
-programming languages (e.g.~C, C++ or Fortran) and specialized libraries for parallelizing and
-distributing
-computation (such as OpenMP and MPI). While these rather low-level technologies are able to provide
-the best possible performance, it can be quite challenging to develop (and maintain) applications
-using them. And with the advent of heterogenous clusters, even more technologies (such as CUDA for
-GPUs or HLS for FPGAs) have to be adopted. It is unreasonable to expect that most scientists that
-use HPC (who are often not primarily programmers) will use these low-level technologies directly,
-as it would make the development simply too slow.
+programming languages (e.g.~\texttt{C}, \texttt{C++} or \texttt{Fortran}) and specialized libraries
+for parallelizing and distributing computation (such as OpenMP and MPI)~\cite{mpistudy}. While
+these rather low-level technologies are able to provide the best possible performance, it can be
+quite challenging to develop (and maintain) applications using them. And with the advent of
+heterogeneous clusters, even more technologies (such as CUDA for GPUs or HLS for FPGAs) have to
+be adopted. It is unreasonable to expect that most scientists that use HPC (who are often not
+primarily programmers) will use these low-level technologies directly, as it would make the
+development process too slow.
 
-Providing a fast way to prototype and develop HPC applications is important, because the science
+Providing a fast way to prototype and develop HPC applications is important, because the scientific
 part of HPC is also getting more demanding. Areas such as weather prediction, training machine
 learning models or big data analysis require launching thousands or even millions of simulations
 and experiments and require a lot of prototyping during development. The experiments are also more
@@ -31,26 +31,26 @@ complex, instead of a single monolithic application, the computation is typicall
 multiple steps, such as data ingestion, preprocessing, actual computation, postprocessing,
 visualisation etc.
 
-That is why in recent years, HPC users are increasingly moving towards programming paradiagms that
+That is why in recent years, HPC users are increasingly moving towards programming paradigms that
 allow them to focus on the problem domain, abstract away most of the complexity of the underlying
 system and describe computation that consists of a large number of individual steps.
 A popular way of performing complex computations on distributed clusters is to describe them
-using a set of reusable computing blocks (\emph{tasks}) that are composed together in a task graph,
+using a set of computing blocks (\emph{tasks}) that are composed together in a task graph
 which captures the dependencies between the individual tasks. Using task graphs abstracts away most
-of the complexity of network communication and parallelization and allows the user to focus on the
-problem domain. Combined with the fact that task graphs are usually written in high-level
-languages,
-such as Python, or various DSLs, it makes them an ideal tool for rapid scientific prototyping.
+of the complexity of network communication and parallelization and allows the user to
+express their computation in a simple way. Combined with the fact that task graphs are usually written
+in high-level languages, such as Python, or various domain-specific languages (DSLs), it makes them
+an ideal tool for rapid scientific prototyping.
 
-While task graphs are commonly used and deployed on various distributed systems, there are certain
-factors that limit their performance scaling and also development productivity when deployed on HPC
-systems. The aim of the proposed thesis is to analyse the effectiveness of task graphs executed
-on HPC clusters,identify current bottlenecks and research, design and implement tools and
-approaches that would enable task graphs to scale properly (both in terms of performance and
-usage ergonomics) on HPC systems.
+While task graphs are commonly being used and deployed on various distributed systems, there are
+certain factors that limit their development productivity and scalability when deployed on HPC
+systems. The aim of the proposed thesis is to describe these factors by analysing the effectiveness
+of task graphs executed on HPC clusters and identifying current bottlenecks and
+further to research, design and implement tools and approaches that would enable task graphs to
+perform efficiently (both in terms of performance and usage ergonomics) on HPC systems.
 
 The proposal is structured as follows. Section~\ref{sec:task_graph_definition} introduces task
 graphs. Section~\ref{sec:challenges} then describes challenges of task graph execution on HPC
 systems. Section~\ref{sec:state_of_the_art} mentions existing task runtime systems and related
-works. Section~\ref{sec:current_progress} enumerates what has been achieved so far and outlines
+works. Section~\ref{sec:objectives} enumerates what has been achieved so far and outlines
 objectives of this proposal. Section~\ref{sec:conclusion} summarizes the thesis proposal.
