@@ -3,13 +3,16 @@
 \usepackage[utf8]{inputenc}
 \usepackage{todonotes}
 \usepackage{hyperref}
+% Multiple footnotes
+\usepackage[multiple]{footmisc}
 
 % Biobliography setup
 \usepackage[
     backend=biber,
     sortlocale=en_US,
     hyperref=true,
-    defernumbers=true
+    defernumbers=true,
+    maxbibnames=99
 ]{biblatex}
 \addbibresource{references.bib}
 
@@ -37,6 +40,11 @@
     }
   }
 }
+
+% shortcuts
+\newcommand{\estee}{\emph{Estee}}
+\newcommand{\rsds}{\emph{RSDS}}
+\newcommand{\dask}{\emph{Dask}}
 
 \begin{document}
 
@@ -79,7 +87,7 @@
 \label{sec:task_graph_definition}
 \input{task-graph.tex}
 
-\section{Challenges}
+\section{Objectives and Challenges}
 \label{sec:challenges}
 \input{challenges.tex}
 
@@ -87,21 +95,22 @@
 \label{sec:state_of_the_art}
 \input{state-of-the-art.tex}
 
-\section{Thesis objectives}
-\label{sec:objectives}
-\input{objectives.tex}
+\section{Current progress}
+\label{sec:current_progress}
+\input{current_progress.tex}
 
 \section{Conclusion}
 \label{sec:conclusion}
+\input{conclusion.tex}
 
 \section{Publications}
 \label{sec:publications}\nocite{*}
 % TODO: remove nocite
 
-\subsection*{Publications related to the thesis}
+\subsection*{Author's publications related to the thesis}
 \printbibliography[keyword=related,heading=none]
 
-\subsection*{Publications unrelated to the thesis}
+\subsection*{Author's publications unrelated to the thesis}
 \printbibliography[keyword=unrelated,heading=none]
 
 \printbibliography[keyword=foreign]
