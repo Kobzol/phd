@@ -1,15 +1,57 @@
-Snakemake:~\cite{snakemake}
-Ray - tasks must be spawned by workers
-https://github.com/facebookincubator/submitit
-legion numpy symbolic scheduling
-nextflow
-pycompss
-parsl
-dask
-
-uvést směry
-
 There are many existing task runtime systems, with different usability and performance
 trade-offs~\cite{dask, nextflow, snakemake, pycompss, parsl, ray}. Even though most of existing
 task runtimes are quite versatile and can run on pretty much anything from a laptop to a large
-distributed cluster,
+distributed cluster, they also suffer from various shortcomings in regard to the challenges
+described in Section~\ref{sec:challenges}.
+
+% TODO(dissertation): add state-of-the-art table
+
+Below you can find a list of notable task runtimes that are representatives of task runtime
+categories with certain properties (for example centralized/decentralized scheduling,
+relation to the job manager etc.).
+
+\dask{} is a task runtime written in Python that is very popular within the Python
+scientific and data analysis community\cite{dask,dask-user-survey}. It allows users to construct
+arbitrary task graphs out of Python function calls and then execute them on a distributed cluster.
+Its runtime architecture is standard, a centralized server receives tasks from clients and
+then schedules them to a set of connected workers.
+
+As we have analyzed in~\cite{rsds}, the fact that \dask{} is written in Python can severely limit
+its scaling potential for large HPC-scale task graphs. It also does not have support for arbitrary
+resource requirements. \dask{} itself has no notion of HPC job managers, therefore for large task
+graphs that span more than a single job, users have to manually split the task graph into
+multiple jobs and execute a \dask{} cluster computation inside each one of them. There is a helper
+package called Dask-Jobqueue\footnote{https://jobqueue.dask.org/en/latest/} which can overcome this
+issue by sharing a single server amongst multiple HPC jobs and thus allowing load balancing of
+the whole task graph.
+
+\ray{} is a distributed task runtime that focuses on machine-learning applications and
+actors (stateful computations useful for iterative processes and model training)~\cite{ray}.
+In many aspects, it is quite similar to \dask{}. However, it has a rather unique architectural
+property -- instead of a centralized scheduler, it uses a decentralized scheduling scheme. It
+leverages Redis as a distributed key-value store, which is uses for both for storing task
+output data and for storing the state of scheduling itself.
+
+This allows \ray{} to scale very efficiently; in extreme cases, it is able to schedule millions
+of tasks per second. However, to achieve this performance, the computational workflows have to use
+a slightly different programming paradigm. They have to be able to create new tasks from workers
+dynamically, while the workflow is being executed. In that case, the workers can schedule and
+execute these dynamic tasks locally, or send them to the distributed scheduler store if they are
+overloaded. If the whole task graph is created on a single client, the bottlenecks that exist in
+centralized schedulers would also affect Ray's decentralized architecture.
+
+\ray{} has support for custom resource requirements which it takes into account while making
+scheduling decisions, but it does not have built-in support for running outside HPC job managers.
+
+\snakemake{} is a workflow management system designed for executing reproducible
+scientific experiments~\cite{snakemake}. Unlike \dask{} and \ray{}, which primarily use
+imperative Python APIs for building task graphs, \snakemake{} workflows are specified declaratively
+in workflow files that leverage a combination of a custom DSL and Python. \snakemake{} supports
+custom resources and complex task configuration.
+
+In terms of the job manage, \snakemake{} can both submit tasks as individual jobs, or it can
+batch groups of tasks into a single job. However, the grouping is performed statically, and tasks
+are not load balanced across different jobs.
+\todo{SnakeMake performance}
+
+\todo{Merlin, Nextflow, Parsl, Legate, PyCompss, ...?}

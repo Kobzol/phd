@@ -3,8 +3,9 @@ The terminology surrounding tasks and tasks graphs is quite diverse and both the
 and various software tools tend to use slightly differing terms for similar structures. The
 description of tasks in this section will be practically oriented, with focus on how do the tasks
 concepts map to their implementation in existing tools for executing task workflows. Some used
-definitions might thus deviate from terminology used in previous theoretical works.
-\todo{Differences will be highlighted where needed.}
+definitions might thus deviate from terminology used in previous theoretical works. A more
+complete definition of tasks and task graphs will be provided in the thesis.
+%\todo{Differences will be highlighted where needed.}
 
 \subsection{Task}
 A \emph{task} is a description of some computation that can be executed in the future. The
@@ -31,9 +32,7 @@ It is crucial to note that in this case, a task corresponds to the combination o
 some specific way of producing its arguments\footnote{In programming language terms, a task
 corresponds to a lazy invocation of a function, with its parameters bound to specific input
 expressions.}, not just to the function itself. Two different tasks might represent the
-execution of the same function, but with different ways of procuring inputs.
-
-\todo{task template}
+execution of the same function, but with different (ways of procuring) inputs.
 
 \paragraph{Executing a program} A more coarse-grained way of describing computations is to specify
 a binary file representing a program that should be executed, along with its specific input values.
@@ -71,8 +70,7 @@ which the outputs of one task become the inputs of another task that depends on 
 
 The exact semantics of vertices and edges of task graphs depend heavily on the specifics of tools
 that implement them. What follows is a formal definition of a simple form of a task graph which
-captures the basic structure of dependencies between tasks, to provide basic intuition.\todo{Later
-we will add more complex task graph definitions, as needed.}
+captures the basic structure of dependencies between tasks, to provide basic intuition.
 
 Formally, a task graph is a pair $(V, E)$, where $V$ is a set of tasks and
 $E \subseteq \{(x, y) \mid (x, y) \in V\times{}V \land x \neq y \}$ is a set of dependencies
