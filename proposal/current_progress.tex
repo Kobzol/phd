@@ -20,8 +20,8 @@ or the amount of knowledge about task durations available for the scheduler.
 Our analysis has shown that despite its simplicity, the foundational HLFET
 algorithm~\cite{hlfet1974} produces high quality schedules in various scenarios and should thus
 serve as a good baseline scheduler for task runtimes. We have also found out that even a
-completely random can be competitive with other scheduling approaches for certain task graphs
-and cluster configurations.
+completely random scheduler can be competitive with other scheduling approaches for certain task
+graphs and cluster configurations.
 
 One of the contributions of this work was \estee{}, a simulation framework for task
 schedulers. It can be used to define a cluster of workers, connect them together using a
@@ -47,7 +47,7 @@ by the runtime (in)efficiency of its central server. The inefficiencies were cau
 the design of its communication protocol, but mainly by the fact that \dask{} is implemented in
 Python, which makes it difficult to fully utilize the available hardware potential. We have
 also realized that it was impractical to swap \dask{}'s scheduler implementation for another one,
-since its built-in work-stealing scheduling algorithm was quite firmly ingrained into all its
+since its built-in work-stealing scheduling algorithm was quite firmly integrated into all its
 components.
 
 In order to measure how could \dask{}'s performance be improved if it had a more efficient runtime,
@@ -118,6 +118,13 @@ clusters, since network controllers capable of offloading computations are alrea
 way into this area. One example of such technology is NVIDIA SHARP (Scalable Hierarchical
 Aggregation and Reduction Protocol), which allows offloading collective operations of MPI
 programs to networking devices.
+
+I have collaborated on this work with multiple researchers from ETH Zurich. My main
+contribution was the design, implementation and benchmark of a virtualized in-network compute
+engine that was used for implementing non-contiguous data transfers.
+
+\subsection{HyperQueue}
+
 
 \subsection{Future work}
 The research related to this thesis that has been conducted so far has been mostly focused on

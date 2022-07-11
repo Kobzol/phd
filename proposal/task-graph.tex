@@ -1,21 +1,20 @@
 This section contains definitions of elementary terms that will be used throughout this proposal.
 The terminology surrounding tasks and tasks graphs is quite diverse and both theoretical works
-and various software tools tend to use slightly differing terms for similar structures. The
-description of tasks in this section will be practically oriented, with focus on how do the tasks
-concepts map to their implementation in existing tools for executing task workflows. Some used
-definitions might thus deviate from terminology used in previous theoretical works. A more
-complete definition of tasks and task graphs will be provided in the thesis.
-%\todo{Differences will be highlighted where needed.}
+and various software tools tend to use slightly differing terms for similar structures. For the
+sake of simplicity, the description of tasks in this section will be practically oriented, with
+focus on how do the tasks concepts map to their implementation in existing tools for executing
+task workflows. Some used definitions might thus deviate from terminology used in previous
+theoretical works.
 
 \subsection{Task}
-A \emph{task} is a description of some computation that can be executed in the future. The
+A \emph{task} is a description of a computation that can be executed in the future. The
 \textit{execution} of a task is the process of performing the described computation on some
-specific input value(s) and producing output value(s). The purpose of tasks is to represent
+specific input value(s) while producing some output value(s). The purpose of tasks is to represent
 computations in a way that allows treating computations as data. This has many advantages; tasks
 can be serialized, sent between different nodes in a cluster or stored to disk, and it is possible
 to execute them an arbitrary number of times.
 
-The task's computation description should also contain a specific method of procuring inputs
+The task's computation description should contain a specific method of procuring inputs
 for the computation (if there are any) and a set of outputs that will be produced when the task
 is executed. Each input can either be specified as a concrete value or the task can describe how
 should the input be procured when the task is executed. Often, an output of a task is used as
@@ -101,6 +100,9 @@ worker(s) and which tasks can be executed next because their task dependencies h
 resolved. Worker and task state management is especially complex in a distributed setting, where
 the workers operate on remote computational nodes connected by a network.
 
+From the perspective of the task runtime, a task is an atomic element that cannot be further
+divided; it is simply an opaque structure that can be executed.
+
 \subsection{Task scheduling}
 Another important aspect that needs to be implemented by a task runtime is \emph{task
 scheduling}, which is described in its own section to emphasize that it is a crucial part of
@@ -122,8 +124,8 @@ The problem of optimal scheduling of tasks onto workers is NP-hard~\cite{Ullman1
 the most basic scenarios (e.g.\ even if the exact duration of executing each task is known,
 and even if we do not consider network costs of transferring data between workers). Task
 runtimes thus have to resort to various heuristics tailored to their users' needs. Some classic
-task scheduling heuristics and their comparisons can be found in~\cite{hlfet1974,
-    kwok1998benchmarking,hagras2003static,wang2018list,estee}.
+task scheduling heuristics and their comparisons can be found
+in~\cite{hlfet1974,kwok1998benchmarking,hagras2003static,wang2018list,estee}.
 
 The scheduling heuristics of the runtime have to take many factors into consideration when
 deciding on which worker should a task execute:
