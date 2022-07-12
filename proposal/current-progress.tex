@@ -14,14 +14,21 @@ To better understand the behaviour and performance of various scheduling algorit
 performed an extensive analysis of several task scheduling algorithms in
 \emph{Analysis of workflow schedulers in simulated distributed environments}~\cite{estee}.
 We have benchmarked several task schedulers under various conditions, including parameters that
-haven't been explored in existing literature, like the minimum delay between invoking the scheduler
-or the amount of knowledge about task durations available for the scheduler.
+haven't been explored so far, like the minimum delay between invoking the
+scheduler or the amount of knowledge about task durations available for the scheduler.
 
 Our analysis has shown that despite its simplicity, the foundational HLFET
 algorithm~\cite{hlfet1974} produces high quality schedules in various scenarios and should thus
 serve as a good baseline scheduler for task runtimes. We have also found out that even a
 completely random scheduler can be competitive with other scheduling approaches for certain task
 graphs and cluster configurations.
+
+%During our attempts to implement various scheduling algorithms, we have also realized that the
+%descriptions of many task scheduling algorithms in existing literature is incomplete. More
+%specifically, seemingly inconsequential implementation details that are often missing from the
+%algorithm's description can have a very large effect on the final performance of the scheduler,
+%which makes it difficult to precisely reproduce and compare the performance of the existing
+%algorithms.
 
 One of the contributions of this work was \estee{}, a simulation framework for task
 schedulers. It can be used to define a cluster of workers, connect them together using a
@@ -30,7 +37,7 @@ arbitrary task graphs. \estee{} also contains implementations of several task sc
 baselines from existing literature and a task graph generator that can be used to generate
 randomized graphs with similar properties as real-world task graphs. This tool serves as an
 experimentation testbed for task runtime and scheduler developers. \estee{} is
-available as open-source software~\footnote{https://github.com/it4innovations/estee}.
+available as open-source software~\footnoteurl{https://github.com/it4innovations/estee}.
 
 I have collaborated on this work with Stanislav Böhm and Vojtěch Cima, we have all contributed
 equally to this work.
@@ -40,14 +47,14 @@ The scheduler is not the only part of a task runtime that can cause bottlenecks 
 execution. We have analysed an existing and quite popular task runtime \dask{}~\cite{dask} in
 \emph{Runtime vs Scheduler: Analyzing Dask's Overheads}~\cite{rsds}, both to find out what
 bottlenecks does it have, and also to benchmark various scheduling algorithms with \dask{},
-to test them "in the wild" and thus better validate our results from~\cite{estee}.
+to test them ``in the wild'' and thus better validate our results from~\cite{estee}.
 
 Our analysis has demonstrated that \dask{} was bottlenecked not so much by its scheduler, but
 by the runtime (in)efficiency of its central server. The inefficiencies were caused partly by
 the design of its communication protocol, but mainly by the fact that \dask{} is implemented in
 Python, which makes it difficult to fully utilize the available hardware potential. We have
-also realized that it was impractical to swap \dask{}'s scheduler implementation for another one,
-since its built-in work-stealing scheduling algorithm was quite firmly integrated into all its
+also found out that it was impractical to swap \dask{}'s scheduler implementation for another one,
+since its built-in work-stealing scheduling algorithm was quite firmly integrated into its
 components.
 
 In order to measure how could \dask{}'s performance be improved if it had a more efficient runtime,
@@ -56,7 +63,7 @@ replacement for the \dask{} central server. It was built from the ground up with
 runtime efficiency and scheduler modularity, but at the same time we have designed it to be
 compatible with the \dask{} protocol, so it could be used by existing \dask{} users to speed up
 their task workflows. \rsds{} is available as open-source
-software~\footnote{https://github.com/it4innovations/rsds}.
+software~\footnoteurl{https://github.com/it4innovations/rsds}.
 
 We have performed a series of experiments where we have compared the performance of \rsds{} vs
 \dask{}. Since \rsds{} allows its users to plug in a different scheduling algorithm easily, we
@@ -67,11 +74,12 @@ sure that we were benchmarking realistic use-cases.
 The results of our experiments indicate that optimizing the runtime is definitely a worthy effort
 to pursuit, as \rsds{} has been able to outperform \dask{} in various scenarios, even though it
 used a much simpler work-stealing scheduling algorithm. We have also been able to validate our
-results form~\cite{estee}, for example that even a random scheduler is indeed competitive with
+results from~\cite{estee}, for example that even a random scheduler is indeed competitive with
 other scheduling approaches in many scenarios.
 
 We have contacted the authors and maintainers of \dask{} and discussed our \rsds{} approach with
-them~\footnote{https://github.com/dask/distributed/issues/3139}\footnote{https://github.com/dask/distributed/issues/3783}\footnote{https://github.com/dask/distributed/issues/3872}.
+them~\footnoteurl{https://github.com/dask/distributed/issues/3139}\footnoteurl{https://github
+.com/dask/distributed/issues/3783}\footnoteurl{https://github.com/dask/distributed/issues/3872}.
 Some of its ideas have been adapted in the \dask{} project and led to improving its performance.
 
 An interesting insight regarding task schedulers that we have gained from our work done
@@ -90,25 +98,26 @@ work.
 \subsection{In-Network Computing}
 In-network computing is a relatively recent area of research that attempts to explore the
 possibility of offloading certain computing operations directly to network controllers, in order
-to massively reduce latency and improve bandwidth of distributed and HPC applications. The classic
+to massively reduce latency and improve bandwidth of distributed (HPC) applications. The classic
 approach of performing operations on data sent over the network is to pass it from the network
 interface through all levels of the CPU memory hierarchy to the processor, which performs the
 operation, and then send the data all the way back to the network interface and further into the
 network. Even though a lot of fundamental networked operations (like collective reductions or
-key-value operations) are rather simple to compute, they suffer from high latency, because of the
-data movement needed to get the data to the processing element (the CPU).
+key-value operations) are rather simple to compute, they can suffer from high latency because of
+the data movement needed to get the data to the processing element (the CPU).
 
-The idea of in-network computing is to move some data processing operations directly onto the
-network controller, in order to remove the latency caused by the CPU memory hierarchy. This
+The idea of in-network computing is to move some data processing operations directly onto a
+network controller (which can be a NIC connected to a computer, but also e.g.\ a smart network
+switch), in order to remove the latency caused by the CPU memory hierarchy. This
 approach is similar e.g.\ to offloading expensive computation from the CPU to graphics
 accelerators (GPUs), even though in the case of network controller offloading, the latency is
 usually more important than bandwidth (for GPUs it's typically the other way around).
 
 We have explored how offloading computation to a network accelerator could improve the
 performance of non-contiguous memory transfers in MPI applications~\cite{spin}. This
-research was then expanded and generalized to a more general framework in \emph{A RISC-V in-Network
-Accelerator for Flexible High-Performance Low-Power Packet Processing}~\cite{spin2}. Even though
-this research area is still fairly unexplored, the results so far are quite promising.
+research was then expanded and generalized to a more general in-network computing framework
+in~\cite{spin2}. Even though this research area is still fairly unexplored, the results so far
+look quite promising.
 
 Task runtimes need to exchange many kinds of data amongst workers and the scheduler over
 the network. Some of these data exchanges could be offloaded to network controllers using either
@@ -120,17 +129,5 @@ Aggregation and Reduction Protocol), which allows offloading collective operatio
 programs to networking devices.
 
 I have collaborated on this work with multiple researchers from ETH Zurich. My main
-contribution was the design, implementation and benchmark of a virtualized in-network compute
+contribution was the design, implementation and benchmarking of a virtualized in-network compute
 engine that was used for implementing non-contiguous data transfers.
-
-\subsection{HyperQueue}
-
-
-\subsection{Future work}
-The research related to this thesis that has been conducted so far has been mostly focused on
-analysing task schedulers and task runtime bottlenecks, which are both part of the
-challenges mentioned in Section~\ref{sec:challenges}. In terms of the thesis topics, these areas
-fall into the category of efficiency. In future work, I would like to also focus on the
-ergonomics side of HPC task graph execution, mainly on overcoming the issue of combining task
-graph execution with HPC job manager queues. This could be done by designing a new task runtime
-that would be tailored for usage on HPC clusters.

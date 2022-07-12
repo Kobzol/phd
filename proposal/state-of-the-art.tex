@@ -21,7 +21,7 @@ its scaling potential for large HPC-scale task graphs. It also does not have sup
 resource requirements. \dask{} itself has no notion of HPC job managers, therefore for large task
 graphs that span more than a single job, users have to manually split the task graph into
 multiple jobs and execute a \dask{} cluster computation inside each one of them. There is a helper
-package called Dask-Jobqueue\footnote{https://jobqueue.dask.org/en/latest/} which can overcome this
+package called Dask-Jobqueue\footnoteurl{https://jobqueue.dask.org/en/latest/} which can overcome this
 issue by sharing a single server amongst multiple HPC jobs and thus allowing load balancing of
 the whole task graph.
 
