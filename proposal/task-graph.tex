@@ -41,7 +41,7 @@ of files written to disk.
 
 \vspace{3mm}Tasks can be executed on a \emph{worker}, an abstract computational provider. In a
 distributed task runtime, a single worker usually corresponds to a computational node, but
-it can also be just a single process or even a single thread. Traditionally, a single
+it can also be just a single process or even a single thread. Usually a single
 task is executed on a single worker, but in HPC scenarios, there are use-cases for tasks that
 span multiple workers (this will be further discussed in Section~\ref{sec:challenges}).
 
@@ -90,7 +90,7 @@ with varying architectures, features and trade-offs, which affect factors like p
 tolerance or developer productivity. Some of these existing runtimes will be described in more
 detail in Section~\ref{sec:state_of_the_art}.
 
-In general, a task runtime has to manage all aspects of task graph execution.
+In general, a task runtime has to manage and monitor all aspects of task graph execution.
 One of these aspects is managing the state of computational resources (workers) that actually
 execute tasks. For example, it has to handle the lifetime of workers (their
 connection/disconnection), facilitate data transfers between them or provide resiliency in case of
@@ -100,7 +100,8 @@ worker(s) and which tasks can be executed next because their task dependencies h
 resolved. Worker and task state management is especially complex in a distributed setting, where
 the workers operate on remote computational nodes connected by a network.
 
-From the perspective of the task runtime, a task is an atomic element that cannot be further
+The runtime is also responsible for actually executing the tasks on workers. From the
+perspective of the task runtime, a task is an atomic element that cannot be further
 divided; it is simply an opaque structure that can be executed.
 
 \subsection{Task scheduling}

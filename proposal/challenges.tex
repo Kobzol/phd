@@ -54,7 +54,13 @@ a single command, they have to think about how to map the task graph to HPC jobs
 able to execute their tasks on an HPC cluster and also to amortize the overheads of the job
 manager.
 
-There are several approaches that can be used to perform this mapping of task graphs to HPC jobs.
+It should be noted that even though there is definitely room for improving the performance of
+HPC job managers, some of their complexity and performance limitations are inherent. They have
+to provide accurate accounting, handle robust and secure cleanup of jobs, take care of job and
+process isolation, ensure user fairness and many other things. Many of these responsibilities are
+out of scope for task runtimes, which enables them to achieve higher performance.
+
+There are several approaches that can be used to map task graphs to HPC jobs.
 Here are some examples of these approaches, ordered from the simplest to the most complicated:
 
 \begin{description}
@@ -176,9 +182,9 @@ edge case.
 
 \subsection{Multi-node tasks}
 Many existing HPC applications are designed to be executed on multiple (hundreds or even
-thousands) nodes in parallel, using MPI libraries or other communication frameworks. On the
-other hand, most task runtimes assume that each task will execute on a single worker (and thus
-a single node).
+thousands) nodes in parallel, using MPI libraries or other communication frameworks. To properly
+support these use-cases, we can introduce multi-node tasks by creating a special resource
+requirement, which states that a task should be executed on multiple workers at once.
 
 Support for multi-node tasks affects many design areas of a task runtime:
 \begin{description}
