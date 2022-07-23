@@ -3,10 +3,10 @@ research, as they offer unparalleled computing resources that can be leveraged t
 complex scientific experiments. Over the last several decades, the performance of HPC clusters
 has been increasing steadily, effectively doubling every few years. However, such gains are not
 always for free. One notable cost associated with the growth of HPC performance is its
-increasing complexity. Computing nodes now consist of hundreds of cores; it is quite challenging
-to write programs that can scale to such high core counts. They contain hundreds of gigabytes of
-memory, which necessitates non-uniform memory architectures (NUMA) that require specialized
-programming techniques to achieve optimal performance. HPC clusters are also becoming
+increasing complexity. Computing nodes now consist of hundreds of cores, making it quite
+challenging to write programs that can scale to such high core counts. They contain hundreds of
+gigabytes of memory, which necessitates non-uniform memory architectures (NUMA) that require
+specialized programming techniques to achieve optimal performance. HPC clusters are also becoming
 increasingly heterogeneous, with devices such as graphics accelerators (GPUs) or reconfigurable
 hardware (FPGAs) providing most of their (theoretically attainable) performance. Reaching the
 full potential of these accelerators requires using further specialized programming languages
@@ -16,42 +16,57 @@ Historically, optimized HPC software was usually written using system or scienti
 programming languages (e.g.~\texttt{C}, \texttt{C++} or \texttt{Fortran}) and specialized libraries
 for parallelizing and distributing computation (such as OpenMP and MPI)~\cite{mpistudy}. While
 these rather low-level technologies are able to provide the best possible performance, it can be
-quite challenging to develop (and maintain) applications that use them. And with the advent of
-heterogeneous clusters, even more technologies (such as CUDA for GPUs or HLS for FPGAs) have to
-be adopted. It is unreasonable to expect that most scientists that use HPC (who are often not
-primarily programmers) will use these low-level technologies directly, as it would make the
-development process too slow.
+quite challenging and slow to develop (and maintain) applications that use them. And with the
+advent of heterogeneous clusters, even more technologies (such as \texttt{CUDA} for GPUs or
+\texttt{HLS} for FPGAs) have to be adopted. It is unreasonable to expect that most scientists
+that use HPC resources (who are often not primarily software developers) will be able to use these
+low-level technologies in an efficient manner without making the development process too slow
+and cumbersome.
 
-At the same time, the scientific part of HPC is also getting more demanding. Areas such as weather
-prediction, machine learning model training or big data analysis require launching thousands or
-even millions of simulations and experiments and require a lot of prototyping during development.
-The experiments are also quite complex, consisting of multiple dependent steps, such as data
+Increasingly powerful hardware enables more complex computations, which are in turn more
+demanding to develop. Areas such as weather prediction, machine learning model training or big
+data analysis require launching thousands or even millions of simulations and experiments and
+require a lot of prototyping during development.
+These experiments can be quite complex, consisting of multiple dependent steps, such as data
 ingestion, preprocessing, computation, postprocessing, visualisation etc. It is thus imperative for
 scientists to have a quick way of prototyping these applications, otherwise the development
 would just be too slow.
 
-That is why in recent years, HPC users are increasingly moving towards programming paradigms that
-allow them to focus on the problem domain, quickly prototype, abstract away most of the complexity
-of the underlying system and describe computation that consists of a large number of individual
-steps. One such programming paradigm that is very popular is to describe computations
-using a set of atomic computing blocks (\emph{tasks}) that are composed together in a task graph
-which captures the dependencies between the individual tasks. Using task graphs abstracts away most
-of the complexity of network communication and parallelization and allows the user to
-express their computation in a simple way. Combined with the fact that
-task graphs are usually written in high-level languages, such as Python, or various domain-specific
-languages (DSLs), it makes them an ideal tool for rapid scientific prototyping.
+That is why in recent years, HPC users are increasingly moving towards task-based programming
+paradigms. These paradigms allow users to focus on the problem domain, quickly prototype and
+describe computation that consists of a large number of individual steps. Using a task-based
+approach, computations are described using a set of atomic computing blocks (\emph{tasks}) that
+are composed together in a \emph{task graph} which captures the dependencies between the
+individual tasks. Using task graphs abstracts away most of the complexity of network
+communication and parallelization and allows the user to express their computation in a simple
+way. Combined with the fact that task-based tools often provide interfaces written in high-level
+languages, such as Python, or various domain-specific languages (DSLs), it makes them an ideal
+tool for rapid scientific prototyping.
 
 While task graphs are already commonly being used and deployed on various distributed systems,
-there are certain barriers and factors that limit their development productivity and scalability
-when deployed on HPC systems specifically. The primary aim of the proposed thesis is to improve
-this situation by identifying and analysing the current productivity and performance bottlenecks
-and by researching, designing and implementing tools and approaches that would enable users to
-overcome them. The designed approaches should enable executing task graphs on HPC systems in a
-way that is both ergonomic for the user and also resource-efficient.
+there are certain challenges that limit their development productivity and scalability
+when deployed on HPC systems specifically. They stem from the interaction with HPC job managers,
+various quirks commonly present in HPC clusters or from the sheer computational scale that is
+possible thanks to vast resources provided by HPC systems. Removing or alleviating some of those
+challenges could lower the barrier of entry and make task graph execution better suited for
+various HPC use-cases.
+
+The proposed thesis aims to improve task graph execution in HPC by focusing on two important areas,
+namely developer ergonomics and resource efficiency. The primary goal is to enable computing
+task graphs on HPC systems in a way that is simple and comfortable for the user, supports
+essential HPC-specific use-cases and performs in an efficient manner. To achieve this goal, the
+thesis has the following objectives:
+\begin{itemize}
+    \item Identify challenges of task graph execution on HPC systems.
+    \item Design approaches for enabling task graph execution
+    on HPC systems in a way that is both ergonomic for the user and also resource-efficient.
+    \item Implement and integrate the designed approaches in a task graph execution tool to
+    validate them in real world usage.
+\end{itemize}
 
 The thesis proposal is structured as follows. Section~\ref{sec:task_graph_definition} introduces
 task graphs. Section~\ref{sec:challenges} describes current challenges of task graph execution on
-HPC systems and objectives of the proposed thesis. Section~\ref{sec:state_of_the_art} mentions
-existing task runtime systems and related works. Section~\ref{sec:current_progress} enumerates
-what has been achieved so far. Section~\ref{sec:future-work} summarizes the thesis proposal and
-outlines future work.
+HPC systems. Section~\ref{sec:state_of_the_art} mentions existing task runtime systems and
+related works. Section~\ref{sec:current_progress} enumerates what has been achieved so far.
+Section~\ref{sec:future-work} summarizes the thesis proposal and outlines future work on the
+\hyperqueue{} task execution tool.

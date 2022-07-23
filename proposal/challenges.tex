@@ -7,12 +7,20 @@ designing and prototyping HPC-scale task graphs.
 %clusters and what specific problems and bottlenecks exist in this area, and to design and develop
 %tools and approaches that would improve the ergonomics and efficiency of task workflows in HPC.
 
-Since the primary goal of the proposed thesis is to improve HPC task graph execution, it is crucial
-to first identify the current bottlenecks that limit its potential. This section discusses some
-of the most important challenges and limitations of executing task graphs on HPC systems. These
-identified bottlenecks will also serve as objectives for further research in the thesis and will
-guide future work. In particular, the challenges will mention properties that should be upheld
-by a task runtime in order for it to properly support the mentioned HPC task graph requirements.
+%Since the primary goal of the proposed thesis is to improve HPC task graph execution, it is
+%crucial
+%to first identify the current bottlenecks that limit its potential. This section discusses some
+%of the most important challenges and limitations of executing task graphs on HPC systems. These
+%identified bottlenecks will also serve as objectives for further research in the thesis and will
+%guide future work. In particular, the challenges will mention properties that should be upheld
+%by a task runtime in order for it to properly support the mentioned HPC task graph requirements.
+
+This section discusses several challenges of executing task graphs on HPC systems and also
+use-cases that are fairly unique in the HPC environment. In order to enable truly ergonomic and
+efficient usage of task graphs, task runtimes should support the mentioned use-cases and should
+also be aware of the challenges, and ideally deal with them as best they could. This section will
+thus also mention various properties and features that task runtimes should offer to deal with the
+mentioned challenges.
 
 \subsection{Job manager}
 The vast majority of HPC systems use some kind of job manager (usually PBS/Torque~\cite{pbs} or
@@ -297,9 +305,8 @@ runtimes, which are described in the next section. However, the described challe
 diverse and complex that a dedicated approach which considers them holistically could provide a
 better solution that would avoid both ergonomics and performance from being compromised.
 
-One of the objectives of the proposed thesis will be to design approaches for executing
-task graphs that would consider the mentioned challenges and requirements and resolve them
-within a unified framework.
-
-As a step in this direction, preliminary design and implementation of a tool for executing task
-graphs tailored for HPC systems is described in Section~\ref{sec:future-work}.
+The aforementioned challenges and use-cases will serve as a basis for further research in the
+proposed thesis. The goal of the thesis is to design solutions for executing task graphs on HPC
+systems that are aware of the mentioned use-cases and are able to resolve them efficiently.
+These solutions will be implemented in a task runtime called \hyperqueue{}, which is described
+further in Section~\ref{subsec:hyperqueue}.

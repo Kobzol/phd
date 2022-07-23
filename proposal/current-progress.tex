@@ -1,6 +1,10 @@
-The main body of work related to the proposed thesis thas has been done so far has been published
-in~\cite{estee, rsds}. Additional relevant research has also been conducted
-in~\cite{spin2,spin}. These publications are described in more detail below.
+This section describes two main bodies of work that have been conducted so far. The first is a
+set of publications~\cite{estee, rsds,spin2,spin} related to the first objective of the thesis,
+identifying HPC task graph challenges. The second is the work on designing and implementing
+\emph{HyperQueue}, a task graph execution tool designed for HPC use-cases.
+
+The mentioned publications are described in more detail below, \emph{hyperqueue} is discussed in
+Section~\ref{subsec:hyperqueue}.
 
 \subsection{Task scheduler analysis and benchmarking}
 The scheduler component, which assigns tasks to individual workers, is one of the
@@ -131,3 +135,42 @@ programs to networking devices.
 I have collaborated on this work with multiple researchers from ETH Zurich. My main
 contribution was the design, implementation and benchmarking of a virtualized in-network compute
 engine that was used for implementing non-contiguous data transfers.
+
+\subsection{HyperQueue}
+\label{subsec:hyperqueue}
+\hyperqueue{} is an HPC-tailored task runtime designed for executing task graphs in HPC
+environments.
+Its two primary objectives are to be as performant as possible and to be easy to use and deploy.
+It is available as an open-source software~\footnoteurl{https://github
+.com/it4innovations/hyperqueue}.
+It is developed in the Rust programming language.
+
+The key idea of \hyperqueue{} is to disentangle the submission of computation and the provision of
+computational resources. With traditional HPC job managers, the computation description is
+closely tied to the request of computational resources, which leads to problems mentioned in
+Section~\ref{sec:challenges}, such as less efficient load balancing or the need to manually
+aggregate tasks into jobs. \hyperqueue{} separates these two actions; users submit task graphs
+independently of providing computational resources (workers) and let the task runtime take care of
+matching them together, based on requested resource requirements and other constraints.
+
+This approach already makes the execution of task graphs on HPC clusters simpler. In alignment
+with the goal to improve the integration of task graphs with the job manager, I have designed
+and implemented an \emph{automatic allocator} that is able to ask HPC job managers for
+computational resources automatically, depending on the current computational load. This frees
+users from interacting with the job manager directly and moves one step closer to a straightforward
+execution of task graphs on HPC systems.
+
+In future work, I plan to improve automatic allocation and better understand its behavior in
+various
+HPC use-cases, and also to design further approaches for resolving the mentioned HPC challenges
+and implement them within \hyperqueue{}.
+
+It should be noted that while I am one of its primary authors and contributors, \hyperqueue{}
+is a team effort, and it is being developed by multiple people.
+
+\hyperqueue{} is being used by users of various HPC centres, and it is also a key
+component of the Horizon 2020 European Union projects
+LIGATE~\footnoteurl{https://www.ligateproject.eu},
+EVEREST~\footnoteurl{https://everest-h2020.eu} and
+ACROSS~\footnoteurl{https://across-h2020.eu}. It is also envisioned as one of the primary ways of
+executing computations on the LUMI supercomputer~\cite{lumi_it4innovations_2022}.
