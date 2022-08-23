@@ -4,11 +4,13 @@ challenges mentioned in Section~\ref{sec:challenges}. In terms of the areas disc
 Section\ref{sec:introduction}, these concepts fall into the area of efficiency.
 
 In future work, I plan to also focus on the ergonomics side of HPC task graph execution,
-primarily on overcoming the issue of integrating task graph execution with HPC job managers. As
-a step in this direction, I have been working on the automatic allocator of \hyperqueue{}, which
-I plan to further develop and analyse.
+primarily on overcoming the issue of integrating task graph execution with HPC job managers.
 
-In alignment with the mentioned thesis objectives, the future work will focus on designing ways
-of overcoming some challenges of task graph execution on HPC systems mentioned earlier and
-use \hyperqueue{} as the integration component where these ideas would be tested and applied in
-real-world HPC scenarios.
+\hyperqueue{} is a step in this direction, since it already makes the execution
+of task graphs on HPC clusters simpler. I have designed and implemented an \emph{automatic allocator}
+into \hyperqueue{} that is able to ask HPC job managers for computational resources automatically,
+depending on the current computational load. This frees users from interacting with the job manager
+directly and moves one step closer to a straightforward execution of task graphs on HPC systems.
+In future work, I plan to improve automatic allocation and better understand its behavior in
+various HPC use-cases, and also to design new approaches for resolving the mentioned HPC challenges
+and apply them to real-world HPC scenarios while leveraging \hyperqueue{}.

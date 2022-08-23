@@ -1,10 +1,9 @@
 This section contains definitions of elementary terms that will be used throughout this proposal.
-The terminology surrounding tasks and tasks graphs is quite diverse and both theoretical works
+The terminology surrounding tasks and task graphs is quite diverse and both theoretical works
 and various software tools tend to use slightly differing terms for similar structures. For the
-sake of simplicity, the description of tasks in this section will be practically oriented, with
-focus on how do the tasks concepts map to their implementation in existing tools for executing
-task workflows. Some used definitions might thus deviate from terminology used in previous
-theoretical works.
+sake of simplicity, the description of tasks in this section will be focused on how do the tasks
+concepts map to their implementation in existing tools for executing task workflows. Some used
+definitions might thus deviate from terminology used in previous works.
 
 \subsection{Task}
 A \emph{task} is a description of a computation that can be executed in the future. The
@@ -39,11 +38,11 @@ In this case, the inputs might be e.g.\ command-line parameters or environment v
 output of a task that executes a program can be e.g.\ the contents of its standard output or a set
 of files written to disk.
 
-\vspace{3mm}Tasks can be executed on a \emph{worker}, an abstract computational provider. In a
-distributed task runtime, a single worker usually corresponds to a computational node, but
-it can also be just a single process or even a single thread. Usually a single
-task is executed on a single worker, but in HPC scenarios, there are use-cases for tasks that
-span multiple workers (this will be further discussed in Section~\ref{sec:challenges}).
+\vspace{3mm}Tasks can be executed on a \emph{worker}, an abstract computational provider.
+Distributed task runtimes map workers to hardware resources in various ways. For example, there
+can be a single worker per computational node or a worker per each core.
+Usually a single task is executed on a single worker, but in HPC scenarios, there are use-cases
+for tasks that span multiple workers (this will be further discussed in Section~\ref{sec:challenges}).
 
 Tasks can also define various constraints and configuration that influences their execution,
 e.g.\ they can specify what kinds of workers are capable of executing them.

@@ -16,9 +16,9 @@ Historically, optimized HPC software was usually written using system or scienti
 programming languages (e.g.~\texttt{C}, \texttt{C++} or \texttt{Fortran}) and specialized libraries
 for parallelizing and distributing computation (such as OpenMP and MPI)~\cite{mpistudy}. While
 these rather low-level technologies are able to provide the best possible performance, it can be
-quite challenging and slow to develop (and maintain) applications that use them. And with the
-advent of heterogeneous clusters, even more technologies (such as \texttt{CUDA} for GPUs or
-\texttt{HLS} for FPGAs) have to be adopted. It is unreasonable to expect that most scientists
+quite challenging and slow to develop (and maintain) applications that use them effectively. And
+with the advent of heterogeneous clusters, even more technologies (such as \texttt{CUDA} for GPUs
+or \texttt{HLS} for FPGAs) have to be adopted. It is unreasonable to expect that most scientists
 that use HPC resources (who are often not primarily software developers) will be able to use these
 low-level technologies in an efficient manner without making the development process too slow
 and cumbersome.
@@ -52,8 +52,8 @@ challenges could lower the barrier of entry and make task graph execution better
 various HPC use-cases.
 
 The proposed thesis aims to improve task graph execution in HPC by focusing on two important areas,
-namely developer ergonomics and resource efficiency. The primary goal is to enable computing
-task graphs on HPC systems in a way that is simple and comfortable for the user, supports
+namely developer ergonomics and efficient hardware utilization. The primary goal is to enable
+computing task graphs on HPC systems in a way that is simple and comfortable for the user, supports
 essential HPC-specific use-cases and performs in an efficient manner. To achieve this goal, the
 thesis has the following objectives:
 \begin{itemize}
@@ -68,5 +68,4 @@ The thesis proposal is structured as follows. Section~\ref{sec:task_graph_defini
 task graphs. Section~\ref{sec:challenges} describes current challenges of task graph execution on
 HPC systems. Section~\ref{sec:state_of_the_art} mentions existing task runtime systems and
 related works. Section~\ref{sec:current_progress} enumerates what has been achieved so far.
-Section~\ref{sec:future-work} summarizes the thesis proposal and outlines future work on the
-\hyperqueue{} task execution tool.
+Section~\ref{sec:future-work} summarizes the thesis proposal and outlines future work.

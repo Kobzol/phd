@@ -1,10 +1,7 @@
 This section describes two main bodies of work that have been conducted so far. The first is a
-set of publications~\cite{estee, rsds,spin2,spin} related to the first objective of the thesis,
+set of publications~\cite{estee,rsds,spin2,spin} related to the first objective of the thesis,
 identifying HPC task graph challenges. The second is the work on designing and implementing
 \emph{HyperQueue}, a task graph execution tool designed for HPC use-cases.
-
-The mentioned publications are described in more detail below, \emph{hyperqueue} is discussed in
-Section~\ref{subsec:hyperqueue}.
 
 \subsection{Task scheduler analysis and benchmarking}
 The scheduler component, which assigns tasks to individual workers, is one of the
@@ -18,7 +15,7 @@ To better understand the behaviour and performance of various scheduling algorit
 performed an extensive analysis of several task scheduling algorithms in
 \emph{Analysis of workflow schedulers in simulated distributed environments}~\cite{estee}.
 We have benchmarked several task schedulers under various conditions, including parameters that
-haven't been explored so far, like the minimum delay between invoking the
+have not been explored so far, like the minimum delay between invoking the
 scheduler or the amount of knowledge about task durations available for the scheduler.
 
 Our analysis has shown that despite its simplicity, the foundational HLFET
@@ -35,13 +32,13 @@ graphs and cluster configurations.
 %algorithms.
 
 One of the contributions of this work was \estee{}, a simulation framework for task
-schedulers. It can be used to define a cluster of workers, connect them together using a
-configurable network model, implement a custom scheduling algorithm and test its performance on
-arbitrary task graphs. \estee{} also contains implementations of several task scheduler
-baselines from existing literature and a task graph generator that can be used to generate
-randomized graphs with similar properties as real-world task graphs. This tool serves as an
-experimentation testbed for task runtime and scheduler developers. \estee{} is
-available as open-source software~\footnoteurl{https://github.com/it4innovations/estee}.
+schedulers that is available as an open-source software\footnoteurl{https://github.com/it4innovations/estee}.
+It can be used to define a cluster of workers, connect them together using a configurable network
+model, implement a custom scheduling algorithm and test its performance on arbitrary task graphs.
+\estee{} also contains implementations of several task scheduler baselines from existing literature
+and a task graph generator that can be used to generate randomized graphs with similar properties as
+real-world task graphs. This tool serves as an experimentation testbed for task runtime and scheduler
+developers.
 
 I have collaborated on this work with Stanislav Böhm and Vojtěch Cima, we have all contributed
 equally to this work.
@@ -62,12 +59,11 @@ since its built-in work-stealing scheduling algorithm was quite firmly integrate
 components.
 
 In order to measure how could \dask{}'s performance be improved if it had a more efficient runtime,
-as a second main contribution of this work we have developed \rsds{}, a drop-in
-replacement for the \dask{} central server. It was built from the ground up with a focus on
-runtime efficiency and scheduler modularity, but at the same time we have designed it to be
-compatible with the \dask{} protocol, so it could be used by existing \dask{} users to speed up
-their task workflows. \rsds{} is available as open-source
-software~\footnoteurl{https://github.com/it4innovations/rsds}.
+as a second main contribution of this work we have developed \rsds{}, an open-source drop-in
+replacement for the \dask{} central server\footnoteurl{https://github.com/it4innovations/rsds}.
+It was built from the ground up with a focus on runtime efficiency and scheduler modularity, but at
+the same time we have designed it to be compatible with the \dask{} protocol, so it could be used
+by existing \dask{} users to speed up their task workflows.
 
 We have performed a series of experiments where we have compared the performance of \rsds{} vs
 \dask{}. Since \rsds{} allows its users to plug in a different scheduling algorithm easily, we
@@ -82,7 +78,7 @@ results from~\cite{estee}, for example that even a random scheduler is indeed co
 other scheduling approaches in many scenarios.
 
 We have contacted the authors and maintainers of \dask{} and discussed our \rsds{} approach with
-them~\footnoteurl{https://github.com/dask/distributed/issues/3139}\footnoteurl{https://github
+them\footnoteurl{https://github.com/dask/distributed/issues/3139}\footnoteurl{https://github
 .com/dask/distributed/issues/3783}\footnoteurl{https://github.com/dask/distributed/issues/3872}.
 Some of its ideas have been adapted in the \dask{} project and led to improving its performance.
 
@@ -99,7 +95,7 @@ generated schedules.
 I have collaborated on this work with Stanislav Böhm, we have both contributed equally to this
 work.
 
-\subsection{In-Network Computing}
+\subsection{In-network computing}
 In-network computing is a relatively recent area of research that attempts to explore the
 possibility of offloading certain computing operations directly to network controllers, in order
 to massively reduce latency and improve bandwidth of distributed (HPC) applications. The classic
@@ -108,14 +104,14 @@ interface through all levels of the CPU memory hierarchy to the processor, which
 operation, and then send the data all the way back to the network interface and further into the
 network. Even though a lot of fundamental networked operations (like collective reductions or
 key-value operations) are rather simple to compute, they can suffer from high latency because of
-the data movement needed to get the data to the processing element (the CPU).
+the data movement needed to get the data to the processing element (CPU).
 
 The idea of in-network computing is to move some data processing operations directly onto a
 network controller (which can be a NIC connected to a computer, but also e.g.\ a smart network
 switch), in order to remove the latency caused by the CPU memory hierarchy. This
 approach is similar e.g.\ to offloading expensive computation from the CPU to graphics
 accelerators (GPUs), even though in the case of network controller offloading, the latency is
-usually more important than bandwidth (for GPUs it's typically the other way around).
+usually more important than bandwidth (for GPUs it is typically the other way around).
 
 We have explored how offloading computation to a network accelerator could improve the
 performance of non-contiguous memory transfers in MPI applications~\cite{spin}. This
@@ -139,11 +135,9 @@ engine that was used for implementing non-contiguous data transfers.
 \subsection{HyperQueue}
 \label{subsec:hyperqueue}
 \hyperqueue{} is an HPC-tailored task runtime designed for executing task graphs in HPC
-environments.
-Its two primary objectives are to be as performant as possible and to be easy to use and deploy.
-It is available as an open-source software~\footnoteurl{https://github
-.com/it4innovations/hyperqueue}.
-It is developed in the Rust programming language.
+environments. Its two primary objectives are to be as performant as possible and to be easy to use
+and deploy. It is developed in the Rust programming language and available as an open-source
+software\footnoteurl{https://github.com/it4innovations/hyperqueue}.
 
 The key idea of \hyperqueue{} is to disentangle the submission of computation and the provision of
 computational resources. With traditional HPC job managers, the computation description is
@@ -153,24 +147,21 @@ aggregate tasks into jobs. \hyperqueue{} separates these two actions; users subm
 independently of providing computational resources (workers) and let the task runtime take care of
 matching them together, based on requested resource requirements and other constraints.
 
-This approach already makes the execution of task graphs on HPC clusters simpler. In alignment
-with the goal to improve the integration of task graphs with the job manager, I have designed
-and implemented an \emph{automatic allocator} that is able to ask HPC job managers for
-computational resources automatically, depending on the current computational load. This frees
-users from interacting with the job manager directly and moves one step closer to a straightforward
-execution of task graphs on HPC systems.
-
-In future work, I plan to improve automatic allocation and better understand its behavior in
-various
-HPC use-cases, and also to design further approaches for resolving the mentioned HPC challenges
-and implement them within \hyperqueue{}.
-
-It should be noted that while I am one of its primary authors and contributors, \hyperqueue{}
-is a team effort, and it is being developed by multiple people.
+One of the driving use-cases for \hyperqueue{} is efficient node usage and load balancing. The
+latest HPC clusters contain a large number (hundreds) of cores, yet it is quite challenging to
+design a single program that can scale effectively with so many threads. Thus, in order to fully
+utilize the whole computational node, multiple tasks that each leverage a smaller amount of
+threads have to be executed on the same node at once. \hyperqueue{} is able to effectively schedule
+tasks to utilize all available computational nodes, and thanks to its design, it is able to do this
+not just within a single HPC job, but across many jobs at once.
 
 \hyperqueue{} is being used by users of various HPC centres, and it is also a key
 component of the Horizon 2020 European Union projects
-LIGATE~\footnoteurl{https://www.ligateproject.eu},
-EVEREST~\footnoteurl{https://everest-h2020.eu} and
-ACROSS~\footnoteurl{https://across-h2020.eu}. It is also envisioned as one of the primary ways of
+LIGATE\footnoteurl{https://www.ligateproject.eu},
+EVEREST\footnoteurl{https://everest-h2020.eu} and
+ACROSS\footnoteurl{https://across-h2020.eu}. It is also envisioned as one of the primary ways of
 executing computations on the LUMI supercomputer~\cite{lumi_it4innovations_2022}.
+
+\hyperqueue{} has been in development for over a year. It should be noted that while I am one of
+its two primary authors and contributors, \hyperqueue{} is a team effort, and it is being
+developed by multiple people.
