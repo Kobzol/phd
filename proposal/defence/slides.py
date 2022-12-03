@@ -3,10 +3,11 @@ from elsie.boxtree.box import Box
 from elsie.ext import ordered_list, unordered_list
 from elsie.text.textstyle import TextStyle as T
 
-from hpc import hpc_overview
 from challenges import challenges
+from hpc import hpc_overview
+from sota import sota
+from utils import slide_header
 from workflows import workflows
-from utils import big_text_slide, slide_header
 
 slides = elsie.Slides()
 slides.update_style("default", T(font="Raleway", size=36, variant_numeric="lining-nums"))
@@ -58,13 +59,11 @@ of ~highlight{workflows} on HPC clusters""")
 
 workflows(slides)
 
-
-@slides.slide()
-def challenges_title(slide: Box):
-    big_text_slide(slide, "Workflows & HPC\nchallenges")
-
+topic_highlight(slides, """~highlight{Ergonomics and efficiency}
+of workflows on HPC clusters""")
 
 challenges(slides)
+sota(slides)
 
 
 @slides.slide()
@@ -145,6 +144,7 @@ J. Martinovič, M. Golasowski, K. Slaninová, ~emph{J. Beránek}, M. Šurkovský
 @slides.slide()
 def outro(slide: Box):
     slide.box().text("Thank you for your attention", style=T(size=48))
+    slide.box(p_top=300).text("Slides made with https://github.com/spirali/elsie", style=T(size=20))
 
 
 slides.render()

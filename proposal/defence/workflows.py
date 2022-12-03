@@ -1,66 +1,9 @@
-from typing import Optional, Tuple, Union
-
 from elsie import Arrow, Slides, TextStyle
 from elsie.boxtree.box import Box
 from elsie.ext import unordered_list
 
+from tasks import cluster_1, edge, task, task_bottom, task_graph_1, task_top
 from utils import slide_header_top
-
-
-def task(box: Box, x: int, y: int, size=100, name: Optional[str] = None) -> Box:
-    box = box.box(x=x - size / 2, y=y - size / 2, width=size, height=size, z_level=2)
-    box.rect(color="black", bg_color="white", stroke_width=4, rx=100, ry=100)
-    if name is not None:
-        box.text(name)
-    return box
-
-
-def draw_node(box: Box, color="black"):
-    box.polygon([
-        (box.x("25%"), box.y(0)),
-        (box.x("75%"), box.y(0)),
-        (box.x("100%"), box.y("50%")),
-        (box.x("75%"), box.y("100%")),
-        (box.x("25%"), box.y("100%")),
-        (box.x(0), box.y("50%")),
-    ], color=color)
-
-
-def node(box: Box, x: int, y: int, size=30, color="black"):
-    node_box = box.box(x=x - size / 2, y=y - size / 2, width=size, height=size)
-    draw_node(node_box, color=color)
-
-
-def task_top(box: Box) -> Tuple[int, int]:
-    return (box.x("50%"), box.y(-5))
-
-
-def task_bottom(box: Box) -> Tuple[int, int]:
-    return (box.x("50%"), box.y("100%"))
-
-
-def task_point(box: Box, x: Union[int, str], y: Union[int, str]) -> Tuple[int, int]:
-    return (box.x(x), box.y(y))
-
-
-BoxOrPos = Union[Box, Tuple[int, int]]
-
-
-def edge(box: Box, start: BoxOrPos, end: BoxOrPos, dep=True):
-    arrow = Arrow(size=16, stroke_width=5)
-
-    def normalize(pos: BoxOrPos) -> Tuple[int, int]:
-        if isinstance(pos, Box):
-            return (pos.x("50%"), pos.y("50%"))
-        return pos
-
-    box.line(
-        points=(normalize(start), normalize(end)),
-        end_arrow=arrow,
-        color="black",
-        stroke_width=5,
-        stroke_dasharray=4 if not dep else None
-    )
 
 
 def workflows(slides: Slides):
@@ -126,15 +69,9 @@ def workflows(slides: Slides):
     def task_graphs(slide: Box):
         content = slide_header_top(slide, "Task graphs (workflows)")
 
-        t1 = task(content, task_start_center - 150, 100, name="t1")
-        t2 = task(content, task_start_center + 150, 100, name="t2")
-        t3 = task(content, task_start_center, 300, name="t3")
-        t4 = task(content, task_start_center - 150, 300, name="t4")
-        edge(content, task_point(t1, "50%", "50%"), task_point(t3, "25%", 0))
-        edge(content, task_point(t2, "50%", "50%"), task_point(t3, "75%", 0))
-        edge(content, task_bottom(t1), task_top(t4))
+        task_graph_1(content, task_size=75)
 
-        lst = unordered_list(content.box(y=400))
+        lst = unordered_list(content.box(p_top=40))
         lst.item(show="next+").text("Vertices => tasks")
         lst.item(show="next+").text("Edges => dependencies")
         lst2 = lst.ul()
@@ -144,17 +81,12 @@ def workflows(slides: Slides):
     def task_runtime(slide: Box):
         content = slide_header_top(slide, "Task graph execution")
 
-        task_start_center = 220
-        task_size = 75
-        t1 = task(content, task_start_center - 150, 100, name="t1", size=task_size)
-        t2 = task(content, task_start_center + 50, 100, name="t2", size=task_size)
-        t3 = task(content, task_start_center, 300, name="t3", size=task_size)
-        t4 = task(content, task_start_center - 150, 300, name="t4", size=task_size)
-        edge(content, task_point(t1, "50%", "50%"), task_point(t3, "25%", 0))
-        edge(content, task_point(t2, "50%", "50%"), task_point(t3, "75%", 0))
-        edge(content, task_bottom(t1), task_top(t4))
+        row = content.box(horizontal=True)
 
-        runtime = content.box(width=250, height=80, y=140)
+        task_size = 75
+        task_graph_1(row, task_size=task_size)
+
+        runtime = row.box(width=300, height=60, p_left=60)
         runtime.rect(color="black")
         runtime.text("Task runtime")
         runtime.line((
@@ -166,19 +98,14 @@ def workflows(slides: Slides):
             (runtime.x("100%").add(60), runtime.y("50%")),
         ), end_arrow=Arrow())
 
-        cluster_wrapper = content.box(y=40, x=700, width=250, height=150)
+        cluster_wrapper = row.box(width=250, height=task_size * 3, p_left=60)
         cluster_wrapper.box().text("Cluster")
-        cluster = cluster_wrapper.fbox(p_left=50, p_top=100)
-        node(cluster, x=0, y=0, size=50)
-        node(cluster, x=40, y=25, size=50)
-        node(cluster, x=80, y=50, size=50)
-        node(cluster, x=40, y=-25, size=50)
-        node(cluster, x=80, y=0, size=50)
-        node(cluster, x=80, y=-50, size=50)
+        cluster = cluster_wrapper.box(p_left=25)
+        cluster_1(cluster, size=50)
 
-        lst = unordered_list(content.box(p_top=120, show="next+"))
-        lst.item().text("Bookkeeping")
-        lst.item().text("Scheduling")
+        lst = unordered_list(content.box())
+        lst.item(show="next+").text("Bookkeeping")
+        lst.item(show="next+").text("Scheduling")
 
     @slides.slide()
     def workflows_tradeoffs(slide: Box):
