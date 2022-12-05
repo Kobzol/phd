@@ -72,14 +72,11 @@ def with_bg(parent: Box, bg_color="#DDDDDD") -> Box:
 
 def bash(parent: Box, code: str, text_style=None, **box_args):
     if text_style is None:
-        text_style = {}
+        text_style = TextStyle()
 
-    text_style.update({
-        "color": "#E9E9ED",
-        "font": "monospace",
-    })
+    text_style = text_style.compose(TextStyle(color="#E9E9ED", font="monospace", align="left"))
 
-    wrapper = parent.box(**box_args)
+    wrapper = parent.fbox(**box_args)
     wrapper.rect(bg_color="#3F3F3F")
     code_wrapper = wrapper.box(x=0, p_x=10, p_y=5)
     return code_wrapper.text(code, style=text_style)

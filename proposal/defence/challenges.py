@@ -11,18 +11,13 @@ def challenges(slides: Slides):
     def job_manager_1(slide: Box):
         content = slide_header_top(slide, "Job manager")
 
-        # TODO: improve design
         row = content.box(horizontal=True)
-        task_graph_1(row, task_size=75)
-        middle = row.box(width=50, height=50, p_left=100, p_right=100)
-        middle.text("?", style=TextStyle(size=60))
-        middle.line((
-            (middle.x(-20), middle.y("100%").add(20)),
-            (middle.x("100%").add(20), middle.y("100%").add(20))
-        ), end_arrow=Arrow())
+        task_graph_1(row, size=75)
+        middle = row.box(width=50, p_left=25, p_right=25)
+        middle.image("images/brick-wall.jpeg")
+        middle.text("PBS/Slurm", rotation=-90, style=TextStyle(color="white"))
 
         cluster_box = row.box()
-        cluster_box.box(p_bottom=20).text("PBS/Slurm")
         cluster_1(cluster_box, size=75)
 
     @slides.slide()
@@ -30,7 +25,7 @@ def challenges(slides: Slides):
         content = slide_header_top(slide, "Granularity levels (task vs job)")
 
         lst = unordered_list(content.box())
-        lst.item(show="next+").text("Duration")
+        lst.item().text("Duration")
         lst2 = lst.ul()
         lst2.item().text("Task: ms - hours", style="l2")
         lst2.item().text("Job: minutes - days", style="l2")

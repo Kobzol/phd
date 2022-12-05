@@ -1,0 +1,44 @@
+from elsie import Slides, TextStyle
+from elsie.boxtree.box import Box
+from elsie.ext import unordered_list
+
+from utils import slide_header_top
+
+
+def rsds(slides: Slides):
+    @slides.slide()
+    def rsds_intro(slide: Box):
+        slide.box().text("Runtime vs Scheduler: Analyzing Dask’s Overheads")
+        slide.box(p_top=10).text("Stanislav Böhm, Jakub Beránek", style=TextStyle(size=20))
+        slide.box().text("(IEEE/ACM Workflows in Support of Large-Scale Science 2020)",
+                         style=TextStyle(size=20))
+
+        slide.update_style("default", TextStyle(size=30))
+        lst = unordered_list(slide.box(p_top=40))
+        lst.item(show="next+").text("Analyze Dask's (HPC) performance")
+        lst.item(show="next+").text('Test schedulers "in the wild"')
+        lst.item(show="next+").text("Implement more efficient Dask server (RSDS)")
+
+    @slides.slide()
+    def dask_random(slide: Box):
+        content = slide_header_top(slide, "Dask: random vs work-stealing scheduler")
+        content.box(width="80%").image("images/dask-random-ws.png")
+
+    @slides.slide()
+    def rsds_dask(slide: Box):
+        content = slide_header_top(slide, "Dask vs RSDS: work-stealing scheduler")
+        content.box(width="80%").image("images/rsds-dask-ws.png")
+
+    @slides.slide()
+    def rsds_summary(slide: Box):
+        content = slide_header_top(slide, "Outcome")
+        lst = unordered_list(content.box())
+        lst.item().text("Runtime efficiency as important as scheduling")
+        lst2 = lst.ul()
+        lst2.item(show="next+").text("Even a random scheduler can be competitive!", style="l2")
+        lst.item(show="next+").text("Dask scaled poorly on HPC")
+        lst2 = lst.ul()
+        lst2.item(show="next+").text("Caused by inefficient runtime", style="l2")
+        lst.item(show="next+").text("RSDS = open-source alternative to Dask")
+        lst2 = lst.ul()
+        lst2.item(show="next+").text("Backward-compatible with existing Dask programs", style="l2")

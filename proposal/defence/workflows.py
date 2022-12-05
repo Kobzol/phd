@@ -69,7 +69,7 @@ def workflows(slides: Slides):
     def task_graphs(slide: Box):
         content = slide_header_top(slide, "Task graphs (workflows)")
 
-        task_graph_1(content, task_size=75)
+        task_graph_1(content, size=75)
 
         lst = unordered_list(content.box(p_top=40))
         lst.item(show="next+").text("Vertices => tasks")
@@ -84,7 +84,7 @@ def workflows(slides: Slides):
         row = content.box(horizontal=True)
 
         task_size = 75
-        task_graph_1(row, task_size=task_size)
+        task_graph_1(row, size=task_size)
 
         runtime = row.box(width=300, height=60, p_left=60)
         runtime.rect(color="black")
