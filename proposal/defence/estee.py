@@ -12,6 +12,10 @@ def estee(slides: Slides):
         slide.box(p_top=10).text("Jakub Beránek, Stanislav Böhm, Vojtěch Cima", style=TextStyle(size=20))
         slide.box().text("(The Journal of Supercomputing 2022)", style=TextStyle(size=20))
 
+        paper_box = slide.box(x=10, y=10, width=160)
+        paper_box.rect(color="black", stroke_width=2)
+        paper_box.image("images/estee-paper.png")
+
         slide.update_style("default", TextStyle(size=30))
         lst = unordered_list(slide.box(p_top=40))
         lst.item(show="next+").text("Compare scheduler performance")
@@ -40,3 +44,6 @@ def estee(slides: Slides):
         lst2.item(show="next+").text("Work-stealing (used in Dask)", style="l2")
         lst2.item(show="next+").text("B-level (basic heuristic)", style="l2")
         lst.item(show="next+").text("Implementation details matter a lot!")
+        lst.item(show="next+").text("Open source scheduler simulator ESTEE")
+        lst2 = lst.ul()
+        lst2.item(show="last+").text("~tt{github.com/it4innovations/estee}", style="l2")

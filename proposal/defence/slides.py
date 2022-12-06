@@ -1,12 +1,13 @@
+from typing import Optional
+
 import elsie
 from elsie import Arrow
 from elsie.boxtree.box import Box
 from elsie.ext import ordered_list, unordered_list
-from elsie.text.textstyle import TextStyle as T
+from elsie.text.textstyle import TextStyle, TextStyle as T
 
 from challenges import challenges
 from estee import estee
-from hpc import hpc_overview
 from hq import hyperqueue
 from rsds import rsds
 from sota import sota
@@ -30,7 +31,7 @@ of workflows on HPC clusters""", style=T(size=48))
     style = T(align="left", size=28)
     supervisor = slide.box(x="5%", y="80%")
     supervisor.box(width=400).text("Supervisor", style=style)
-    supervisor.box(width=400).text("Ing. Jan Martinovič Ph.D.", style=style.compose(T(bold=True)))
+    supervisor.box(width=400).text("Ing. Jan Martinovič, Ph.D.", style=style.compose(T(bold=True)))
 
     slide.box(x="58%", y="80%", width=400).image("images/it4i-logo.png")
 
@@ -50,10 +51,10 @@ of workflows on HPC clusters""", style=T(size=48))
 def goal(slide: Box):
     content = slide
     content.box(p_bottom=80).text("""Ergonomics and efficiency
-of workflows on HPC clusters""")
+of workflows on HPC clusters""", style=TextStyle(size=48))
     content.box().text("Goal", style="bold")
-    content.box().text("""Help users to execute complex task workflows
-on HPC clusters in an easy & scalable way""")
+    content.box().text("""Help users execute task workflows
+on HPC clusters in an easy & efficient way""")
 
     row = content.box(horizontal=True, p_top=40)
     task_graph_1(row.box(show="next+"), size=75)
@@ -66,41 +67,50 @@ on HPC clusters in an easy & scalable way""")
     cluster_1(cluster_box, size=75)
 
 
-def topic_highlight(slides: elsie.Slides, text: str):
-    slide = slides.new_slide()
-    slide.set_style("highlight", T(bold=True))
-    slide.box().text(text, style=T(size=48))
-
-
-topic_highlight(slides, """Ergonomics and efficiency
-of workflows on ~highlight{HPC clusters}""")
-
-hpc_overview(slides)
-
-topic_highlight(slides, """Ergonomics and efficiency
-of ~highlight{workflows} on HPC clusters""")
-
-workflows(slides)
-
-topic_highlight(slides, """~highlight{Ergonomics and efficiency}
-of workflows on HPC clusters""")
-
-challenges(slides)
-sota(slides)
-
-
 @slides.slide()
 def objectives(slide: Box):
     content = slide_header_top(slide, "Objectives")
     lst = ordered_list(content.box())
-    lst.item(show="next+").text("Identify HPC workflow challenges")
-    lst.item(show="next+").text("Design improvements")
+    lst.item().text("Identify HPC workflow challenges")
+    lst.item(show="next+").text("Design approaches for overcoming them")
     lst.item(show="next+").text("Implement them in a task runtime")
+    lst.item(show="next+").text("Analyze results on real use-cases")
 
 
-hyperqueue(slides)
+def topic_highlight(slides: elsie.Slides, text: str, header: Optional[str] = None):
+    slide = slides.new_slide()
+    slide.set_style("highlight", T(bold=True))
+    if header is not None:
+        content = slide_header_top(slide, header)
+    else:
+        content = slide
+    content.box().text(text, style=T(size=48))
+
+
+topic_highlight(slides, """Ergonomics and efficiency
+of ~highlight{workflows on HPC clusters}""", header="Motivation")
+
+workflows(slides)
+
+
+@slides.slide()
+def task_graph_challenges(slide: Box):
+    slide.box().text("Task graph challenges on HPC clusters", style=TextStyle(size=46))
+
+
+challenges(slides)
+sota(slides)
+
+topic_highlight(slides, """Ergonomics and ~highlight{efficiency}
+of workflows on HPC clusters""")
+
 estee(slides)
 rsds(slides)
+
+topic_highlight(slides, """~highlight{Ergonomics} and efficiency
+of workflows on HPC clusters""")
+
+hyperqueue(slides)
 
 
 @slides.slide()
@@ -110,25 +120,34 @@ def recap(slide: Box):
     lst = unordered_list(content.box())
     lst.item().text("Ergonomics", style="bold")
     lst2 = lst.ul()
-    lst2.item().text("Bypass job manager", style="l2")
+    lst2.item().text("Job manager bypass", style="l2")
     lst2.item().text("Fine-grained resource requirements", style="l2")
+    lst2.item().text("Multi-node tasks", style="l2")
+    lst2.item().text("…", style="l2")
     lst.item(show="next+").text("Efficiency", style="bold")
     lst2 = lst.ul()
-    lst2.item().text("Minimize runtime overhead", style="l2")
+    lst2.item().text("Low overhead per task", style="l2")
+    lst2.item().text("Efficient scheduler", style="l2")
+    lst2.item().text("…", style="l2")
 
 
 @slides.slide()
 def next_steps(slide: Box):
-    content = slide_header_top(slide, "Next steps")
+    content = slide_header_top(slide, "Objectives + plan")
 
     lst = unordered_list(content.box())
-    lst.item().text("HyperQueue performance study")
+    lst.item().text("Identify HPC workflow challenges ✓")
+    lst.item(show="next+").text("Analyze efficiency")
     lst2 = lst.ul()
-    lst2.item().text("Compare with other task runtimes", style="l2")
-    lst.item(show="next+").text("Analysis of auto-allocation")
+    lst2.item(show="next+").text("Schedulers ✓", style="l2")
+    lst2.item(show="next+").text("Dask ✓", style="l2")
+    lst2.item(show="next+").text("~bold{HyperQueue performance study} •", style="l2")
+    lst.item(show="next+").text("Analyze ergonomics")
     lst2 = lst.ul()
-    lst2.item().text("Compare allocation strategies", style="l2")
-    lst2.item().text("Analyze efficiency", style="l2")
+    lst2.item(show="next+").text("HyperQueue ✓", style="l2")
+    lst2.item(show="next+").text("~bold{Automatic allocation analysis} •", style="l2")
+    # lst.item(show="next+").text("Formalize HQ task semantics ?")
+    lst.item(show="next+").text("Prepare HyperQueue publication")
 
 
 @slides.slide()

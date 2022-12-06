@@ -77,7 +77,7 @@ def bash(parent: Box, code: str, text_style=None, **box_args):
     text_style = text_style.compose(TextStyle(color="#E9E9ED", font="monospace", align="left"))
 
     wrapper = parent.fbox(**box_args)
-    wrapper.rect(bg_color="#3F3F3F")
+    wrapper.rect(bg_color="#3F3F3F", rx=5, ry=5)
     code_wrapper = wrapper.box(x=0, p_x=10, p_y=5)
     return code_wrapper.text(code, style=text_style)
 
