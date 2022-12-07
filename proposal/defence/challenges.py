@@ -49,7 +49,7 @@ def challenges(slides: Slides):
         lst2 = lst.ul()
         lst2.item(show="next+").text("Massive overhead (millions of jobs)", style="l2")
         lst2.item(show="next+").text("Job count limits", style="l2")
-        lst2.item(show="next+").text("Node granularity", style="l2")
+        lst2.item(show="next+").text("~bold{Node granularity}", style="l2")
         lst2.item(show="next+").text("Difficult with dependencies", style="l2")
         lst.item(show="next+", p_top=30).text("Submit task graph as a single job")
         lst2 = lst.ul()
@@ -58,16 +58,15 @@ def challenges(slides: Slides):
         lst2 = lst.ul()
         lst2.item().text("Lot of work", style="l2")
         lst2.item(show="next+").text("No load balancing across jobs", style="l2")
-        lst2.item(show="next+").text("Complex bookkeeping", style="l2")
 
         task_size = 30
         node_size = 40
 
         def task_fn(box, x, y, name, size, row, col):
-            task(box, x=x, y=y, name=None, size=size, bg_color=get_task_color(col))
+            return task(box, x=x, y=y, name=None, size=size, bg_color=get_task_color(col))
 
-        def tg(box: Box):
-            task_graph_grid(box, size=task_size, rows=1, cols=3, task_constructor=task_fn)
+        def tg(box: Box, color=None):
+            return task_graph_grid(box, size=task_size, rows=1, cols=3, task_constructor=task_fn)
 
         x_start = 700
         y_start = 150
@@ -78,7 +77,7 @@ def challenges(slides: Slides):
         nodes = cluster_1(box_1.box(), size=node_size)
         for (index, node_box) in enumerate(nodes[:3]):
             node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
-                 bg_color=get_task_color(index))
+                 bg_color=get_task_color(index), node_args=dict(stroke_width=4))
 
         # Task graph as a single job
         box_1 = content.box(x=x_start, y=y_start + 180, horizontal=True, show="7+")
@@ -91,18 +90,25 @@ def challenges(slides: Slides):
                   bg_color=get_task_color(1), mode="down")
         half_node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
                   bg_color=get_task_color(2), mode="left")
+        node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
+             bg_color=None, node_args=dict(stroke_width=4))
 
         # Split graph
         box_1 = content.box(x=x_start, y=y_start + 340, horizontal=True, show="8+")
-        tg(box_1.box(p_right=40))
+        tasks = tg(box_1.box(p_right=40))
+        task(box=tasks[2].overlay(), x=task_size / 2, y=task_size / 2, size=task_size,
+             bg_color=get_task_color(2), color=get_task_color(3))
+
         nodes = cluster_1(box_1.box(), size=node_size)
         node_box = nodes[0]
         half_node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
                   bg_color=get_task_color(0))
         half_node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
                   bg_color=get_task_color(1), mode="down")
-        node(nodes[1].overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
-             bg_color=get_task_color(2))
+        node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
+             bg_color=None, node_args=dict(stroke_width=4))
+        node(nodes[1].overlay(z_level=2), x=node_size / 2, y=node_size / 2, size=node_size,
+             bg_color=get_task_color(2), node_args=dict(stroke_width=4), color=get_task_color(3))
 
     @slides.slide()
     def heterogeneity(slide: Box):

@@ -7,9 +7,9 @@ from elsie.boxtree.box import Box
 
 def task(box: Box, x=0, y=0, size=100, name: Optional[str] = None,
          style: Union[str, TextStyle] = "default", bg_color="white",
-         show: Optional[str] = None) -> Box:
+         color="black", show: Optional[str] = None) -> Box:
     box = box.box(x=x - size / 2, y=y - size / 2, width=size, height=size, z_level=2, show=show)
-    box.rect(color="black", bg_color=bg_color, stroke_width=4, rx=100, ry=100)
+    box.rect(color=color, bg_color=bg_color, stroke_width=4, rx=100, ry=100)
     if name is not None:
         box.text(name, style=style)
     return box
