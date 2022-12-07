@@ -22,16 +22,18 @@ def rsds(slides: Slides):
         lst.item(show="next+").text('Test schedulers "in the wild"')
         lst.item(show="next+").text("Analyze Dask's performance on HPC")
         lst.item(show="next+").text("Implement more efficient Dask server (RSDS)")
+        lst2 = lst.ul()
+        lst2.item().text("Pluggable scheduler", style="l2")
 
     @slides.slide()
     def rsds_dask(slide: Box):
-        content = slide_header_top(slide, "Dask vs RSDS: work-stealing scheduler")
+        content = slide_header_top(slide, "Dask vs. RSDS: work-stealing scheduler")
         content.box(width="80%").image("images/rsds-dask-ws.png")
 
     @slides.slide()
     def dask_random(slide: Box):
-        content = slide_header_top(slide, "Dask vs RSDS: scaling on Salomon")
-        content.box(width="100%").image("images/rsds-scaling.png")
+        content = slide_header_top(slide, "Dask vs. RSDS: scaling on Salomon")
+        content.box(width="90%").image("images/rsds-scaling.png")
 
     @slides.slide()
     def rsds_summary(slide: Box):

@@ -26,7 +26,7 @@ def workflows(slides: Slides):
         ), stroke_dasharray="4", end_arrow=Arrow())
 
         wrapper = content.overlay(show="4+")
-        text_box = wrapper.box(x=700, y=550).text("~tt{t5} can't start\nbefore ~tt{t4} finishes",
+        text_box = wrapper.box(x=700, y=550).text("~tt{t5} cannot start\nbefore ~tt{t4} finishes",
                                                   style=TextStyle(size=26, align="left"))
         wrapper.line((
             (text_box.x(0).add(-10), text_box.y("50%")),
@@ -42,11 +42,11 @@ def workflows(slides: Slides):
         lst = unordered_list(content.box())
         lst.item().text("Implicit parallelism", style="bold")
         lst2 = lst.ul()
-        lst2.item().text("Build a DAG vs use MPI", style="l2")
+        lst2.item().text("Build a DAG vs. use MPI", style="l2")
         lst2.item(show="next+").text("Extracted by a task runtime", style="l2")
         lst.item(show="next+").text("High-level description")
         lst2 = lst.ul()
-        lst2.item().text("Python/DSL vs C/C++", style="l2")
+        lst2.item().text("Python/DSL vs. C/C++", style="l2")
         lst.item(show="next+").text("Portability")
         lst2 = lst.ul()
         lst2.item().text("Use-cases, hardware", style="l2")

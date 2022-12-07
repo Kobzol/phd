@@ -144,7 +144,8 @@ def task_graph_2(box: Box, size: int, task_constructor=None) -> List[Box]:
 
 
 def task_graph_grid(box: Box, size: int, rows: int, cols: int, task_constructor=None) -> List[Box]:
-    box = box.box(width=size * 3, height=size * 2)
+    margin = size * 0.2
+    box = box.box(width=size * cols + margin * (cols - 1), height=size * rows + margin * (rows - 1))
 
     y = size / 2
 
@@ -155,7 +156,6 @@ def task_graph_grid(box: Box, size: int, rows: int, cols: int, task_constructor=
                                                                         style=TextStyle(
                                                                             size=size / 2))
 
-    margin = size * 0.2
     index = 1
     tasks = []
     for row in range(rows):

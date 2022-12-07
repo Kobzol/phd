@@ -1,4 +1,5 @@
 import dataclasses
+import functools
 from typing import Iterable, List, Optional, Union
 
 import seaborn as sns
@@ -8,7 +9,7 @@ from elsie.ext import unordered_list
 from elsie.ext.list import ListBuilder
 
 from tasks import cluster_1, get_task_color, half_node, node, sns_to_elsie_color, task, \
-    task_graph_2, task_graph_grid
+    task_graph_grid
 from utils import bash, code, slide_header_top
 
 
@@ -61,7 +62,13 @@ def hyperqueue(slides: Slides):
     @slides.slide()
     def hyperqueue_intro(slide: Box):
         slide.box(width=400).image("images/hq-logo.png")
-        slide.box().text("Task runtime designed for HPC")
+        slide.box().text("~tt{github.com/it4innovations/hyperqueue}", style=TextStyle(size=20))
+        slide.box(p_top=20).text("Task runtime designed for HPC")
+        row = slide.box(p_top=20, horizontal=True, show="next+")
+        margin = 50
+        row.box(width=260, p_right=margin).image("images/it4i-logo.png")
+        row.box(width=180, p_right=margin).image("images/ligate-logo.png")
+        row.box(width=120).image("images/lumi-logo.png")
 
         slide.box(show="next+", p_top=40).text("Team effort @ IT4I")
         slide.box(show="last+").text("(primary contributors: Ada Böhm & me)", style="l2")
@@ -114,73 +121,57 @@ t1 = job.function(preprocess, args=(path, ))
 job.program(["simulate", "--path", path], deps=[t1])
 client.submit(job)""", width=width, language="python")
 
-    @slides.slide()
+    @slides.slide(debug_boxes=False)
     def challenge_pbs(slide: Box):
         content = slide_header_top(slide, "Challenge: PBS/Slurm")
-        content.box(p_bottom=60).text("Disentangle computation & resource provisioning")
 
-        width = 800
-        row = content.box(horizontal=True, p_bottom=40, width=width, show="next+")
-        row.box(x=0).text("PBS")
+        margin_bottom = 30
+        margin_line = 15
 
-        pbs_start = 3
-        margin_left = 300
+        wrapper = content.box(y=20)
+        wrapper.box(p_bottom=20).text("Disentangle computation description from resources")
+
+        width = 700
+        row = wrapper.box(horizontal=True, p_bottom=margin_bottom, width=width, height=160,
+                          show="next+")
+
+        content.box(x=50, y=row.y("50%").add(-20), show="2+").text("PBS only",
+                                                                   style=TextStyle(size=20))
+
         node_size = 40
         task_size = 40
 
-        def pbs_task(box, x, y, name, size, row, col):
-            index = row * 3 + col
-            bg_color = get_task_color(index)
-            if row == 0:
-                show = f"{pbs_start}+"
-            elif col < 2:
-                show = f"{pbs_start + 1}+"
-            else:
-                show = f"{pbs_start + 2}+"
-            return task(box=box, x=x, y=y, name=None, size=size, bg_color=bg_color, show=show)
+        def pbs_task(offset: int, box, x, y, name, size, row, col):
+            bg_color = get_task_color(col + offset)
+            return task(box=box, x=x, y=y, name=None, size=size, bg_color=bg_color)
 
-        task_graph_2(row.box(p_left=margin_left), size=task_size, task_constructor=pbs_task)
+        def node_row(box: Box, count: int):
+            margin = node_size * 0.2
+            row = box.box(horizontal=True, width=node_size * count + margin * (count - 1),
+                          height=node_size)
+            x = node_size / 2
+            for _ in range(count):
+                node(row.box(width=node_size, x=x), size=node_size)
+                x += node_size + margin
 
-        def pbs_cluster(box, x, y, size, diagonal, index):
-            index += {
-                0: 0,
-                1: 3,
-                2: 5
-            }[diagonal]
-            if diagonal == 0:
-                show = f"{pbs_start}+"
-            elif diagonal == 1:
-                show = f"{pbs_start + 1}+"
-            else:
-                show = f"{pbs_start + 2}+"
-            return node(box, x=x, y=y, size=size, bg_color=get_task_color(index), show=show,
-                        node_args=dict(stroke_width=4))
+        task_box = row.box()
+        task_box_1 = task_box.fbox(show="2-3")
+        task_graph_grid(task_box_1.box(), size=task_size, rows=1, cols=3,
+                        task_constructor=functools.partial(pbs_task, offset=0))
+        task_box_1.box().text("+", style=TextStyle(size=30))
+        node_row(task_box_1.box(), count=3)
 
-        box = row.box(p_left=100)
-        cluster_1(box.box(), size=node_size)
-        cluster_1(box.overlay(), size=node_size, node_constructor=pbs_cluster)
+        task_box_2 = task_box.overlay(show="4+")
+        task_graph_grid(task_box_2.box(), size=task_size, rows=1, cols=2,
+                        task_constructor=functools.partial(pbs_task, offset=3))
+        task_box_2.box().text("+", style=TextStyle(size=30))
+        node_row(task_box_2.box(), count=1)
 
-        row = content.box(horizontal=True, width=width, show="next+")
-        row.box(x=0).text("PBS + HyperQueue")
+        row.box(p_left=100, p_right=100).text("→ PBS →")
 
-        hq_start = box.current_fragment()
-
-        def hq_show(count=0, duration: Optional[int] = None) -> str:
-            if duration is None:
-                return f"{hq_start + count}+"
-            else:
-                return f"{hq_start + count}-{hq_start + count + duration}"
-
-        tasks = task_graph_2(row.box(p_left=margin_left), size=task_size,
-                             task_constructor=create_empty_task_fn(task_size))
-
-        nodes = cluster_1(row.box(p_left=100), size=node_size)
-
-        def overlay_node(node_index: int, timestep: int,
+        def overlay_node(node_box: Box, show: str,
                          color_index: Optional[Union[int, str]] = None,
                          mode="full"):
-            node_box = nodes[node_index]
-            show = hq_show(timestep)
             box = node_box.overlay()
             modes = {
                 "full": node,
@@ -190,31 +181,88 @@ client.submit(job)""", width=width, language="python")
 
             stroke_width = 4 if mode == "full" else 2
             modes[mode](box=box, x=node_size / 2, y=node_size / 2, size=node_size,
-                        bg_color=get_task_color(color_index),
+                        bg_color=get_task_color(color_index) if color_index is not None else None,
                         show=show, node_args=dict(stroke_width=stroke_width))
+            if mode != "full":
+                node(box=box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
+                     show=show, node_args=dict(stroke_width=4))
 
-        def overlay_task(task_indices: List[int], timestep: int, color_index: int):
-            for task_index in task_indices:
-                task_box = tasks[task_index]
-                show = hq_show(timestep)
-                box = task_box.overlay()
-                task(box=box, x=task_size / 2, y=task_size / 2, size=node_size,
-                     bg_color=get_task_color(color_index),
-                     show=show)
+        pbs_nodes = cluster_1(row.box(x=row.x("100%").add(-25)), size=node_size)
+        for i in range(3):
+            overlay_node(pbs_nodes[i], show="3+", color_index=i)
+        overlay_node(pbs_nodes[3], show="5+", color_index=3, mode="up")
+        overlay_node(pbs_nodes[3], show="5+", color_index=4, mode="down")
 
-        overlay_task([0], 1, 0)
-        overlay_task([1], 1, 1)
-        overlay_node(0, 2, "white")
-        overlay_node(0, 3, 0, mode="up")
-        overlay_node(0, 3, 1, mode="down")
-        overlay_task([2], 4, 2)
-        overlay_node(3, 4, 2)
-        overlay_task([3], 5, 3)
-        overlay_node(0, 5, 3, mode="down")
-        overlay_task([4], 6, 4)
-        overlay_task([5], 6, 5)
-        overlay_node(3, 6, 4, mode="up")
-        overlay_node(3, 6, 5, mode="down")
+        content.overlay(show="next+", p_bottom=margin_bottom).line((
+            (content.x("5%"), row.y("100%").add(margin_line)),
+            (content.x("95%"), row.y("100%").add(margin_line))
+        ))
+
+        row = wrapper.box(horizontal=True, width=width, height=200, show="last+")
+
+        content.box(x=50, y=row.y("50%").add(-20), show="last+").text("PBS + HQ",
+                                                                      style=TextStyle(size=20))
+
+        task_box = row.box()
+        fragment = slide.current_fragment()
+        task_box_1 = task_box.fbox(show=f"{fragment}-{fragment + 2}")
+        task_graph_grid(task_box_1.box(), size=task_size, rows=1, cols=3,
+                        task_constructor=functools.partial(pbs_task, offset=0))
+
+        text_box = row.box(p_left=20, p_right=100, horizontal=True)
+        text_box.box(p_right=20).text("→")
+        text_box.box(width=200).image("images/hq-logo.png")
+
+        pbs_box_width = 145
+        pbs_box = text_box.box(p_left=20, width=pbs_box_width).text("→ PBS →")
+        below_pbs_box = row.box(x=pbs_box.x(0), y=pbs_box.y("100%"), width=pbs_box_width,
+                                show=f"{fragment + 1}+")
+        below_pbs_box.box().text("↑")
+        node_row(below_pbs_box.box(), count=2)
+
+        pbs_nodes = cluster_1(row.box(x=row.x("100%").add(-25)), size=node_size)
+        node_fragment = f"{fragment + 2}+"
+        overlay_node(pbs_nodes[0], show=node_fragment, color_index=0, mode="up")
+        overlay_node(pbs_nodes[0], show=node_fragment, color_index=1, mode="down")
+        overlay_node(pbs_nodes[1], show=node_fragment, color_index=2)
+
+        task_box_2 = task_box.overlay(show=f"{fragment + 3}+")
+        task_graph_grid(task_box_2.box(), size=task_size, rows=1, cols=2,
+                        task_constructor=functools.partial(pbs_task, offset=3))
+
+        overlay_node(pbs_nodes[0], show=f"{fragment + 4}+", color_index=3, mode="down")
+        overlay_node(pbs_nodes[1], show=f"{fragment + 4}+", color_index=4)
+
+        content.overlay(show="next+", p_bottom=margin_bottom).line((
+            (content.x("5%"), row.y("100%").add(margin_line)),
+            (content.x("95%"), row.y("100%").add(margin_line))
+        ))
+
+        row = wrapper.box(horizontal=True, width=width, height=200, show="last+")
+
+        content.box(x=50, y=row.y("50%").add(-20), show="last+").text("PBS + HQ\n+autoalloc",
+                                                                      style=TextStyle(size=20))
+
+        task_box = row.box()
+        task_graph_grid(task_box.box(), size=task_size, rows=1, cols=3,
+                        task_constructor=functools.partial(pbs_task, offset=0))
+
+        text_box = row.box(p_left=20, p_right=100, horizontal=True)
+        text_box.box(p_right=20).text("→")
+        hq_box = text_box.box(width=200).image("images/hq-logo.png")
+        text_box.box(p_left=20, width=pbs_box_width).text("→ PBS →")
+
+        pbs_nodes = cluster_1(row.box(x=row.x("100%").add(-25)), size=node_size)
+
+        node(row.box(x=hq_box.x("50%"), y=hq_box.y(0).add(-25), show="next+"), x=0, y=0,
+             size=node_size, node_args=dict(stroke_dasharray="4", stroke_width="2"))
+
+        fragment = slide.current_fragment() + 1
+        overlay_node(pbs_nodes[0], show=f"{fragment}", color_index=None)
+        overlay_node(pbs_nodes[1], show=f"{fragment}", color_index=None)
+        overlay_node(pbs_nodes[0], show=f"{fragment + 1}+", color_index=0, mode="up")
+        overlay_node(pbs_nodes[0], show=f"{fragment + 1}+", color_index=1, mode="down")
+        overlay_node(pbs_nodes[1], show=f"{fragment + 1}+", color_index=2)
 
     @slides.slide()
     def autoalloc(slide: Box):
@@ -229,7 +277,7 @@ client.submit(job)""", width=width, language="python")
         content = slide_header_top(slide, "Automatic allocation")
 
         hq_box = content.box(y=80)
-        hq_text = hq_box.box(width=300).image("images/hq-logo.png")
+        hq_box.box(width=300).image("images/hq-logo.png")
 
         margin_horizontal = 150
         column_height = 300
@@ -383,38 +431,60 @@ client.submit(job)""", width=width, language="python")
     @slides.slide()
     def hyperqueue_usage(slide: Box):
         content = slide_header_top(slide, "HyperQueue in the wild")
+        content.set_style("l3", style=TextStyle(size=18))
 
         def make_list(slot: Box, show="next+") -> ListBuilder:
             return unordered_list(slot.box(show=show, x=0, y=0))
 
-        def item_with_logo(builder: ListBuilder, text: str, image: str, width=120):
+        def text_with_logo(builder: ListBuilder, text: str, image: str, width=120):
             item = builder.item()
-            row = item.box(horizontal=True)
-            row.box(width=230).text(text, style="l2")
-            row.box(width=width).image(image)
+            row = item.box(horizontal=True, height=42)
+            row.box(width=width, height="100%").image(image)
+            row.box(p_left=15).text(text, style="l3")
+
+        def logo(builder: ListBuilder, image: str, width=120):
+            item = builder.item()
+            item.box(width=width).image(image)
+
+        def iterate_grid(box: Box, width: int, height: int, rows: int, cols: int) -> Iterable[Box]:
+            box = box.box(width=width, height=height)
+
+            box_width = width / cols
+            box_height = height / rows
+
+            for row in range(rows):
+                for col in range(cols):
+                    x_offset = 0 if col == 0 else 25
+                    item = box.box(width=box_width, height=box_height, x=col * box_width + x_offset,
+                                   y=row * box_height)
+                    yield item
 
         for (index, slot) in enumerate(
-                iterate_grid(content.box(y=50), width=900, height=400, rows=2, cols=2)):
+                iterate_grid(content.box(x=40, y=50), width=1000, height=400, rows=2, cols=2)):
             if index == 0:
                 lst = make_list(slot, show="1+")
                 lst.item().text("H2020 EU projects")
                 lst2 = lst.ul()
-                item_with_logo(lst2, "LIGATE", "images/ligate-logo.png")
-                item_with_logo(lst2, "EVEREST", "images/everest-logo.png")
-                item_with_logo(lst2, "ACROSS", "images/across-logo.jpg")
+                text_with_logo(lst2, "Complex workflows (GROMACS + LiGen)",
+                               "images/ligate-logo.png")
+                text_with_logo(lst2, "Heterogeneous nodes (traffic simulator)",
+                               "images/everest-logo.png")
+                text_with_logo(lst2, "Multi-node tasks",
+                               "images/across-logo.jpg")
             elif index == 1:
                 lst = make_list(slot)
                 lst.item().text("HPC centers")
                 lst2 = lst.ul()
-                item_with_logo(lst2, "IT4Innovations", "images/it4i-logo.png", width=200)
-                item_with_logo(lst2, "LUMI", "images/lumi-logo.png")
+                logo(lst2, "images/it4i-logo.png", width=200)
+                logo(lst2, "images/cineca-logo.png")
+                logo(lst2, "images/lumi-logo.png")
             elif index == 2:
                 lst = make_list(slot)
-                lst.item().text("Integrations")
+                lst.item().text("Tool integrations")
                 lst2 = lst.ul()
-                item_with_logo(lst2, "NextFlow", "images/nextflow-logo.png")
-                item_with_logo(lst2, "Aiida", "images/aiida-logo.png")
-                item_with_logo(lst2, "ERT", "images/across-logo.jpg")
+                logo(lst2, "images/nextflow-logo.png")
+                logo(lst2, "images/aiida-logo.png")
+                lst2.item().text("ERT")
             else:
                 slot.set_style("small", TextStyle(size=16))
                 lst = make_list(slot)
@@ -427,15 +497,19 @@ client.submit(job)""", width=width, language="python")
                 lst2.item(p_top=20).text("Supercomputing'21 poster", style="l2")
                 lst2.item(width=200, height=250, label="").image("images/hq-poster.png")
 
+    @slides.slide()
+    def recap(slide: Box):
+        content = slide_header_top(slide, "Recap: HyperQueue")
 
-def iterate_grid(box: Box, width: int, height: int, rows: int, cols: int) -> Iterable[Box]:
-    box = box.box(width=width, height=height)
-
-    box_width = width / cols
-    box_height = height / rows
-
-    for row in range(rows):
-        for col in range(cols):
-            item = box.box(width=box_width, height=box_height, x=col * box_width,
-                           y=row * box_height)
-            yield item
+        lst = unordered_list(content.box())
+        lst.item().text("Ergonomics", style="bold")
+        lst2 = lst.ul()
+        lst2.item().text("Job manager bypass", style="l2")
+        lst2.item().text("Fine-grained resource requirements", style="l2")
+        lst2.item().text("Multi-node tasks", style="l2")
+        lst2.item().text("…", style="l2")
+        lst.item(show="next+").text("Efficiency", style="bold")
+        lst2 = lst.ul()
+        lst2.item().text("Low overhead per task", style="l2")
+        lst2.item().text("Efficient scheduler", style="l2")
+        lst2.item().text("…", style="l2")

@@ -27,13 +27,13 @@ def estee(slides: Slides):
 
     @slides.slide()
     def estee_chart_1(slide: Box):
-        content = slide_header_top(slide, "Runtime vs network speed")
-        content.box(width="85%").image("images/estee-network.png")
+        content = slide_header_top(slide, "Runtime vs. network speed")
+        content.box(width="75%").image("images/estee-network.png")
 
     @slides.slide()
     def estee_chart_2(slide: Box):
         content = slide_header_top(slide, "Scheduling delay effect")
-        content.box(width="90%").image("images/estee-msd.png")
+        content.box(width="75%").image("images/estee-msd.png")
 
     @slides.slide()
     def estee_outcomes(slide: Box):

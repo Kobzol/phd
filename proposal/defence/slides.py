@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 import elsie
 from elsie import Arrow
@@ -15,7 +15,10 @@ from tasks import cluster_1, task_graph_1
 from utils import slide_header_top
 from workflows import workflows
 
-slides = elsie.Slides()
+slide_width = 1024
+slide_height = 768
+
+slides = elsie.Slides(width=slide_width, height=slide_height)
 slides.update_style("default", T(font="Raleway", size=36, variant_numeric="lining-nums"))
 slides.set_style("l2", T(size=30))
 slides.set_style("bold", T(bold=True))
@@ -114,24 +117,6 @@ hyperqueue(slides)
 
 
 @slides.slide()
-def recap(slide: Box):
-    content = slide_header_top(slide, "Recap: workflows on HPC")
-
-    lst = unordered_list(content.box())
-    lst.item().text("Ergonomics", style="bold")
-    lst2 = lst.ul()
-    lst2.item().text("Job manager bypass", style="l2")
-    lst2.item().text("Fine-grained resource requirements", style="l2")
-    lst2.item().text("Multi-node tasks", style="l2")
-    lst2.item().text("…", style="l2")
-    lst.item(show="next+").text("Efficiency", style="bold")
-    lst2 = lst.ul()
-    lst2.item().text("Low overhead per task", style="l2")
-    lst2.item().text("Efficient scheduler", style="l2")
-    lst2.item().text("…", style="l2")
-
-
-@slides.slide()
 def next_steps(slide: Box):
     content = slide_header_top(slide, "Objectives + plan")
 
@@ -153,12 +138,10 @@ def next_steps(slide: Box):
 @slides.slide()
 def publications_related(slide: Box):
     slide.box().text("Publications related to thesis", style=T(bold=True))
+    slide.update_style("default", T(size=20))
+    slide.update_style("bold", T(size=22))
 
-    box = slide.box(p_top=20)
-    box.update_style("default", T(size=20))
-    box.update_style("bold", T(size=22))
-
-    lst = unordered_list(box)
+    lst = unordered_list(slide.box(p_top=20))
     lst.item().text("""~bold{Analysis of workflow schedulers in simulated distributed environments}
 ~emph{Jakub Beránek}, Stanislav Böhm, Vojtěch Cima
 The Journal of Supercomputing 2022""")
@@ -166,54 +149,46 @@ The Journal of Supercomputing 2022""")
 Stanislav Böhm, ~emph{Jakub Beránek}
 IEEE/ACM Workflows in Support of Large-Scale Science (WORKS) 2020""")
 
+    slide.box(p_top=40)
+    slide.box(show="next+").text("(collaboration with ETH Zurich)", style=TextStyle(size=30))
+
+    lst = unordered_list(slide.box(show="last+"))
+    lst.item(p_top=20).text("""~bold{Network-Accelerated Non-Contiguous Memory Transfer}
+S. Di Girolamo, K. Taranov, A. Kurth, M. Schaffner, T. Schneider, ~emph{J. Beránek}, M. Besta,
+L. Benini, D. Roweth, T. Hoefler
+~emph{SC (International Conference for High Performance Computing, Networking, Storage and Analysis) 2019}""")
+    lst.item(p_top=10).text("""~bold{A RISC-V in-Network Accelerator for Flexible High-Performance
+Low-Power Packet Processing}
+S. Di Girolamo, A. Kurth, A. Calotoiu, T. Benz, T. Schneider, ~emph{J. Beránek}, L. Benini, T. Hoefler
+~emph{ISCA (International Symposium on Computer architecture) 2021}""")
+
 
 @slides.slide()
-def publications_unrelated_eth(slide: Box):
+def publications_unrelated(slide: Box):
     slide.box().text("Publications unrelated to thesis", style="bold")
-    slide.box().text("(collaboration with ETH Zurich)", style=T(size=26))
+    slide.update_style("default", T(size=16))
+    slide.update_style("bold", T(size=20))
 
-    box = slide.box(p_top=20)
-    box.update_style("default", T(size=20))
-    box.update_style("bold", T(size=22))
-    box.set_style("small", T())
+    slide.box(p_top=20).text("(collaboration with ETH Zurich)", style=T(size=26))
 
-    lst = unordered_list(box)
-    lst.item().text("""~bold{A RISC-V in-Network Accelerator for Flexible High-Performance
-Low-Power Packet Processing}
-~small{S. Di Girolamo, A. Kurth, A. Calotoiu, T. Benz, T. Schneider, ~emph{J. Beránek}, L. Benini, T. Hoefler}
-~emph{ISCA (International Symposium on Computer architecture) 2021}""")
-    lst.item(p_top=20).text("""~bold{SISA: Set-Centric Instruction Set Architecture for Graph Mining
+    lst = unordered_list(slide.box())
+    lst.item(p_top=10).text("""~bold{SISA: Set-Centric Instruction Set Architecture for Graph Mining
 on Processing-in-Memory System}
-~small{M. Besta, R. Kanakagiri, G. Kwasniewski, R. Ausavarungnirun, ~emph{J. Beránek}, K. Kanellopoulos,
+M. Besta, R. Kanakagiri, G. Kwasniewski, R. Ausavarungnirun, ~emph{J. Beránek}, K. Kanellopoulos,
 K. Janda, Z. Vonarburg-Shmaria, L. Gianinazzi, I. Stefan, J. G. Luna, J. Golinowski, M. Copik,
-L. Kapp-Schwoerer, S. Di Girolamo, N. Blach, M. Konieczny, O. Mutlu, T. Hoefler}
+L. Kapp-Schwoerer, S. Di Girolamo, N. Blach, M. Konieczny, O. Mutlu, T. Hoefler
 ~emph{IEEE/ACM MICRO (International Symposium on Microarchitecture) 2021}""")
     lst.item(p_top=10).text("""~bold{GraphMineSuite: Enabling High-Performance and Programmable
 Graph Mining Algorithms with Set Algebra}
-~small{M. Besta, Z. Vonarburg-Shmaria, Y. Schaffner, L. Schwarz, G. Kwasniewski, L. Gianinazzi,
+M. Besta, Z. Vonarburg-Shmaria, Y. Schaffner, L. Schwarz, G. Kwasniewski, L. Gianinazzi,
 ~emph{J. Beránek}, K. Janda, T. Holenstein, S. Leisinger, P. Tatkowski, E. Ozdemir, A. Balla,
-M. Copik, P. Lindenberger, M. Konieczny, O. Mutlu, T. Hoefler}
+M. Copik, P. Lindenberger, M. Konieczny, O. Mutlu, T. Hoefler
 ~emph{PVLDB 2021}""")
-    lst.item(p_top=10).text("""~bold{Network-Accelerated Non-Contiguous Memory Transfer}
-~small{S. Di Girolamo, K. Taranov, A. Kurth, M. Schaffner, T. Schneider, ~emph{J. Beránek}, M. Besta,
-L. Benini, D. Roweth, T. Hoefler}
-~emph{SC (International Conference for High Performance Computing, Networking, Storage and Analysis) 2019}""")
     lst.item(p_top=10).text("""~bold{Streaming Message Interface: High-Performance Distributed Memory
 Programming on Reconfigurable Hardware}
 T. De Matteis, J. de Fine Licht, ~emph{J. Beránek}, T. Hoefler
 ~emph{SC (International Conference for High Performance Computing, Networking, Storage and Analysis) 2019}""")
-
-
-@slides.slide()
-def publications_unrelated_other(slide: Box):
-    slide.box().text("Publications unrelated to thesis", style="bold")
-
-    box = slide.box(p_top=20)
-    box.update_style("default", T(size=20))
-    box.update_style("bold", T(size=22))
-
-    lst = unordered_list(box)
-    lst.item().text("""~bold{Haydi: Rapid Prototyping and Combinatorial Objects}
+    lst.item(p_top=40).text("""~bold{Haydi: Rapid Prototyping and Combinatorial Objects}
 Stanislav Böhm, ~emph{Jakub Beránek}, Martin Šurkovský
 ~emph{Foundations of Information and Knowledge Systems 2018}""")
     lst.item(p_top=20).text("""~bold{Alternative Paths Reordering Using Probabilistic Time-Dependent
@@ -231,4 +206,43 @@ def outro(slide: Box):
     slide.box(p_top=300).text("Slides made with https://github.com/spirali/elsie", style=T(size=20))
 
 
-slides.render()
+@slides.slide()
+def bonus_gromacs_workflow(slide: Box):
+    content = slide_header_top(slide, "GROMACS + LiGEN LIGATE workflow")
+    content.box(width="100%").image("images/gromacs-pipeline.png")
+
+
+@slides.slide()
+def bonus_projects(slide: Box):
+    content = slide_header_top(slide, "Projects and publications")
+
+    lst = unordered_list(content.box())
+    lst.item().text("ANTAREX: distributed system for traffic simulator")
+    lst.item().text("EVEREST: traffic simulator + HQ")
+    lst.item().text("LIGATE: porting GROMACS + LiGEN workflow to HQ")
+    lst.item().text("ETH internship: 5 publications (2 at SC'19)")
+
+
+numbering_start = 2
+numbering_end = 39
+
+
+def page_numbering(slides: List[Box]):
+    width = 90
+    height = 45
+    margin = 10
+
+    for i, slide in enumerate(slides):
+        if numbering_start <= (i + 1) <= numbering_end:
+            box = slide.box(x=slide_width - width - margin,
+                            y=slide_height - height - margin,
+                            width=width,
+                            height=height).rect(
+                bg_color="#2F96A8", rx=5, ry=5
+            )
+            box.fbox(padding=5).text(f"{i + 1}/{numbering_end}",
+                                     style=TextStyle(color="white", size=26, align="right"))
+
+
+slides.render(slide_postprocessing=page_numbering)
+# slides.render()

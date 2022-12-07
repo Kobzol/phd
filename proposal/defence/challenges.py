@@ -154,3 +154,4 @@ def challenges(slides: Slides):
         lst2.item(show="next+").text("Communication bottleneck", style="l2")
         lst.item(show="next+").text("Fault tolerance")
         lst.item(show="next+").text("Iterative computation")
+        lst.item(show="next+").text("…")
