@@ -73,11 +73,21 @@ def challenges(slides: Slides):
 
         # Each task as a job
         box_1 = content.box(x=x_start, y=y_start, horizontal=True, show="2+")
-        tg(box_1.box(p_right=40))
+        tasks = tg(box_1.box(p_right=40))
+
+        def get_color(index: int) -> str:
+            if index == 0:
+                return "black"
+            return get_task_color(index + 2)
+
+        for (index, task_box) in enumerate(tasks):
+            task(box=task_box, x=task_size / 2, y = task_size / 2, size=task_size,
+                 bg_color=get_task_color(index), color=get_color(index))
         nodes = cluster_1(box_1.box(), size=node_size)
         for (index, node_box) in enumerate(nodes[:3]):
-            node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
-                 bg_color=get_task_color(index), node_args=dict(stroke_width=4))
+            node(node_box.overlay(z_level=2), x=node_size / 2, y=node_size / 2, size=node_size,
+                 bg_color=get_task_color(index), color=get_color(index),
+                 node_args=dict(stroke_width=4))
 
         # Task graph as a single job
         box_1 = content.box(x=x_start, y=y_start + 180, horizontal=True, show="7+")
