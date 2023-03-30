@@ -1,0 +1,166 @@
+@inproceedings{wrf,
+    title = {The {Weather} {Reseach} and {Forecast} {Model}: {Software} {Architecture} and {Performance}},
+    author = {Michalakes, John and Dudhia, Jimy and Gill, D. and Henderson, Tom and Klemp, J. and Skamarock, W. and Wang, Wei},
+    month = jan,
+    year = {2004},
+}
+@inproceedings{cfd,
+    title={CFD Vision 2030 Study: A Path to Revolutionary Computational Aerosciences},
+    author={Jeffrey P. Slotnick and Abdollah Khodadoust and Juan J. Alonso and David L. Darmofal and William Gropp and Elizabeth A. Lurie and Dimitri J. Mavriplis},
+    year={2014}
+}
+@article{hpcdl,
+    author = {Ben-Nun, Tal and Hoefler, Torsten},
+    title = {Demystifying Parallel and Distributed Deep Learning: An In-Depth Concurrency Analysis},
+    year = {2019},
+    issue_date = {July 2020},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {52},
+    number = {4},
+    issn = {0360-0300},
+%    url = {https://doi.org/10.1145/3320060},
+    doi = {10.1145/3320060},
+%    abstract = {Deep Neural Networks (DNNs) are becoming an important tool in modern computing applications. Accelerating their training is a major challenge and techniques range from distributed algorithms to low-level circuit design. In this survey, we describe the problem from a theoretical perspective, followed by approaches for its parallelization. We present trends in DNN architectures and the resulting implications on parallelization strategies. We then review and model the different types of concurrency in DNNs: from the single operator, through parallelism in network inference and training, to distributed deep learning. We discuss asynchronous stochastic optimization, distributed system architectures, communication schemes, and neural architecture search. Based on those approaches, we extrapolate potential directions for parallelism in deep learning.},
+    journal = {ACM Comput. Surv.},
+    month = aug,
+    articleno = {65},
+    numpages = {43},
+%    keywords = {parallel algorithms, Deep learning, distributed computing}
+}
+@InProceedings{bioinformatics,
+    author="Per{\'e}z-S{\'a}nchez, Horacio
+and Fassihi, Afshin
+and Cecilia, Jos{\'e} M.
+and Ali, Hesham H.
+and Cannataro, Mario",
+    editor="Ortu{\~{n}}o, Francisco
+and Rojas, Ignacio",
+    title="Applications of High Performance Computing in Bioinformatics, Computational Biology and Computational Chemistry",
+    booktitle="Bioinformatics and Biomedical Engineering",
+    year="2015",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="527--541",
+%    abstract="In the last 10 years, we are witnessing one of the major revolutions in parallel systems. The consolidation of heterogeneous systems at different levels -from desktop computers to large-scale systems such as supercomputers, clusters or grids, through all kinds of low-power devices- is providing a computational power unimaginable just few years ago, trying to follow the wake of Moore's law. This landscape in the high performance computing arena opens up great opportunities in the simulation of relevant biological systems and for applications in Bioinformatics, Computational Biology and Computational Chemistry. This introductory article shows the last tendencies of this active research field and our perspectives for the forthcoming years.",
+    isbn="978-3-319-16480-9"
+}
+@Inbook{memorywall,
+    author="McKee, Sally A.
+and Wisniewski, Robert W.",
+    editor="Padua, David",
+    title="Memory Wall",
+    bookTitle="Encyclopedia of Parallel Computing",
+    year="2011",
+    publisher="Springer US",
+    address="Boston, MA",
+    pages="1110--1116",
+    isbn="978-0-387-09766-4",
+    doi="10.1007/978-0-387-09766-4_234",
+%    url="https://doi.org/10.1007/978-0-387-09766-4_234"
+}
+@Inbook{powerwall,
+    author="Bose, Pradip",
+    editor="Padua, David",
+    title="Power Wall",
+    bookTitle="Encyclopedia of Parallel Computing",
+    year="2011",
+    publisher="Springer US",
+    address="Boston, MA",
+    pages="1593--1608",
+    isbn="978-0-387-09766-4",
+    doi="10.1007/978-0-387-09766-4_499",
+%    url="https://doi.org/10.1007/978-0-387-09766-4_499"
+}
+@article{xeonphi,
+    title={Knights Landing: Second-Generation Intel Xeon Phi Product},
+    author={Avinash Sodani and Roger Gramunt and Jes{\'u}s Corbal and Ho-Seop Kim and Krishna Vinod and Sundaram Chinthamani and Steven Hutsell and Rajat Agarwal and Yen-Chen Liu},
+    journal={IEEE Micro},
+    year={2016},
+    volume={36},
+    pages={34-46}
+}
+@inproceedings{mpistudy,
+    author = {Laguna, Ignacio and Marshall, Ryan and Mohror, Kathryn and Ruefenacht, Martin and Skjellum, Anthony and Sultana, Nawrin},
+    title = {A Large-Scale Study of MPI Usage in Open-Source HPC Applications},
+    year = {2019},
+    isbn = {9781450362290},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    doi = {10.1145/3295500.3356176},
+    booktitle = {Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis},
+    articleno = {31},
+    numpages = {14},
+    location = {Denver, Colorado},
+    series = {SC '19}
+}
+@inproceedings{dace,
+    author = {Ben-Nun, Tal and de Fine Licht, Johannes and Ziogas, Alexandros N. and Schneider, Timo and Hoefler, Torsten},
+    title = {Stateful Dataflow Multigraphs: A Data-Centric Model for Performance Portability on Heterogeneous Architectures},
+    year = {2019},
+    isbn = {9781450362290},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+%    url = {https://doi.org/10.1145/3295500.3356173},
+    doi = {10.1145/3295500.3356173},
+%    abstract = {The ubiquity of accelerators in high-performance computing has driven programming complexity beyond the skill-set of the average domain scientist. To maintain performance portability in the future, it is imperative to decouple architecture-specific programming paradigms from the underlying scientific computations. We present the Stateful DataFlow multiGraph (SDFG), a data-centric intermediate representation that enables separating program definition from its optimization. By combining fine-grained data dependencies with high-level control-flow, SDFGs are both expressive and amenable to program transformations, such as tiling and double-buffering. These transformations are applied to the SDFG in an interactive process, using extensible pattern matching, graph rewriting, and a graphical user interface. We demonstrate SDFGs on CPUs, GPUs, and FPGAs over various motifs --- from fundamental computational kernels to graph analytics. We show that SDFGs deliver competitive performance, allowing domain scientists to develop applications naturally and port them to approach peak hardware performance without modifying the original scientific code.},
+    booktitle = {Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis},
+    articleno = {81},
+    numpages = {14},
+    location = {Denver, Colorado},
+    series = {SC '19}
+}
+@Article{starpu,
+    author = {C{\'e}dric Augonnet and Samuel Thibault and Raymond Namyst and Pierre-Andr{\'e} Wacrenier},
+    title = {{StarPU: A Unified Platform for Task Scheduling on Heterogeneous Multicore Architectures}},
+    journal = {CCPE - Concurrency and Computation: Practice and Experience, Special Issue: Euro-Par 2009},
+    volume = 23,
+    issue = 2,
+    pages = {187--198},
+    year = 2011,
+    month = FEB,
+    publisher = {John Wiley & Sons, Ltd.},
+    doi = {10.1002/cpe.1631},
+    url = {http://hal.inria.fr/inria-00550877},
+    pdf = {http://hal.inria.fr/inria-00550877/document},
+    KEYWORDS = {General Presentations;StarPU}
+}
+@book{openmp,
+    title={Parallel programming in OpenMP},
+    author={Chandra, Rohit and Dagum, Leo and Kohr, David and Menon, Ramesh and Maydan, Dror and McDonald, Jeff},
+    year={2001},
+    publisher={Morgan kaufmann}
+}
+@inproceedings{dask,
+    author = {Rocklin, Matthew},
+    year = {2015},
+    month = {01},
+    pages = {126-132},
+    title = {Dask: Parallel Computation with Blocked algorithms and Task Scheduling},
+    doi = {10.25080/Majora-7b98e3ed-013}
+}
+@article{snakemake,
+    author = {Köster, Johannes and Rahmann, Sven},
+    title = "{Snakemake—a scalable bioinformatics workflow engine}",
+    journal = {Bioinformatics},
+    volume = {28},
+    number = {19},
+    pages = {2520-2522},
+    year = {2012},
+    month = {08},
+    abstract = "{Summary: Snakemake is a workflow engine that provides a readable Python-based workflow definition language and a powerful execution environment that scales from single-core workstations to compute clusters without modifying the workflow. It is the first system to support the use of automatically inferred multiple named wildcards (or variables) in input and output filenames.Availability:http://snakemake.googlecode.com.Contact:johannes.koester@uni-due.de}",
+    issn = {1367-4803},
+    doi = {10.1093/bioinformatics/bts480},
+    %    url = "https://doi.org/10.1093/bioinformatics/bts480",
+    eprint = {https://academic.oup.com/bioinformatics/article-pdf/28/19/2520/819790/bts480.pdf},
+}
+@article{nextflow,
+    author = {Di Tommaso, Paolo and Chatzou, Maria and Floden, Evan W. and Barja, Pablo and Palumbo, Emilio and Notredame, Cedric},
+    year = {2017},
+    month = {04},
+    pages = {316-319},
+    title = {Nextflow enables reproducible computational workflows},
+    volume = {35},
+    journal = {Nature Biotechnology},
+    doi = {10.1038/nbt.3820}
+}
