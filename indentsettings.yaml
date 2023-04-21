@@ -1,0 +1,19 @@
+#modifyLineBreaks:
+#  preserveBlankLines: 1                   # 0/1
+#  condenseMultipleBlankLinesInto: 1       # 0/1
+#textWrapOptions:
+#  columns: 40
+#  multipleSpacesToSingle: 1
+#  removeBlockLineBreaks: 1
+#  when: after                        # before/after
+modifyLineBreaks:
+  textWrapOptions:
+    all: 1
+    columns: 100
+    perCodeBlockBasis: 1
+  removeParagraphLineBreaks:
+    all: 1
+    beforeTextWrap: 1
+noAdditionalIndentGlobal:
+  mandatoryArguments: 1
+  commands: 1
