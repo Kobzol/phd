@@ -131,6 +131,46 @@ and Wisniewski, Robert W.",
     year={2001},
     publisher={Morgan kaufmann}
 }
+@ARTICLE{mooreslaw,
+    author={Schaller, R.R.},
+    journal={IEEE Spectrum},
+    title={Moore's law: past, present and future},
+    year={1997},
+    volume={34},
+    number={6},
+    pages={52-59},
+    doi={10.1109/6.591665}
+}
+@online{top500gpu,
+    author={Feldman, Michael},
+    url={https://www.top500.org/news/new-gpu-accelerated-supercomputers-change-the-balance-of-power-on-the-top500/},
+    urldate = {2023-04-21},
+}
+
+% Technologies
+@techreport{mpi,
+    author = {Forum, Message P},
+    title = {MPI: A Message-Passing Interface Standard},
+    year = {1994},
+    publisher = {University of Tennessee},
+    address = {USA},
+%    abstract = {The Message Passing Interface Forum (MPIF), with participation from over 40 organizations, has been meeting since November 1992 to discuss and define a set of library standards for message passing. MPIF is not sanctioned or supported by any official standards organization. The goal of the Message Passing Interface, simply stated, is to develop a widely used standard for writing message-passing programs. As such the interface should establish a practical, portable, efficient and flexible standard for message passing. , This is the final report, Version 1.0, of the Message Passing Interface Forum. This document contains all the technical features proposed for the interface. This copy of the draft was processed by LATEX on April 21, 1994. , Please send comments on MPI to mpi-comments@cs.utk.edu. Your comment will be forwarded to MPIF committee members who will attempt to respond.}
+}
+@Inbook{pgas,
+    author="Almasi, George",
+    editor="Padua, David",
+    title="PGAS (Partitioned Global Address Space) Languages",
+    bookTitle="Encyclopedia of Parallel Computing",
+    year="2011",
+    publisher="Springer US",
+    address="Boston, MA",
+    pages="1539--1545",
+    isbn="978-0-387-09766-4",
+    doi="10.1007/978-0-387-09766-4_210",
+%    url="https://doi.org/10.1007/978-0-387-09766-4_210"
+}
+
+% Distributed tools
 @inproceedings{dask,
     author = {Rocklin, Matthew},
     year = {2015},
@@ -163,4 +203,51 @@ and Wisniewski, Robert W.",
     volume = {35},
     journal = {Nature Biotechnology},
     doi = {10.1038/nbt.3820}
+}
+@article{aiida,
+    author="Huber, Sebastiaan P.
+and Zoupanos, Spyros
+and Uhrin, Martin
+and Talirz, Leopold
+and Kahle, Leonid
+and H{\"a}uselmann, Rico
+and Gresch, Dominik
+and M{\"u}ller, Tiziano
+and Yakutovich, Aliaksandr V.
+and Andersen, Casper W.
+and Ramirez, Francisco F.
+and Adorf, Carl S.
+and Gargiulo, Fernando
+and Kumbhar, Snehal
+and Passaro, Elsa
+and Johnston, Conrad
+and Merkys, Andrius
+and Cepellotti, Andrea
+and Mounet, Nicolas
+and Marzari, Nicola
+and Kozinsky, Boris
+and Pizzi, Giovanni",
+    title="AiiDA 1.0, a scalable computational infrastructure for automated reproducible workflows and data provenance",
+    journal="Scientific Data",
+    year="2020",
+    month="Sep",
+    day="08",
+    volume="7",
+    number="1",
+    pages="300",
+    abstract="The ever-growing availability of computing power and the sustained development of advanced computational methods have contributed much to recent scientific progress. These developments present new challenges driven by the sheer amount of calculations and data to manage. Next-generation exascale supercomputers will harden these challenges, such that automated and scalable solutions become crucial. In recent years, we have been developing AiiDA (aiida.net), a robust open-source high-throughput infrastructure addressing the challenges arising from the needs of automated workflow management and data provenance recording. Here, we introduce developments and capabilities required to reach sustained performance, with AiiDA supporting throughputs of tens of thousands processes/hour, while automatically preserving and storing the full data provenance in a relational database making it queryable and traversable, thus enabling high-performance data analytics. AiiDA's workflow language provides advanced automation, error handling features and a flexible plugin model to allow interfacing with external simulation software. The associated plugin registry enables seamless sharing of extensions, empowering a vibrant user community dedicated to making simulations more robust, user-friendly and reproducible.",
+    issn="2052-4463",
+    doi="10.1038/s41597-020-00638-4",
+%    url="https://doi.org/10.1038/s41597-020-00638-4"
+}
+@article{streamflow,
+    abstract = {Workflows are among the most commonly used tools in a variety of execution environments. Many of them target a specific environment; few of them make it possible to execute an entire workflow in different environments, e.g. Kubernetes and batch clusters. We present a novel approach to workflow execution, called StreamFlow, that complements the workflow graph with the declarative description of potentially complex execution environments, and that makes it possible the execution onto multiple sites not sharing a common data space. StreamFlow is then exemplified on a novel bioinformatics pipeline for single cell transcriptomic data analysis workflow.},
+    author = {Iacopo Colonnelli and Barbara Cantalupo and Ivan Merelli and Marco Aldinucci},
+    doi = {10.1109/TETC.2020.3019202},
+    journal = {{IEEE} {T}ransactions on {E}merging {T}opics in {C}omputing},
+    number = {4},
+    pages = {1723--1737},
+    title = {{StreamFlow}: cross-breeding cloud with {HPC}},
+    volume = {9},
+    year = {2021}
 }

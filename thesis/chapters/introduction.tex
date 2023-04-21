@@ -6,13 +6,13 @@ computational fluid dynamics~\cite{cfd}, bioinformatics~\cite{bioinformatics} or
 learning~\cite{hpcdl}.
 
 Over the last several decades, the performance of HPC clusters (and also consumer computing
-devices) has been steadily increasing, effectively doubling every few years, in line with the
-implications of Moore's Law and Dennard scaling\todo{cite?}. However, it also became more
-difficult for HPC users to tap into that performance increase. Thirty years ago, it was possible to
-buy a new (super)computer every two years and get essentially doubled performance for free, without
-having to modify existing programs. This phenomenon has started to diminish by the end of the last
-century, as chip designers became limited by the memory wall~\cite{memorywall} and especially
-the power wall~\cite{powerwall}.
+devices) has been steadily increasing, effectively doubling every few years, in line with Moore's
+Law and Dennard scaling~\cite{mooreslaw}. However, it also became more difficult for HPC users
+to tap into that performance increase. Thirty years ago, it was possible to buy a new
+(super)computer every two years and get essentially doubled performance for free, without having to
+modify existing programs. This phenomenon has started to diminish by the end of the last century,
+as chip designers became limited by the memory wall~\cite{memorywall} and especially the power
+wall~\cite{powerwall}.
 
 To keep up with the exponential performance increases, processors had to become more complex,
 gaining many buffers and caches, multiple cores, simultaneous multithreading, out-of-order
@@ -22,7 +22,7 @@ more complex, with NUMA (Non-Uniform Memory Access) memories becoming commonplac
 even more performance, HPC clusters started massively adopting various accelerators, like the Intel
 Xeon Phi~\cite{xeonphi} manycore coprocessor or general-purpose Graphics processing units
 (GPUs) from NVIDIA or AMD, which became the backbone of a majority of current
-supercomputers\todo{cite?}. Some clusters have also adapted more unconventional
+supercomputers~\cite{top500gpu}. Some clusters have also adapted more unconventional
 accelerators, like reconfigurable hardware (e.g.\ Field-programmable gate arrays) or Artificial
 Intelligence (AI) accelerators (e.g.\ Tensor processing units). This trend gave rise to
 heterogeneous clusters, that offer various types of hardware that are designed for specific
@@ -62,10 +62,10 @@ The growing complexity of HPC hardware, software and use-cases gave rise to the 
 task-based programming models and paradigms. The term \emph{task-based programming} is used for a lot of
 related technologies and programming models, ranging from fine-grained tasks that execute a single
 function or just a handful of instructions~\cite{starpu,openmp} to coarse-grained task workflows
-that execute binaries which can run for hours or even days~\cite{dask, snakemake, nextflow}. This
-thesis primarily focuses on the latter type of task graphs, which represent very general
-computations (either functions or binaries) with various levels of granularity,
-that are intended to be distributed among multiple nodes of a distributed cluster.
+that execute binaries which can run for hours or even days~\cite{dask, snakemake, nextflow}. This thesis
+primarily focuses on the latter type of task graphs, which represent very general computations
+(either functions or binaries) with various levels of granularity, that are intended to be
+distributed among multiple nodes of a distributed cluster.
 
 The task graph programming model allows users to focus on the problem domain and quickly prototype,
 while still being able to describe complicated computations with a large amount of individual steps

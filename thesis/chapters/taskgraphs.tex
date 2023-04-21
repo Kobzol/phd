@@ -1,0 +1,249 @@
+There are many ways to design and program distributed and parallel programs for HPC clusters.
+Historically, a popular way of creating HPC applications was to implement the parallelization of
+computation and the distribution of data explicitly, typically using message-passing
+(MPI~\cite{mpi}) or global address space (PGAS~\cite{pgas}) frameworks and
+programming models that are tuned for maximum HPC performance. With an explicitly parallel program,
+users have a lot of control over the exchange of data and communication between distributed nodes,
+which allows them to create very performant programs. It is also flexible and enables expressing
+arbitrarily complex parallelization strategies.
+
+However, even though such explicitly parallelized programs can be incredibly efficient,
+implementing them is notoriously difficult. Deadlocks and race conditions, which are already
+problematic for single-node parallel programs, are even more of an issue for distributed programs.
+HPC applications that use libraries for explicit distribution of data (such as various MPI
+implementations) are also typically written in rather low-level languages that are not very
+expressive and do not offer automatic memory management (such as \texttt{C} or
+\texttt{C++}), which further increases the difficulty of writing and decreases the
+velocity of developing correct distributed programs.
+
+With both scientific workflows and HPC clusters becoming ever more complex each year, it would be
+unreasonable to expect that all scientists that want to leverage HPC to execute their custom
+experiments will ``roll up their sleeves'' and spend months implementing an explicitly parallel
+program \texttt{C++} program that uses MPI. In recent years, it became very popular to
+define scientific computations using very high-level languages (such as Python) and programming
+models that do not require explicit implementation of data exchange and parallelism. One of these
+is the task-based programming model.
+
+% TODO: MapReduce
+
+The task-based programming model allows users to describe the high-level structure of the
+computations that they want to perform using a \emph{task graph}. Users create the task graph
+by splitting their program into a set of \emph{tasks}, atomic computations with
+explicitly described inputs and outputs that can be executed in a self-contained way. Additional
+constraints can also be encoded into the task graph, e.g.\ which data should be transferred between
+the individual tasks, which tasks cannot be executed until some other task finishes its execution,
+or the necessary properties of an environment in which a task will be executed.
+
+The primary benefit of describing a computational workflow in such a way is that the resulting
+program is \emph{implicitly parallel}. The author of the program does not imperatively specify how
+should the computation be parallelized or when and how should data be exchanged. They merely
+declaratively specify the individual parts of the program that can theoretically executed in
+parallel (the tasks) and then pass the task graph to a dedicated execution tool that is able to
+extract the available parallelism from it and even to execute the tasks on a distributed cluster.
+
+This programming model is central to the topic of this thesis, therefore this chapter will define
+various terms and concepts related to it. The term \emph{task} is heavily overloaded in
+various areas of computer science, as it is used for many unrelated concepts, from an execution
+context in the Linux operating system, through a block of code executed by the OpenMP library, to a
+program executed by a complex distributed computational workflow. Even in the area of distributed
+computing, the terminology can vastly differ between different task execution tools and theoretical
+works. The same holds for task-based programming; this concept can have multiple, slightly
+different, meanings and variations, depending on the specific tool that implements it.
+
+Note that task related terms will be described in this chapter in a very general way, so that they
+can be mapped to concepts used by the various task execution programs described in this thesis, and
+also to capture the specifics of task execution in HPC environments, which will be described in
+detail in the following chapter. % TODO: where possible, it will try to use existing terminology...?
+
+\section{Task graph}
+The task graph is a DAG...
+
+\section{Task template}
+A \emph{task template} is a description of a computation that can be executed in the future. In
+order to be executed, it requires a (possibly empty) sequence of \emph{inputs} that
+provide input data necessary to perform the computation. Once a task template is executed, it
+generates a (possibly empty) sequence of \emph{outputs} containing the computed results.
+The execution of a task template can also cause \emph{side effects}. A side effect happens when
+the computation depends on the state of the environment in which it is executed, or when it changes
+that state in a way that is observable by other computations happening in the same environment.
+
+In practice, a task template will typically be represented with one of the two following concepts:
+\begin{description}
+	\item[Function] A typical fine-grained task template is a function (subprogram), an executable block of code which
+		can be executed in a self-contained way. The inputs of a function are typically its parameters, and
+		the output is its return value (which can be structured so that a sequence of outputs is generated,
+		instead of just a single output).
+	\item[Binary executable] A more coarse-grained way of describing a computation is an executable program. The inputs of such
+		a task template can be e.g.\ command-line arguments or the \texttt{
+		standard input stream}, and the output
+		can be e.g.\ the content of the \texttt{standard output stream} generated by the executed program.
+\end{description}
+
+Task templates allow us to treat computations as data, which is quite useful. They can be
+serialized, sent between different nodes in a cluster or stored to disk, and it is possible to
+execute them an arbitrary number of times.
+
+It is crucial to note that in this case, a task corresponds to the combination of a function and
+some specific way of producing its arguments\footnote{In programming language terms, a task corresponds to a lazy invocation of a function, with its parameters bound to specific input expressions.}, not just to the function
+itself. Two different tasks might represent the execution of the same function, but with different
+(ways of procuring) inputs.
+
+\paragraph{Executing a program} A more coarse-grained way of describing computations is to specify
+a binary file representing a program that should be executed, along with its specific input values.
+In this case, the inputs might be e.g.\ command-line parameters or environment values. The output
+of a task that executes a program can be e.g.\ the contents of its standard output or a set of
+files written to disk.
+
+The task's computation description should contain a specific method of procuring inputs for the
+computation (if there are any) and a set of outputs that will be produced when the task is
+executed. Each input can either be specified as a concrete value or the task can describe how
+should the input be procured when the task is executed. Often, an output of a task is used as an
+input for another task.
+
+In practice, a task usually corresponds to one of the following two descriptions:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PROPOSAL
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Task}
+A \emph{task} is a description of a computation that can be executed in the future. The
+\textit{execution} of a task is the process of performing the described computation on some
+specific input value(s) while producing some output value(s). The purpose of tasks is to represent
+computations in a way that allows treating computations as data. This has many advantages; tasks
+can be serialized, sent between different nodes in a cluster or stored to disk, and it is possible
+to execute them an arbitrary number of times.
+
+The task's computation description should contain a specific method of procuring inputs for the
+computation (if there are any) and a set of outputs that will be produced when the task is
+executed. Each input can either be specified as a concrete value or the task can describe how
+should the input be procured when the task is executed. Often, an output of a task is used as an
+input for another task.
+
+In practice, a task usually corresponds to one of the following two descriptions:
+
+\paragraph{Executing a function} A common description of a task is the specification of a
+function (i.e.\ a block of code that is part of some program), along with specific inputs that will
+be passed as arguments for that function. The output of the task is then the value returned by the
+function when it is executed (called).
+
+It is crucial to note that in this case, a task corresponds to the combination of a function and
+some specific way of producing its arguments\footnote{In programming language terms, a task corresponds to a lazy invocation of a function, with its parameters bound to specific input expressions.}, not just to the function
+itself. Two different tasks might represent the execution of the same function, but with different
+(ways of procuring) inputs.
+
+\paragraph{Executing a program} A more coarse-grained way of describing computations is to specify
+a binary file representing a program that should be executed, along with its specific input values.
+In this case, the inputs might be e.g.\ command-line parameters or environment values. The output
+of a task that executes a program can be e.g.\ the contents of its standard output or a set of
+files written to disk.
+
+\vspace{3mm}Tasks can be executed on a \emph{worker}, an abstract computational
+provider. Distributed task runtimes map workers to hardware resources in various ways. For example,
+there can be a single worker per computational node or a worker per each core. Usually a single
+task is executed on a single worker, but in HPC scenarios, there are use-cases for tasks that span
+multiple workers (this will be further discussed in Section~\ref{sec:challenges}).
+
+Tasks can also define various constraints and configuration that influences their execution, e.g.\
+they can specify what kinds of workers are capable of executing them. The term
+\emph{resource requirements} will be used for such constraints in this proposal. As an example, a task
+that describes the training of a machine learning model might require a GPU (Graphics Processing
+Unit) to be present on a worker that wants to compute the task. Other resources might include e.g.\
+a minimum required amount of memory (RAM) or a required amount of processor cores necessary to
+execute the task. Each resource requirement can be seen as a special case of task input, althought
+requirements and task inputs are usually treated separately in existing task runtimes.
+
+\subsection{Task graph}
+To build a complex workflow out of individual tasks, we need the ability to compose them together,
+and also, crucially, to introduce the notion of \emph{dependencies} between tasks, which allow
+us to define workflows consisting of multiple steps that pass data amongst themselves. A natural
+way of composing task graphs and expressing dependencies is to build a directed acyclic graph (DAG)
+of tasks, which we will label as a \emph{task graph}.
+
+In its most basic form, task graph vertices represent tasks and task graph edges define
+dependencies between tasks. Numerous other things can also be encoded in task graphs, for example
+it is quite natural to consider the task graph edges to be abstract channels through which the
+outputs of one task become the inputs of another task that depends on it.
+
+The exact semantics of vertices and edges of task graphs depend heavily on the specifics of tools
+that implement them. What follows is a formal definition of a simple form of a task graph which
+captures the basic structure of dependencies between tasks, to provide basic intuition.
+
+Formally, a task graph is a pair $(V, E)$, where $V$ is a set of
+tasks and $E \subseteq \{(x, y) \mid (x, y) \in V\times{}V \land x \neq y \}$ is a set of dependencies between tasks. When there exists a
+dependency $(x, y)$, task $y$ cannot be executed before
+$x$ has finished executing.
+
+% TODO: expand heavily in thesis
+
+%This transfer of data might be direct, when the system executing the handled by the task runtime
+%explicitly, but it might also be indirect. For example, $x$ might write a file with a specific
+%name to a filesystem and then $y$ will attempt to read that file, without the runtime ever knowing
+%about this form of communication.
+
+\subsection{Task runtime}
+We will use the term \emph{task runtime} for a system that actually executes computational
+workflows defined using task graphs. There are many existing task runtimes, with varying
+architectures, features and trade-offs, which affect factors like performance, fault tolerance or
+developer productivity. Some of these existing runtimes will be described in more detail in
+Section~\ref{sec:state_of_the_art}.
+
+In general, a task runtime has to manage and monitor all aspects of task graph execution. One of
+these aspects is managing the state of computational resources (workers) that actually execute
+tasks. For example, it has to handle the lifetime of workers (their connection/disconnection),
+facilitate data transfers between them or provide resiliency in case of worker failures. Another
+aspect is the management of tasks themselves. It has to keep track of which tasks have already been
+executed or have failed, which tasks are currently executing on some worker(s) and which tasks can
+be executed next because their task dependencies have already been resolved. Worker and task state
+management is especially complex in a distributed setting, where the workers operate on remote
+computational nodes connected by a network.
+
+The runtime is also responsible for actually executing the tasks on workers. From the perspective
+of the task runtime, a task is an atomic element that cannot be further divided; it is simply an
+opaque structure that can be executed.
+
+\subsection{Task scheduling}
+Another important aspect that needs to be implemented by a task runtime is \emph{task scheduling},
+which is described in its own section to emphasize that it is a crucial part of task graph
+execution.
+
+One of the main benefits of programming paradigms that leverage task graphs is that they are
+\emph{implicitly parallel}. With e.g.\ MPI, the user has to explicitly state which nodes should
+communicate together, how should the data be serialized and what communication patterns should be
+used. Using task graphs, the user simply describes what should be computed (tasks) and how is the
+computation logically ordered (task dependencies).
+
+The goal of a task runtime is to analyse the available parallelism contained within a task graph
+and plan (\emph{schedule}) the execution of tasks on specific workers in a way that
+optimizes some key metric. There are multiple metrics being used, such as the latency to execute
+specific critical tasks, but the most common metric is \emph{makespan} -- the duration
+between the start of the execution of the first task to the completion of all tasks within the task
+graph.
+
+The problem of optimal scheduling of tasks onto workers is NP-hard~\cite{Ullman1975}, even in
+the most basic scenarios (e.g.\ even if the exact duration of executing each task is known, and
+even if we do not consider network costs of transferring data between workers). Task runtimes thus
+have to resort to various heuristics tailored to their users' needs. Some classic task scheduling
+heuristics and their comparisons can be found in~\cite{hlfet1974,kwok1998benchmarking,hagras2003static,wang2018list,estee}.
+
+The scheduling heuristics of the runtime have to take many factors into consideration when deciding
+on which worker should a task execute:
+
+\begin{description}
+	\item[\textbf{Resource requirements}] If a task specifies any resource requirements, they have to be respected by the scheduler,
+		therefore the runtime must observe the (dynamically changing) available resources of each worker
+		and schedule tasks accordingly to uphold their requirements.
+	\item[\textbf{Data transfer cost}] If the runtime operates in a distributed cluster, one of the most important scheduling aspects that
+		it needs to consider is the transfer cost of data between workers over the network. All benefits
+		gained by computing a task on another worker to achieve parallelization might be lost if it takes
+		too much time to send the data (task outputs) to that worker.
+
+		The scheduler thus has to carefully balance the communication-to-computation ratio, based on the
+		available network bandwidth, sizes of outputs produced by tasks and the current utilization of
+		workers.
+	\item[\textbf{Scheduling overhead}] The overhead of computing the scheduling decisions itself also cannot be underestimated. As already
+		stated, computing an optimal solution is infeasible, but even heuristical approaches can have
+		wildly different performance characteristics. Producing a lower quality schedule sooner, rather
+		than a higher quality schedule later, can be sometimes beneficial, as we have demonstrated
+		in~\cite{rsds}.
+\end{description}
