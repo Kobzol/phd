@@ -146,6 +146,34 @@ and Wisniewski, Robert W.",
     url={https://www.top500.org/news/new-gpu-accelerated-supercomputers-change-the-balance-of-power-on-the-top500/},
     urldate = {2023-04-21},
 }
+@inproceedings{top500analysis,
+    author = {Khan, Awais and Sim, Hyogi and Vazhkudai, Sudharshan S. and Butt, Ali R. and Kim, Youngjae},
+    title = {An Analysis of System Balance and Architectural Trends Based on Top500 Supercomputers},
+    year = {2021},
+    isbn = {9781450388429},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/3432261.3432263},
+    doi = {10.1145/3432261.3432263},
+%    abstract = {Supercomputer design is a complex, multi-dimensional optimization process, wherein several subsystems need to be reconciled to meet a desired figure of merit performance for a portfolio of applications and a budget constraint. However, overall, the HPC community has been gravitating towards ever more Flops, at the expense of many other subsystems. To draw attention to overall system balance, in this paper, we analyze balance ratios and architectural trends in the world’s most powerful supercomputers. Specifically, we have collected the performance characteristics of systems between 1993 and 2019 based on the Top500 lists and then analyzed their architectures from diverse system design perspectives. Notably, our analysis studies the performance balance of the machines, across a variety of subsystems such as compute, memory, I/O, interconnect, intra-node connectivity and power. Our analysis reveals that balance ratios of the various subsystems need to be considered carefully alongside the application workload portfolio to provision the subsystem capacity and bandwidth specifications, which can help achieve optimal performance.},
+    booktitle = {The International Conference on High Performance Computing in Asia-Pacific Region},
+    pages = {11–22},
+    numpages = {12},
+    %    keywords = {Architectural Trends and Performance Balance Ratio, High Performance Computing, Top500 Supercomputers},
+    location = {Virtual Event, Republic of Korea},
+    series = {HPC Asia 2021}
+}
+@online{dask-client-perf,
+    title = {Task graph building performance issue in Dask},
+    url = {https://github.com/dask/distributed/issues/3783},
+    urldate = {2022-05-25},
+}
+@online{dask-user-survey,
+    title = {2021 Dask User Survey},
+    author = {Genevieve Buckley},
+    url = {https://blog.dask.org/2021/09/15/user-survey},
+    urldate = {2022-06-09},
+}
 
 % Technologies
 @techreport{mpi,
@@ -168,6 +196,106 @@ and Wisniewski, Robert W.",
     isbn="978-0-387-09766-4",
     doi="10.1007/978-0-387-09766-4_210",
 %    url="https://doi.org/10.1007/978-0-387-09766-4_210"
+}
+
+% Job managers
+@InProceedings{slurm,
+    author = "Yoo, Andy B.
+and Jette, Morris A.
+and Grondona, Mark",
+    doi = "10.1007/10968987_3",
+    editor = "Feitelson, Dror
+and Rudolph, Larry
+and Schwiegelshohn, Uwe",
+    title = "SLURM: Simple Linux Utility for Resource Management",
+    booktitle = "Job Scheduling Strategies for Parallel Processing",
+    year = "2003",
+    publisher = "Springer Berlin Heidelberg",
+    address = "Berlin, Heidelberg",
+    pages = "44--60",
+%    abstract = "A new cluster resource management system called Simple Linux Utility Resource Management (SLURM) is described in this paper. SLURM, initially developed for large Linux clusters at the Lawrence Livermore National Laboratory (LLNL), is a simple cluster manager that can scale to thousands of processors. SLURM is designed to be flexible and fault-tolerant and can be ported to other clusters of different size and architecture with minimal effort. We are certain that SLURM will benefit both users and system architects by providing them with a simple, robust, and highly scalable parallel job execution environment for their cluster system.",
+    isbn = "978-3-540-39727-4"
+}
+@inproceedings{pbs,
+    author = {Staples, Garrick},
+    title = {TORQUE Resource Manager},
+    year = {2006},
+    isbn = {0769527000},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    %    url = {https://doi.org/10.1145/1188455.1188464},
+    doi = {10.1145/1188455.1188464},
+%    abstract = {With TORQUE Resource Manager now reaching over 10,000 downloads per month and use across thousands of leading sites representing commercial, government, and academic organizations, we invite all TORQUE users to meet and discuss TORQUE with the professional developers, community volunteers other members who use and have contributed to the TORQUE project.Here we will discuss the current state of TORQUE including some of the more recent enhancements and capabilities along with the road map for the upcoming year. We will also provide a time for TORQUE users to share experiences, best practices, and new needs.},
+    booktitle = {Proceedings of the 2006 ACM/IEEE Conference on Supercomputing},
+    pages = {8–es},
+    location = {Tampa, Florida},
+    series = {SC '06}
+}
+@online{slurm-schedmd,
+    title = {SchedMD Slurm usage statistics},
+    url = {https://schedmd.com/},
+    urldate = {2022-05-18}
+}
+
+% Scheduling
+@article{Ullman1975,
+    author = {Ullman, J. D.},
+    title = {NP-complete Scheduling Problems},
+    journal = {J. Comput. Syst. Sci.},
+    issue_date = {June, 1975},
+    volume = {10},
+    number = {3},
+    month = jun,
+    year = {1975},
+    issn = {0022-0000},
+    pages = {384--393},
+    numpages = {10},
+    %    url = {http://dx.doi.org/10.1016/S0022-0000(75)80008-0},
+    doi = {10.1016/S0022-0000(75)80008-0},
+    acmid = {1740138},
+    publisher = {Academic Press, Inc.},
+    address = {Orlando, FL, USA},
+}
+@article{hlfet1974,
+    author = {Adam, Thomas L. and Chandy, K. M. and Dickson, J. R.},
+    title = {A Comparison of List Schedules for Parallel Processing Systems},
+    journal = {Commun. ACM},
+    issue_date = {Dec 1974},
+    volume = {17},
+    number = {12},
+    month = dec,
+    year = {1974},
+    issn = {0001-0782},
+    pages = {685--690},
+    numpages = {6},
+    %    url = {http://doi.acm.org/10.1145/361604.361619},
+    doi = {10.1145/361604.361619},
+    acmid = {361619},
+    publisher = {ACM},
+    address = {New York, NY, USA},
+}
+@inproceedings{kwok1998benchmarking,
+    title = {Benchmarking the task graph scheduling algorithms},
+    author = {Kwok, Yu-Kwong and Ahmad, Ishfaq},
+    booktitle = {ipps},
+    pages = {0531},
+    year = {1998},
+    organization = {IEEE}
+}
+@article{hagras2003static,
+    title = {Static vs. dynamic list-scheduling performance comparison},
+    author = {Hagras, Tarek and Jane{\v{c}}ek, J},
+    journal = {Acta Polytechnica},
+    volume = {43},
+    number = {6},
+    year = {2003}
+}
+@article{wang2018list,
+    title = {List-Scheduling vs. Cluster-Scheduling},
+    author = {Wang, Huijun and Sinnen, Oliver},
+    journal = {IEEE Transactions on Parallel and Distributed Systems},
+    year = {2018},
+    publisher = {IEEE}
 }
 
 % Distributed tools
@@ -250,4 +378,75 @@ and Pizzi, Giovanni",
     title = {{StreamFlow}: cross-breeding cloud with {HPC}},
     volume = {9},
     year = {2021}
+}
+@article{gromacs,
+    author="Lindahl, Erik
+and Hess, Berk
+and van der Spoel, David",
+    title="GROMACS 3.0: a package for molecular simulation and trajectory analysis",
+    journal="Molecular modeling annual",
+    year="2001",
+    month="Aug",
+    day="01",
+    volume="7",
+    number="8",
+    pages="306--317",
+%    abstract="GROMACS 3.0 is the latest release of a versatile and very well optimized package for molecular simulation. Much effort has been devoted to achieving extremely high performance on both workstations and parallel computers. The design includes an extraction of virial and periodic boundary conditions from the loops over pairwise interactions, and special software routines to enable rapid calculation of x--1/2. Inner loops are generated automatically in C or Fortran at compile time, with optimizations adapted to each architecture. Assembly loops using SSE and 3DNow! Multimedia instructions are provided for x86 processors, resulting in exceptional performance on inexpensive PC workstations. The interface is simple and easy to use (no scripting language), based on standard command line arguments with self-explanatory functionality and integrated documentation. All binary files are independent of hardware endian and can be read by versions of GROMACS compiled using different floating-point precision. A large collection of flexible tools for trajectory analysis is included, with output in the form of finished Xmgr/Grace graphs. A basic trajectory viewer is included, and several external visualization tools can read the GROMACS trajectory format. Starting with version 3.0, GROMACS is available under the GNU General Public License from http://www.gromacs.org.",
+    issn="0948-5023",
+    doi="10.1007/s008940100045",
+%    url="https://doi.org/10.1007/s008940100045"
+}
+@inproceedings{hyperloom,
+    author = {Cima, Vojtěch and Böhm, Stanislav and Martinovič, Jan and Dvorský, Jiří and Janurová, Kateřina and Aa, Tom Vander and Ashby, Thomas J. and Chupakhin, Vladimir},
+    title = {HyperLoom: A Platform for Defining and Executing Scientific Pipelines in Distributed Environments},
+    year = {2018},
+    isbn = {9781450364447},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/3183767.3183768},
+    doi = {10.1145/3183767.3183768},
+    pages = {1–6},
+    numpages = {6},
+    %    keywords = {Chemogenomics, Distributed Computing, Task Scheduling, Scientific Pipeline, Big Data, HPC, Machine Learning},
+    series = {PARMA-DITAM '18}
+}
+@inproceedings{ray,
+    author = {Moritz, Philipp and Nishihara, Robert and Wang, Stephanie and Tumanov, Alexey and Liaw, Richard and Liang, Eric and Elibol, Melih and Yang, Zongheng and Paul, William and Jordan, Michael I. and Stoica, Ion},
+    title = {Ray: A Distributed Framework for Emerging AI Applications},
+    year = {2018},
+    isbn = {9781931971478},
+    publisher = {USENIX Association},
+    address = {USA},
+    abstract = {The next generation of AI applications will continuously interact with the environment and learn from these interactions. These applications impose new and demanding systems requirements, both in terms of performance and flexibility. In this paper, we consider these requirements and present Ray--a distributed system to address them. Ray implements a unified interface that can express both task-parallel and actor-based computations, supported by a single dynamic execution engine. To meet the performance requirements, Ray employs a distributed scheduler and a distributed and fault-tolerant store to manage the system's control state. In our experiments, we demonstrate scaling beyond 1.8 million tasks per second and better performance than existing specialized systems for several challenging reinforcement learning applications.},
+    booktitle = {Proceedings of the 13th USENIX Conference on Operating Systems Design and Implementation},
+    pages = {561–577},
+    numpages = {17},
+    location = {Carlsbad, CA, USA},
+    series = {OSDI'18}
+}
+@inproceedings{parsl,
+    author = {Babuji, Yadu and Woodard, Anna and Li, Zhuozhao and Katz, Daniel S. and Clifford, Ben and Kumar, Rohan and Lacinski, Lukasz and Chard, Ryan and Wozniak, Justin M. and Foster, Ian and Wilde, Michael and Chard, Kyle},
+    title = {Parsl: Pervasive Parallel Programming in Python},
+    year = {2019},
+    isbn = {9781450366700},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    %    url = {https://doi.org/10.1145/3307681.3325400},
+    doi = {10.1145/3307681.3325400},
+    abstract = {High-level programming languages such as Python are increasingly used to provide intuitive interfaces to libraries written in lower-level languages and for assembling applications from various components. This migration towards orchestration rather than implementation, coupled with the growing need for parallel computing (e.g., due to big data and the end of Moore's law), necessitates rethinking how parallelism is expressed in programs. Here, we present Parsl, a parallel scripting library that augments Python with simple, scalable, and flexible constructs for encoding parallelism. These constructs allow Parsl to construct a dynamic dependency graph of components that it can then execute efficiently on one or many processors. Parsl is designed for scalability, with an extensible set of executors tailored to different use cases, such as low-latency, high-throughput, or extreme-scale execution. We show, via experiments on the Blue Waters supercomputer, that Parsl executors can allow Python scripts to execute components with as little as 5 ms of overhead, scale to more than 250000 workers across more than 8000 nodes, and process upward of 1200 tasks per second. Other Parsl features simplify the construction and execution of composite programs by supporting elastic provisioning and scaling of infrastructure, fault-tolerant execution, and integrated wide-area data management. We show that these capabilities satisfy the needs of many-task, interactive, online, and machine learning applications in fields such as biology, cosmology, and materials science.},
+    booktitle = {Proceedings of the 28th International Symposium on High-Performance Parallel and Distributed Computing},
+    pages = {25–36},
+    numpages = {12},
+    location = {Phoenix, AZ, USA},
+    series = {HPDC '19}
+}
+@article{pycompss,
+    author = {Tejedor, Enric and Becerra, Yolanda and Alomar, Guillem and Queralt, Anna and Badia, Rosa M. and Torres, Jordi and Cortes, Toni and Labarta, Jesús},
+    year = {2015},
+    month = {08},
+    pages = {},
+    title = {PyCOMPSs: Parallel computational workflows in Python},
+    volume = {31},
+    journal = {International Journal of High Performance Computing Applications},
+    doi = {10.1177/1094342015594678}
 }
