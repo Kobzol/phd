@@ -8,6 +8,14 @@
 \usepackage[cpp]{diplomalst}
 \usepackage{hyperref}
 \usepackage{todonotes}
+\usepackage{tikz}
+\usetikzlibrary{graphs}
+\usetikzlibrary{positioning}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{math}
+
+% Fix arrow tips
+\tikzset{tips=proper}
 
 % Commands
 \newcommand{\comment}[1]{}
@@ -19,6 +27,13 @@
 \newcommand{\dask}{\emph{Dask}}
 \newcommand{\ray}{\emph{Ray}}
 \newcommand{\snakemake}{\emph{SnakeMake}}
+
+% TikZ styles
+\tikzset{%
+    task/.style={circle, draw},
+    data/.style={rectangle, draw, rounded corners},
+    arrow/.style={draw, thick, {->}}
+}
 
 % Metadata
 \ThesisAuthor{Ing. Jakub Beránek}
