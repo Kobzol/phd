@@ -17,3 +17,7 @@ modifyLineBreaks:
 noAdditionalIndentGlobal:
   mandatoryArguments: 1
   commands: 1
+verbatimEnvironments:
+  tikzpicture: 1
+  tikz: 1
+  graph: 1
