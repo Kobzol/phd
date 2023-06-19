@@ -147,17 +147,17 @@ execution of task graphs on HPC systems.
 
 \section{Cluster heterogeneity}
 Even though task graphs are designed to be portable and ideally should not depend on any specific
-execution environment, for certain types of tasks, we need to be able to describe some constraints
-for that environment. For example, when a task executes a program that leverages the
+execution environment, for certain types of tasks, we need to be able to describe at least some
+generic environment constraints. For example, when a task executes a program that leverages the
 CUDA\todo{explain} framework, which is designed to be executed on a graphics
 accelerator, it has to be executed on a node that has a GPU available, otherwise it will simply not
 work.
 
 It should thus be possible for an HPC task to define \emph{resource requirements}, which specify
 resources that have to be provided by an environment that will execute such task. These
-requirements can quite diverse. For example, a requirement could be the amount of cores (some tasks
-can use only a single core, some can be multithreaded), the amount of available main memory, a
-minimum duration required to execute the task or (either optional or required) presence of an
+requirements can be quite diverse. For example, a requirement could be the amount of cores (some
+tasks can use only a single core, some can be multithreaded), the amount of available main memory,
+a minimum duration required to execute the task or (either optional or required) presence of an
 accelerator like a GPU or an FPGA\@. In order to remain portable and independent of a specific
 execution environment, these requirements should be abstract and describe general, rather than
 specific, types of resources.
@@ -175,16 +175,14 @@ sixteen cores and 32 GiB of main memory. Some tasks are designed in a way that a
 leverage an open-ended range of resources, e.g.\ a task might require four cores, but if more are
 available, it could use as many as possible. Furthermore, some tasks might even support several
 variants of requirements, for example a task might either use four cores and a single GPU (if there
-is one available), or it could use more cores (and no GPU) to offset the absence of the
-accelerator.
+is one available), or it could use more cores (and no GPU) to offset the absence of an accelerator.
 
-A unique resource requirement that is fairly specific to HPC systems is the requirement of using
-multiple nodes per single task. This requirement is necessary for executing programs that are
-designed to be executed in a distributed fashion, such as programs using MPI, which are quite
-common in the area of HPC. This requirement is typically not well-supported in many task runtimes,
-because their programming model assumes that a task performs an atomic computation that executes on
-a single node. The use-case of tasks using multiple nodes is discussed in more detail later in this
-chapter.
+A resource requirement that is fairly specific to HPC systems is the requirement of using multiple
+nodes per single task. This requirement is necessary for programs that are designed to be executed
+in a distributed fashion, such as programs using MPI, which are quite common in HPC. This
+requirement is not supported in many task runtimes, because their programming model assumes that a
+task performs an atomic computation that executes on a single node. The use-case of tasks using
+multiple nodes is discussed in more detail later in this chapter.
 
 To support the mentioned scenarios, task runtimes should allow users to specify arbitrarily
 fine-grained and abstract resource requirements for each task. They should also allow users to
@@ -200,51 +198,51 @@ are many ways of storing and transferring these outputs. Some task frameworks st
 the filesystem, since it is relatively simple to implement, and it provides support for basic data
 resiliency out-of-the-box.
 
-HPC nodes often do not contain any local disks, instead they tend to use shared filesystems
-accessed over a network. While this might be seen as an advantage, since with a shared filesystem
-it is much easier to share task outputs amongst different workers, it can also be a severe
-bottleneck. Shared, networked filesystems can suffer from quite high latency, and accessing them
-can consume precious network bandwidth that is also used e.g.\ for managing computation (sending
-commands to workers) or for direct worker-to-worker data exchange. Furthermore, data produced in
-HPC computations can be quite large, and thus storing it to a disk can be a bottleneck even without
-considering networked filesystems.
+HPC nodes might not contain any local disks, but instead use shared filesystems accessed over a
+network. While this can be seen as an advantage, since with a shared filesystem it is much easier
+to share task outputs amongst different workers, it can also be a severe bottleneck. Shared
+networked filesystems can suffer from quite high latency, and accessing them can consume precious
+network bandwidth that is also used e.g.\ for managing computation (sending commands to workers) or
+for direct worker-to-worker data exchange. Furthermore, data produced in HPC computations can be
+quite large, and thus storing it to a disk can be a bottleneck even without considering networked
+filesystems.
 
-It should be possible to alleviate these bottlenecks, for example by directly transferring task
-outputs between workers over the network (preferably without accessing the filesystem in the fast
-path), by streaming outputs between tasks without the need to store them or by leveraging RAM
-disks~\cite{hyperloom}. Making use of HPC specific technologies, such as MPI or
-InfiniBand, could be also worthwhile to leverage the very fast interconnects available in HPC
-clusters.
+These bottlenecks can be alleviated by transferring task outputs directly between workers over the
+network (preferably without accessing the filesystem in the fast path), by streaming outputs
+between tasks without the need to store them or by leveraging RAM disks~\cite{hyperloom}.
+Making use of HPC specific technologies, such as MPI or InfiniBand, could be also worthwhile to
+leverage the very fast interconnects available in HPC clusters.
 
-Data outputs produced by tasks tend to be considered immutable, since a single output can be used
-as an input to multiple tasks, and these might be executed on completely different computational
-nodes. A problem that can arise with this approach is that if the data outputs are large, but the
-computation within tasks that work with the data is short, the serialization overhead (or even
-memory copy overhead, if the dependent task is executed on the same node) starts to dominate the
-execution time. To support such scenarios, some support for stateful data management can be useful,
+Data outputs produced by tasks tend to be considered immutable in existing task runtimes, since a
+single output can be used as an input to multiple tasks, and these might be executed on completely
+different computational nodes. A problem that can arise with this approach is that if the data
+outputs are large, but the computation within tasks that work with the data is short, the
+serialization overhead (or even memory copy overhead, if the dependent task is executed on the same
+node) can dominate the execution time. Such use-cases can be solved with stateful data management,
 for example in the form of \emph{actors}, which can be considered stateful tasks that
 operate on a single copy of some large piece of data.
 
 \section{Fault tolerance}
-Some level of fault tolerance should be provided by all task runtimes, but HPC systems have
+Fault tolerance is relevant in all distributed computing environments, but HPC systems have
 specific requirements in this regard. As was already mentioned, computational resources on HPC
-clusters are provided through job managers. These node allocations have a temporary duration, which
-means that for long-running task graphs, workers will disconnect and new workers will connect
-dynamically during the execution of the task graph. Furthermore, since the job manager allocations
-go through a queue, it can take some time before new computational resources arrive, therefore the
-task graph can remain in a paused state where no tasks are being executed, for potentially long
-periods of time.
+clusters are provided through allocation managers. Computing nodes allocated by these managers are
+provided only for a limited duration, which means that for long-running task graphs, some nodes
+will disconnect and new nodes will appear dynamically during the execution of the task graph.
+Furthermore, since the allocations go through a queue, it can take some time before new
+computational resources arrive, therefore the task graph can remain in a paused state, where no
+tasks are being executed, for potentially long periods of time.
 
-Task runtimes should be prepared for these situations; they must handle worker disconnection
-gracefully, even if that worker was currently executing some task, and they should be able to
-restart previously interrupted tasks on newly arrived workers. In HPC scenarios, worker instability
-and frequent disconnects should be considered a common behaviour, not just a rare edge case.
+It is important for task runtimes to be prepared for these situations; they must handle node
+disconnections gracefully, even if a task was being executed on a node that disconnects, and they
+should be able to restart previously interrupted tasks on newly arrived workers. In general, in HPC
+scenarios, worker instability and frequent disconnects should be considered the norm, not just a
+rare edge case.
 
 \section{Multi-node tasks}
-Many existing HPC applications are designed to be executed on multiple (hundreds or even thousands)
-nodes in parallel, using MPI libraries or other communication frameworks. To properly support these
-use-cases, we can introduce multi-node tasks by creating a special resource requirement, which
-states that a task should be executed on multiple workers at once.
+Many existing HPC applications are designed to be executed on multiple (potentially hundreds or
+even thousands) nodes in parallel, using e.g.\ MPI libraries or other communication frameworks.
+Multi-node execution could be seen as a special resource requirement, which states that a task
+should be executed on multiple workers at once.
 
 Support for multi-node tasks affects many design areas of a task runtime:
 \begin{description}
