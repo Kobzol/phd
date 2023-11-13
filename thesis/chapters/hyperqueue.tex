@@ -1,0 +1,32 @@
+
+%\hyperqueue{} is an HPC-tailored task runtime designed for executing task graphs in HPC
+%environments. Its two primary objectives are to be as performant as possible and to be easy to use
+%and deploy. It is developed in the Rust programming language and available as an open-source
+%software\footnoteurl{https://github.com/it4innovations/hyperqueue}.
+%
+%The key idea of \hyperqueue{} is to disentangle the submission of computation and the provision of
+%computational resources. With traditional HPC job managers, the computation description is
+%closely tied to the request of computational resources, which leads to problems mentioned in
+%Section~\ref{sec:challenges}, such as less efficient load balancing or the need to manually
+%aggregate tasks into jobs. \hyperqueue{} separates these two actions; users submit task graphs
+%independently of providing computational resources (workers) and let the task runtime take care of
+%matching them together, based on requested resource requirements and other constraints.
+%
+%One of the driving use-cases for \hyperqueue{} is efficient node usage and load balancing. The
+%latest HPC clusters contain a large number (hundreds) of cores, yet it is quite challenging to
+%design a single program that can scale effectively with so many threads. Thus, in order to fully
+%utilize the whole computational node, multiple tasks that each leverage a smaller amount of
+%threads have to be executed on the same node at once. \hyperqueue{} is able to effectively schedule
+%tasks to utilize all available computational nodes, and thanks to its design, it is able to do this
+%not just within a single HPC job, but across many jobs at once.
+%
+%\hyperqueue{} is being used by users of various HPC centres, and it is also a key
+%component of the Horizon 2020 European Union projects
+%LIGATE\footnoteurl{https://www.ligateproject.eu},
+%EVEREST\footnoteurl{https://everest-h2020.eu} and
+%ACROSS\footnoteurl{https://across-h2020.eu}. It is also envisioned as one of the primary ways of
+%executing computations on the LUMI supercomputer~\cite{lumi_it4innovations_2022}.
+%
+%\hyperqueue{} has been in development for over a year. It should be noted that while I am one of
+%its two primary authors and contributors, \hyperqueue{} is a team effort, and it is being
+%developed by multiple people.

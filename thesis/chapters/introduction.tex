@@ -5,13 +5,13 @@ use-cases) in various scientific areas, such as weather forecasting~\cite{wrf},
 computational fluid dynamics~\cite{cfd}, bioinformatics~\cite{bioinformatics} or deep
 learning~\cite{hpcdl}.
 
-Over the last several decades, the performance of HPC clusters (and also consumer computing
-devices) has been steadily increasing, effectively doubling every few years, in line with Moore's
-Law and Dennard scaling~\cite{mooreslaw}. However, it also became more difficult for HPC users
-to tap into that performance increase. Thirty years ago, it was possible to obtain a new
-(super)computer every two years and get essentially doubled performance for free, without having to
-modify existing programs. This phenomenon has started to diminish by the end of the last century,
-as chip designers became limited by the memory wall~\cite{memorywall} and especially the power
+Over the last several decades, the performance of HPC clusters has been steadily increasing,
+effectively doubling every few years, in line with Moore's Law and Dennard
+scaling~\cite{mooreslaw}. However, it also became more difficult for HPC users to tap into
+that performance increase. Thirty years ago, it was possible to obtain a new (super)computer every
+two years and get essentially doubled performance for free, without having to modify existing
+programs. This phenomenon has started to diminish by the end of the last century, as chip designers
+became limited by the memory wall~\cite{memorywall} and especially the power
 wall~\cite{powerwall}.
 
 To keep up with the expectation of exponential performance increases, processors had to become more
@@ -19,20 +19,20 @@ complex, gaining various buffers and caches, multiple cores, simultaneous multit
 out-of-order execution and a plethora of other techniques to make them run faster. The existence of
 multiple cores and sockets and the need for ever-increasing memory sizes has also made the memory
 system more complex, with NUMA (Non-Uniform Memory Access) memories becoming commonplace in HPC. To
-gain even more performance, HPC clusters started massively adopting various accelerators, like the
-Intel Xeon Phi~\cite{xeonphi} manycore coprocessor or general-purpose Graphics processing
-units (GPUs) from NVIDIA or AMD, which became the backbone of a majority of current
-supercomputers~\cite{top500gpu}. Some clusters have also adapted more unconventional
+provide even more performance, HPC clusters started massively adopting various accelerators, like
+the Intel Xeon Phi~\cite{xeonphi} manycore coprocessor or general-purpose Graphics
+processing units (GPUs) from NVIDIA or AMD, which eventually became the backbone of the majority of
+current supercomputers~\cite{top500gpu}. Some clusters have also adapted more unconventional
 accelerators, like reconfigurable hardware (e.g.\ Field-programmable gate arrays) or Artificial
 Intelligence (AI) accelerators (e.g.\ Tensor processing units). This trend gave rise to
-heterogeneous clusters, that offer various types of hardware that are designed for specific
+heterogeneous clusters that offer various types of hardware that are designed for specific
 workloads.
 
 These hardware improvements have managed to keep up with Moore's Law, but no longer without
 requiring changes to the software. The increasing complexity and heterogeneity of HPC hardware has
 caused the ``HPC software stack'' and the corresponding programming models to become more complex,
-and making full use of the available performance is far from trivial. Computing nodes consisting of
-hundreds of cores make it quite challenging to write programs that can scale to such high core
+making full usage of the available performance far from trivial. Computing nodes consist of
+hundreds of cores, yet it is quite challenging to write programs that can scale to such high core
 counts. Main memory being split into multiple physical locations with various access latencies
 (NUMA) and complex memory hierarchies require specialized programming techniques to achieve optimal
 performance. And using the ever-present accelerators, for example GPUs, might require adopting
@@ -51,13 +51,13 @@ scientists to focus on the problem domain~\cite{dace}.
 
 With the advent of more powerful hardware and more advanced software, the computations performed on
 HPC systems are also becoming more demanding, both in terms of the required computational power,
-but also software design and architecture. Areas such as weather prediction, machine learning model
-training or big data analysis require executing thousands or even millions of simulations and
-experiments. They also require a lot of prototyping during development. These experiments can be
-quite complex, consisting of multiple dependent steps, such as data ingestion, preprocessing,
-computation, postprocessing, visualisation, etc. It is thus imperative for scientists to have a
-quick way of prototyping these applications, otherwise their development process would be quite
-slow.
+but also in terms of data management, network communication patterns and general software design
+and architecture. Areas such as weather prediction, machine learning model training or big data
+analysis require executing thousands or even millions of simulations and experiments. These
+experiments can be quite complex, consisting of multiple dependent steps, such as data ingestion,
+preprocessing, computation, postprocessing, visualisation, etc. It is thus imperative for
+scientists to have a quick way of prototyping these applications, otherwise their development
+process would be too slow.
 
 The growing complexity of HPC hardware, software and use-cases gave rise to the popularity of
 (distributed) task-based programming models and paradigms. This programming model allows users to
@@ -65,15 +65,15 @@ focus on the problem domain and quickly prototype, while still being able to des
 computations with a large amount of individual steps and to efficiently utilize the available
 computational resources. Using a task-based approach, a computational workflow is described using a
 set of atomic computational blocks (\emph{tasks}) that are composed together in a
-\emph{task graph} which captures the dependencies between the individual tasks. Task graphs
+\emph{task graph} which captures dependencies between the individual tasks. Task graphs
 abstract away most of the complexity of network communication and parallelization, and they are
 general enough to describe a large set of programs in a practical and simple way. At the same time,
-they remain amenable to compiler-driven optimization and parallelization, which helps to bring the
-performance of programs described by a task graph close to manually parallelized and distributed
-programs, at a fraction of the development cost for the application developer. They are also quite
-portable. The task graph programming model typically does not make many assumptions about the
-target platform, therefore the same task graph can be executed on various systems and clusters,
-provided there is an execution runtime implemented for that cluster.
+they remain amenable to compiler-driven optimization and automatic parallelization, which helps to
+bring the performance of programs described by a task graph close to manually parallelized and
+distributed programs, at a fraction of the development cost for the application developer. They are
+also quite portable, as the task graph programming model typically does not make many assumptions
+about the target platform, therefore the same task graph can be executed on various systems and
+clusters, provided there is a task execution runtime implemented for that cluster.
 
 Combined with the fact that task-based tools often allow users to write their program in very
 high-level languages, such as Python, or various domain-specific languages (DSLs), it makes them an
@@ -82,14 +82,14 @@ ideal tool for rapid scientific prototyping\todo{cite}.
 Task graphs are already commonly being used and deployed on various distributed
 systems\todo{cite}, yet there are certain challenges that limit their development
 productivity and scalability when deployed specifically on HPC systems. These challengs stem from
-various factors, such as the interaction of task-graph runtimes with HPC job managers,
+various factors, such as the interaction of task-graphs with HPC allocation managers, the
 heterogeneity and complexity of HPC cluster hardware, or simply from the sheer computational scale
 of HPC systems. When task graph authors encounter these problems, they might have to step out of
 the comfort zone of this easy to use programming model, and implement parts of their applications
-with other approaches to either meet their performance goals or to even make it possible to execute
-their application on HPC at all. Removing or alleviating some of those challenges could lower the
-barrier of entry, make task graph execution better suited for various HPC use-cases and turn it
-into an actual first-class citizen in the world of HPC\@.
+using other, more complicated approaches, to either meet their performance goals or to even make it
+possible to execute their application on HPC at all. Removing or alleviating some of those
+challenges could lower the barrier of entry, make task graph execution better suited for various
+HPC use-cases and turn it into an actual first-class citizen in the world of HPC\@.
 
 The combination of a simple and ergonomic programming model with efficient execution on a
 distributed cluster is the key strength of task graphs, yet they have various shortcomings when
@@ -98,17 +98,17 @@ their negative effect or remove them altogether, and thus improve the execution 
 HPC systems in two main areas, developer ergonomics and efficient hardware utilization. It aims to
 achieve this objective via the following contributions:
 \begin{itemize}
-	\item Analysis of the performance and usability of contemporary task runtimes and the challenges that
-	      they face in HPC environments.
-	\item Analysis of the scheduling quality of task schedulers based on various conditions and the
-	      introduction of \estee{}, an environment for experimentation with different scheduling
-	      algorithms.
-	\item \rsds{}, a distributed task runtime compatible with an existing task framework
-	      (\dask{}), which is optimized for HPC use-cases.
-	\item Design of an approach to reconciliate task graphs with HPC job managers, to reduce the barrier of
-	      task graph execution on HPC clusters.
-	\item \hyperqueue{}, an integrated, HPC focused tool for executing task graphs on HPC systems
-	      in an ergonomic and efficient manner.
+    \item Analysis of the performance and usability of contemporary task runtimes and the challenges that
+    they face in HPC environments.
+    \item Analysis of the scheduling quality of task schedulers based on various conditions and the
+    introduction of \estee{}, an environment for experimentation with different scheduling
+    algorithms.
+    \item \rsds{}, a distributed task runtime compatible with an existing task framework
+    (\dask{}), which is optimized for HPC use-cases.
+    \item Design of an approach to reconciliate task graphs with HPC job managers, to reduce the barrier of
+    task graph execution on HPC clusters.
+    \item \hyperqueue{}, an integrated, HPC focused tool for executing task graphs on HPC systems
+    in an ergonomic and efficient manner.
 \end{itemize}
 
 The thesis is structured as follows. Chapter~\ref{ch:taskgraphs} introduces the task graph

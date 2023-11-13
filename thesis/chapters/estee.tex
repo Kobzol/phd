@@ -1,0 +1,38 @@
+The scheduler component, which assigns tasks to individual workers, is one of the
+most crucial parts of a task runtime, because scheduling decisions can severely affect the
+duration required to execute the whole task graph. Since task scheduling is NP-hard, various
+heuristic algorithms are used in practice. These algorithms can suffer from non-obvious edge cases
+that produce bad quality schedules and also from low runtime efficiency, which can erase any
+speedup gained from producing a higher quality schedule.
+
+To better understand the behaviour and performance of various scheduling algorithms, we have
+performed an extensive analysis of several task scheduling algorithms in
+\emph{Analysis of workflow schedulers in simulated distributed environments}~\cite{estee}.
+We have benchmarked several task schedulers under various conditions, including parameters that
+have not been explored so far, like the minimum delay between invoking the
+scheduler or the amount of knowledge about task durations available for the scheduler.
+
+Our analysis has shown that despite its simplicity, the foundational HLFET
+algorithm~\cite{hlfet1974} produces high quality schedules in various scenarios and should thus
+serve as a good baseline scheduler for task runtimes. We have also found out that even a
+completely random scheduler can be competitive with other scheduling approaches for certain task
+graphs and cluster configurations.
+
+%During our attempts to implement various scheduling algorithms, we have also realized that the
+%descriptions of many task scheduling algorithms in existing literature is incomplete. More
+%specifically, seemingly inconsequential implementation details that are often missing from the
+%algorithm's description can have a very large effect on the final performance of the scheduler,
+%which makes it difficult to precisely reproduce and compare the performance of the existing
+%algorithms.
+
+One of the contributions of this work was \estee{}, a simulation framework for task
+schedulers that is available as an open-source software\footnote{https://github.com/it4innovations/estee}.
+It can be used to define a cluster of workers, connect them together using a configurable network
+model, implement a custom scheduling algorithm and test its performance on arbitrary task graphs.
+\estee{} also contains implementations of several task scheduler baselines from existing literature
+and a task graph generator that can be used to generate randomized graphs with similar properties as
+real-world task graphs. This tool serves as an experimentation testbed for task runtime and scheduler
+developers.
+
+I have collaborated on this work with Stanislav Böhm and Vojtěch Cima, we have all contributed
+equally to this work.
