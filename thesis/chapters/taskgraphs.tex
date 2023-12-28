@@ -94,7 +94,6 @@ execution in HPC environments, further described in Chapter~\ref{ch:challenges},
 general enough so that it can be mapped to concepts used by task execution tools that will be
 described in later chapters.
 
-
 \section{Task graph}
 A computational workflow in the task-based programming model is represented with a directed acyclic
 graph (DAG) that we will label as a \emph{task graph}. From a high-level perspective, it
@@ -126,37 +125,37 @@ A task graph is a tuple $(T, O, E)$, where $T$ is a set of
 $E \subseteq ((T\times{}O) \cup (O\times{}T))$ is a set of arcs. $(T \cup O, E)$ forms a finite directed acyclic
 graph. The graph is structured in a way so that for every data object, there is exactly one task
 that produces it: $\forall o\in{}O: (\exists t_1\in{}T: (t_1, o) \in E \land
-(\forall
-t_2\in{}T: (t_2, o) \in E \Rightarrow t_1 = t_2))$.
+	(\forall
+	t_2\in{}T: (t_2, o) \in E \Rightarrow t_1 = t_2))$.
 
 Below we will define several terms and properties that will be useful for working practically with
 task graphs:
 \begin{enumerate}
-    \item If there is an arc between a task and a data object ($(t,o) \in (T\times{}O)$), then we call
-    $t$ the \emph{producer} of $o$ and $o$
-    the \emph{output} of $t$.
-    \item If there is an arc between a data object and a task ($(o,t) \in (O\times{}T)$), then we call
-    $t$ the \emph{consumer} of $o$ and $o$
-    the \emph{input} of $t$.
+	\item If there is an arc between a task and a data object ($(t,o) \in (T\times{}O)$), then we call
+	      $t$ the \emph{producer} of $o$ and $o$
+	      the \emph{output} of $t$.
+	\item If there is an arc between a data object and a task ($(o,t) \in (O\times{}T)$), then we call
+	      $t$ the \emph{consumer} of $o$ and $o$
+	      the \emph{input} of $t$.
 
-    \item Let us introduce a binary relation $D_r$ over the set of tasks:
-    $\{(t_1, t_2): (t_1, t_2)\in{}(T\times{}T)\land t_1 \neq t_2 \land
-    \exists{}o\in{}O: (t_1, o)\in{}E
-    \land (o, t_2)\in{}E\}$. When $(t_1, t_2) \in D_r$, we say that $t_2$
-    \emph{directly depends} on $t_1$. We can also state that $t_2$
-    consumes the output produced by $t_1$.
+	\item Let us introduce a binary relation $D_r$ over the set of tasks:
+	      $\{(t_1, t_2): (t_1, t_2)\in{}(T\times{}T)\land t_1 \neq t_2 \land
+		      \exists{}o\in{}O: (t_1, o)\in{}E
+		      \land (o, t_2)\in{}E\}$. When $(t_1, t_2) \in D_r$, we say that $t_2$
+	      \emph{directly depends} on $t_1$. We can also state that $t_2$
+	      consumes the output produced by $t_1$.
 
-    \item Let us introduce a binary relation $D$ over the set of tasks. Tasks
-    $t_1$ and $t_n$ are in this relation if there is a sequence
-    $(t_1, t_2, \ldots, t_n)$ such that $\forall i \in \{
-    1,2,\ldots,n - 1\}: (t_i, t_{i+1}) \in D_r$. When $(t_1, t_2) \in D$, we say that
-    $t_2$ \emph{depends} on $t_1$ and that
-    $t_1$ is a \emph{dependency} of $t_2$.
+	\item Let us introduce a binary relation $D$ over the set of tasks. Tasks
+	      $t_1$ and $t_n$ are in this relation if there is a sequence
+	      $(t_1, t_2, \ldots, t_n)$ such that $\forall i \in \{
+		      1,2,\ldots,n - 1\}: (t_i, t_{i+1}) \in D_r$. When $(t_1, t_2) \in D$, we say that
+	      $t_2$ \emph{depends} on $t_1$ and that
+	      $t_1$ is a \emph{dependency} of $t_2$.
 
-    \item We label tasks without any dependencies \emph{source tasks}. $S = \{ t \mid t\in{}T \land \forall{}t_d\in{}T:
-    (t_d, t)\notin D\}$. It is a
-    simple observation that unless the task graph is empty ($(T\cup{}O) = \emptyset$), there is always at
-    least one source task in the graph, because the graph is acyclic.
+	\item We label tasks without any dependencies \emph{source tasks}. $S = \{ t \mid t\in{}T \land \forall{}t_d\in{}T:
+		      (t_d, t)\notin D\}$. It is a
+	      simple observation that unless the task graph is empty ($(T\cup{}O) = \emptyset$), there is always at
+	      least one source task in the graph, because the graph is acyclic.
 \end{enumerate}
 
 An example of a simple task graph is shown on Figure~\ref{fig:task-graph-example}. Tasks are represented
@@ -168,9 +167,9 @@ generates some data, $t_{1-4}$ performs some calculation on that data and
 $t_5$ performs some post-processing step and stores the results to disk.
 
 \begin{figure}[h]
-    \centering
-    \resizebox{!}{35mm}{
-        \begin{tikzpicture}
+	\centering
+	\resizebox{!}{35mm}{
+	\begin{tikzpicture}
             \graph[
                 grow right sep=6mm,
             ] {
@@ -186,9 +185,9 @@ $t_5$ performs some post-processing step and stores the results to disk.
                 } -> "$t_5$"[task]
             };
         \end{tikzpicture}
-    }
-    \caption{Simple task graph with six tasks and six data objects}
-    \label{fig:task-graph-example}
+	}
+	\caption{Simple task graph with six tasks and six data objects}
+	\label{fig:task-graph-example}
 \end{figure}
 
 Note that the presented definition of a task graph does not describe its semantics -- how will the
@@ -247,7 +246,6 @@ machine learning model might require a GPU (Graphics Processing Unit) to be pres
 computational node where the task will be executed. Other resources might include e.g.\ a minimum
 required amount of memory (RAM) or a required amount of processor cores necessary to execute the
 task.
-
 
 \section{Task graph execution}
 Task graphs merely describe some computation, therefore they have to be executed in order to
@@ -314,7 +312,6 @@ advantages of the task-based programming model, where tasks declaratively descri
 computation that can be re-executed arbitrarily. This crucial property of tasks makes
 fault-tolerant execution of task graphs possible.
 
-
 \section{Task scheduling}
 Arguably the most important responsibility of a task runtime, and one that gets the most attention
 in research works, is \emph{task scheduling}. It is the act of deciding in which order and on which
@@ -345,9 +342,9 @@ that a worker can overlap the computation of a task with sending/receiving a dat
 a reasonable feature that is commonly provided by existing task runtimes.
 
 \begin{figure}[h]
-    \centering
-    \resizebox{!}{110mm}{
-        \begin{tikzpicture}
+	\centering
+	\resizebox{!}{110mm}{
+	\begin{tikzpicture}
             \tikzmath{
                 \tzerowidth = 15mm;
                 \tonewidth = 20mm;
@@ -440,9 +437,9 @@ a reasonable feature that is commonly provided by existing task runtimes.
             \draw[dashed, draw=red] (tim2t0.west) -- ++(0, -2.75) --
             ([shift=({0,-1.75})]tim2t2.east) -- (tim2t2.east);
         \end{tikzpicture}
-    }
-    \caption{Simple task graph and two different schedules}
-    \label{fig:scheduling-example}
+	}
+	\caption{Simple task graph and two different schedules}
+	\label{fig:scheduling-example}
 \end{figure}
 
 Optimal scheduling of tasks to workers is NP-hard~\cite{Ullman1975}, even in the most basic
@@ -455,32 +452,32 @@ The scheduling heuristics have to take many factors into consideration when deci
 worker should a task execute:
 
 \begin{description}
-    \item[\textbf{Resource requirements}] The scheduler should respect all resource requirements specified by individual tasks. The runtime
-    thus has to observe the (dynamically changing) available resources of each worker and schedule
-    tasks accordingly to uphold their requirements. This can be challenging especially in the presence
-    of complex resource requirements.
-    \item[\textbf{Data transfer cost}] If the runtime operates within a distributed cluster, one of the most important scheduling aspects
-    that it needs to consider is the transfer cost of data between workers over the network. All
-    benefits gained by computing a task on another worker to achieve more parallelization might be lost
-    if it takes too much time to send the data (task outputs) to that worker.
+	\item[\textbf{Resource requirements}] The scheduler should respect all resource requirements specified by individual tasks. The runtime
+		thus has to observe the (dynamically changing) available resources of each worker and schedule
+		tasks accordingly to uphold their requirements. This can be challenging especially in the presence
+		of complex resource requirements.
+	\item[\textbf{Data transfer cost}] If the runtime operates within a distributed cluster, one of the most important scheduling aspects
+		that it needs to consider is the transfer cost of data between workers over the network. All
+		benefits gained by computing a task on another worker to achieve more parallelization might be lost
+		if it takes too much time to send the data (task outputs) to that worker.
 
-    The scheduler thus has to carefully balance the communication-to-computation ratio, based on the
-    available network bandwidth, sizes of outputs produced by tasks and the current utilization of
-    workers.
-    \item[\textbf{Scheduling overhead}] The overhead of computing the scheduling decisions itself also cannot be underestimated. As already
-    stated, computing an optimal solution is infeasible, but even heuristical approaches can have
-    wildly different performance characteristics. Producing a lower quality schedule sooner, rather
-    than a higher quality schedule later, can be sometimes beneficial, as we have demonstrated
-    in~\cite{estee, rsds}.
-    \item[\textbf{Memory consumption}] It is desirable to execute as many tasks in parallel on a given worker (with respect to its
-    available parallelism), to speed up the completion of the whole workflow. However, the scheduler
-    must also balance the amount of executing tasks according to the total memory that they consume. In
-    general, it is quite hard to predict for how long will a task execute, and how much (peak) memory
-    will it consume. When a task executes longer than expected, the workflow will still be computed, it
-    will just take more time. But when a task uses more memory than expected, the scheduler puts many
-    such tasks on a worker, and the worker then runs out of memory, the worker will probably crash. If
-    this happens repeatedly, it can stall or completely stop the execution of the workflow. For these
-    kinds of memory-intensive workflows, the scheduler should assign fewer tasks at the same time to a
-    single worker, or reduce memory consumption in some other way, e.g.\ by keeping less cached data
-    objects in worker's memory.
+		The scheduler thus has to carefully balance the communication-to-computation ratio, based on the
+		available network bandwidth, sizes of outputs produced by tasks and the current utilization of
+		workers.
+	\item[\textbf{Scheduling overhead}] The overhead of computing the scheduling decisions itself also cannot be underestimated. As already
+		stated, computing an optimal solution is infeasible, but even heuristical approaches can have
+		wildly different performance characteristics. Producing a lower quality schedule sooner, rather
+		than a higher quality schedule later, can be sometimes beneficial, as we have demonstrated
+		in~\cite{estee, rsds}.
+	\item[\textbf{Memory consumption}] It is desirable to execute as many tasks in parallel on a given worker (with respect to its
+		available parallelism), to speed up the completion of the whole workflow. However, the scheduler
+		must also balance the amount of executing tasks according to the total memory that they consume. In
+		general, it is quite hard to predict for how long will a task execute, and how much (peak) memory
+		will it consume. When a task executes longer than expected, the workflow will still be computed, it
+		will just take more time. But when a task uses more memory than expected, the scheduler puts many
+		such tasks on a worker, and the worker then runs out of memory, the worker will probably crash. If
+		this happens repeatedly, it can stall or completely stop the execution of the workflow. For these
+		kinds of memory-intensive workflows, the scheduler should assign fewer tasks at the same time to a
+		single worker, or reduce memory consumption in some other way, e.g.\ by keeping less cached data
+		objects in worker's memory.
 \end{description}

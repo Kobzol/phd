@@ -13,12 +13,20 @@
 \usetikzlibrary{positioning}
 \usetikzlibrary{arrows.meta}
 \usetikzlibrary{math}
+\usepackage[outputdir=../out]{minted}
+
+\usemintedstyle{vs}
+% [escapeinside=||]
+% [tabsize=4]
+% [fontsize=\small]
 
 % Fix arrow tips
 \tikzset{tips=proper}
 
 % Commands
 \newcommand{\comment}[1]{}
+\newcommand{\workshare}[1]{\emph{#1}}
+\newcommand{\footnoteurl}[1]{\footnote{\url{#1}}}
 
 % Tools
 \newcommand{\estee}{\emph{Estee}}
@@ -82,7 +90,7 @@ them this work would not have happened.}
 \label{ch:sota}
 \input{chapters/sota}
 
-\chapter{Task scheduler analysis}
+\chapter{Task scheduling analysis}
 \label{ch:estee}
 \input{chapters/estee}
 

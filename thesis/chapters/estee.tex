@@ -1,20 +1,137 @@
-The scheduler component, which assigns tasks to individual workers, is one of the
-most crucial parts of a task runtime, because scheduling decisions can severely affect the
-duration required to execute the whole task graph. Since task scheduling is NP-hard, various
-heuristic algorithms are used in practice. These algorithms can suffer from non-obvious edge cases
-that produce bad quality schedules and also from low runtime efficiency, which can erase any
-speedup gained from producing a higher quality schedule.
+% Algoritmy: https://docs.google.com/document/d/1cDg8dV4Rso5sAE2gYkBPsJ8a_dMLqA8MHRR1ZvceWZM/edit#heading=h.7z19cc4fgwy4
+
+Task scheduling is perhaps the most important responsibility of task runtimes, because the quality
+of the generated schedule has a large effect on the total makespan of task graph execution, and
+also on the achieved hardware utilization of worker nodes. Unfortunately, optimal task scheduling
+is a very difficult (NP-hard~\cite{Ullman1975}) problem, and there is no single scheduling
+algorithm that would work ideally for all task graphs.
+
+There are many factors that affect the execution properties of task graphs and that pose some form
+of a challenge to task schedulers. The execution environment (e.g.\ a distributed cluster) can have
+varying amounts of nodes with heterogeneous hardware resources, and complex network topologies that
+can have a non-trivial effect on the latency and bandwidth of messages sent between the workers and
+the scheduler, and thus in turn also on the overall performance of the task graph execution. Task
+graphs can be almost arbitrarily structured, with large amounts of different kinds of tasks with
+diverse execution characteristics and resource requirements.
+
+Furthermore, task graph execution might not be deterministic, and the scheduler has to work with
+incomplete information. The communication network can be congested because of unrelated
+computations running concurrently on the cluster, tasks can also be slowed down by congested
+hardware resources that can be highly non-trivial to model or debug (e.g.\ NUMA effects), and they
+can also sometimes outright fail and must be restarted from scratch. Even the duration of each
+task, which is perhaps the most important task property for the scheduler, is usually not known
+beforehand, and the best the scheduler can hope for is an estimate from the task graph author,
+which can be inaccurate.
+
+In theory, all these factors should be taken into account by task scheduling algorithms. In
+practice, it is infeasible to have a complete model of the entire cluster, the operating system,
+the task implementations, the networking topology etc. Therefore, task schedulers omit some of
+these factors to provide reasonable scheduling performance. They rely on various heuristics and
+combinations of reliable scheduling algorithms and make different trade-offs that make them better
+suited for specific types of task graphs and execution environments. These heuristics can suffer
+from non-obvious edge cases that produce bad quality schedules or from low runtime efficiency,
+which can in turn erase any speedup gained from producing a higher quality schedule.
 
 To better understand the behaviour and performance of various scheduling algorithms, we have
 performed an extensive analysis of several task scheduling algorithms in
-\emph{Analysis of workflow schedulers in simulated distributed environments}~\cite{estee}.
-We have benchmarked several task schedulers under various conditions, including parameters that
-have not been explored so far, like the minimum delay between invoking the
-scheduler or the amount of knowledge about task durations available for the scheduler.
+\emph{Analysis of workflow schedulers in simulated distributed environments}~\cite{estee}. The two main contributions of this work are as
+follows:
+\begin{enumerate}
+	\item We have created an extensible, open-source simulator of task graph execution, which allows users to
+	      easily implement their own scheduling algorithm and compare it to other algorithms, while taking
+	      into account various factors that affect task scheduling.
+	\item We have benchmarked several known task schedulers under various conditions, including factors
+	      affecting scheduling that have not been explored so far, like the minimum delay between invoking
+	      the scheduler or the amount of knowledge about task durations available for the scheduler, and
+	      evaluated the suitability of the individual algorithms for various types of task graphs.
+\end{enumerate}
 
+\workshare{I have collaborated on this work with Ada Böhm and Vojtěch Cima, we have all contributed to it equally.}
+
+\section{Task graph simulator}
+\label{sec:estee-simulator}
+It could be quite expensive (both computationally and implementation-wise) to perform a performance
+analysis of multiple task scheduling algorithms on various task graphs on a real cluster.
+Therefore, task graph scheduling surveys tend to use some form of a simulation environment, which
+simulates selected properties of a distributed cluster, and allows comparing the performance of
+multiple scheduling algorithms (or other factors of a task runtime) relatively quickly.
+
+Many task scheduler surveys have been published over the years~\cite{hlfet1974, kwok1998benchmarking, hagras2003static, sinnen2005, wang2018list}, but it is
+difficult to reproduce and extend these results without having access to the exact source code used
+to implement the schedulers and the simulation environment used in these surveys. The performance
+of scheduling algorithms can be highly affected by seemingly trivial implementation details (as we
+have shown in~\cite{estee}), and having access only to a high-level textual description or
+pseudocode of a scheduling algorithm doesn't guarantee that it will be possible to reproduce it
+independently with the same performance characteristics.
+
+Apart from existing surveys, there are also more general task simulation environments.
+DAGSim~\cite{dagsim} offers a framework for comparing scheduling algorithms, and compares
+the performance of a few algorithms, but doesn't provide its implementation, which makes it
+difficult to reproduce or extend its results. SimDAG~\cite{simdag} is a task graph
+simulator focused on HPC use-cases built on top of the SimGrid~\cite{simgrid} framework. It
+allows relatively simple implementation of new task scheduling algorithms, however it does not
+support any task resource requirements (e.g.\ the number of used CPU cores or GPUs).
+
+The existing simulation environments also did not support two scheduling factors that we were
+interested in examining, namely MSD (\emph{minimal scheduling delay}), the delay between two invocations of
+the scheduler and \emph{information mode}, the amount of knowledge of task durations that is
+available to the scheduler.
+
+We have thus implemented a new task graph simulation framework called \estee{}. It is
+an open-source tool\footnoteurl{https://github.com/it4innovations/estee} written in Python that provides an experimentation
+testbed for task runtime and scheduler developers and researchers. It can be used to define a
+cluster of workers, connect them together using a configurable network model, implement a custom
+scheduling algorithm and test its performance on arbitrary task graphs, with support for specifying
+required CPU core counts for individual tasks. \estee{} also contains implementations
+of several task scheduler baselines from existing literature and a task graph generator that can be
+used to generate randomized graphs with properties similar to real-world task graphs.
+
+\estee{} is designed to make it simple to design new task schedulers and plug them into the simulator.
+Listing~\ref{lst:estee-example} shows a simple example of a task graph simulation. The output of the
+simulation is makespan (the duration it took to execute the task graph) and also a detailed trace
+that can be used to visualize the individual task-to-worker assignments and task execution time spans.
+
+\begin{listing}
+	\caption{Simple task graph simulation example using \estee{}}
+	\label{lst:estee-example}
+\begin{minted}[fontsize=\small]{python}
+# Create task graph containing 3 tasks
+# (each task runs for 1s and requires 1 CPU)
+#
+#     t0
+#     | (50MB output)
+#    / \
+#  t1   t2
+tg = TaskGraph()
+t0 = tg.new_task(duration=1, cpus=1, output_size=50)
+t1 = tg.new_task(duration=1, cpus=1)
+t1.add_input(t0)
+t2 = tg.new_task(duration=1, cpus=1)
+t2.add_input(t0)
+
+# Create a task scheduler
+scheduler = BlevelGtScheduler()
+
+# Define cluster with 2 workers (1 CPU each)
+workers = [Worker(cpus=1) for _ in range(2)]
+
+# Define MaxMinFlow network model (100MB/s)
+netmodel = MaxMinFlowNetModel(bandwidth=100)
+
+# Run simulation, returns the makespan in seconds
+simulator = Simulator(tg, workers, scheduler, netmodel)
+makespan = simulator.run()
+print(f"Task graph execution makespan = {makespan}s")
+\end{minted}
+\end{listing}
+
+%EXPAND: describe Estee in more detail
+
+\section{Task scheduler benchmarking}
+\label{sec:estee-benchmarks}
 Our analysis has shown that despite its simplicity, the foundational HLFET
-algorithm~\cite{hlfet1974} produces high quality schedules in various scenarios and should thus
-serve as a good baseline scheduler for task runtimes. We have also found out that even a
+algorithm~\cite{hlfet1974} produces high quality schedules in various scenarios and should
+thus serve as a good baseline scheduler for task runtimes. We have also found out that even a
 completely random scheduler can be competitive with other scheduling approaches for certain task
 graphs and cluster configurations.
 
@@ -25,14 +142,7 @@ graphs and cluster configurations.
 %which makes it difficult to precisely reproduce and compare the performance of the existing
 %algorithms.
 
-One of the contributions of this work was \estee{}, a simulation framework for task
-schedulers that is available as an open-source software\footnote{https://github.com/it4innovations/estee}.
-It can be used to define a cluster of workers, connect them together using a configurable network
-model, implement a custom scheduling algorithm and test its performance on arbitrary task graphs.
-\estee{} also contains implementations of several task scheduler baselines from existing literature
-and a task graph generator that can be used to generate randomized graphs with similar properties as
-real-world task graphs. This tool serves as an experimentation testbed for task runtime and scheduler
-developers.
+%EXPAND: show Estee charts, describe the results in more detail
 
-I have collaborated on this work with Stanislav Böhm and Vojtěch Cima, we have all contributed
-equally to this work.
+% List-Scheduling versus Cluster-Scheduling
+% - simple schedulers are surprisingly competitive

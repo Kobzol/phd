@@ -7,6 +7,8 @@
 #  removeBlockLineBreaks: 1
 #  when: after                        # before/after
 modifyLineBreaks:
+  preserveBlankLines: 1
+  condenseMultipleBlankLinesInto: 0
   textWrapOptions:
     all: 1
     columns: 100
