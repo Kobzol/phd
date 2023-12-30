@@ -1,8 +1,10 @@
 \documentclass[english,phd]{diploma}
 
+% Minimální počet stran (úvod - závěr): 60
+
 % Packages
 \usepackage[autostyle=true]{csquotes} % enhanced support for quotation marks, support for biblatex package
-\usepackage[backend=biber, style=iso-numeric, alldates=iso, maxbibnames=3]{biblatex}
+\usepackage[backend=biber, style=numeric, alldates=iso, maxnames=999, maxbibnames=3, defernumbers=true]{biblatex}
 \usepackage{dcolumn} % numeric column type
 \usepackage{subfig} % subtables and subfigures
 \usepackage[cpp]{diplomalst}
@@ -30,11 +32,13 @@
 
 % Tools
 \newcommand{\estee}{\emph{Estee}}
-\newcommand{\rsds}{\emph{RSDS}}
+\newcommand{\rsds}{\textsc{RSDS}}
 \newcommand{\hyperqueue}{\emph{HyperQueue}}
-\newcommand{\dask}{\emph{Dask}}
+\newcommand{\dask}{\textsc{Dask}}
 \newcommand{\ray}{\emph{Ray}}
 \newcommand{\snakemake}{\emph{SnakeMake}}
+
+\graphicspath{{./imgs/}}
 
 % TikZ styles
 \tikzset{%
@@ -61,6 +65,8 @@ them this work would not have happened.}
 
 \EnglishAbstract{TODO}
 \EnglishKeywords{distributed computing, task workflows, hpc}
+
+%TODO: přínos
 
 \addbibresource{references.bib}
 \addbibresource{publications.bib}
@@ -108,6 +114,6 @@ them this work would not have happened.}
 
 \input{chapters/publications}
 
-\appendix
+%\appendix
 
 \end{document}
