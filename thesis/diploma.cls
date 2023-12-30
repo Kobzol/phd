@@ -199,7 +199,7 @@
 {
 \pagestyle{empty}
 \Dipl@TitlePage
-\Dipl@ThesisAssignmentPages
+%\Dipl@ThesisAssignmentPages
 \Dipl@AbstractsKeywordsPage
 \Dipl@AcknowledgementPage
 \pagestyle{plain}
