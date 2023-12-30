@@ -4,7 +4,15 @@
 
 % Packages
 \usepackage[autostyle=true]{csquotes} % enhanced support for quotation marks, support for biblatex package
-\usepackage[backend=biber, style=numeric, alldates=iso, maxnames=999, maxbibnames=3, defernumbers=true]{biblatex}
+\usepackage[
+    backend=biber,
+    style=numeric,
+    alldates=iso,
+    maxnames=999,
+    maxbibnames=3,
+    defernumbers=true,
+    sorting=none
+]{biblatex}
 \usepackage{dcolumn} % numeric column type
 \usepackage{subfig} % subtables and subfigures
 \usepackage[cpp]{diplomalst}
@@ -80,6 +88,9 @@ them this work would not have happened.}
 \listoftables
 \clearpage
 
+% Make sure that related publications are first in the bibliography list
+\nocite{estee, rsds, ligate}
+
 \chapter{Introduction}
 \label{ch:Introduction}
 \input{chapters/introduction}
@@ -112,7 +123,18 @@ them this work would not have happened.}
 \label{ch:conclusion}
 \input{chapters/conclusion}
 
-\input{chapters/publications}
+\chapter*{List of own publication activities and other outcomes}
+\label{ch:listofstudentsownpublicationactivitiesandotheroutcomes}
+\addcontentsline{toc}{chapter}{\nameref{ch:listofstudentsownpublicationactivitiesandotheroutcomes}}
+
+\input{chapters/publications-generated}
+
+\chapter*{List of projects}
+\label{ch:listofprojects}~\addcontentsline{toc}{chapter}{\nameref{ch:listofprojects}}
+\input{chapters/projects}
+
+% Bibliography
+\printbibliography[heading=bibintoc, title={Bibliography}]
 
 %\appendix
 

@@ -306,7 +306,7 @@ small computational scale, but that can become problematic in the context of HPC
 		MPI or a lower-level interface like RDMA (Remote Direct Memory Access), could provide a non-trivial
 		performance boost in this regard.
 
-		As we have demonstrated in~\cite{di_girolamo_pspin_2021, spin2}, in-network computing, an active area of
+		As we have demonstrated in~\cite{pspin, spin2}, in-network computing, an active area of
 		research, can be also used to optimize various networking applications by offloading some
 		computations to an accelerated NIC (network interface controller). This approach could also be
 		leveraged for task runtimes, for example by reducing the latency of management messages between the
@@ -356,4 +356,5 @@ that would avoid both ergonomics and performance from being compromised.
 The aforementioned requirements will serve as a basis for further research in the proposed thesis.
 The goal of the thesis is to design approaches for executing task graphs on HPC systems that take
 the aforementioned requirements into account. These approaches will leverage the
-\hyperqueue{} task runtime, which is described further in Chapter~\ref{ch:hyperqueue}.
+\hyperqueue{} task runtime, which is described further in
+Chapter~\ref{ch:hyperqueue}.
