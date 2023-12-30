@@ -1,0 +1,31 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper, nohead, nofoot, marginparwidth=0mm, marginparsep=0mm, left=20mm, right=20mm, top=20mm, bottom=30mm]{geometry}
+\usepackage[english]{babel}
+
+\newcommand{\BookCover}[7]
+{
+	\sffamily
+	\begin{center}
+		\Huge
+		\textbf{#1}\par\medskip
+		\textbf{#2}\par
+		\vspace{#3}
+		\textbf{#4}\par\bigskip
+		#5
+	\end{center}
+	\vfill
+	{\Huge#6\hfill#7}
+	\clearpage
+}
+
+\pagestyle{empty}
+
+
+\begin{document}
+
+\BookCover{VSB -- Technical University of Ostrava}{IT4Innovations}{54mm}{Ergonomics and efficiency of workflows on HPC clusters}{PDH THESIS}{2024}{Ing. Jakub Beránek}
+
+\end{document}
