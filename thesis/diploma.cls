@@ -101,7 +101,7 @@
 \setcounter{Dipl@CurrentThesisLanguage}{\Dipl@EnglishLanguage}
 \Dipl@BabelLanguageOptions{czech,main=english}
 \Dipl@SupervisorCaption={Supervisor}
-\Dipl@FacultyLogoFileName={Figures/FEI_EN.pdf}
+\Dipl@FacultyLogoFileName={imgs/it4i-en-logo.pdf}
 }
 \DeclareOption{slovak}
 {
@@ -232,8 +232,8 @@
 \begin{flushleft}
 \huge
 \sffamily
-\vspace*{-0.4in}
-{\hspace*{-0.3in}\includegraphics[height=30mm]{\the\Dipl@FacultyLogoFileName}}
+{\includegraphics[height=14mm]{\the\Dipl@FacultyLogoFileName}}
+\vspace*{0.4in}
 \par
 \bigskip
 \bigskip
