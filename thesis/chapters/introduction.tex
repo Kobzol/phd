@@ -1,4 +1,4 @@
-High Performance Computing (HPC) infrastructures are crucial for the advancement of scientific
+High-performance Computing (HPC) infrastructures are crucial for the advancement of scientific
 research, as they offer unparalleled computational power that can be leveraged to perform the most
 complex scientific experiments. The performance offered by HPC clusters is crucial (among other
 use-cases) in various scientific areas, such as weather forecasting~\cite{wrf},
@@ -77,43 +77,44 @@ clusters, provided there is a task execution runtime implemented for that cluste
 
 Combined with the fact that task-based tools often allow users to write their program in very
 high-level languages, such as Python, or various domain-specific languages (DSLs), it makes them an
-ideal tool for rapid scientific prototyping\todo{cite}.
+ideal tool for rapid scientific prototyping.
 
 Task graphs are already commonly being used and deployed on various distributed
-systems\todo{cite}, yet there are certain challenges that limit their development
+systems~\cite{pegasus, workflows_at_scale, large_scale_modelling}, yet there are certain challenges that limit their development
 productivity and scalability when deployed specifically on HPC systems. These challengs stem from
 various factors, such as the interaction of task-graphs with HPC allocation managers, the
-heterogeneity and complexity of HPC cluster hardware, or simply from the sheer computational scale
-of HPC systems. When task graph authors encounter these problems, they might have to step out of
-the comfort zone of this easy to use programming model, and implement parts of their applications
-using other, more complicated approaches, to either meet their performance goals or to even make it
-possible to execute their application on HPC at all. Removing or alleviating some of those
-challenges could lower the barrier of entry, make task graph execution better suited for various
-HPC use-cases and turn it into an actual first-class citizen in the world of HPC\@.
+heterogeneity and complexity of HPC cluster hardware, or simply from the potentially enormous
+computational scale. When task graph authors encounter these problems, they might have to step out
+of the comfort zone of this easy to use programming model, and implement parts of their
+applications using other, more complicated approaches, to either meet their performance goals or to
+even make it possible to execute their application on HPC clusters at all. Removing or alleviating
+some of those challenges could lower the barrier of entry, make task graph execution better suited
+for various HPC use-cases and turn it into an actual first-class citizen in the world of HPC\@.
 
 The combination of a simple and ergonomic programming model with efficient execution on a
 distributed cluster is the key strength of task graphs, yet they have various shortcomings when
-applied in HPC environments. This thesis sets out to identify the existing bottlenecks, reduce
-their negative effect or remove them altogether, and thus improve the execution of task graphs on
-HPC systems in two main areas, developer ergonomics and efficient hardware utilization. It aims to
-achieve this objective via the following contributions:
-\begin{itemize}
-	\item Analysis of the performance and usability of contemporary task runtimes and the challenges that
-	      they face in HPC environments.
-	\item Analysis of the scheduling quality of task schedulers based on various conditions and the
-	      introduction of \estee{}, an environment for experimentation with different scheduling
-	      algorithms.
-	\item \rsds{}, a distributed task runtime compatible with an existing task framework
-	      (\dask{}), which is optimized for HPC use-cases.
-	\item Design of an approach to reconciliate task graphs with HPC job managers, to reduce the barrier of
-	      task graph execution on HPC clusters.
-	\item \hyperqueue{}, an integrated, HPC focused tool for executing task graphs on HPC systems
-	      in an ergonomic and efficient manner.
-\end{itemize}
+applied in HPC environments. This thesis sets out to identify the existing challenges and
+bottlenecks, alleviate them, and thus improve the execution of task graphs on HPC systems in two
+main areas, namely development ergonomics and efficient hardware utilization. It aims to achieve
+this objective via the following contributions: It introduces a task graph simulator for evaluating
+the quality of various task schedulers under various conditions, and provides an extensive
+evaluation of several scheduling algorithms using this simulator. It provides an analysis of the
+performance bottlenecks of a state-of-the-art task runtime \dask{}, and introduces
+an alternative implementation of its server that provides significant performance improvements in
+HPC scenarios. And primarily, it proposes a design for effortless execution of task graphs in the
+presence of HPC allocation managers, and implements this design in \hyperqueue{}, an
+HPC-tailored task runtime that enables ergonomic execution of task graphs on heterogeneous
+supercomputers with focus on efficient usage of hardware resources.
 
 The thesis is structured as follows. Chapter~\ref{ch:taskgraphs} introduces the task graph
-programming model and definition of key terms. Chapter~\ref{ch:challenges} then discusses
-various challenges of executing task graphs on HPC systems. It is followed by
-Chapter~\ref{ch:sota}, which contains a taxonomy of selected task runtimes and analyses
-their behavior in HPC environments. \todo{Further chapters}. Finally, Chapter~\ref{ch:conclusion}
-summarizes the thesis and outlines future work.
+programming model and definition of key terms related to tasks, task graphs and task runtimes.
+Chapter~\ref{ch:challenges} outlines various challenges and bottlenecks that affect task graphs
+on HPC systems. Chapter~\ref{ch:sota} describes a taxonomy of selected task runtimes and
+analyses their behavior in HPC environments. Chapter~\ref{ch:estee} contains an evaluation
+of the performance of various task scheduling algorithms, and introduces \estee{}, a
+task graph simulator that was used for performing the evaluation. Chapter~\ref{ch:rsds}
+details an analysis of the runtime performance the task runtime \dask{}, and
+proposes an alternative implementation of its server that outperforms it in HPC use-cases.
+Chapter~\ref{ch:hyperqueue} describes a design for executing task graphs in the presence of HPC
+allocation managers, and the \hyperqueue{} task runtime. Finally,
+Chapter~\ref{ch:conclusion} summarizes the thesis and outlines future work.

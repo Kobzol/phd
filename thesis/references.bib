@@ -1,3 +1,4 @@
+% General
 @inproceedings{wrf,
     title = {The {Weather} {Reseach} and {Forecast} {Model}: {Software} {Architecture} and {Performance}},
     author = {Michalakes, John and Dudhia, Jimy and Gill, D. and Henderson, Tom and Klemp, J. and Skamarock, W. and Wang, Wei},
@@ -94,43 +95,6 @@ and Wisniewski, Robert W.",
     location = {Denver, Colorado},
     series = {SC '19}
 }
-@inproceedings{dace,
-    author = {Ben-Nun, Tal and de Fine Licht, Johannes and Ziogas, Alexandros N. and Schneider, Timo and Hoefler, Torsten},
-    title = {Stateful Dataflow Multigraphs: A Data-Centric Model for Performance Portability on Heterogeneous Architectures},
-    year = {2019},
-    isbn = {9781450362290},
-    publisher = {Association for Computing Machinery},
-    address = {New York, NY, USA},
-%    url = {https://doi.org/10.1145/3295500.3356173},
-    doi = {10.1145/3295500.3356173},
-%    abstract = {The ubiquity of accelerators in high-performance computing has driven programming complexity beyond the skill-set of the average domain scientist. To maintain performance portability in the future, it is imperative to decouple architecture-specific programming paradigms from the underlying scientific computations. We present the Stateful DataFlow multiGraph (SDFG), a data-centric intermediate representation that enables separating program definition from its optimization. By combining fine-grained data dependencies with high-level control-flow, SDFGs are both expressive and amenable to program transformations, such as tiling and double-buffering. These transformations are applied to the SDFG in an interactive process, using extensible pattern matching, graph rewriting, and a graphical user interface. We demonstrate SDFGs on CPUs, GPUs, and FPGAs over various motifs --- from fundamental computational kernels to graph analytics. We show that SDFGs deliver competitive performance, allowing domain scientists to develop applications naturally and port them to approach peak hardware performance without modifying the original scientific code.},
-    booktitle = {Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis},
-    articleno = {81},
-    numpages = {14},
-    location = {Denver, Colorado},
-    series = {SC '19}
-}
-@Article{starpu,
-    author = {C{\'e}dric Augonnet and Samuel Thibault and Raymond Namyst and Pierre-Andr{\'e} Wacrenier},
-    title = {{StarPU: A Unified Platform for Task Scheduling on Heterogeneous Multicore Architectures}},
-    journal = {CCPE - Concurrency and Computation: Practice and Experience, Special Issue: Euro-Par 2009},
-    volume = 23,
-    issue = 2,
-    pages = {187--198},
-    year = 2011,
-    month = FEB,
-    publisher = {John Wiley & Sons, Ltd.},
-    doi = {10.1002/cpe.1631},
-%    url = {http://hal.inria.fr/inria-00550877},
-%    pdf = {http://hal.inria.fr/inria-00550877/document},
-    KEYWORDS = {General Presentations;StarPU}
-}
-@book{openmp,
-    title={Parallel programming in OpenMP},
-    author={Chandra, Rohit and Dagum, Leo and Kohr, David and Menon, Ramesh and Maydan, Dror and McDonald, Jeff},
-    year={2001},
-    publisher={Morgan kaufmann}
-}
 @ARTICLE{mooreslaw,
     author={Schaller, R.R.},
     journal={IEEE Spectrum},
@@ -162,17 +126,6 @@ and Wisniewski, Robert W.",
     %    keywords = {Architectural Trends and Performance Balance Ratio, High Performance Computing, Top500 Supercomputers},
     location = {Virtual Event, Republic of Korea},
     series = {HPC Asia 2021}
-}
-@online{dask-client-perf,
-    title = {Task Graph Building Performance Issue in Dask},
-    url = {https://github.com/dask/distributed/issues/3783},
-    urldate = {2022-05-25},
-}
-@online{dask-user-survey,
-    title = {2021 Dask User Survey},
-    author = {Genevieve Buckley},
-    url = {https://blog.dask.org/2021/09/15/user-survey},
-    urldate = {2022-06-09},
 }
 @online{it4i_node_scheduling_policy,
     title = {IT4Innovations Job Submission Policy},
@@ -212,6 +165,98 @@ and Wisniewski, Robert W.",
     pages = {107–113},
     numpages = {7}
 }
+@inproceedings{workflows_at_scale,
+    author = {Bhatia, Harsh and Di Natale, Francesco and Moon, Joseph Y. and Zhang, Xiaohua and Chavez, Joseph R. and Aydin, Fikret and Stanley, Chris and Oppelstrup, Tomas and Neale, Chris and Schumacher, Sara Kokkila and Ahn, Dong H. and Herbein, Stephen and Carpenter, Timothy S. and Gnanakaran, Sandrasegaram and Bremer, Peer-Timo and Glosli, James N. and Lightstone, Felice C. and Ing\'{o}lfsson, Helgi I.},
+    title = {Generalizable Coordination of Large Multiscale Workflows: Challenges and Learnings at Scale},
+    year = {2021},
+    isbn = {9781450384421},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+%    url = {https://doi.org/10.1145/3458817.3476210},
+    doi = {10.1145/3458817.3476210},
+%    abstract = {The advancement of machine learning techniques and the heterogeneous architectures of most current supercomputers are propelling the demand for large multiscale simulations that can automatically and autonomously couple diverse components and map them to relevant resources to solve complex problems at multiple scales. Nevertheless, despite the recent progress in workflow technologies, current capabilities are limited to coupling two scales. In the first-ever demonstration of using three scales of resolution, we present a scalable and generalizable framework that couples pairs of models using machine learning and in situ feedback. We expand upon the massively parallel Multiscale Machine-Learned Modeling Infrastructure (MuMMI), a recent, award-winning workflow, and generalize the framework beyond its original design. We discuss the challenges and learnings in executing a massive multiscale simulation campaign that utilized over 600,000 node hours on Summit and achieved more than 98\% GPU occupancy for more than 83\% of the time. We present innovations to enable several orders of magnitude scaling, including simultaneously coordinating 24,000 jobs, and managing several TBs of new data per day and over a billion files in total. Finally, we describe the generalizability of our framework and, with an upcoming open-source release, discuss how the presented framework may be used for new applications.},
+    booktitle = {Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis},
+    articleno = {10},
+    numpages = {16},
+%    keywords = {heterogenous architecture, cancer research, adaptive simulations, multiscale simulations, massively parallel, machine learning},
+    location = {St. Louis, Missouri},
+    series = {SC '21}
+}
+@article{dragonfly,
+    title={Technology-driven, highly-scalable dragonfly topology},
+    author={Kim, John and Dally, Wiliam J and Scott, Steve and Abts, Dennis},
+    journal={ACM SIGARCH Computer Architecture News},
+    volume={36},
+    number={3},
+    pages={77--88},
+    year={2008},
+    publisher={ACM New York, NY, USA}
+}
+@INPROCEEDINGS{slimfly,
+    author={Besta, Maciej and Hoefler, Torsten},
+    booktitle={SC '14: Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis},
+    title={Slim Fly: A Cost Effective Low-Diameter Network Topology},
+    year={2014},
+    volume={},
+    number={},
+    pages={348-359},
+    doi={10.1109/SC.2014.34}
+}
+@Article{task_based_taxonomy,
+    author="Thoman, Peter
+and Dichev, Kiril
+and Heller, Thomas
+and Iakymchuk, Roman
+and Aguilar, Xavier
+and Hasanov, Khalid
+and Gschwandtner, Philipp
+and Lemarinier, Pierre
+and Markidis, Stefano
+and Jordan, Herbert
+and Fahringer, Thomas
+and Katrinis, Kostas
+and Laure, Erwin
+and Nikolopoulos, Dimitrios S.",
+    title="A taxonomy of task-based parallel programming technologies for high-performance computing",
+    journal="The Journal of Supercomputing",
+    year="2018",
+    month="Apr",
+    day="01",
+    volume="74",
+    number="4",
+    pages="1422--1434",
+%    abstract="Task-based programming models for shared memory---such as Cilk Plus and OpenMP 3---are well established and documented. However, with the increase in parallel, many-core, and heterogeneous systems, a number of research-driven projects have developed more diversified task-based support, employing various programming and runtime features. Unfortunately, despite the fact that dozens of different task-based systems exist today and are actively used for parallel and high-performance computing (HPC), no comprehensive overview or classification of task-based technologies for HPC exists. In this paper, we provide an initial task-focused taxonomy for HPC technologies, which covers both programming interfaces and runtime mechanisms. We demonstrate the usefulness of our taxonomy by classifying state-of-the-art task-based environments in use today.",
+    issn="1573-0484",
+    doi="10.1007/s11227-018-2238-4",
+%    url="https://doi.org/10.1007/s11227-018-2238-4"
+}
+@article{cwl,
+    author = {Crusoe, Michael and Abeln, Sanne and Iosup, Alexandru and Amstutz, Peter and Chilton, John and Tijanić, Nebojša and Ménager, Hervé and Soiland-Reyes, Stian and Gavrilović, Bogdan and Goble, Carole and Community, The},
+    year = {2021},
+    month = {08},
+    pages = {},
+    title = {Methods Included: Standardizing Computational Reuse and Portability with the Common Workflow Language},
+    volume = {65},
+    journal = {Communications of the ACM},
+    doi = {10.1145/3486897}
+}
+@Article{large_scale_modelling,
+    author="Lampa, Samuel
+and Alvarsson, Jonathan
+and Spjuth, Ola",
+    title="Towards agile large-scale predictive modelling in drug discovery with flow-based programming design principles",
+    journal="Journal of Cheminformatics",
+    year="2016",
+    month="Nov",
+    day="24",
+    volume="8",
+    number="1",
+    pages="67",
+%    abstract="Predictive modelling in drug discovery is challenging to automate as it often contains multiple analysis steps and might involve cross-validation and parameter tuning that create complex dependencies between tasks. With large-scale data or when using computationally demanding modelling methods, e-infrastructures such as high-performance or cloud computing are required, adding to the existing challenges of fault-tolerant automation. Workflow management systems can aid in many of these challenges, but the currently available systems are lacking in the functionality needed to enable agile and flexible predictive modelling. We here present an approach inspired by elements of the flow-based programming paradigm, implemented as an extension of the Luigi system which we name SciLuigi. We also discuss the experiences from using the approach when modelling a large set of biochemical interactions using a shared computer cluster.Graphical abstract.",
+    issn="1758-2946",
+    doi="10.1186/s13321-016-0179-6",
+%    url="https://doi.org/10.1186/s13321-016-0179-6"
+}
 
 % Technologies
 @techreport{mpi,
@@ -235,8 +280,14 @@ and Wisniewski, Robert W.",
     doi="10.1007/978-0-387-09766-4_210",
 %    url="https://doi.org/10.1007/978-0-387-09766-4_210"
 }
+@book{openmp,
+    title={Parallel programming in OpenMP},
+    author={Chandra, Rohit and Dagum, Leo and Kohr, David and Menon, Ramesh and Maydan, Dror and McDonald, Jeff},
+    year={2001},
+    publisher={Morgan kaufmann}
+}
 
-% Job managers
+% Allocation managers
 @InProceedings{slurm,
     author = "Yoo, Andy B.
 and Jette, Morris A.
@@ -385,7 +436,7 @@ and Grondona, Mark",
 %    pdf = {http://hal.inria.fr/hal-01017319/PDF/simgrid3-journal.pdf},
 }
 
-% Distributed tools
+% Distributed/task tools
 @inproceedings{dask,
     author = {Rocklin, Matthew},
     year = {2015},
@@ -393,6 +444,17 @@ and Grondona, Mark",
     pages = {126-132},
     title = {Dask: Parallel Computation with Blocked algorithms and Task Scheduling},
     doi = {10.25080/Majora-7b98e3ed-013}
+}
+@online{dask-client-perf,
+    title = {Task Graph Building Performance Issue in Dask},
+    url = {https://github.com/dask/distributed/issues/3783},
+    urldate = {2022-05-25},
+}
+@online{dask-user-survey,
+    title = {2021 Dask User Survey},
+    author = {Genevieve Buckley},
+    url = {https://blog.dask.org/2021/09/15/user-survey},
+    urldate = {2022-06-09},
 }
 @article{snakemake,
     author = {Köster, Johannes and Rahmann, Sven},
@@ -536,4 +598,72 @@ and van der Spoel, David",
     volume = {31},
     journal = {International Journal of High Performance Computing Applications},
     doi = {10.1177/1094342015594678}
+}
+@article{pegasus,
+    author={Deelman, Ewa and Vahi, Karan and Rynge, Mats and Mayani, Rajiv and da Silva, Rafael Ferreira and Papadimitriou, George and Livny, Miron},
+    journal={Computing in Science \& Engineering},
+    title={The Evolution of the Pegasus Workflow Management Software},
+    year={2019},
+    volume={21},
+    number={4},
+    pages={22-36},
+    doi={10.1109/MCSE.2019.2919690}
+}
+@Article{starpu,
+    author = {C{\'e}dric Augonnet and Samuel Thibault and Raymond Namyst and Pierre-Andr{\'e} Wacrenier},
+    title = {{StarPU: A Unified Platform for Task Scheduling on Heterogeneous Multicore Architectures}},
+    journal = {CCPE - Concurrency and Computation: Practice and Experience, Special Issue: Euro-Par 2009},
+    volume = 23,
+    issue = 2,
+    pages = {187--198},
+    year = 2011,
+    month = FEB,
+    publisher = {John Wiley \& Sons, Ltd.},
+    doi = {10.1002/cpe.1631},
+    %    url = {http://hal.inria.fr/inria-00550877},
+    %    pdf = {http://hal.inria.fr/inria-00550877/document},
+    KEYWORDS = {General Presentations;StarPU}
+}
+@inproceedings{dace,
+    author = {Ben-Nun, Tal and de Fine Licht, Johannes and Ziogas, Alexandros N. and Schneider, Timo and Hoefler, Torsten},
+    title = {Stateful Dataflow Multigraphs: A Data-Centric Model for Performance Portability on Heterogeneous Architectures},
+    year = {2019},
+    isbn = {9781450362290},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    %    url = {https://doi.org/10.1145/3295500.3356173},
+    doi = {10.1145/3295500.3356173},
+    %    abstract = {The ubiquity of accelerators in high-performance computing has driven programming complexity beyond the skill-set of the average domain scientist. To maintain performance portability in the future, it is imperative to decouple architecture-specific programming paradigms from the underlying scientific computations. We present the Stateful DataFlow multiGraph (SDFG), a data-centric intermediate representation that enables separating program definition from its optimization. By combining fine-grained data dependencies with high-level control-flow, SDFGs are both expressive and amenable to program transformations, such as tiling and double-buffering. These transformations are applied to the SDFG in an interactive process, using extensible pattern matching, graph rewriting, and a graphical user interface. We demonstrate SDFGs on CPUs, GPUs, and FPGAs over various motifs --- from fundamental computational kernels to graph analytics. We show that SDFGs deliver competitive performance, allowing domain scientists to develop applications naturally and port them to approach peak hardware performance without modifying the original scientific code.},
+    booktitle = {Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis},
+    articleno = {81},
+    numpages = {14},
+    location = {Denver, Colorado},
+    series = {SC '19}
+}
+@inproceedings{legate,
+    author = {Bauer, Michael and Garland, Michael},
+    title = {Legate NumPy: Accelerated and Distributed Array Computing},
+    year = {2019},
+    isbn = {9781450362290},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+%    url = {https://doi.org/10.1145/3295500.3356175},
+    doi = {10.1145/3295500.3356175},
+%    abstract = {NumPy is a popular Python library used for performing array-based numerical computations. The canonical implementation of NumPy used by most programmers runs on a single CPU core and is parallelized to use multiple cores for some operations. This restriction to a single-node CPU-only execution limits both the size of data that can be handled and the potential speed of NumPy code. In this work we introduce Legate, a drop-in replacement for NumPy that requires only a single-line code change and can scale up to an arbitrary number of GPU accelerated nodes. Legate works by translating NumPy programs to the Legion programming model and then leverages the scalability of the Legion runtime system to distribute data and computations across an arbitrary sized machine. Compared to similar programs written in the distributed Dask array library in Python, Legate achieves speed-ups of up to 10X on 1280 CPUs and 100X on 256 GPUs.},
+    booktitle = {Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis},
+    articleno = {23},
+    numpages = {23},
+%    keywords = {HPC, control replication, logical regions, NumPy, distributed execution, GPU, Python, legate, task-based runtimes, legion},
+    location = {Denver, Colorado},
+    series = {SC '19}
+}
+@INPROCEEDINGS{pygion,
+    author={Slaughter, Elliott and Aiken, Alex},
+    booktitle={2019 IEEE/ACM Parallel Applications Workshop, Alternatives To MPI (PAW-ATM)},
+    title={Pygion: Flexible, Scalable Task-Based Parallelism with Python},
+    year={2019},
+    volume={},
+    number={},
+    pages={58-72},
+    doi={10.1109/PAW-ATM49560.2019.00011}
 }

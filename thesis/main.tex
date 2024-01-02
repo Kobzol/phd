@@ -39,9 +39,9 @@
 \newcommand{\footnoteurl}[1]{\footnote{\url{#1}}}
 
 % Tools
-\newcommand{\estee}{\emph{Estee}}
+\newcommand{\estee}{\textsc{Estee}}
 \newcommand{\rsds}{\textsc{RSDS}}
-\newcommand{\hyperqueue}{\emph{HyperQueue}}
+\newcommand{\hyperqueue}{\textsc{HyperQueue}}
 \newcommand{\dask}{\textsc{Dask}}
 \newcommand{\ray}{\emph{Ray}}
 \newcommand{\snakemake}{\emph{SnakeMake}}
@@ -63,18 +63,55 @@
 \CzechThesisTitle{Ergonomie a efektivita workflow na HPC klastrech}
 \EnglishThesisTitle{Ergonomics and efficiency of workflows on HPC clusters}
 
-\SubmissionYear{2023}
+\SubmissionYear{2024}
 
-\Acknowledgement{I would like to thank all those who helped me with the work, because without
-them this work would not have happened.}
-
-\CzechAbstract{TODO}
+%TODO: přeožit abstrakt
+\CzechAbstract{TODO: přeložit}
 \CzechKeywords{distribuované výpočty, výpočetní grafy, vysokovýkonnostní počítání}
 
-\EnglishAbstract{TODO}
-\EnglishKeywords{distributed computing, task workflows, hpc}
+%TODO: abstrakt a přínos
+\EnglishAbstract{This thesis deals with the execution of task graphs on High-performance Computing
+(HPC) clusters with focus on efficient usage of hardware resources and ergonomic interfaces for defining
+task graphs. Task graphs are a popular tool for executing scientific workflows on distributed clusters.
+However, executing them on HPC clusters introduces unique challenges, caused mainly by the large scale
+of workflows and an unwieldy interaction with HPC allocation managers like PBS (Portable Batch System)
+or Slurm. This work examines these challenges in detail and proposes approaches on alleviating them.
 
-%TODO: přínos
+This thesis provides three main contributions. Firstly, it contains a comprehensive study of the performance
+of various task schedulers and provides a simulation environment that enables experiments with different
+task scheduling algorithms. Secondly, it analyses the performance of a state of the art
+task runtime \dask{} and provides an implementation of an alternative \dask{} server which
+improves its performance significantly on HPC clusters. And primarily, it introduces a new HPC-tailored
+task runtime called \hyperqueue{}, which offers an ergonomic way of executing task graphs while
+achieving high hardware utilization on heterogeneous HPC clusters. \hyperqueue{} is available as
+open-source software under the MIT (Massachusetts Institute of Technology) license at
+\url{https://github.com/it4innovations/hyperqueue}.
+}
+\EnglishKeywords{distributed computing, task graphs, hpc}
+
+\Acknowledgement{I would like to thank my supervisor, Jan Martinovič, for his advices and mentorship.
+I would also like to thank Ada Böhm, Vojtěch Cima and Martin Šurkovský, who have co-authored several
+publications with me and supported me during my Ph.D. studies. I am especially grateful to Ada Böhm
+for her constant readiness to provide both research and technical guidance.
+
+The tool HyperQueue, which is one of the central topics of this thesis, was supported by TODO.
+
+Finally, I would like to extend my gratitude to my wife Jana for her support and patience.}
+
+% TODO: add all acronyms
+\AddAcronym{AI}{Artificial Intelligence}
+\AddAcronym{CPU}{Central Processing Unit}
+\AddAcronym{GPU}{Graphics Processing Unit}
+\AddAcronym{HPC}{High-performance Computing}
+\AddAcronym{MPI}{Message Passing Interface}
+\AddAcronym{NUMA}{Non-Uniform Memory Access}
+\AddAcronym{OpenMP}{Open Multi-Processing}
+\AddAcronym{PGAS}{Partitioned global address space}
+
+%TODO: declaration?
+%TODO: declaration from Ada?
+% I declare that I composed this thesis, and I am the original author and leader of the group that works on this project. I have also done most of the work related to technical matters and programming. Some of these results have been previously published
+%in~\cite{estee, rsds, ligate}.
 
 \addbibresource{references.bib}
 \addbibresource{publications.bib}
