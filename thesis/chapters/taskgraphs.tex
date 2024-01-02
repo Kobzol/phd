@@ -1,8 +1,9 @@
 There are many ways to design and program distributed and parallel programs for HPC clusters.
 Historically, a popular way of creating HPC applications was to implement the parallelization of
 computation and the distribution of data explicitly, typically using message-passing (e.g.\
-MPI~\cite{mpi}), global address space (e.g.\ PGAS~\cite{pgas}) and/or
-multithreading (e.g.\ OpenMP~\cite{openmp}) frameworks, which are designed and fine-tuned
+MPI\footnote{Message Passing Interface}~\cite{mpi}), global address space (e.g.\
+PGAS\footnote{Partitioned global address space}~\cite{pgas}) and/or multithreading (e.g.\
+OpenMP\footnote{Open Multi-Processing}~\cite{openmp}) frameworks, which are designed and fine-tuned
 for HPC use-cases. With an explicitly parallel program, users have a lot of control over the
 exchange of data and communication between individual cores and distributed nodes, which allows
 them to create very performant programs. This approach is also quite flexible and enables
