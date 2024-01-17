@@ -257,6 +257,26 @@ and Spjuth, Ola",
     doi="10.1186/s13321-016-0179-6",
 %    url="https://doi.org/10.1186/s13321-016-0179-6"
 }
+@book{bertsekas_1992,
+    address = {Upper Saddle River, NJ, USA},
+    title = {Data {Networks} (2Nd {Ed}.)},
+    isbn = {978-0-13-200916-4},
+    publisher = {Prentice-Hall, Inc.},
+    author = {Bertsekas, Dimitri and Gallager, Robert},
+    year = {1992},
+    doi = {10.5555/121104}
+}
+@INPROCEEDINGS{pegasusgraphs,
+    author={Silva, Rafael Ferreira da and Chen, Weiwei and Juve, Gideon and Vahi, Karan and
+	Deelman, Ewa},
+    booktitle={2014 IEEE 10th International Conference on e-Science},
+    title={Community Resources for Enabling Research in Distributed Scientific Workflows},
+    year={2014},
+    volume={1},
+    number={},
+    pages={177-184},
+    doi={10.1109/eScience.2014.44}
+}
 
 % Technologies
 @techreport{mpi,
@@ -371,6 +391,69 @@ and Grondona, Mark",
     year = {1998},
     organization = {IEEE}
 }
+@article{kwok1999static,
+    author = {Kwok, Yu-Kwong and Ahmad, Ishfaq},
+    title = {Static Scheduling Algorithms for Allocating Directed Task Graphs to Multiprocessors},
+    year = {1999},
+    issue_date = {Dec. 1999},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {31},
+    number = {4},
+    issn = {0360-0300},
+    doi = {10.1145/344588.344618},
+    journal = {ACM Comput. Surv.},
+    month = {dec},
+    pages = {406–471},
+    numpages = {66},
+%    keywords = {automatic parallelization, DAG, task graphs, static scheduling, software tools,
+%	parallel processing, multiprocessors}
+}
+@ARTICLE{sih1993compile,
+    author={Sih, G.C. and Lee, E.A.},
+    journal={IEEE Transactions on Parallel and Distributed Systems},
+    title={A compile-time scheduling heuristic for interconnection-constrained heterogeneous
+	processor architectures},
+    year={1993},
+    volume={4},
+    number={2},
+    pages={175-187},
+    doi={10.1109/71.207593}
+}
+@ARTICLE{wu1990hypertool,
+    author={Wu, M.-Y. and Gajski, D.D.},
+    journal={IEEE Transactions on Parallel and Distributed Systems},
+    title={Hypertool: a programming aid for message-passing systems},
+    year={1990},
+    volume={1},
+    number={3},
+    pages={330-343},
+    doi={10.1109/71.80160}
+}
+@article{hwang1989scheduling,
+    title = {Scheduling precedence graphs of bounded height},
+    journal = {Journal of Algorithms},
+    volume = {5},
+    number = {1},
+    pages = {48-59},
+    year = {1984},
+    issn = {0196-6774},
+    doi = {https://doi.org/10.1016/0196-6774(84)90039-7},
+    author = {Danny Dolev and Manfred K Warmuth},
+}
+@article{omara2009genetic,
+    title = {Genetic algorithms for task scheduling problem},
+    journal = {Journal of Parallel and Distributed Computing},
+    volume = {70},
+    number = {1},
+    pages = {13-22},
+    year = {2010},
+    issn = {0743-7315},
+    doi = {10.1016/j.jpdc.2009.09.009},
+    author = {Fatma A. Omara and Mona M. Arafa},
+%    keywords = {Evolutionary computing, Genetic algorithms, Scheduling, Task partitioning, Graph
+%	algorithms, Parallel processing},
+}
 @article{hagras2003static,
     title = {Static vs. dynamic list-scheduling performance comparison},
     author = {Hagras, Tarek and Jane{\v{c}}ek, J},
@@ -435,6 +518,45 @@ and Grondona, Mark",
     month = Jun,
 %    pdf = {http://hal.inria.fr/hal-01017319/PDF/simgrid3-journal.pdf},
 }
+@article{tang2010list,
+    author = {Tang, Xiaoyong and Li, Kenli and Liao, Guiping and Renfa, Li},
+    year = {2010},
+    month = {04},
+    pages = {323-329},
+    title = {List scheduling with duplication for heterogeneous computing systems},
+    volume = {70},
+    journal = {Journal of Parallel and Distributed Computing},
+    doi = {10.1016/j.jpdc.2010.01.003}
+}
+@INPROCEEDINGS{yao2013task,
+    author={Yao, Xuanxia and Geng, Peng and Du, Xiaojiang},
+    booktitle={2013 International Conference on Parallel and Distributed Computing, Applications
+	and Technologies},
+    title={A Task Scheduling Algorithm for Multi-core Processors},
+    year={2013},
+    volume={},
+    number={},
+    pages={259-264},
+    doi={10.1109/PDCAT.2013.47}
+}
+@article{kwok1996dynamic,
+    author = {Kwok, Yu-Kwong and Ahmad, Ishfaq},
+    title = {Dynamic Critical-Path Scheduling: An Effective Technique for Allocating Task Graphs
+	to Multiprocessors},
+    year = {1996},
+    issue_date = {May 1996},
+    publisher = {IEEE Press},
+    volume = {7},
+    number = {5},
+    issn = {1045-9219},
+    doi = {10.1109/71.503776},
+    journal = {IEEE Trans. Parallel Distrib. Syst.},
+    month = {may},
+    pages = {506–521},
+    numpages = {16},
+%    keywords = {multiprocessors, clustering, processor allocation, list scheduling, parallel
+%	scheduling, task graphs., Algorithms}
+}
 
 % Distributed/task tools
 @inproceedings{dask,
@@ -465,11 +587,11 @@ and Grondona, Mark",
     pages = {2520-2522},
     year = {2012},
     month = {08},
-    abstract = "{Summary: Snakemake is a workflow engine that provides a readable Python-based workflow definition language and a powerful execution environment that scales from single-core workstations to compute clusters without modifying the workflow. It is the first system to support the use of automatically inferred multiple named wildcards (or variables) in input and output filenames.Availability:http://snakemake.googlecode.com.Contact:johannes.koester@uni-due.de}",
+%    abstract = "{Summary: Snakemake is a workflow engine that provides a readable Python-based workflow definition language and a powerful execution environment that scales from single-core workstations to compute clusters without modifying the workflow. It is the first system to support the use of automatically inferred multiple named wildcards (or variables) in input and output filenames.Availability:http://snakemake.googlecode.com.Contact:johannes.koester@uni-due.de}",
     issn = {1367-4803},
     doi = {10.1093/bioinformatics/bts480},
     %    url = "https://doi.org/10.1093/bioinformatics/bts480",
-    eprint = {https://academic.oup.com/bioinformatics/article-pdf/28/19/2520/819790/bts480.pdf},
+%    eprint = {https://academic.oup.com/bioinformatics/article-pdf/28/19/2520/819790/bts480.pdf},
 }
 @article{nextflow,
     author = {Di Tommaso, Paolo and Chatzou, Maria and Floden, Evan W. and Barja, Pablo and Palumbo, Emilio and Notredame, Cedric},
@@ -666,4 +788,29 @@ and van der Spoel, David",
     number={},
     pages={58-72},
     doi={10.1109/PAW-ATM49560.2019.00011}
+}
+
+% Datasets
+@dataset{estee_graphs,
+    author       = {Jakub Beránek and
+                  Stanislav Böhm and
+                  Vojtěch Cima},
+    title        = {Task graphs for benchmarking schedulers},
+    month        = apr,
+    year         = 2019,
+    publisher    = {Zenodo},
+    version      = {1.0},
+    doi          = {10.5281/zenodo.2630385},
+}
+
+@dataset{estee_results,
+    author       = {Jakub Beránek and
+                  Stanislav Böhm and
+                  Vojtěch Cima},
+    title        = {Task Scheduler Performance Survey Results},
+    month        = apr,
+    year         = 2019,
+    publisher    = {Zenodo},
+    version      = {1.0},
+    doi          = {10.5281/zenodo.2630589},
 }

@@ -14,7 +14,13 @@
     sorting=none
 ]{biblatex}
 \usepackage{dcolumn} % numeric column type
-\usepackage{subfig} % subtables and subfigures
+%\usepackage{subfig} % subtables and subfigures
+
+\usepackage{subcaption} % subfigure
+\captionsetup{compatibility=false}
+
+\newcolumntype{T}{>{\footnotesize}p{6cm}} % Estee table
+
 \usepackage[cpp]{diplomalst}
 \usepackage{hyperref}
 \usepackage{todonotes}
@@ -102,11 +108,14 @@ Finally, I would like to extend my gratitude to my wife Jana for her support and
 \AddAcronym{AI}{Artificial Intelligence}
 \AddAcronym{CPU}{Central Processing Unit}
 \AddAcronym{GPU}{Graphics Processing Unit}
+\AddAcronym{HLFET}{Highest Level First with Estimated Times}
 \AddAcronym{HPC}{High-performance Computing}
+\AddAcronym{MSD}{Minimal Scheduling Delay}
 \AddAcronym{MPI}{Message Passing Interface}
-\AddAcronym{NUMA}{Non-Uniform Memory Access}
-\AddAcronym{OpenMP}{Open Multi-Processing}
-\AddAcronym{PGAS}{Partitioned global address space}
+\AddAcronym{NUMA}{Non-uniform Memory Access}
+\AddAcronym{OpenMP}{Open Multi-processing}
+\AddAcronym{PGAS}{Partitioned Global Address Space}
+\AddAcronym{PRNG}{Pseudo-random Number Generation}
 
 %TODO: declaration?
 %TODO: declaration from Ada?
@@ -174,5 +183,7 @@ Finally, I would like to extend my gratitude to my wife Jana for her support and
 \printbibliography[heading=bibintoc, title={Bibliography}]
 
 %\appendix
+%\chapter{Foo}
+%asd
 
 \end{document}
