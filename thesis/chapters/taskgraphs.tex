@@ -157,6 +157,9 @@ task graphs:
 		      (t_d, t)\notin D\}$. It is a
 	      simple observation that unless the task graph is empty ($(T\cup{}O) = \emptyset$), there is always at
 	      least one source task in the graph, because the graph is acyclic.
+	\item We label tasks that are not depended upon by any other task \emph{leaf tasks}.
+	      $L = \{ t \mid t\in{}T \land \forall{}t_d\in{}T: (t,
+		      t_d)\notin D\}$.
 \end{enumerate}
 
 An example of a simple task graph is shown on Figure~\ref{fig:task-graph-example}. Tasks are represented
@@ -323,6 +326,8 @@ the first task to the completion of all tasks within the task graph. Scheduling 
 activity of the runtime, as it has a profound effect on the efficiency of the whole workflow
 execution. We will use the term \emph{scheduler} for a component of the task runtime that is
 responsible for assigning tasks to workers.
+
+%TODO: define what is a schedule
 
 Figure~\ref{fig:scheduling-example} shows an example of how a schedule of a simple task graph looks like,
 and how a trivial change in the schedule can severely affect the resulting makespan. The figure
