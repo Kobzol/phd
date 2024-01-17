@@ -220,6 +220,7 @@ Note that Ada Böhm was named Stanislav Böhm in older publications.
 """)
 
         f.write("""
+\\begin{refsection}
 \\section*{Publications Related to Thesis}
     \\begin{itemize}
 """)
@@ -235,3 +236,4 @@ Note that Ada Böhm was named Stanislav Böhm in older publications.
         for item in nonrelated:
             f.write(format_entry(item))
         f.write("\\end{itemize}\n")
+        f.write("\\end{refsection}")
