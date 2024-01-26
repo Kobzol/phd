@@ -95,12 +95,13 @@ reproduce it independently with the same performance characteristics. This makes
 compare results between different simulation environments.
 
 Apart from the environments used in existing surveys, there are also more general task simulation
-environments. DAGSim~\cite{dagsim} offers a framework for comparing scheduling algorithms,
-and compares the performance of a few algorithms, but doesn't provide its implementation, which
-makes it difficult to reproduce or extend its results. SimDAG~\cite{simdag} is a task
-graph simulator focused on HPC use-cases built on top of the SimGrid~\cite{simgrid}
-framework. It allows relatively simple implementation of new task scheduling algorithms, however it
-does not support any task resource requirements (e.g.\ the number of used CPU cores).
+environments. DAGSim~\cite{dagsim} offers a framework for comparing scheduling
+algorithms, and compares the performance of a few algorithms, but doesn't provide its
+implementation, which makes it difficult to reproduce or extend its results.
+SimDAG~\cite{simdag} is a task graph simulator focused on HPC use-cases built on top of
+the SimGrid~\cite{simgrid} framework. It allows relatively simple implementation of new
+task scheduling algorithms, however it does not support any task resource requirements (e.g.\ the
+number of used CPU cores).
 
 In addition to simply comparing the performance of different schedulers, our goal was also to test
 two factors that affect scheduling, which we haven't seen explored in detail in existing works.
@@ -146,11 +147,12 @@ scheduler and of the cluster and its network topology.
 One of our goals for \estee{} was to make it very easy to write new scheduling
 algorithms and make the scheduler approachable for other researchers that might want to experiment
 with task schedulers. That was also one of the motivations why we decided to create
-\estee{} in Python, which facilitates experimentation. Listing~\ref{lst:estee-example}
-shows an example of a task graph simulation that demonstrates the simplicity of defining task graph
-simulation using\estee{}. The output of the simulation is both the makespan (the
-duration it took to execute the task graph) and also a detailed trace that can be used to visualize
-the individual task-to-worker assignments and task execution time spans.
+\estee{} in Python, which facilitates experimentation.
+Listing~\ref{lst:estee-example} shows an example of a task graph simulation that demonstrates the
+simplicity of defining task graph simulation using\estee{}. The output of the
+simulation is both the makespan (the duration it took to execute the task graph) and also a
+detailed trace that can be used to visualize the individual task-to-worker assignments and task
+execution time spans.
 
 \begin{listing}
 	\caption{Simple task graph simulation example using \estee{}}
@@ -206,26 +208,27 @@ the term \emph{communication model} and \emph{network model} interchangeably in 
 We provide a more realistic network model that simulates full-duplex communication between workers,
 where the total (data object) upload and download bandwidth of each worker is limited. The sharing
 of bandwidth between worker connections is modeled by the
-\emph{max-min fairness model}~\cite{bertsekas_1992}. Max-min fairness provides a bandwidth allocation for
-each worker. If an allocation of any participant is increased, then we necessarily have to decrease
-the allocation of some other participant with an equal or smaller allocation. When a data object
-transfer starts or finishes, the data flow between workers is recomputed immediately, thus we
-neglect the fact that it may take some time for the bandwidth to fully saturate.
+\emph{max-min fairness model}~\cite{bertsekas_1992}. Max-min fairness provides a bandwidth allocation
+for each worker. If an allocation of any participant is increased, then we necessarily have to
+decrease the allocation of some other participant with an equal or smaller allocation. When a data
+object transfer starts or finishes, the data flow between workers is recomputed immediately, thus
+we neglect the fact that it may take some time for the bandwidth to fully saturate.
 
 %TODO: odkomentovat?
 %This model is not as accurate as e.g.\ packet-level simulation implemented in some other
 %simulators~\cite{simgrid}, but it is a notable improvement over the naive model.
 
 To provide a baseline that corresponds to the naive model described above, which has been used in
-several previous works, \estee{} also implements a \emph{simple} network model.
+several previous works, \estee{} also implements a \emph{simple} network
+model.
 
 It is possible to choose an arbitrary network bandwidth amount for a given simulation for any used
 networking model.
 
 \subsection{Scheduler parameters}
 %TODO: odstranit konec této  věty?
-\estee{} implements support for two parameters that can affect scheduler performance,
-and which we have not seen examined in detail in existing literature:
+\estee{} implements support for two parameters that can affect scheduler
+performance, and which we have not seen examined in detail in existing literature:
 \begin{description}
 	\item[Minimal scheduling delay] Non-trivial schedulers create task assignments continuously during task graph execution, based on
 		the current worker load and task completion times. That means that they are not invoked only once,
@@ -313,11 +316,12 @@ and which we have not seen examined in detail in existing literature:
 %HyperLoom~\citep{hyperloom} and Rain. It is described in Appendix~A.
 
 \subsection{Schedulers}
+\label{subsec:estee-schedulers}
 There are many task scheduling approaches, and an enormous amount of various task scheduling
 algorithms. We have implemented a set of task schedulers that are representatives of several common
 scheduling approaches, inspired by a list of schedulers from a survey performed by Wang and
-Sinnen~\cite{wang2018list}. We have included several representatives of the simplest and perhaps
-most common list-scheduling approach, but also schedulers that use work-stealing or genetic
+Sinnen~\cite{wang2018list}. We have included several representatives of the simplest and
+perhaps most common list-scheduling approach, but also schedulers that use work-stealing or genetic
 algorithms.
 
 List-scheduling is an intuitive approach where the scheduler sorts tasks (into a list) based on
@@ -359,14 +363,14 @@ precomputed at the start of task graph execution.
 
 \noindent\textbf{genetic}\quad
 This scheduler uses a genetic algorithm to schedule tasks to workers, using the mutation and
-crossover operators described in~\cite{omara2009genetic}. Only valid schedules are considered, if no
-valid schedule can be found within a reasonable amount of iterations, a random schedule is
+crossover operators described in~\cite{omara2009genetic}. Only valid schedules are considered, if
+no valid schedule can be found within a reasonable amount of iterations, a random schedule is
 generated instead.
 
 \noindent\textbf{ws}\quad
 This is an implementation of a simple work-stealing algorithm. The default policy is that each task
-that is ready to be executed (when all its dependencies are already computed) is always assigned to
-a worker where it can be started with a minimal transfer cost. The scheduler then continuously
+that is ready to be executed (all its dependencies are already computed) is always assigned to a
+worker where it can be started with a minimal transfer cost. The scheduler then continuously
 monitors the load of workers. When a worker starts to starve (and thus doesn't have enough tasks to
 compute), then a portion of tasks assigned to other workers is rescheduled to the starving worker.
 
@@ -382,72 +386,75 @@ advantage of any parallelism between workers.
 This scheduler simply assigns each task to a random worker using a PRNG (pseudo-random number
 generation) engine.
 
-We have tried to implement the mentioned list-based schedulers (\emph{blevel}, \emph{tlevel},
-\emph{dls}, \emph{mcp}, \emph{etf}) as closely as possible to their original description.
-These list-based algorithms mostly focus on selecting the next task to schedule, but an important
-question (that comes up during their implementation) is to what worker should the selected task
-be scheduled. The algorithm description often mention assigning the task to a worker that allows
-the earliest start time of the task. While that is surely a reasonable heuristic, it is not clear
-how exactly should such a worker be found, because the exact earliest start time often cannot be
-determined precisely in advance, since its calculation might encompass network transfers whose
-duration is uncertain by nature. This seemingly simple implementation detail is crucial for
-impementing the scheduler, and it should be included in the description of all scheduling algorithms.
+We have tried to implement the mentioned list-based schedulers (\emph{blevel},
+\emph{tlevel}, \emph{dls}, \emph{mcp}, \emph{etf})
+as closely as possible to their original description. These list-based algorithms mostly focus on
+selecting the next task to schedule, but an important question (that comes up during their
+implementation) is to what worker should the selected task be scheduled. The algorithm description
+often mention assigning the task to a worker that allows the earliest start time of the task. While
+that is surely a reasonable heuristic, it is not clear how exactly should such a worker be found,
+because the exact earliest start time often cannot be determined precisely in advance, since its
+calculation might encompass network transfers whose duration is uncertain by nature. This seemingly
+simple implementation detail is crucial for impementing the scheduler, and it should be included in
+the description of all scheduling algorithms.
 
-\estee{} implementations of these schedulers use a simple estimation of the earliest start time, which
-is based on the currently executing and already scheduled tasks of a worker, and an estimated
-network transfer cost based on uncontended network bandwidth (in other words, the \emph{simple}
-network model is used for the scheduler's estimation of the network transfer cost).
+\estee{} implementations of these schedulers use a simple estimation of the earliest
+start time, which is based on the currently executing and already scheduled tasks of a worker, and
+an estimated network transfer cost based on uncontended network bandwidth (in other words, the
+\emph{simple} network model is used for the scheduler's estimation of the network
+transfer cost).
 
-In order to test our hypothesis that the worker selection is quite important and affects the
-scheduler's behavior, we have also created extended versions of the \emph{blevel},
-\emph{tlevel} and \emph{mcp} schedulers. These modified versions use a worker selection heuristic
-called ``greedy transfer``. We have not applied this heuristic to other list-based schedulers, where
-it would fundamentally change their behavior.
+In order to test our hypothesis that the worker selection approach is quite important and affects
+the scheduler's behavior, we have also created extended versions of the \emph{blevel},
+\emph{tlevel} and \emph{mcp} schedulers. These modified versions use a
+worker selection heuristic called ``greedy transfer``. We have not applied this heuristic to other
+list-based schedulers, where it would fundamentally change their behavior.
 
 %TODO: reword this? better differentiate between the naive heuristic and greedy-transfer?
 The greedy transfer heuristic assigns the selected task to a worker that has a sufficient number of
-free cores on which the task may be executed and that requires the minimal data transfer (sum over all
-sizes of data objects that have to be transferred to that worker). It also adds support for clusters
-where some machines have a different number of cores than others. When a task $t$ that needs $c$ cores cannot be scheduled
-because of an insufficient number of free cores, the list scheduling continues
-by taking another task in the list instead of waiting for more free cores. This
-task will only consider workers that have less than $c$ cores. This allows to
-schedule more tasks while it does not modify the priority of tasks because $t$
-cannot be scheduled on such workers anyway. Note that when all workers have the
-same number of cores, the behavior is identical to ordinary list scheduling.
+free cores on which the task may be executed and that requires the minimal data transfer (sum over
+all sizes of data objects that have to be transferred to that worker). It also adds support for
+clusters where some machines have a different number of cores than others. When a task
+$t$ that needs $c$ cores cannot be scheduled because of an
+insufficient number of free cores, the list scheduling continues by taking another task in the list
+instead of waiting for more free cores. This task will only consider workers that have less than
+$c$ cores. This allows to schedule more tasks while it does not modify the
+priority of tasks because $t$ cannot be scheduled on such workers anyway. Note
+that when all workers have the same number of cores, the behavior is identical to ordinary list
+scheduling.
 
 \subsection{Task graphs}
-To facilitate task scheduler experiments, \estee{} contains a task graph generator, which is able to
-generate parametrized instances of various categories of task graphs. Graphs from each category can
-be generated using several parameters that affect their resulting size and shape. To increase the
-variability of the graphs, properties like task durations or data object sizes are sampled from
-a normal distribution. Below is a description of the three categories of task graphs that can be
-generated:
+To facilitate task scheduler experiments, \estee{} contains a task graph generator,
+which is able to generate parametrized instances of various categories of task graphs. Graphs from
+each category can be generated using several parameters that affect their resulting size and shape.
+To increase the variability of the graphs, properties like task durations or data object sizes are
+sampled from a normal distribution. Below is a description of the three categories of task graphs
+that can be generated:
 
 %TODO: explain fork-join?
-\vspace{1mm}\noindent\textbf{elementary}\quad This category contains trivial graph shapes, such as tasks
-with no dependencies or simple fork-join graphs. These graphs can test the behavior of scheduler
-heuristics on basic task graph building blocks that frequently form parts of larger workflows. Examples
-of these graphs can be seen in Figure~\ref{fig:estee-elementary-shapes}.
+\vspace{1mm}\noindent\textbf{elementary}\quad This category contains trivial graph
+shapes, such as tasks with no dependencies or simple fork-join graphs. These graphs can test the
+behavior of scheduler heuristics on basic task graph building blocks that frequently form parts of
+larger workflows. Examples of these graphs can be seen in Figure~\ref{fig:estee-elementary-shapes}.
 
-\vspace{1mm}\noindent\textbf{irw}\quad This generator creates graphs that are inspired by real-world
-workflows, such as machine learning cross-validations or map-reduce computations.
+\vspace{1mm}\noindent\textbf{irw}\quad This generator creates graphs that are
+inspired by real-world workflows, such as machine learning cross-validations or map-reduce
+computations.
 
-\vspace{1mm}\noindent\textbf{pegasus}\quad This category is derived from graphs created by the Synthetic
-Workflow Generators~\cite{pegasusgraphs}. The generated graphs correspond to the \emph{montage},
-\emph{cybershake}, \emph{epigenomics}, \emph{ligo} and \emph{sipht} Pegasus workflows.
-The graphs have been extended with additional properties required for testing information modes
-(notably expected task durations and data object sizes for the \emph{user} information mode).
+\vspace{1mm}\noindent\textbf{pegasus}\quad This category is derived from graphs
+created by the Synthetic Workflow Generators~\cite{pegasusgraphs}. The generated graphs
+correspond to the \emph{montage}, \emph{cybershake}, \emph{epigenomics},
+\emph{ligo} and \emph{sipht} Pegasus workflows. The graphs have been
+extended with additional properties required for testing information modes (notably expected task
+durations and data object sizes for the \emph{user} information mode).
 
 \section{Task scheduler benchmarks}
 \label{sec:estee-benchmarks}
 We have performed an extensive analysis of the performance of several task scheduling algorithms on
 various task graphs using the \estee{} simulator. The aim of the analysis was to
 explore the behavior of various schedulers in a complex simulation environment. In addition to
-comparing the schedulers amongst each other, we also wanted to test how does their performance differ
-between various communication models and scheduler parameters. The benchmarking environment and
-all configurations, input datasets, results and charts are freely available as reproducible
-artifacts~\cite{estee_results}.
+comparing the schedulers amongst each other, we also wanted to test how does their performance
+differ between various communication models and scheduler parameters.
 
 Note that since the used simulation environment is focused on simulating different task graph
 schedules and network transfers, and it does not model the actual execution of the scheduler nor
@@ -458,31 +465,33 @@ model) while being scheduled by different scheduling algorithms, while also taki
 mentioned scheduler parameters.
 
 \subsection{Benchmark configuration}
-This section describes the cluster, scheduler and task graph configurations that we have used for our
-benchmarks.
+This section describes the cluster, scheduler and task graph configurations that we have used for
+our benchmarks.
 
 \begin{description}
-	\item[Task graphs] The \estee{} graph generators were used to generate a collection of task graphs
-	that were used in the benchmarks. The properties of all used graphs are summarized in Table~\ref{tab:estee-graph-properties}.
-	The generated task graph dataset is available as a reproducible artifact~\cite{estee_graphs}.
-	\item[Schedulers] We have benchmarked all schedulers described in Section~\ref{sec:estee-simulator}.
-	Schedulers that use the greedy transfer heuristic are labeled with a \emph{-gt} suffix in benchmark
-	results.
-	\item[Scheduler parameters] To evaluate the effect of minimal scheduling delay, we have used a baseline
-	value of zero, where the scheduler is invoked immediately after any task status update, and then
-	a delay of 0.1, 0.4, 1.6 and 6.4 seconds. In the cases where MSD is non-zero, we have also added
-	a 50 milliseconds delay before sending the scheduler decision to workers, to simulate the time
-	taken by the scheduler to produce the schedule. For experiments that do not focus on MSD, we
-	always use an MSD of 0.1 seconds and the 50 milliseconds computation delay.
-	To evaluate information modes, we have used the \emph{exact}, \emph{user} and \emph{mean} imodes.
-	For experiments that do not focus on imodes, we always use the \emph{exact} mode.
+	\item[Task graphs] The \estee{} graph generators were used to generate a collection of task graphs that
+		were used in the benchmarks. The properties of all used graphs are summarized in
+		Table~\ref{tab:estee-graph-properties}. The generated task graph dataset is available as a reproducible
+		artifact~\cite{estee_graphs}.
+	\item[Schedulers] We have benchmarked all schedulers described in Section~\ref{sec:estee-simulator}. Schedulers that use
+		the greedy transfer heuristic are labeled with a \emph{-gt} suffix in benchmark
+		results.
+	\item[Scheduler parameters] To evaluate the effect of minimal scheduling delay, we have used a baseline value of zero, where
+		the scheduler is invoked immediately after any task status update, and then a delay of 0.1, 0.4,
+		1.6 and 6.4 seconds. In the cases where MSD is non-zero, we have also added a 50 milliseconds delay
+		before sending the scheduler decision to workers, to simulate the time taken by the scheduler to
+		produce the schedule. For experiments that do not focus on MSD, we always use an MSD of 0.1 seconds
+		and the 50 milliseconds computation delay. To evaluate information modes, we have used the
+		\emph{exact}, \emph{user} and \emph{mean} imodes. For experiments
+		that do not focus on imodes, we always use the \emph{exact} mode.
 	\item[Network models] The simple (labeled \emph{simple}) and max-min (labeled \emph{max-min}) network
-	models were used, with bandwidth speeds ranging from 32 MiB/s to 8 GiB/s. For experiments that do
-	not focus on the network model (e.g.\ when imodes are compared), we always use the \emph{max-min}
-	network model.
-	\item[Clusters] We have used the following five cluster (worker) configurations
-	(where $w \times c$ means that the cluster has $w$ workers and each worker has $c$ cores):  8$\times$4,
-		16$\times$4, 32$\times$4, 16$\times$8, 32$\times$16.
+		models were used, with bandwidth speeds ranging from 32 MiB/s to 8 GiB/s. For experiments that do
+		not focus on the network model (e.g.\ when imodes are compared), we always use the
+		\emph{max-min} network model.
+	\item[Clusters] We have used the following five cluster (worker) configurations (where $w \times c$ means
+		that the cluster has $w$ workers and each worker has $c$
+		cores):  8$\times$4, 16$\times$4, 32$\times$4,
+		16$\times$8, 32$\times$16.
 \end{description}
 
 %TODO: fix cut task graph
@@ -573,86 +582,395 @@ benchmarks.
 	\label{tab:estee-graph-properties}
 	\begin{tabular}{l|lrrrr|T}
 		\toprule
-		Graph & D &   \#T &     \#O & TS &   LP & \normalsize{Description} \\
+		Graph            & D & \#T & \#O   & TS     & LP  & \normalsize{Description}     \\
 		\midrule
-		plain1n &   e &  380 &      0 &    0.00 &    1 &   Independent tasks;
-		normally distributed durations (Fig.~\ref{fig:tg-plain}) \\
-		plain1e &   e &  380 &      0 &    0.00 &    1 &    Independent tasks;
-		exponentially distributed durations (Fig.~\ref{fig:tg-plain}) \\
-		plain1cpus &   e &  380 &      0 &    0.00 &    1 &  Independent tasks with
-		varying core requirements (Fig.~\ref{fig:tg-plain}) \\
-		triplets &   e &  330 &    220 &   17.19 &    3 & Task triplets; middle
-		task requires 4 cores (Fig.~\ref{fig:tg-triplets}) \\
-		merge\_neighb. &   e &  214 &    107 &   10.36 &    2 & Merge of adjacent
-		task pairs (Fig.~\ref{fig:tg-w}) \\
-		merge\_triplets &   e &  148 &    111 &   10.77 &    2 & Merge of task
-		triplets (Fig.~\ref{fig:tg-merge-triplets}) \\
-		merge\_sm-big &   e &  240 &    160 &    7.74 &    2 &  Merge of two
-		results (0.5 MiB and 100 MiB data objects) (Fig.~\ref{fig:tg-v}) \\
-		fork1 &   e &  300 &    100 &    9.77 &    2 &      Tasks with a pair of
-		consumers each consuming the same output (Fig.~\ref{fig:tg-fork})  \\
-		fork2 &   e &  300 &    200 &   19.53 &    2 &      Tasks with a pair of
-		consumers each consuming different output (Fig.~\ref{fig:tg-fork2}) \\
-		bigmerge &   e &  321 &    320 &   31.25 &    2 &    Merge of a large
-		number of tasks (variant of Fig.~\ref{fig:tg-merge}) \\
-		duration\_stairs &   e &  380 &      0 &    0.00 &    1 &    Independent
-		tasks; task durations range from 1 to 190 s (Fig.~\ref{fig:tg-plain}) \\
-		size\_stairs &   e &  191 &    190 &   17.53 &    2 &  1 producer 190
-		outputs / 190 consumers; sizes range from 1 to 190 MiB \\
-		splitters &   e &  255 &    255 &   32.25 &    8 &  Binary tree of
-		splitting tasks (Fig.~\ref{fig:tg-splitters}) \\
-		conflux &   e &  255 &    255 &   31.88 &    8 &    Merging task pairs
-		(inverse of \emph{splitters}) (Fig.~\ref{fig:tg-conflux}) \\
-		grid &   e &  361 &    361 &   45.12 &   37 & Tasks organized in a 2D grid
+		plain1n          & e & 380 & 0     & 0.00   & 1   & Independent tasks;
+		normally distributed durations (Fig.~\ref{fig:tg-plain})                         \\
+		plain1e          & e & 380 & 0     & 0.00   & 1   & Independent tasks;
+		exponentially distributed durations (Fig.~\ref{fig:tg-plain})                    \\
+		plain1cpus       & e & 380 & 0     & 0.00   & 1   & Independent tasks with
+		varying core requirements (Fig.~\ref{fig:tg-plain})                              \\
+		triplets         & e & 330 & 220   & 17.19  & 3   & Task triplets; middle
+		task requires 4 cores (Fig.~\ref{fig:tg-triplets})                               \\
+		merge\_neighb.   & e & 214 & 107   & 10.36  & 2   & Merge of adjacent
+		task pairs (Fig.~\ref{fig:tg-w})                                                 \\
+		merge\_triplets  & e & 148 & 111   & 10.77  & 2   & Merge of task
+		triplets (Fig.~\ref{fig:tg-merge-triplets})                                      \\
+		merge\_sm-big    & e & 240 & 160   & 7.74   & 2   & Merge of two
+		results (0.5 MiB and 100 MiB data objects) (Fig.~\ref{fig:tg-v})                 \\
+		fork1            & e & 300 & 100   & 9.77   & 2   & Tasks with a pair of
+		consumers each consuming the same output (Fig.~\ref{fig:tg-fork})                \\
+		fork2            & e & 300 & 200   & 19.53  & 2   & Tasks with a pair of
+		consumers each consuming different output (Fig.~\ref{fig:tg-fork2})              \\
+		bigmerge         & e & 321 & 320   & 31.25  & 2   & Merge of a large
+		number of tasks (variant of Fig.~\ref{fig:tg-merge})                             \\
+		duration\_stairs & e & 380 & 0     & 0.00   & 1   & Independent
+		tasks; task durations range from 1 to 190 s (Fig.~\ref{fig:tg-plain})            \\
+		size\_stairs     & e & 191 & 190   & 17.53  & 2   & 1 producer 190
+		outputs / 190 consumers; sizes range from 1 to 190 MiB                           \\
+		splitters        & e & 255 & 255   & 32.25  & 8   & Binary tree of
+		splitting tasks (Fig.~\ref{fig:tg-splitters})                                    \\
+		conflux          & e & 255 & 255   & 31.88  & 8   & Merging task pairs
+		(inverse of \emph{splitters}) (Fig.~\ref{fig:tg-conflux})                        \\
+		grid             & e & 361 & 361   & 45.12  & 37  & Tasks organized in a 2D grid
 		(i.e. \emph{splitters} followed by \emph{conflux}) (Fig.~\ref{fig:tg-grid})
 		\\
-		fern &   e &  401 &    401 &   11.11 &  201 &       Long task sequence with
-		side tasks (Fig.~\ref{fig:tg-fern}) \\ \hline
-		gridcat &   i &  401 &    401 &  115.71 &    4 & Merge of pairs of 300 MiB
-		files  \\
-		crossv &   i &   94 &     90 &    8.52 &    5 &  Cross validation \\
-		crossvx &   i &  200 &    200 &   32.66 &    5 & Several instances of cross
-		validation \\
-		fastcrossv &   i &   94 &     90 &    8.52 &    5 & Same as \emph{crossv}
-		but tasks are $50\times$ shorter \\
-		mapreduce &   i &  321 &  25760 &  439.06 &    3 & Map-reduce pattern \\
-		nestedcrossv &   i &  266 &    270 &   28.41 &    8 & Nested cross
-		validation \\ \hline
-		montage &   p &   77 &    150 &    0.21 &    6 &        Montage workflow
-		from Pegasus \\
-		cybershake &   p &  104 &    106 &    0.84 &    4 &        Cybershake
-		workflow from Pegasus \\
-		epigenomics &   p &  204 &    305 &    1.36 &    8 &        Epigenomics
-		workflow from Pegasus \\
-		ligo &   p &  186 &    186 &    0.11 &    6 &        Ligo workflow from
-		Pegasus \\
-		sipht &   p &   64 &    136 &    0.12 &    5 &        Sipht workflow from
-		Pegasus \\
+		fern             & e & 401 & 401   & 11.11  & 201 & Long task sequence with
+		side tasks (Fig.~\ref{fig:tg-fern})                                              \\ \hline
+		gridcat          & i & 401 & 401   & 115.71 & 4   & Merge of pairs of 300 MiB
+		files                                                                            \\
+		crossv           & i & 94  & 90    & 8.52   & 5   & Cross validation             \\
+		crossvx          & i & 200 & 200   & 32.66  & 5   & Several instances of cross
+		validation                                                                       \\
+		fastcrossv       & i & 94  & 90    & 8.52   & 5   & Same as \emph{crossv}
+		but tasks are $50\times$ shorter                                                 \\
+		mapreduce        & i & 321 & 25760 & 439.06 & 3   & Map-reduce pattern           \\
+		nestedcrossv     & i & 266 & 270   & 28.41  & 8   & Nested cross
+		validation                                                                       \\ \hline
+		montage          & p & 77  & 150   & 0.21   & 6   & Montage workflow
+		from Pegasus                                                                     \\
+		cybershake       & p & 104 & 106   & 0.84   & 4   & Cybershake
+		workflow from Pegasus                                                            \\
+		epigenomics      & p & 204 & 305   & 1.36   & 8   & Epigenomics
+		workflow from Pegasus                                                            \\
+		ligo             & p & 186 & 186   & 0.11   & 6   & Ligo workflow from
+		Pegasus                                                                          \\
+		sipht            & p & 64  & 136   & 0.12   & 5   & Sipht workflow from
+		Pegasus                                                                          \\
 		\bottomrule
 	\end{tabular}\\
 	\vspace{2mm}
-	D = Dataset (e = elementary, i = irw, p = pegasus);
-	\#T = Number of tasks; \#O = Number of outputs;
-	TS = Sum of all output object sizes (GiB);
-	LP = longest oriented path in the graph
+	D = Dataset (e = elementary, i = irw, p = pegasus); \#T = Number of tasks; \#O = Number of outputs;
+	TS = Sum of all output object sizes (GiB); LP = longest oriented path in the graph
 \end{table}
 
 \subsection{Evaluation}
-%EXPAND: show Estee charts, describe the results in more detail
+This section discusses selected noteworthy results of the described benchmarks. Completele
+benchmark results and overview charts can be found in~\cite{estee}. The benchmarking
+environment, input task graph datasets, all used benchmark configurations, results and charts are
+also freely available as reproducible artifacts~\cite{estee_results} for further examination.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%==
+The benchmarks were executed on the clusters of the IT4Innovations supercomputing
+centre~\cite{it4i}. The actual characteristics of the cluster hardware is not
+important, because all benchmarks were executed using the \estee{} simulator, so the
+benchmark results do not depend on the used hardware. Each benchmark that was non-deterministic in
+any way (e.g.\ because it used a pseudo-random number generator) was executed twenty times. Unless
+specified otherwise, the individual experiments were performed with the default benchmark
+configuration that uses the \emph{max-min} network model, the \emph{exact}
+information mode and a Minimal Scheduling Delay of 0.1s.
+
+\subsubsection*{Random scheduler}
+
+%TODO: chart doesn't start at zero
+\begin{figure}
+	\caption{Performance of the \emph{random} scheduler}
+	\label{fig:estee-chart-random-scheduler}
+	\centering
+	\includegraphics[width=\textwidth]{imgs/estee/charts/random-scheduler}\\
+	{\small x axis: bandwidth [MiB/s]; y axis: makespan [s]; row: cluster}
+\end{figure}
+
+Given the fact that task scheduling is an NP-hard problem, it would seem that a random scheduling
+approach should produce unsatisfying results. We thus wanted to examine how does a completely
+random scheduler hold up against more sophisticated approaches. Figure~\ref{fig:estee-chart-random-scheduler}
+compares the simulated makespan durations of the \emph{random} scheduler vs. two other
+schedulers that are quite competitive (\emph{blevel-gt} and the work-stealing
+\emph{ws} scheduler) on several task graphs.
+
+While there are indeed cases where random scheduling falls short (for example on the
+cross-validation \emph{crossv} task graph, or in situations with many workers and a slow
+network), in most cases its performance is quite similar to other schedulers, and it even surpasses
+them in a few situations! Its performance gets better with increasing worker count and network
+speed. This makes sense, because if there are enough workers and the network is fast enough to
+overcome the cost of exchanging many data objects between them, the specific assignment of tasks
+between workers becomes less important. As long as the scheduler is able to keep the workers busy
+(which can be ensured even by a random schedule, for some task graphs), then the resulting
+performance is reasonable.
+
+We have been able to validate these results in~\cite{rsds}, where we have shown that as
+the worker count becomes larger, scheduling decisions can in some cases become less important, and
+other factors (like runtime performance of the task runtime) might start to dominate the overall
+task graph execution cost. This will be described in more detail in
+Chapter~\ref{ch:rsds}.
+
+\subsubsection*{Worker selection strategy}
+
+\begin{figure}
+	\caption{Comparison of worker selection strategy}
+	\label{fig:estee-chart-gt-scheduler}
+	\centering
+	\includegraphics[width=0.8\textwidth]{imgs/estee/charts/gt-scheduler}\\
+	{\small x axis: bandwidth [MiB/s]; y axis: makespan [s]; row: cluster}
+\end{figure}
+
+As was explained in~\ref{subsec:estee-schedulers}, the descriptions of several schedulers that we have
+implemented in~\estee{} do not specify the concrete strategy for selecting a worker
+that can start executing a given task as soon as possible. Yet, as we can see in
+Figure~\ref{fig:estee-chart-gt-scheduler}, this implementation detail is crucial. This chart shows the
+performance of two scheduling algorithms (\emph{blevel} and \emph{mcp}),
+each in two variants, with the simple selection strategy and with the greedy transfer strategy (the
+used worker selection strategy was the only difference between the simple and the
+\emph{-gt} suffixed variants).
+
+It can be seen that there is a large difference between these two strategies. In fact, the results
+suggest that in these specific scenarios, the worker selection strategy had a larger effect on the
+overall performance than the used scheduling (task selection) algorithm, as the variants using
+greedy transfer were highly correlated.
+
+\subsubsection*{Network models}
+
+\begin{figure}
+	\caption{Comparison of \emph{max-min} and \emph{simple} network models
+	(\emph{irw} dataset)}
+	\label{fig:estee-chart-irw-netmodel}
+	\centering
+	\includegraphics[width=\textwidth]{imgs/estee/charts/irw-32x4-netmodel-score}\\
+	{\small x axis: bandwidth [MiB/s]; y axis: makespan normalized to average
+	of makespan of \emph{simple} model; row: scheduler; cluster $32x4$}
+\end{figure}
+
+\begin{figure}
+	\caption{Comparison of \emph{maxmin} and \emph{simple} network models
+	(\emph{pegasus} dataset)}
+	\label{fig:estee-chart-pegasus-netmodel}
+	\centering
+	\includegraphics[width=\textwidth]{imgs/estee/charts/pegasus-32x4-netmodel-score}
+	\\ {\small x axis: bandwidth [MiB/s]; y axis: execution makespan normalized
+	to average of makespan of \emph{simple} model; row: scheduler, cluster
+	$32x4$}
+\end{figure}
+
+Figure~\ref{fig:estee-chart-irw-netmodel} demonstrates how does the used network model affect simulated task
+graph makespans for a selected set of task graphs and schedulers, using task graphs from the
+\emph{irw} dataset on the $32x4$ cluster with 32 workers. The Y axis
+is normalized with respect to the average makespan of simulations performed with the
+\emph{simple} network model.
+
+It is clear that especially for slower network bandwidths, the naive \emph{simple} model
+often underestimates the resulting makespan. This is caused by the fact that it does not take
+network contention into account at all, which causes the overall network transfer duration
+estimation to be overly optimistic. As network bandwidth goes up, the difference is reduced, since
+there is less overall contention and the transfers are faster in general.
+
+The makespans of simulations with these two network models are sometimes up to an order of
+magnitude apart. This is a quite significant, because the difference between the performance of
+schedulers (with a fixed network model) is otherwise usually within a factor of two, which was
+demonstrated both by our other results and in~\cite{wang2018list}. The gap between the two
+network models depends heavily on the used task graph. For task graphs from the Pegasus dataset,
+the difference was much smaller, as can be seen in Figure~\ref{fig:estee-chart-pegasus-netmodel}.
+
+\subsubsection*{Minimal scheduling delay}
+
+\begin{figure}
+	\caption{Comparison of MSD; cluster 32x4}
+	\label{fig:estee-chart-irw-msd}
+	\centering
+	\includegraphics[width=0.8\textwidth]{imgs/estee/charts/irw-32x4-schedtime-score}\\
+	{\small x axis: bandwidth [MiB/s]; y axis: makespan normalized to
+	$MSD=0$}
+\end{figure}
+
+In Figure~\ref{fig:estee-chart-irw-msd}, we can observe the effect of MSD on graphs from the
+\emph{irw} dataset, with the $32x4$ cluster configuration. The Y axis
+is normalized with respect to the configuration where MSD is zero. The results show that the effect
+of MSD is relatively limited. There does not seem to be any clear correlation or pattern that would
+suggest that a smaller MSD consistently improves performance of a scheduler. Although,
+interestingly a higher MSD value caused several makespan improvements, especially on the
+\emph{gridcat} task graph.
+
+This is (again) an example of the non-trivial effect of scheduler heuristics. Increasing the MSD
+leads to batching effect, where the scheduler is allowed to make decisions less often, but it has
+knowledge of more task events (that have arrived during the delay) during each decision. Whether
+this helps its performance, or hurts it, depends on the specific scheduler implementation and the
+task graph that it executes.
+
+\subsubsection*{Information modes}
+
+\begin{figure}
+	\caption{Comparison of information modes (\emph{irw} dataset)}
+	\label{fig:estee-chart-irw-imode}
+	\centering
+	\includegraphics[width=\textwidth]{imgs/estee/charts/irw-32x4-imode-score}\\
+	{\small x axis: bandwidth [MiB/s]; y axis: makespan normalized to
+	\emph{exact}
+	imode; row: scheduler; cluster $32x4$}
+\end{figure}
+
+%\begin{figure}
+%	\caption{Comparison of information modes (\emph{elementary} dataset)}
+%	\label{fig:estee-chart-elementary-imode}
+%	\centering
+%	\includegraphics[width=0.8\textwidth]{imgs/estee/charts/elementary-32x4-imode-score}\\
+%	{\small x axis: bandwidth [MiB/s]; y axis: makespan normalized to
+%	\emph{exact} average; row: scheduler; cluster $32x4$}
+%\end{figure}
+
+Figure~\ref{fig:estee-chart-irw-imode} compares makespans of several scheduler and task graph combinations
+from the \emph{irw} dataset on a $32x4$ cluster, with different
+information modes being used. The results are normalized to the mean makespan of the default
+\emph{exact} information mode. In general, the effect of information modes is more
+significant than the effect of the Minimal Scheduling Delay.
+
+An intuitive expectation would be that with more precise task duration information, the scheduler
+will be able to produce a shorter makespan, and this is indeed what happens in several cases, e.g.\
+on the \emph{mapreduce} and \emph{nestedcrossv} task graphs with the
+\emph{blevel-gt} scheduler, where the makespan is up to 25\% longer when task durations are
+not exactly known.
+
+However, there are also opposite cases, for example the \emph{dls} and
+\emph{mcp} schedulers produce better results on several task graphs when they take
+only the \emph{mean} task duration into account. This further shows the effect of
+scheduler heuristics, which can produce worse results even when presented with more accurate data
+input (and vice versa).
+
+One factor that makes it more difficult for the scheduler to accurately estimate the network
+transfer durations and thus make optimal use of the knowledge of task durations is that with the
+max-min network model, the scheduler knows only a lower bound on the communication costs, even if
+it knows the exact data size in advance. While it has access to the maximum bandwidth of the
+network, it does not know the current (and most importantly, future) network utilization, thus it
+only has a crude estimation of the real transfer duration.
+
+\subsection{Validation}
+It is quite challenging to validate the performance of different task schedulers in actual task
+runtimes. Schedulers of existing runtime tend to be deeply integrated within them, in order to be
+as performant as possible. That makes it difficult, or even infeasible, to replace the scheduling
+algorithm without also modifying large parts of the runtime. Furthermore, some scheduling
+approaches might not even be compatible with the architecture of the runtime as a whole. For
+example, work-stealing schedulers perform a lot of communication between the server and the workers
+(potentially even between the workers themselves), and if the runtime doesn't implement the
+necessary infrastructure for facilitating these communication patterns, then implementing a
+work-stealing scheduler into such a runtime might amount to rewriting it from scratch.
+
+In order to at least partially validate our simulation results, we have decided to use a modified
+version of the \dask{}~\cite{dask} task runtime as a validation
+framework. Apart from validating results from the \estee{} simulations, we have also
+used this modified version of \dask{} to perform other experiments and benchmarks
+that are described in Chapter~\ref{ch:rsds}, which also depicts the architecture of
+\dask{} and our performed modifications in detail.
+
+\dask{} is written in Python, which makes it relatively easy to modify and patch.
+It uses a work-stealing scheduler by default, and even though it is relatively deeply integrated
+within the Dask runtime, we were able to implement three simple alternative scheduling algorithms
+into it~\footnote{The modified version of \dask{} with these implemented schedulers can be found at
+\url{https://github.com/Kobzol/distributed/tree/simple-frame-sched}.}, which correspond as closely as possible to the
+\emph{random}, \emph{blevel} and \emph{tlevel} schedulers from
+\estee{}. The default work-stealing scheduler was compared with our work-stealing
+implementation of the \emph{ws} scheduler.
+
+Apart from implementing new schedulers into \dask{}, there were several issues that
+we had to solve to make sure that he comparison between the simulated and the real environment is
+as fair and accurate as possible.
+
+The absolute makespans of task graphs simulated by \estee{} and task graphs executed
+by \dask{} cannot be compared directly, because there are many aspects of the
+operating system, network, implementation of \dask{} itself and system noise that
+\estee{} can not fully simulate. Therefore, since the primary goal of our task
+scheduler experiments was to compare the relative performance of individual schedulers, we have
+decided to compare the relative makespans normalized to a reference scheduler
+(\emph{blevel}), to test if the makespan ratios between the schedulers is similar in
+simulation and in real execution.
+
+In the scheduler benchmarks, we have used many task graphs generated by the \estee{}
+task graph generator. However, it would not be possible to perfectly replicate task durations of
+these generated graphs in \dask{}. Therefore, we have approached this problem from
+the other direction. We have executed several task graphs in \dask{}, and recorded
+their execution traces, so that we would have a completely accurate representation of all the
+executed task durations and data object sizes, which we could then accurately replicate in the
+simulated \estee{} environment. The recorded task graphs are described in
+Chapter~\ref{ch:rsds} and also in~\cite{rsds}. We have executed these task
+graphs with a $24x2$ cluster (24 cores on two nodes), and performed each execution
+and simulation three times.
+
+\begin{figure}
+	\caption{Scheduler performance relative to \emph{blevel} in \dask{} and \estee}
+	\label{fig:estee-validation}
+	\centering
+	\includegraphics[width=\textwidth]{imgs/estee/charts/estee-validation}\\
+	{\small x axis: scheduler; y axis: performance relative to \emph{blevel}}
+\end{figure}
+
+Figure~\ref{fig:estee-validation} shows the results of the validation comparison for three selected
+task graphs\footnote{Extended validation results can be found in~\cite{estee}.}. The performance of each scheduler was normalized to the
+makespan of the \emph{blevel} scheduler within the same environment (either
+\estee{} or \dask{}). Note that the relative ratios were centered
+around zero by subtracting $1$ from them, to focus on the relative differences.
+For example, if a task graph took $100s$ to execute in \dask{} with
+the \emph{blevel} scheduler, but $110s$ with the \emph{ws}
+scheduler, the ratio of the \emph{ws} scheduler would be $0.1$. If
+the simulation was perfect, the two columns for each scheduler would have the same height.
+
+The first chart shows a situation where changing the scheduler resulted in large changes in
+makespans, and \estee{} was able to accurately simulate these changes, and reflect
+the results measured in \dask{}. The second chart demonstrates a situation where
+all schedulers produce similar makespans, therefore in this case the scheduling algorithm does not
+seem to be that important. \estee{} was again able to estimate that the differences
+between schedulers will be small. In the third chart, we see that \estee{} was
+systematically overestimating the makespans of all three schedulers (with respect to the reference
+scheduler). The most important difference was in the \emph{ws} scheduler, where the
+simulated result claims that it is slower than \emph{blevel}, while in reality it was
+slightly faster. The work-stealing implementation in \dask{} is complex, and in
+this case it was able to outperform \emph{blevel} in a way that \estee{}
+was not able to simulate.
+
+To summarize the average error of the simulated results, we took the relative makespans of the
+individual schedulers w.r.t.\ the reference \emph{bevel} scheduler, and calculated the
+difference between the executed and simulated relative makespan. The geometric mean of these
+differences across all measured benchmarks was $0.0347$, which suggests that the
+differences between the execution and simulation were relatively small, and the simulated makespans
+were usually within just a few percent of the actual makespan duration.
+
+\section{Summary}
+We have implemented a set of well known scheduling heuristics, prepared a benchmark dataset
+containing task graphs of different types and scales and designed a simulation environment for
+task scheduler experimentation. We have conducted a series of fully
+reproducible benchmarks using that environment, in which we have analyzed the effect of network
+models, minimal scheduling delays, information modes and worker selection strategy on the behaviour
+of the implemented schedulers, and also compared their relative performance.
+
+Our attempts to implement existing scheduling algorithms in \estee{} and reproduce
+the results of previous scheduler benchmarks have shown various implementation details that are
+usually missing from the algorithm's description (like the precise worker selection strategy) can
+have a large effect on the final performance of the scheduler. Furthermore, we have been able to
+confirm our hypothesis that the naive network model used in several existing works can result in
+very inaccurate simulation results.
+
+Combined with the fact that the source code of many published scheduling algorithms or surveys is
+not open-source, it is difficult (even nigh impossible) to accurately reproduce their performance
+results. We have tried our best to make all available source-code, benchmark datasets and the
+results of our experiments public, to make them easy to reproduce and thus avoid this issue.
+
 Our analysis has shown that despite its simplicity, the foundational HLFET
 algorithm~\cite{hlfet1974} produces high quality schedules in various scenarios and should
-thus serve as a good baseline scheduler for task runtimes. We have also found out that even a
-completely random scheduler can be competitive with other scheduling approaches for certain task
-graphs and cluster configurations.
+thus serve as a good baseline scheduler for task runtimes.
 
-%During our attempts to implement various scheduling algorithms, we have also realized that the
-%descriptions of many task scheduling algorithms in existing literature is incomplete. More
-%specifically, seemingly inconsequential implementation details that are often missing from the
-%algorithm's description can have a very large effect on the final performance of the scheduler,
-%which makes it difficult to precisely reproduce and compare the performance of the existing
-%algorithms.
+We have also demonstrated that even a completely random scheduler can be competitive with other
+scheduling approaches for certain task graphs and cluster configurations.
 
-% List-Scheduling versus Cluster-Scheduling
-% - simple schedulers are surprisingly competitive
+This supports the conclusion made in~\cite{wang2018list}, where the authors have also observed
+that relatively simple scheduling algorithms can be quite competitive, and more complex algorithms
+are useful mostly for special situations and edge cases, where the simple heuristics might fail to
+produce reasonable results.
+
+Our results have indicated that the worker selection strategy used by list-based schedulers is
+crucial for the performance of the scheduler, and it can have a larger effect on the overall
+makespan than the task selection method itself.
+
+The minimal scheduling delay had a smaller effect in our simulations than we have expected. This
+hints that it might be possible to reduce the scheduling overhead (by invoking the scheduler less
+often) without sacrificing schedule quality, but this will be highly dependent on the specific task
+runtime implementation.
+
+The effect of different information modes turned out to be significant, although it's unclear
+whether schedulers can leverage the additional information about exact task durations when facing
+unpredictable network conditions.
+
+%The \estee{} simulator, the used task graph datasets and all scheduler implementations are open-sourced,
+%to make the results reproducible and extendable. We believe
+%that our results provide a comprehensive overview and comparison of workflow
+%schedulers in various simulated conditions and that Estee has further potential to
+%simplify the development and benchmarking of novel schedulers.
+
+Our experiments with \estee{} have been focused solely on the effect of the
+scheduling algorithm. While that is an important factor, there are also other aspects of task
+runtimes that contribute to their overall overhead and performance. This area of research is
+examined in detail in the following chapter.
