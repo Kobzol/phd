@@ -27,7 +27,7 @@ maximum duration of their computation. The allocation is then submitted into a
 \emph{queue} and starts to execute only once there are enough free computational
 resources. Allocation managers are used to provide fair access to HPC resources, to avoid their
 oversubscription and also to handle accounting of computation. They tend to have fairly strict
-limits on the number of allocations that users can submit and the amount of nodes that they can
+limits on the number of allocations that users can submit and the number of nodes that they can
 have reserved for their allocations at any given time.
 
 Since users have to create computational requests through the allocation manager, and thus they
@@ -65,7 +65,7 @@ that is far too coarse for complex fine-grained task graphs. They tend to have l
 each allocation, which can be several orders of magnitude larger than for typical task runtimes
 (e.g.\ seconds vs milliseconds). Furthermore, they seldom allow the user to create more than a few
 hundreds of allocations at the same time, both to provide fairness and also because they simply
-cannot scale to such an amount of allocations. And their support for expressing dependencies
+cannot scale to such an number of allocations. And their support for expressing dependencies
 between the individual tasks (allocations) is also quite basic.
 
 It should be noted that even though there is definitely room for improving the scheduling
@@ -105,7 +105,7 @@ into allocations. As we have discussed above, if the whole task graph can be exe
 single allocation, this is typically not an issue. However, when users need to create multiple
 allocations, this process can be quite cumbersome.
 
-\subsection*{Split the task graph into a smaller amount of allocations}
+\subsection*{Split the task graph into a smaller number of allocations}
 This is the ultimate approach that task graph users will probably sooner or later converge to, once
 their task graph becomes sufficiently complex. When the task graph does not fit within a single
 allocation, and its tasks are too fine-grained for the overhead caused by the allocation manager,
@@ -157,7 +157,7 @@ work.
 
 It should thus be possible for an HPC task to define \emph{resource requirements}, which specify
 resources that have to be provided by an environment that will execute such task. These
-requirements can be quite diverse. For example, a requirement could be the amount of cores (some
+requirements can be quite diverse. For example, a requirement could be the number of cores (some
 tasks can use only a single core, some can be multithreaded), the amount of available main memory,
 a minimum duration required to execute the task or (either optional or required) presence of an
 accelerator like a GPU or an FPGA\@. In order to remain portable and independent of a specific
@@ -273,7 +273,7 @@ Support for multi-node tasks affects many design areas of a task runtime:
 		rescheduled to a different worker. In the case of multi-node tasks, failure handling requires more
 		communication and is generally more complex. When a task is executing on four nodes and one of them
 		fails, the runtime has to make sure that the other nodes will be notified of this situation, so
-		that they can react accordingly (either by finishing the task with a smaller amount of nodes or by
+		that they can react accordingly (either by finishing the task with a smaller number of nodes or by
 		also failing immediately).
 \end{description}
 
@@ -282,7 +282,7 @@ tasks and allow them to be combined with single-node tasks. Advanced multi-node 
 be provided e.g.\ by offering some kind of integration with MPI or similar common HPC technologies.
 
 \section{Scalability}
-The sheer amount of HPC performance (node count, core count, network interconnect bandwidth) opens
+The sheer scale of HPC performance (node count, core count, network interconnect bandwidth) opens
 up opportunities for executing large scale task graphs, but that in turn presents unique challenges
 for task runtimes. Below you can find several examples of bottlenecks that might not matter in a
 small computational scale, but that can become problematic in the context of HPC-scale task graphs.

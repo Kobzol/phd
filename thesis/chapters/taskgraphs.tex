@@ -291,7 +291,7 @@ retrying failed computations. When the execution of a task fails with some error
 because a worker executing the task crashes), a fault-tolerant task runtime will be able to
 transparently restart it by launching a new execution of that task. We will use the term
 \emph{task instance} for a specific execution of a task. Runtimes might impose some limits on
-retrying failed tasks, e.g.\ by attempting to execute up to a fixed amount of task instances for
+retrying failed tasks, e.g.\ by attempting to execute up to a fixed number of task instances for
 each task before giving up, to avoid endless failure loops.
 
 Tasks are usually considered to be atomic from the perspective of the runtime, i.e.\ they either
@@ -477,7 +477,7 @@ worker should a task execute:
 		in~\cite{estee, rsds}.
 	\item[\textbf{Memory consumption}] It is desirable to execute as many tasks in parallel on a given worker (with respect to its
 		available parallelism), to speed up the completion of the whole workflow. However, the scheduler
-		must also balance the amount of executing tasks according to the total memory that they consume. In
+		must also balance the number of executing tasks according to the total memory that they consume. In
 		general, it is quite hard to predict for how long will a task execute, and how much (peak) memory
 		will it consume. When a task executes longer than expected, the workflow will still be computed, it
 		will just take more time. But when a task uses more memory than expected, the scheduler puts many

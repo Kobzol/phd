@@ -18,7 +18,7 @@ can be found on GitHub\footnoteurl{https://github.com/it4innovations/hyperqueue/
 %One of the driving use-cases for \hyperqueue{} is efficient node usage and load balancing. The
 %latest HPC clusters contain a large number (hundreds) of cores, yet it is quite challenging to
 %design a single program that can scale effectively with so many threads. Thus, in order to fully
-%utilize the whole computational node, multiple tasks that each leverage a smaller amount of
+%utilize the whole computational node, multiple tasks that each leverage a smaller number of
 %threads have to be executed on the same node at once. \hyperqueue{} is able to effectively schedule
 %tasks to utilize all available computational nodes, and thanks to its design, it is able to do this
 %not just within a single HPC job, but across many jobs at once.
@@ -30,3 +30,13 @@ can be found on GitHub\footnoteurl{https://github.com/it4innovations/hyperqueue/
 %ACROSS\footnoteurl{https://across-h2020.eu}. It is also envisioned as one of the primary ways of
 %executing computations on the LUMI supercomputer~\cite{lumi_it4innovations_2022}.
 %
+
+Modern HPC clusters contain a large number of heterogeneous resources that provide vast amounts of
+computational power. It is challenging to design monolithic programs that can leverage that
+performance potential effectively (e.g., by scaling to hundreds of cores); HPC users often design
+their computational workflows as a set of smaller, interdependent tasks that use only a fraction of
+the resources of a single cluster node. Yet executing these workflows on HPC clusters in the
+presence of job managers such as Torque/PBS or Slurm can be challenging. They can impose limits on
+the concurrent execution of multiple tasks on a single node, thus hampering node utilisation, and
+their design in general is not accustomed to an enormous number of smaller, less resource-intensive
+tasks, which can lead to the manager being overloaded.

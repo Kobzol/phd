@@ -78,7 +78,7 @@ configuration used in this chapter were adapted from our publication~\cite{estee
 To analyse scheduling algorithms, some form of an environment for executing task has to be used.
 One possibility would be to use an actual distributed cluster, and implement multiple schedulers
 into an existing task runtime. However, this approach can be quite expensive, both computationally
-(executing a large amount of task graphs with various configurations would consume a lot of cluster
+(executing a large number of task graphs with various configurations would consume a lot of cluster
 computational time) and implementation-wise (adapting existing runtimes to different scheduling
 algorithms is challenging). Therefore, task graph scheduling surveys tend to use some form of a
 simulated environment, which simulates selected properties of a distributed cluster, and allows
@@ -317,7 +317,7 @@ performance, and which we have not seen examined in detail in existing literatur
 
 \subsection{Schedulers}
 \label{subsec:estee-schedulers}
-There are many task scheduling approaches, and an enormous amount of various task scheduling
+There are many task scheduling approaches, and an enormous number of various task scheduling
 algorithms. We have implemented a set of task schedulers that are representatives of several common
 scheduling approaches, inspired by a list of schedulers from a survey performed by Wang and
 Sinnen~\cite{wang2018list}. We have included several representatives of the simplest and
@@ -364,7 +364,7 @@ precomputed at the start of task graph execution.
 \noindent\textbf{genetic}\quad
 This scheduler uses a genetic algorithm to schedule tasks to workers, using the mutation and
 crossover operators described in~\cite{omara2009genetic}. Only valid schedules are considered, if
-no valid schedule can be found within a reasonable amount of iterations, a random schedule is
+no valid schedule can be found within a reasonable number of iterations, a random schedule is
 generated instead.
 
 \noindent\textbf{ws}\quad
@@ -921,11 +921,11 @@ were usually within just a few percent of the actual makespan duration.
 
 \section{Summary}
 We have implemented a set of well known scheduling heuristics, prepared a benchmark dataset
-containing task graphs of different types and scales and designed a simulation environment for
-task scheduler experimentation. We have conducted a series of fully
-reproducible benchmarks using that environment, in which we have analyzed the effect of network
-models, minimal scheduling delays, information modes and worker selection strategy on the behaviour
-of the implemented schedulers, and also compared their relative performance.
+containing task graphs of different types and scales and designed a simulation environment for task
+scheduler experimentation. We have conducted a series of fully reproducible benchmarks using that
+environment, in which we have analyzed the effect of network models, minimal scheduling delays,
+information modes and worker selection strategy on the behaviour of the implemented schedulers, and
+also compared their relative performance.
 
 Our attempts to implement existing scheduling algorithms in \estee{} and reproduce
 the results of previous scheduler benchmarks have shown various implementation details that are
@@ -960,7 +960,7 @@ hints that it might be possible to reduce the scheduling overhead (by invoking t
 often) without sacrificing schedule quality, but this will be highly dependent on the specific task
 runtime implementation.
 
-The effect of different information modes turned out to be significant, although it's unclear
+The effect of different information modes turned out to be significant, although it is unclear
 whether schedulers can leverage the additional information about exact task durations when facing
 unpredictable network conditions.
 
