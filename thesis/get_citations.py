@@ -236,4 +236,4 @@ Note that Ada Böhm was named Stanislav Böhm in older publications.
         for item in nonrelated:
             f.write(format_entry(item))
         f.write("\\end{itemize}\n")
-        f.write("\\end{refsection}")
+        f.write("\\end{refsection}\n")
