@@ -31,6 +31,17 @@
 \usetikzlibrary{math}
 \usepackage[outputdir=../out]{minted}
 
+% Abbreviations (\gls, \glspl, \acrfull, \acrshort, \acrlong)
+\usepackage[
+    acronym,        % enable acronyms
+    nomain,         % disable main glossary, we only use acronyms
+    notranslate     % enable overriding \acronymname without involving babel
+]{glossaries}
+
+%\glsdisablehyper    % disable hyperlinks
+\input{acronyms}
+\renewcommand*{\acronymname}{List of Abbreviations}
+
 \usemintedstyle{vs}
 % [escapeinside=||]
 % [tabsize=4]
@@ -104,23 +115,6 @@ The tool HyperQueue, which is one of the central topics of this thesis, was supp
 
 Finally, I would like to extend my gratitude to my wife Jana for her support and patience.}
 
-% TODO: add all acronyms
-\AddAcronym{AI}{Artificial Intelligence}
-\AddAcronym{CPU}{Central Processing Unit}
-\AddAcronym{GIL}{Global Interpreter Lock}
-\AddAcronym{GPU}{Graphics Processing Unit}
-\AddAcronym{I/O}{Input/Output}
-\AddAcronym{HLFET}{Highest Level First with Estimated Times}
-\AddAcronym{HPC}{High-performance Computing}
-\AddAcronym{MSD}{Minimal Scheduling Delay}
-\AddAcronym{MPI}{Message Passing Interface}
-\AddAcronym{JSON}{JavaScript Object Notation}
-\AddAcronym{NUMA}{Non-uniform Memory Access}
-\AddAcronym{OpenMP}{Open Multi-processing}
-\AddAcronym{PGAS}{Partitioned Global Address Space}
-\AddAcronym{PRNG}{Pseudo-random Number Generation}
-\AddAcronym{TCP/IP}{Transmission Control Protocol/Internet Protocol}
-
 %TODO: declaration?
 %TODO: declaration from Ada?
 % I declare that I composed this thesis, and I am the original author and leader of the group that works on this project. I have also done most of the work related to technical matters and programming. Some of these results have been previously published
@@ -129,8 +123,12 @@ Finally, I would like to extend my gratitude to my wife Jana for her support and
 \addbibresource{references.bib}
 \addbibresource{publications.bib}
 
+\makeglossaries
 \begin{document}
 \MakeTitlePages
+
+%\glsaddall     % Automatically add all defined acronyms
+\printglossaries
 
 \listoffigures
 \clearpage
@@ -151,7 +149,7 @@ Finally, I would like to extend my gratitude to my wife Jana for her support and
 
 \chapter{Task graph challenges in HPC}
 \label{ch:challenges}
-%\input{chapters/challenges}
+\input{chapters/challenges}
 
 \chapter{State of the art}
 \label{ch:sota}

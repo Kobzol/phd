@@ -204,7 +204,7 @@
 \Dipl@AcknowledgementPage
 \pagestyle{plain}
 \tableofcontents\clearpage
-\Dipl@WriteAcronymsPage
+%\Dipl@WriteAcronymsPage
 }
 {\theorembodyfont{\itshape}\newtheorem{definition}{\Dipl@LanguageDependentText{Definice}{Definícia}{Definition}}}
 {\theorembodyfont{\itshape}\newtheorem{theorem}{\Dipl@LanguageDependentText{Věta}{Veta}{Theorem}}}
