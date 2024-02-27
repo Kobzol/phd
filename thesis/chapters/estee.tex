@@ -28,11 +28,11 @@ incomplete information and react to events that dynamically occur during task ex
 cannot be fully predicted before the task graph has started executing. The communication network
 can be congested because of unrelated computations running concurrently on the cluster, tasks can
 also be slowed down by congested hardware resources that can be highly non-trivial to model (e.g.\
-NUMA effects), and they can also sometimes fail unpredictably and must be re-executed. Even the
-duration of each task, which is perhaps the most crucial property of a task coveted by the
-scheduler, is usually not known beforehand, and the most the scheduler knows about is either an
-estimate from the task graph author or a running average based on historical executions of similar
-tasks, both of which can be inaccurate.
+\gls{numa} effects), and they can also sometimes fail unpredictably and must be
+re-executed. Even the duration of each task, which is perhaps the most crucial property of a task
+coveted by the scheduler, is usually not known beforehand, and the most the scheduler knows about
+is either an estimate from the task graph author or a running average based on historical
+executions of similar tasks, both of which can be inaccurate.
 
 In theory, all these factors should be taken into account by task scheduling algorithms. In
 practice, it is infeasible to have a completely accurate model of the entire cluster, operating
@@ -43,12 +43,12 @@ environments. These heuristics can suffer from non-obvious edge cases that produ
 schedules or from low runtime efficiency, which can in turn erase any speedup gained from producing
 a higher quality schedule.
 
-For HPC use-cases, the performance and quality of task scheduling is even more important, since the
-scale and heterogeneity of task graphs used in HPC provides a challenge for the scheduler. HPC
-clusters also tend to provide advanced network topologies with low latency and high
-bandwidth~\cite{dragonfly,slimfly}, which offer the scheduler more leeway to create sophisticated
-schedules leveraging large amounts of network communication, which would otherwise be infeasible on
-clusters with slower networks.
+For \gls{hpc} use-cases, the performance and quality of task scheduling is even more
+important, since the scale and heterogeneity of task graphs used in \gls{hpc}
+provides a challenge for the scheduler. \gls{hpc} clusters also tend to provide
+advanced network topologies with low latency and high bandwidth~\cite{dragonfly,slimfly}, which
+offer the scheduler more leeway to create sophisticated schedules leveraging large amounts of
+network communication, which would otherwise be infeasible on clusters with slower networks.
 
 To better understand the behaviour and performance of various scheduling algorithms, we have
 performed an extensive analysis of several task scheduling algorithms in
@@ -98,14 +98,14 @@ Apart from the environments used in existing surveys, there are also more genera
 environments. DAGSim~\cite{dagsim} offers a framework for comparing scheduling
 algorithms, and compares the performance of a few algorithms, but doesn't provide its
 implementation, which makes it difficult to reproduce or extend its results.
-SimDAG~\cite{simdag} is a task graph simulator focused on HPC use-cases built on top of
-the SimGrid~\cite{simgrid} framework. It allows relatively simple implementation of new
-task scheduling algorithms, however it does not support any task resource requirements (e.g.\ the
-number of used CPU cores).
+SimDAG~\cite{simdag} is a task graph simulator focused on \gls{hpc}
+use-cases built on top of the SimGrid~\cite{simgrid} framework. It allows relatively
+simple implementation of new task scheduling algorithms, however it does not support any task
+resource requirements (e.g.\ the number of used \gls{cpu} cores).
 
 In addition to simply comparing the performance of different schedulers, our goal was also to test
 two factors that affect scheduling, which we haven't seen explored in detail in existing works.
-Namely, we wanted to examine the effects of MSD (\emph{minimal scheduling delay}), the delay between two
+Namely, we wanted to examine the effects of \gls{msd}, the delay between two
 invocations of the scheduler and \emph{information mode}, the amount of knowledge of task durations
 that is available to the scheduler. These factors will be described in detail in the following
 section. The existing simulation environments that we have evaluated did not have support for these
@@ -119,8 +119,8 @@ open-source tool\footnoteurl{https://github.com/it4innovations/estee} written in
 for task runtime and scheduler developers and researchers. It is quite flexible, and can be used to
 define a cluster of workers, connect them together using a configurable network model, implement a
 custom scheduling algorithm and test its performance on arbitrary task graphs, with support for
-specifying required CPU core counts for individual tasks. At the same time, it comes
-``battery-included'', and contains baseline implementations of several task schedulers from
+specifying required \gls{cpu} core counts for individual tasks. At the same time, it
+comes ``battery-included'', and contains baseline implementations of several task schedulers from
 existing literature and also a task graph generator that can be used to generate randomized graphs
 with properties similar to real-world task graphs.
 
@@ -188,12 +188,12 @@ print(f"Task graph execution makespan = {makespan}s")
 \end{minted}
 \end{listing}
 
-\estee{} supports general task graphs represented by a directed acyclic graph (DAG).
+\estee{} supports general task graphs represented by a \gls{dag}.
 Each task has an associated duration, and can contain multiple outputs (data objects), each with an
 associated size. It can also specify how many cores does it require, to model the common
-requirement of executing multithreaded functions and programs on modern HPC machines. The used
-model of a task graph corresponds precisely to the task graph definition contained in
-Chapter~\ref{ch:taskgraphs}.
+requirement of executing multithreaded functions and programs on modern \gls{hpc}
+machines. The used model of a task graph corresponds precisely to the task graph definition
+contained in Chapter~\ref{ch:taskgraphs}.
 
 \subsection{Communication model}
 Some previous scheduler surveys assume that the time to transfer a data object from one worker to
@@ -246,9 +246,9 @@ performance, and which we have not seen examined in detail in existing literatur
 		scheduler more context to work with, when it decides how it should assign tasks to workers.
 
 		To test our hypothesis that the scheduler invocation rate can affect its performance, we introduce
-		a parameter called \emph{Minimal scheduling delay (MSD)}, which forces a minimal delay between two scheduler
-		invocations, i.e.\ the scheduler cannot be invoked again before the at least MSD time units have
-		elapsed since its previous invocation.
+		a parameter called \emph{Minimal scheduling delay (\acrshort{msd})}, which forces a minimal delay between two scheduler
+		invocations, i.e.\ the scheduler cannot be invoked again before the at least
+		\gls{msd} time units have elapsed since its previous invocation.
 	\item[Information mode] Many existing task scheduler descriptions assume that the duration of each task (and the size of
 		each data object) is known in advance. However, this assumption is very seldom upheld when
 		executing real-world task graphs. Tasks are usually specified using arbitrary functions or binary
@@ -330,19 +330,19 @@ it to a worker (which is selected by another heuristic).
 
 Below is a list of schedulers that we have implemented and benchmarked\footnote{The labels of the individual schedulers correspond to labels used in charts that will be presented
 in a Section~\ref{sec:estee-benchmarks}.}:
-\noindent\textbf{blevel}\quad Highest Level First with Estimated
-Times~\cite{hlfet1974} (HLFET) is a foundational list-based scheduling algorithm that prioritizes
-tasks based on their \emph{b-level}. B-level of a task is the length of the longest path
-from the task to any leaf task (in our case the length of the path is computed using durations of
-tasks, without taking data object sizes into account). The tasks are scheduled in a decreasing
-order based on their b-level.
+\noindent\textbf{blevel}\quad \gls{hlfet}~\cite{hlfet1974} is a
+foundational list-based scheduling algorithm that prioritizes tasks based on their
+\emph{b-level}. B-level of a task is the length of the longest path from the task to any
+leaf task (in our case the length of the path is computed using durations of tasks, without taking
+data object sizes into account). The tasks are scheduled in a decreasing order based on their
+b-level.
 
 \noindent\textbf{tlevel}\quad
-Smallest Co-levels First with Estimated Times~\cite{kwok1999static} is similar to HLFET, with the
-exception that the priority value computed for each task (which is called \emph{t-level}
-here) is computed as the length of the longest path from any source task to the given task. This
-value corresponds to the earliest time that the task can start. The tasks are scheduled in an
-increasing order based on their t-level.
+Smallest Co-levels First with Estimated Times~\cite{kwok1999static} is similar to
+\gls{hlfet}, with the exception that the priority value computed for each task (which
+is called \emph{t-level} here) is computed as the length of the longest path from any
+source task to the given task. This value corresponds to the earliest time that the task can start.
+The tasks are scheduled in an increasing order based on their t-level.
 
 \noindent\textbf{dls}\quad
 Dynamic Level Scheduling~\cite{sih1993compile} calculates a dynamic level for each task-worker
@@ -383,8 +383,7 @@ cores). The resulting schedule never induces any data transfers between workers,
 advantage of any parallelism between workers.
 
 \noindent\textbf{random}\quad
-This scheduler simply assigns each task to a random worker using a PRNG (pseudo-random number
-generation) engine.
+This scheduler simply assigns each task to a random worker using a \gls{prng} engine.
 
 We have tried to implement the mentioned list-based schedulers (\emph{blevel},
 \emph{tlevel}, \emph{dls}, \emph{mcp}, \emph{etf})
@@ -478,12 +477,13 @@ our benchmarks.
 		results.
 	\item[Scheduler parameters] To evaluate the effect of minimal scheduling delay, we have used a baseline value of zero, where
 		the scheduler is invoked immediately after any task status update, and then a delay of 0.1, 0.4,
-		1.6 and 6.4 seconds. In the cases where MSD is non-zero, we have also added a 50 milliseconds delay
-		before sending the scheduler decision to workers, to simulate the time taken by the scheduler to
-		produce the schedule. For experiments that do not focus on MSD, we always use an MSD of 0.1 seconds
-		and the 50 milliseconds computation delay. To evaluate information modes, we have used the
-		\emph{exact}, \emph{user} and \emph{mean} imodes. For experiments
-		that do not focus on imodes, we always use the \emph{exact} mode.
+		1.6 and 6.4 seconds. In the cases where \gls{msd} is non-zero, we have also added a 50
+		milliseconds delay before sending the scheduler decision to workers, to simulate the time taken by
+		the scheduler to produce the schedule. For experiments that do not focus on \gls{msd},
+		we always use an \gls{msd} of 0.1 seconds and the 50 milliseconds computation delay.
+		To evaluate information modes, we have used the \emph{exact}, \emph{user} and
+		\emph{mean} imodes. For experiments that do not focus on imodes, we always use the
+		\emph{exact} mode.
 	\item[Network models] The simple (labeled \emph{simple}) and max-min (labeled \emph{max-min}) network
 		models were used, with bandwidth speeds ranging from 32 MiB/s to 8 GiB/s. For experiments that do
 		not focus on the network model (e.g.\ when imodes are compared), we always use the
@@ -762,27 +762,28 @@ the difference was much smaller, as can be seen in Figure~\ref{fig:estee-chart-p
 \subsubsection*{Minimal scheduling delay}
 
 \begin{figure}
-	\caption{Comparison of MSD; cluster 32x4}
+	\caption{Comparison of \gls{msd}; cluster 32x4}
 	\label{fig:estee-chart-irw-msd}
 	\centering
 	\includegraphics[width=0.8\textwidth]{imgs/estee/charts/irw-32x4-schedtime-score}\\
 	{\small x axis: bandwidth [MiB/s]; y axis: makespan normalized to
-	$MSD=0$}
+	$\gls{msd}=0$}
 \end{figure}
 
-In Figure~\ref{fig:estee-chart-irw-msd}, we can observe the effect of MSD on graphs from the
-\emph{irw} dataset, with the $32x4$ cluster configuration. The Y axis
-is normalized with respect to the configuration where MSD is zero. The results show that the effect
-of MSD is relatively limited. There does not seem to be any clear correlation or pattern that would
-suggest that a smaller MSD consistently improves performance of a scheduler. Although,
-interestingly a higher MSD value caused several makespan improvements, especially on the
+In Figure~\ref{fig:estee-chart-irw-msd}, we can observe the effect of \gls{msd} on graphs
+from the \emph{irw} dataset, with the $32x4$ cluster configuration.
+The Y axis is normalized with respect to the configuration where \gls{msd} is zero.
+The results show that the effect of \gls{msd} is relatively limited. There does not
+seem to be any clear correlation or pattern that would suggest that a smaller
+\gls{msd} consistently improves performance of a scheduler. Although, interestingly a
+higher \gls{msd} value caused several makespan improvements, especially on the
 \emph{gridcat} task graph.
 
-This is (again) an example of the non-trivial effect of scheduler heuristics. Increasing the MSD
-leads to batching effect, where the scheduler is allowed to make decisions less often, but it has
-knowledge of more task events (that have arrived during the delay) during each decision. Whether
-this helps its performance, or hurts it, depends on the specific scheduler implementation and the
-task graph that it executes.
+This is (again) an example of the non-trivial effect of scheduler heuristics. Increasing the
+\gls{msd} leads to batching effect, where the scheduler is allowed to make decisions
+less often, but it has knowledge of more task events (that have arrived during the delay) during
+each decision. Whether this helps its performance, or hurts it, depends on the specific scheduler
+implementation and the task graph that it executes.
 
 \subsubsection*{Information modes}
 
@@ -939,7 +940,7 @@ not open-source, it is difficult (even nigh impossible) to accurately reproduce 
 results. We have tried our best to make all available source-code, benchmark datasets and the
 results of our experiments public, to make them easy to reproduce and thus avoid this issue.
 
-Our analysis has shown that despite its simplicity, the foundational HLFET
+Our analysis has shown that despite its simplicity, the foundational \gls{hlfet}
 algorithm~\cite{hlfet1974} produces high quality schedules in various scenarios and should
 thus serve as a good baseline scheduler for task runtimes.
 

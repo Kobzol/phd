@@ -19,7 +19,8 @@ for several reasons:
 	      Chapter~\ref{ch:taskgraphs}.
 	\item It uses a fairly standard distributed architecture with a centralized server that creates task
 	      schedules and assigns tasks to a set of distributed workers. This maps well to the cluster
-	      architecture used by \estee{}, and also to HPC clusters in general.
+	      architecture used by \estee{}, and also to \gls{hpc} clusters in
+	      general.
 \end{itemize}
 
 In terms of task scheduling, \dask{} uses a work-stealing scheduler, which has
@@ -35,9 +36,9 @@ provides the following contributions:
 \begin{enumerate}
 	\item We have created a set of benchmarks containing diverse task graphs implemented in
 	      \dask{}. This benchmark set was then used to analyze \dask{}'s
-	      performance in various HPC-inspired scenarios. We have evaluated the per-task-overhead and
-	      scalability of \dask{} and compared how different task scheduling algorithms
-	      affect its performance.
+	      performance in various \gls{hpc}-inspired scenarios. We have evaluated the
+	      per-task-overhead and scalability of \dask{} and compared how different task
+	      scheduling algorithms affect its performance.
 	\item We demonstrate that even a naïve (completely random) scheduling algorithm can be in many common
 	      situations competitive with the sophisticated hand-tuned work-stealing scheduler used in
 	      \dask{}.
@@ -58,10 +59,10 @@ publication~\cite{rsds}.
 \label{sec:rsds-dask}
 % TODO: place Dask into SOTA and describe it more, if not already done in the SOTA chapter
 \dask{} is a distributed task runtime implemented in Python that can
-parallelize and distribute Python programs. It offers various programming interfaces (APIs) that
-mimic the interfaces of popular Python packages. For example, \emph{Dask DataFrame} copies
-the \texttt{pandas}\footnoteurl{https://pandas.pydata.org} interface for table processing and
-database operations, \emph{Dask Arrays} copies the
+parallelize and distribute Python programs. It offers various programming interfaces
+(\glspl{api}) that mimic the interfaces of popular Python packages. For example,
+\emph{Dask DataFrame} copies the \texttt{pandas}\footnoteurl{https://pandas.pydata.org}
+interface for table processing and database operations, \emph{Dask Arrays} copies the
 \texttt{numpy}\footnoteurl{https://numpy.org} interface for tensor computations and
 \emph{Dask ML} copies the \texttt{scikit-learn}\footnoteurl{https://scikit-learn.org}
 interface for machine learning. Thanks to this interface compatibility, existing Python programs
@@ -71,13 +72,14 @@ only a handful of lines of code.
 This is demonstrated in Figures~\ref{lst:dask-array-example} and~\ref{lst:dask-dataframe-example}, which
 show two small Python programs that leverage the \emph{Dask Arrays} (Figure~\ref{lst:dask-array-example}) and
 \emph{Dask DataFrame}
-(Figure~\ref{lst:dask-dataframe-example}) API. Notably, the only difference between these programs (which are
-leveraging \dask{}, and thus can be parallelized), and a standard sequential
-version, is the change of imports from \texttt{numpy} and \texttt{pandas}
-to \dask{} Python modules.
+(Figure~\ref{lst:dask-dataframe-example}) \gls{api}. Notably, the only difference between these
+programs (which are leveraging \dask{}, and thus can be parallelized), and a
+standard sequential version, is the change of imports from \texttt{numpy} and
+\texttt{pandas} to \dask{} Python modules.
 
 \begin{listing}[h]
-	\caption{Example of a Python program that leverages the \dask{} Array API}
+	\caption{Example of a Python program that leverages the \dask{} Array
+	\gls{api}}
 	\label{lst:dask-array-example}
 	\begin{minted}[fontsize=\small]{python}
 # import numpy as np
@@ -89,7 +91,8 @@ y = (y * 2 + x.T).mean(axis=1)
 \end{listing}
 
 \begin{listing}[h]
-	\caption{Example of a Python program that leverages the \dask{} DataFrame API}
+	\caption{Example of a Python program that leverages the \dask{} DataFrame
+	\gls{api}}
 	\label{lst:dask-dataframe-example}
 	\begin{minted}[fontsize=\small]{python}
 # import pandas as pd
@@ -103,7 +106,8 @@ df3 = df2.groupby("name").x.std()
 \end{listing}
 
 \subsection*{Computational model}
-\dask{} automatically transforms Python code leveraging these APIs into a task
+\dask{} automatically transforms Python code leveraging these
+\glspl{api} into a task
 graph, which is then executed in parallel, possibly on multiple nodes of a distributed cluster.
 This enables almost transparent parallelization of sequentially looking Python code. However, apart
 from these high-level interfaces, it is also possible to build a task graph manually, using the
@@ -118,12 +122,12 @@ forms its \emph{output} (a data object), and the arguments of the function invoc
 One important aspect of the mapping between Python code and task graphs in
 \dask{} is the concept of \emph{partitions}. It is a configuration
 parameter that essentially controls the granularity of tasks created by \dask{}
-out of Python code that uses its APIs. For example, a single line of Python code that performs a
-query over a \texttt{pandas}-like table (also called DataFrame) will be eventually
-converted to a set of individual tasks that e.g.\ perform the query on a subset of the table's
-rows. The selected number of these tasks (or partitions) is crucial, since it determines how
-effectively will the operation be parallelized. Too few (large) tasks can cause computational
-resources to be under-utilized, while too many (small) tasks can overwhelm the
+out of Python code that uses its \glspl{api}. For example, a single line of Python
+code that performs a query over a \texttt{pandas}-like table (also called DataFrame)
+will be eventually converted to a set of individual tasks that e.g.\ perform the query on a subset
+of the table's rows. The selected number of these tasks (or partitions) is crucial, since it
+determines how effectively will the operation be parallelized. Too few (large) tasks can cause
+computational resources to be under-utilized, while too many (small) tasks can overwhelm the
 \dask{} runtime.
 
 \subsection*{Architecture}
@@ -132,34 +136,35 @@ graphs generated from Python code. The default backend is able to execute the ta
 parallelized fashion on a local computer, but there is also a distributed backend called
 \emph{Dask/distributed}\footnoteurl{https://distributed.dask.org}
 (or simply \emph{distributed}), which is able to execute task graphs on
-multiple nodes. Since this backend is most relevant for task graph execution on distributed and HPC
-clusters, our experiments focus solely on this backend, and any further reference to
-\dask{} in this text will assume that it uses the \emph{distributed}
-backend.
+multiple nodes. Since this backend is most relevant for task graph execution on distributed and
+\gls{hpc} clusters, our experiments focus solely on this backend, and any further
+reference to \dask{} in this text will assume that it uses the
+\emph{distributed} backend.
 
 In terms of architecture, \emph{distributed} is composed of three main components: the
 \emph{client}, the \emph{server} and the \emph{worker}. A
 single server and an arbitrary number of workers deployed together (e.g.\ on a local machine or a
 distributed system) form a \dask{} cluster.
 
-The \emph{client} is a user-facing library that offers various APIs used to define
-computations in Python that can be converted into a task graph. Once the user defines the
-computation, the client can connect to the \dask{} cluster (more specifically,
-to the server), submit the task graph, wait for it to be computed and then gather the results. The
-client can build the whole task graph eagerly on the user's machine and then send it to the server
-for processing, however this can consume a lot of memory and network bandwidth if the task graph is
-large. For certain types of task graphs, clients are able to send a much smaller, compressed
-abstract representation of the task graph, which is only expanded on the server lazily, which can
-help reduce memory and network transfer bottlenecks.
+The \emph{client} is a user-facing library that offers various
+\glspl{api} used to define computations in Python that can be converted into a task
+graph. Once the user defines the computation, the client can connect to the
+\dask{} cluster (more specifically, to the server), submit the task graph, wait
+for it to be computed and then gather the results. The client can build the whole task graph
+eagerly on the user's machine and then send it to the server for processing, however this can
+consume a lot of memory and network bandwidth if the task graph is large. For certain types of task
+graphs, clients are able to send a much smaller, compressed abstract representation of the task
+graph, which is only expanded on the server lazily, which can help reduce memory and network
+transfer bottlenecks.
 
 The \emph{server} is the central component of the cluster, which communicates with
-the workers and clients through a network (usually TCP/IP) connection, handles client requests,
-coordinates task execution on workers and manages the whole \dask{} cluster.
-Its main duty is to process task graphs submitted by clients, by assigning individual tasks to
-workers, in order to parallelize the execution of the submitted task graph and in turn efficiently
-utilize the whole cluster. It uses a sophisticated work-stealing scheduler that uses many
-heuristics, which have been tuned for many years. Some of them are described in the
-\dask{} manual\footnoteurl{https://distributed.dask.org/en/latest/work-stealing.html}.
+the workers and clients through a network, usually a \gls{tcpip} connection,
+handles client requests, coordinates task execution on workers and manages the whole
+\dask{} cluster. Its main duty is to process task graphs submitted by clients,
+by assigning individual tasks to workers, in order to parallelize the execution of the submitted
+task graph and in turn efficiently utilize the whole cluster. It uses a sophisticated work-stealing
+scheduler that uses many heuristics, which have been tuned for many years. Some of them are
+described in the \dask{} manual\footnoteurl{https://distributed.dask.org/en/latest/work-stealing.html}.
 
 The scheduler works in the following way: when a task becomes \emph{ready}, i.e.\
 all its dependencies are completed, it is immediately assigned to a worker according to a heuristic
@@ -175,9 +180,9 @@ functions and their arguments) that are assigned and sent to it by the server. W
 communicate directly amongst themselves to exchange task outputs (data objects) that they require
 to execute a task. Tasks assigned to a worker are stored in a local queue, tasks are selected from
 it based on their priorities. Each worker can be configured to use multiple threads, some of which
-handle network (de)serialization and input/output (I/O) in general, while the rest is assigned for
-executing the tasks themselves. However, there is an important caveat that can limit the parallel
-execution of tasks within a worker, which is described below.
+handle network (de)serialization and \gls{io} in general, while the rest is
+assigned for executing the tasks themselves. However, there is an important caveat that can limit
+the parallel execution of tasks within a worker, which is described below.
 
 \subsection*{Bottlenecks}
 The primary bottlenecks that limit the efficiency of \dask{} are related to the
@@ -191,32 +196,34 @@ automatic memory management that pervasively uses reference-counting.
 Crucially, there is a specific quirk of this interpreter that can severely reduce the performance
 of task graph execution in \dask{}, and specifically affects the
 characteristics of its workers. The CPython interpreter infamously uses a shared, per-process lock
-called GIL (Global Interpreter Lock), which synchronizes access to the interpreter internals. This
+called \gls{gil}, which synchronizes access to the interpreter internals. This
 means that when a Python program is interpreted using CPython, only a single thread that executes
 Python code can make progress at the same time. It is still possible to achieve concurrency with
-multiple Python threads (e.g.\ by using blocking I/O, which releases the GIL while the thread is
-blocked), but not parallelism, under this design. There are some caveats to this, notably code
-written using native Python extensions (most commonly written in \texttt{C},
-\texttt{C++} or \texttt{Rust}) can run truly in parallel with other
-Python threads, but only if it opts into releasing the global lock, and if it doesn't need to
-interact with the Python interpreter at all while the native code is running.
+multiple Python threads (e.g.\ by using blocking \gls{io}, which releases the
+\gls{gil} while the thread is blocked), but not parallelism, under this design.
+There are some caveats to this, notably code written using native Python extensions (most commonly
+written in \texttt{C}, \texttt{C++} or \texttt{Rust})
+can run truly in parallel with other Python threads, but only if it opts into releasing the global
+lock, and if it doesn't need to interact with the Python interpreter at all while the native code
+is running.
 
-The GIL issue doesn't impact only \dask{}, of course. It is a pervasive issue
-across the whole Python ecosystem. There have been multiple attempts over the years to remove the
-GIL from CPython, but they have not been successful yet. The most recent attempt has progressed the
-furthest, and it has been accepted as a PEP (Python Enhancement Proposal)
-703~\cite{pep703}, so it is possible that the GIL will be eventually removed from
-CPython. However, even if this proposal is eventually adopted, it will probably take years before
-Python packages and programs will fully adapt to the change.
+The \gls{gil} issue doesn't impact only \dask{}, of course.
+It is a pervasive issue across the whole Python ecosystem. There have been multiple attempts over
+the years to remove the \gls{gil} from CPython, but they have not been successful
+yet. The most recent attempt has progressed the furthest, and it has been accepted as a
+\gls{pep} 703~\cite{pep703}, so it is possible that the
+\gls{gil} will be eventually removed from CPython. However, even if this proposal
+is eventually adopted, it will probably take years before Python packages and programs will fully
+adapt to the change.
 
-The presence of the GIL poses a challenge for \dask{} workers. Unless a task
-executed by a worker releases the GIL (which essentially means that the task either has to be
-implemented in native code, or it needs to block on an I/O operation), it will block all other
-tasks from executing at the same time. Therefore, a single \dask{} worker can
-only execute at most one non-native and non-blocking task at once, which can potentially severely
-limit its throughput and the efficiency of task graph execution. It is worth noting that many
-commonly used data science and data analysis tasks executed with \dask{} will
-likely be implemented in native code (such as \emph{numpy},
+The presence of the \gls{gil} poses a challenge for \dask{}
+workers. Unless a task executed by a worker releases the \gls{gil} (which essentially means that the task either has to be
+implemented in native code, or it needs to block on an \gls{io} operation), it will block
+all other tasks from executing at the same time. Therefore, a single \dask{}
+worker can only execute at most one non-native and non-blocking task at once, which can potentially
+severely limit its throughput and the efficiency of task graph execution. It is worth noting that
+many commonly used data science and data analysis tasks executed with \dask{}
+will likely be implemented in native code (such as \emph{numpy},
 \emph{pandas}, or their \dask{} equivalents). However, for tasks
 written in pure Python, the worker will essentially behave in a singlethreaded fashion. This has
 been observed for example in~\cite{dasksparkcomparison}, where several workflows did not benefit
@@ -224,13 +231,14 @@ at all from multithreaded \dask{} workers.
 
 To alleviate this limitation, \dask{} workers can be executed in multiple
 copies on the same node, each running inside a separate process. In this setup, each worker has its
-own copy of the CPython interpreter, and therefore also its own copy of the GIL, and thus tasks
-running inside one worker do not affect (and most importantly, block) tasks running on other
-workers. However, this also means that certain overhead (a TCP/IP connection to the server, a
-worker entry in the scheduler, management of worker tasks) is multiplied by the number of spawned
-workers on each node. In certain cases, it is thus necessary to carefully balance the trade-off
-between too few workers (which can hamper task execution parallelism) and too many workers (which
-can reduce the overall efficiency of the \dask{} runtime).
+own copy of the CPython interpreter, and therefore also its own copy of the
+\gls{gil}, and thus tasks running inside one worker do not affect (and most
+importantly, block) tasks running on other workers. However, this also means that certain overhead
+(a \gls{tcpip} connection to the server, a worker entry in the scheduler,
+management of worker tasks) is multiplied by the number of spawned workers on each node. In certain
+cases, it is thus necessary to carefully balance the trade-off between too few workers (which can
+hamper task execution parallelism) and too many workers (which can reduce the overall efficiency of
+the \dask{} runtime).
 
 \section{\dask{} overhead analysis}
 \label{sec:rsds-dask-overhead-analysis}
@@ -240,8 +248,9 @@ We have designed a series of experiments to evaluate the inner overhead of
 \subsection*{Benchmarks}
 To evaluate the runtime, we have prepared a diverse set of benchmarks that span from simple
 map-reduce aggregations to text processing workloads and table queries. The properties of the task
-graphs used in our experiments along with the \dask{} API that was used to
-create them are summarized in Table~\ref{tab:dask-graph-properties}.
+graphs used in our experiments along with the \dask{}
+\gls{api} that was used to create them are summarized in
+Table~\ref{tab:dask-graph-properties}.
 
 \setlength{\tabcolsep}{5pt}
 \begin{table}
@@ -250,43 +259,43 @@ create them are summarized in Table~\ref{tab:dask-graph-properties}.
 	\label{tab:dask-graph-properties}
 	\begin{tabular}{l|rrrrrc}
 		\toprule
-		\textbf{Task graph} & \textbf{\#T} & \textbf{\#I} & \textbf{S} &
-		\textbf{AD}         & \textbf{LP}  & \textbf{API}                               \\
+		\textbf{Task graph} & \textbf{\#T} & \textbf{\#I}       & \textbf{S} &
+		\textbf{AD}         & \textbf{LP}  & \textbf{\gls{api}}                               \\
 		\midrule
-		merge-10K           & 10001        & 10000        & 0.027      & 0.006 & 1  & F \\
-		merge-15K           & 15001        & 15000        & 0.027      & 0.006 & 1  & F \\
-		merge-20K           & 20001        & 20000        & 0.027      & 0.006 & 1  & F \\
-		merge-25K           & 25001        & 25000        & 0.027      & 0.006 & 1  & F \\
-		merge-30K           & 30001        & 30000        & 0.027      & 0.006 & 1  & F \\
-		merge-50K           & 50001        & 50000        & 0.027      & 0.006 & 1  & F \\
-		merge-100K          & 100001       & 100000       & 0.027      & 0.006 & 1  & F \\
-		merge\_slow-5K-0.1  & 5001         & 5000         & 0.023      & 100   & 1  & F \\
-		merge\_slow-20K-0.1 & 20001        & 20000        & 0.023      & 100   & 1  & F \\
-		tree-15             & 32767        & 32766        & 0.027      & 0.007 & 14 & F \\
-		xarray-25           & 552          & 862          & 55.7       & 3.1   & 10 & X \\
-		xarray-5            & 9258         & 14976        & 3.3        & 0.4   & 10 & X \\
-		bag-25K-10          & 236          & 415          & 292        & 1233  & 6  & B \\
-		bag-25K-100         & 21631        & 41430        & 3.2        & 13.9  & 8  & B \\
-		bag-25K-200         & 86116        & 165715       & 0.8        & 3.6   & 9  & B \\
-		bag-25K-50          & 5458         & 10357        & 12.6       & 54.9  & 7  & B \\
-		bag-50K-50          & 5458         & 10357        & 25.2       & 214   & 7  & B \\
-		numpy-50K-10        & 209          & 228          & 70108      & 169   & 7  & A \\
-		numpy-50K-100       & 19334        & 21783        & 760        & 2.6   & 10 & A \\
-		numpy-50K-200       & 77067        & 86966        & 191        & 0.9   & 11 & A \\
-		numpy-50K-50        & 4892         & 5491         & 2999       & 8.3   & 9  & A \\
-		groupby-2880-1S-16H & 22842        & 31481        & 1005       & 11.9  & 9  & D \\
-		groupby-2880-1S-8H  & 45674        & 62953        & 503        & 7.7   & 9  & D \\
-		groupby-1440-1S-1H  & 182682       & 251801       & 64.3       & 3.8   & 10 & D \\
-		groupby-1440-1S-8H  & 22842        & 31481        & 503        & 7.7   & 9  & D \\
-		groupby-360-1S-1H   & 45674        & 62953        & 64.3       & 3.8   & 9  & D \\
-		groupby-360-1S-8H   & 5714         & 7873         & 503        & 8.0   & 8  & D \\
-		groupby-90-1S-1H    & 11424        & 15743        & 64.3       & 3.9   & 8  & D \\
-		groupby-90-1S-8H    & 1434         & 1973         & 501        & 7.7   & 7  & D \\
-		join-1-1S-1H        & 673          & 1224         & 15.3       & 33.0  & 5  & D \\
-		join-1-1S-1T        & 72001        & 125568       & 3.7        & 1.7   & 11 & D \\
-		join-1-2s-1H        & 673          & 1224         & 9.3        & 9.8   & 5  & D \\
-		vectorizer-1M-300   & 301          & 0            & 10226      & 1504  & 0  & F \\
-		wordbag-100K-50     & 250          & 200          & 5136       & 301   & 2  & F \\
+		merge-10K           & 10001        & 10000              & 0.027      & 0.006 & 1  & F \\
+		merge-15K           & 15001        & 15000              & 0.027      & 0.006 & 1  & F \\
+		merge-20K           & 20001        & 20000              & 0.027      & 0.006 & 1  & F \\
+		merge-25K           & 25001        & 25000              & 0.027      & 0.006 & 1  & F \\
+		merge-30K           & 30001        & 30000              & 0.027      & 0.006 & 1  & F \\
+		merge-50K           & 50001        & 50000              & 0.027      & 0.006 & 1  & F \\
+		merge-100K          & 100001       & 100000             & 0.027      & 0.006 & 1  & F \\
+		merge\_slow-5K-0.1  & 5001         & 5000               & 0.023      & 100   & 1  & F \\
+		merge\_slow-20K-0.1 & 20001        & 20000              & 0.023      & 100   & 1  & F \\
+		tree-15             & 32767        & 32766              & 0.027      & 0.007 & 14 & F \\
+		xarray-25           & 552          & 862                & 55.7       & 3.1   & 10 & X \\
+		xarray-5            & 9258         & 14976              & 3.3        & 0.4   & 10 & X \\
+		bag-25K-10          & 236          & 415                & 292        & 1233  & 6  & B \\
+		bag-25K-100         & 21631        & 41430              & 3.2        & 13.9  & 8  & B \\
+		bag-25K-200         & 86116        & 165715             & 0.8        & 3.6   & 9  & B \\
+		bag-25K-50          & 5458         & 10357              & 12.6       & 54.9  & 7  & B \\
+		bag-50K-50          & 5458         & 10357              & 25.2       & 214   & 7  & B \\
+		numpy-50K-10        & 209          & 228                & 70108      & 169   & 7  & A \\
+		numpy-50K-100       & 19334        & 21783              & 760        & 2.6   & 10 & A \\
+		numpy-50K-200       & 77067        & 86966              & 191        & 0.9   & 11 & A \\
+		numpy-50K-50        & 4892         & 5491               & 2999       & 8.3   & 9  & A \\
+		groupby-2880-1S-16H & 22842        & 31481              & 1005       & 11.9  & 9  & D \\
+		groupby-2880-1S-8H  & 45674        & 62953              & 503        & 7.7   & 9  & D \\
+		groupby-1440-1S-1H  & 182682       & 251801             & 64.3       & 3.8   & 10 & D \\
+		groupby-1440-1S-8H  & 22842        & 31481              & 503        & 7.7   & 9  & D \\
+		groupby-360-1S-1H   & 45674        & 62953              & 64.3       & 3.8   & 9  & D \\
+		groupby-360-1S-8H   & 5714         & 7873               & 503        & 8.0   & 8  & D \\
+		groupby-90-1S-1H    & 11424        & 15743              & 64.3       & 3.9   & 8  & D \\
+		groupby-90-1S-8H    & 1434         & 1973               & 501        & 7.7   & 7  & D \\
+		join-1-1S-1H        & 673          & 1224               & 15.3       & 33.0  & 5  & D \\
+		join-1-1S-1T        & 72001        & 125568             & 3.7        & 1.7   & 11 & D \\
+		join-1-2s-1H        & 673          & 1224               & 9.3        & 9.8   & 5  & D \\
+		vectorizer-1M-300   & 301          & 0                  & 10226      & 1504  & 0  & F \\
+		wordbag-100K-50     & 250          & 200                & 5136       & 301   & 2  & F \\
 		\bottomrule
 	\end{tabular}\\
 	\vspace{1mm}
@@ -342,18 +351,20 @@ pipeline with text normalization, spelling correction, word counting and feature
 Our experiments were performed on the Salomon supercomputer\footnoteurl{https://docs.it4i.cz/salomon/introduction}. Each
 Salomon node has two sockets containing Intel Xeon E5-2680v3 with 12 cores clocked at
 $2.5$ GHz ($24$ cores in total),
-$128$ GiB of RAM clocked at $2133$ MHz and no local disk.
-The interconnections between nodes use InfiniBand FDR56 with 7D enhanced hypercube topology.
+$128$ GiB of \gls{ram} clocked at $2133$
+MHz and no local disk. The interconnections between nodes use a InfiniBand FDR56 network with 7D
+enhanced hypercube topology.
 
 Unless otherwise specified, by default we spawn $24$
 \dask{} workers per node, each using a single thread for task computations. We
-chose this setting because of the CPython GIL issue described earlier. Since our benchmarks are
-mostly compute-bound and not I/O-bound, a single worker cannot effectively use more than a single
-thread. Not even the popular \texttt{NumPy} and \texttt{Pandas} libraries
-used in our benchmarks are multithreaded by default, which is also why \dask{}
-provides direct API support for their parallelization. Using the same number of workers as the
-available cores ensures that no more than a single task per core is executed at any given moment,
-to avoid oversubscription of the cores.
+chose this setting because of the CPython \gls{gil} issue described earlier.
+Since our benchmarks are mostly compute-bound and not \gls{io}-bound, a single
+worker cannot effectively use more than a single thread. Not even the popular
+\texttt{NumPy} and \texttt{Pandas} libraries used in our benchmarks are
+multithreaded by default, which is also why \dask{} provides direct
+\gls{api} support for their parallelization. Using the same number of workers as
+the available cores ensures that no more than a single task per core is executed at any given
+moment, to avoid oversubscription of the cores.
 
 To validate our choice of this default configuration, we have benchmarked a configuration using a
 single worker with $24$ threads per each node. We have found that it provides
@@ -381,7 +392,8 @@ marks the work-stealing scheduler and \emph{random} represents the random schedu
 
 \subsection*{Evaluation}
 We have designed three specific experiments, which focus on \dask{}'s
-scheduler, on its inner overhead, and on the effect of GIL on its performance.
+scheduler, on its inner overhead, and on the effect of \gls{gil} on its
+performance.
 
 \subsubsection*{Random scheduler}
 Our original goal of this experiment was to test how different schedulers affect the performance
@@ -395,8 +407,8 @@ changes to it, which could introduce bias stemming from arbitrary implementation
 
 We have thus decided to implement perhaps one of the simplest schedulers possible, which does not
 require complex state and which could be implemented relatively easily within
-\dask{} -- a fully random scheduler. This scheduler simply uses a PRNG
-(pseudo-random number generation) engine to assign tasks to workers at random. Our
+\dask{} -- a fully random scheduler. This scheduler simply uses a
+\gls{prng} engine to assign tasks to workers at random. Our
 \estee{} experiments have shown that a completely random scheduler could still
 achieve competitive performance in some cases, which was a quite surprising result to us. However,
 since these results were only tested in a simulated setting, it was interesting to examine how it
@@ -541,31 +553,31 @@ overhead.
 
 These results also suggest that \dask{} can struggle with a larger number of
 workers. This wouldn't be an issue on its own, as every task runtime will have its scaling limit.
-However, due to the already mentioned effect of GIL, \dask{} users might be
-forced to use more workers than would be otherwise necessary to achieve reasonable performance. We
-will examine this in the next experiment.
+However, due to the already mentioned effect of \gls{gil},
+\dask{} users might be forced to use more workers than would be otherwise
+necessary to achieve reasonable performance. We will examine this in the next experiment.
 
-\subsubsection*{The effect of GIL}
-As noted earlied, the GIL can have a non-trivial effect on the performance of Python programs. This
-can also be seen in \dask{}, where the configuration of workers might need to
-be tuned in order to achieve optimal performance.
+\subsubsection*{The effect of \gls{gil}}
+As noted earlied, the \gls{gil} can have a non-trivial effect on the performance
+of Python programs. This can also be seen in \dask{}, where the configuration
+of workers might need to be tuned in order to achieve optimal performance.
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.3\linewidth]{./imgs/rsds/charts/dask-gil-scaling}
-	\caption{Effect of GIL on the performance of the \emph{pandas\_groupby} benchmark}
+	\caption{Effect of \gls{gil} on the performance of the \emph{pandas\_groupby} benchmark}
 	\label{fig:dask-gil-scaling}
 \end{figure}
 
-Figure~\ref{fig:dask-gil-scaling} demonstrates the effect of GIL on the
+Figure~\ref{fig:dask-gil-scaling} demonstrates the effect of \gls{gil} on the
 \emph{pandas\_groupby} benchmark. We have executed the same benchmark using three
 \dask{} worker configurations on a single node. In the default configuration,
 with a single worker that uses $24$ threads (one for each core), the pipeline
 finishes in approximately $6.5$ seconds. If we instead create a single worker
 per each core ($24$ processes, each with a single thread), the performance
-improves significantly, by $35\%$! This makes it clear that the GIL is a
-bottleneck in this case, and more \dask{} workers are needed to improve
-performance by enabling parallel task execution.
+improves significantly, by $35\%$! This makes it clear that the
+\gls{gil} is a bottleneck in this case, and more \dask{}
+workers are needed to improve performance by enabling parallel task execution.
 
 However, it is not so simple as to always use a single \dask{} worker per core.
 As we have discovered with our earlier benchmarks, more workers introduce non-negligible overhead
@@ -580,7 +592,8 @@ workers to achieve optimal performance.
 Our experiments have shown that \dask{} doesn't scale optimally to a large
 number of workers and it might require manual tuning of worker configuration to achieve the optimal
 performance. This lead us to the idea of improving the implementation of the
-\dask{} server, in order to reduce its overhead in HPC scenarios.
+\dask{} server, in order to reduce its overhead in \gls{hpc}
+scenarios.
 
 \section{\rsds{} (alternative \dask{} server)}
 \label{sec:rsds-description}
@@ -594,8 +607,8 @@ server\footnoteurl{https://github.com/it4innovations/rsds}, with the following g
 	      used to speed up existing workflows. This also enables us to compare the performance of
 	      \rsds{} and \dask{} on the benchmarks described in the
 	      previous section.
-	\item Design an efficient runtime that could scale to HPC use-cases, to find a baseline for how much fast
-	      could \dask{} become if its overhead was reduced.
+	\item Design an efficient runtime that could scale to \gls{hpc} use-cases, to find a
+	      baseline for how much fast could \dask{} become if its overhead was reduced.
 	\item Use a modular architecture that would enable easily replacing the implementation of the scheduler,
 	      to enable easier experimentation with scheduling algorithms on non-simulated distributed clusters.
 \end{itemize}
@@ -604,8 +617,8 @@ server\footnoteurl{https://github.com/it4innovations/rsds}, with the following g
 \rsds{} is implemented in the Rust programming language, which has a minimal
 runtime and doesn't dictate automatic memory management. This reduces the ubiquitous overhead of
 reference counting and data indirection present in Python. It also has direct support for
-asynchronous I/O and provides strong memory safety guarantees, hence it is well suited for writing
-distributed applications.
+asynchronous \gls{io} and provides strong memory safety guarantees, hence it is
+well suited for writing distributed applications.
 
 \begin{figure}
 	\centering
@@ -690,7 +703,7 @@ Our modification changes the dynamic encoding of \dask{} messages into frames.
 We have modified it in a way that always keeps the original message structure, so that it is easier
 to deserialize. This modification is described in Figure~\ref{fig:rsds-dask-frame-encoding}, which
 contains a simplified scheme that depicts a \dask{} message, and its encoding
-in \dask{} and in \rsds{}\footnote{Note that the message and the encoding is depicted using a JSON (JavaScript Object Notation)
+in \dask{} and in \rsds{}\footnote{Note that the message and the encoding is depicted using a \gls{json}
 notation, for improved readability. In reality, the data is encoded using MsgPack.}. On
 the left, we can see the message (dictionary) that we want to serialize, which contains two fields
 (\texttt{op} and \texttt{function}). The original
@@ -715,11 +728,11 @@ performance differences in respect to the original \dask{} message encoding.
 \rsds{} does not actually implement all \dask{} message
 types. Some of them are rarely used, and their implementation would be highly complex, for minimal
 gain, and some of them cannot be implemented in a straightforward way in a different language than
-Python. For example, Dask contains an API that allows clients to run a Python function on the
-server, yet this functionality does not have a direct counterpart in a server implemented in a
-different programming language. The fact that \rsds{} is able to execute all
-the benchmarks described in Section~\ref{sec:rsds-dask-overhead-analysis} demonstrates that it supports a
-wide variety of \dask{} programs.
+Python. For example, Dask contains an \gls{api} that allows clients to run a
+Python function on the server, yet this functionality does not have a direct counterpart in a
+server implemented in a different programming language. The fact that \rsds{}
+is able to execute all the benchmarks described in Section~\ref{sec:rsds-dask-overhead-analysis} demonstrates
+that it supports a wide variety of \dask{} programs.
 
 \subsection*{Schedulers}
 We have implemented two schedulers in \rsds{}, to allow us comparing its
@@ -837,12 +850,12 @@ is further increased.
 
 \subsection*{Scaling comparison}
 One of the motivations for implementing \rsds{} was to improve the performance
-of \dask{} workflows in HPC scenarios. In these use-cases, it is important for
-the runtime to scale to a large amount of workers, which can be provided by an HPC cluster. We have
-designed an experiment which tests the strong scaling of both server implementations on several
-cluster sizes, ranging from $1$ node ($24$ workers) to
-$63$ nodes ($1512$ workers). The default, work-stealing
-scheduler was used for both server implementations.
+of \dask{} workflows in \gls{hpc} scenarios. In these
+use-cases, it is important for the runtime to scale to a large amount of workers, which can be
+provided by an \gls{hpc} cluster. We have designed an experiment which tests the
+strong scaling of both server implementations on several cluster sizes, ranging from
+$1$ node ($24$ workers) to $63$ nodes ($1512$ workers). The default, work-stealing scheduler was
+used for both server implementations.
 
 \begin{figure}[h]
 	\centering
@@ -870,15 +883,15 @@ stays relatively constant, even after it stops scaling.
 
 The next tested benchmar was \texttt{groupby-2880-1S-16H}, which computes an analysis of table data
 using a task graph automatically generated by \dask{}, using the
-\texttt{DataFrame} API inspired by the \texttt{pandas} interface. This task
-graph provides many opportunities for parallelization, as the individual tasks work on a subset of
-rows and thus have more computational density compared to the \texttt{merge} task
-graph. However, Table~\ref{tab:dask-graph-properties} shows that the average computation time is still
-only around $10ms$, while the average task output is
-$1 MiB$. This benchmark thus produces considerable network traffic. While both
-\dask{} and \rsds{} have identical performance with a
-single worker node, \dask{} stops scaling at $7$ nodes
-and further its performance degrades and eventually becomes slower than the single node case.
+\texttt{DataFrame} \gls{api} inspired by the \texttt{pandas}
+interface. This task graph provides many opportunities for parallelization, as the individual tasks
+work on a subset of rows and thus have more computational density compared to the
+\texttt{merge} task graph. However, Table~\ref{tab:dask-graph-properties} shows that the
+average computation time is still only around $10ms$, while the average task
+output is $1 MiB$. This benchmark thus produces considerable network traffic.
+While both \dask{} and \rsds{} have identical performance
+with a single worker node, \dask{} stops scaling at $7$
+nodes and further its performance degrades and eventually becomes slower than the single node case.
 \rsds{} scales up to $23$ worker nodes, hence it is able
 to utilize three times more workers. With more worker nodes, the performance of
 \rsds{} also degrades, as the network communication caused by task output
@@ -995,13 +1008,14 @@ further reduced, \rsds{} could futher improve its performance advantage over
 \dask{}. In other words, \rsds{} would benefit more from a
 faster worker implementation than the \dask{} server could.
 
-All these experiments have shown that \rsds{} exhibits similar performance behavior and scaling
-patterns as \dask{}, which is not surprising, given that it reuses its client and worker
-implementations. However, the most important result is that in absolute terms, it tends to be
-faster than \dask{}, across various task graphs and cluster sizes. The overall overhead present
-in the \dask{} cluster could be further reduced e.g.\ by also implementing the worker (or even
-the client) in another language than Python, however that would probably make it quite
-challenging to keep backwards compatibility with existing \dask{} programs.
+All these experiments have shown that \rsds{} exhibits similar performance
+behavior and scaling patterns as \dask{}, which is not surprising, given that
+it reuses its client and worker implementations. However, the most important result is that in
+absolute terms, it tends to be faster than \dask{}, across various task graphs
+and cluster sizes. The overall overhead present in the \dask{} cluster could be
+further reduced e.g.\ by also implementing the worker (or even the client) in another language than
+Python, however that would probably make it quite challenging to keep backwards compatibility with
+existing \dask{} programs.
 
 \section{Summary}
 

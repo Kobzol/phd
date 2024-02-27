@@ -2,13 +2,13 @@
 \hyperqueue{}, it should be noted that multiple other people have contributed to it, as its development is a team effort. Source code contribution statistics for \hyperqueue{}
 can be found on GitHub\footnoteurl{https://github.com/it4innovations/hyperqueue/graphs/contributors}.}
 
-%\hyperqueue{} is an HPC-tailored task runtime designed for executing task graphs in HPC
+%\hyperqueue{} is an \gls{hpc}-tailored task runtime designed for executing task graphs in \gls{hpc}
 %environments. Its two primary objectives are to be as performant as possible and to be easy to use
 %and deploy. It is developed in the Rust programming language and available as an open-source
 %software\footnoteurl{https://github.com/it4innovations/hyperqueue}.
 %
 %The key idea of \hyperqueue{} is to disentangle the submission of computation and the provision of
-%computational resources. With traditional HPC job managers, the computation description is
+%computational resources. With traditional \gls{hpc} job managers, the computation description is
 %closely tied to the request of computational resources, which leads to problems mentioned in
 %Section~\ref{sec:challenges}, such as less efficient load balancing or the need to manually
 %aggregate tasks into jobs. \hyperqueue{} separates these two actions; users submit task graphs
@@ -16,14 +16,14 @@ can be found on GitHub\footnoteurl{https://github.com/it4innovations/hyperqueue/
 %matching them together, based on requested resource requirements and other constraints.
 %
 %One of the driving use-cases for \hyperqueue{} is efficient node usage and load balancing. The
-%latest HPC clusters contain a large number (hundreds) of cores, yet it is quite challenging to
+%latest \gls{hpc} clusters contain a large number (hundreds) of cores, yet it is quite challenging to
 %design a single program that can scale effectively with so many threads. Thus, in order to fully
 %utilize the whole computational node, multiple tasks that each leverage a smaller number of
 %threads have to be executed on the same node at once. \hyperqueue{} is able to effectively schedule
 %tasks to utilize all available computational nodes, and thanks to its design, it is able to do this
-%not just within a single HPC job, but across many jobs at once.
+%not just within a single \gls{hpc} job, but across many jobs at once.
 %
-%\hyperqueue{} is being used by users of various HPC centres, and it is also a key
+%\hyperqueue{} is being used by users of various \gls{hpc} centres, and it is also a key
 %component of the Horizon 2020 European Union projects
 %LIGATE\footnoteurl{https://www.ligateproject.eu},
 %EVEREST\footnoteurl{https://everest-h2020.eu} and
@@ -31,12 +31,13 @@ can be found on GitHub\footnoteurl{https://github.com/it4innovations/hyperqueue/
 %executing computations on the LUMI supercomputer~\cite{lumi_it4innovations_2022}.
 %
 
-Modern HPC clusters contain a large number of heterogeneous resources that provide vast amounts of
-computational power. It is challenging to design monolithic programs that can leverage that
-performance potential effectively (e.g., by scaling to hundreds of cores); HPC users often design
-their computational workflows as a set of smaller, interdependent tasks that use only a fraction of
-the resources of a single cluster node. Yet executing these workflows on HPC clusters in the
-presence of job managers such as Torque/PBS or Slurm can be challenging. They can impose limits on
-the concurrent execution of multiple tasks on a single node, thus hampering node utilisation, and
-their design in general is not accustomed to an enormous number of smaller, less resource-intensive
-tasks, which can lead to the manager being overloaded.
+Modern \gls{hpc} clusters contain a large number of heterogeneous resources that
+provide vast amounts of computational power. It is challenging to design monolithic programs that
+can leverage that performance potential effectively (e.g., by scaling to hundreds of cores);
+\gls{hpc} users often design their computational workflows as a set of smaller,
+interdependent tasks that use only a fraction of the resources of a single cluster node. Yet
+executing these workflows on \gls{hpc} clusters in the presence of job managers such as
+\gls{pbs} or Slurm can be challenging. They can impose limits on the concurrent
+execution of multiple tasks on a single node, thus hampering node utilisation, and their design in
+general is not accustomed to an enormous number of smaller, less resource-intensive tasks, which
+can lead to the manager being overloaded.

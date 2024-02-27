@@ -1,33 +1,34 @@
-There are many ways to design and program distributed and parallel programs for HPC clusters.
-Historically, a popular way of creating HPC applications was to implement the parallelization of
-computation and the distribution of data explicitly, typically using message-passing (e.g.\
-MPI\footnote{Message Passing Interface}~\cite{mpi}), global address space (e.g.\
-PGAS\footnote{Partitioned global address space}~\cite{pgas}) and/or multithreading (e.g.\
-OpenMP\footnote{Open Multi-Processing}~\cite{openmp}) frameworks, which are designed and fine-tuned
-for HPC use-cases. With an explicitly parallel program, users have a lot of control over the
-exchange of data and communication between individual cores and distributed nodes, which allows
-them to create very performant programs. This approach is also quite flexible and enables
-expressing arbitrarily complex parallelization and data distribution strategies.
+There are many ways to design and program distributed and parallel programs for
+\gls{hpc} clusters. Historically, a popular way of creating \gls{hpc}
+applications was to implement the parallelization of computation and the distribution of data
+explicitly, typically using message-passing (e.g.\ \gls{mpi}~\cite{mpi}),
+global address space (e.g.\ \gls{pgas}~\cite{pgas}) and/or multithreading
+(e.g.\ \gls{openmp}~\cite{openmp}) frameworks, which are designed and fine-tuned
+for \gls{hpc} use-cases. With an explicitly parallel program, users have a lot of
+control over the exchange of data and communication between individual cores and distributed nodes,
+which allows them to create very performant programs. This approach is also quite flexible and
+enables expressing arbitrarily complex parallelization and data distribution strategies.
 
 However, even though such explicitly parallelized programs can be incredibly efficient,
 implementing them is notoriously difficult. Deadlocks and race conditions, which are already
-problematic for multithreaded programs, are even more of an issue for distributed programs. HPC
-applications that use libraries for explicit distribution of data (such as various MPI
-implementations) are also typically implemented in languages such as \texttt{C} or
-\texttt{C++} that are infamous for making it difficult to write correct, memory-safe
-programs without memory errors and undefined behaviour. This further increases the difficulty and
-decreases the speed of developing correct distributed programs.
+problematic for multithreaded programs, are even more of an issue for distributed programs.
+\gls{hpc} applications that use libraries for explicit distribution of data (such as
+various \gls{mpi} implementations) are also typically implemented in languages such as
+\texttt{C} or \texttt{C++} that are infamous for making it difficult to write
+correct, memory-safe programs without memory errors and undefined behaviour. This further increases
+the difficulty and decreases the speed of developing correct distributed programs.
 
-It would be unreasonable to expect that all scientists that want to leverage HPC to execute their
-experiments will ``roll up their sleeves'' and spend months implementing an explicitly parallel
-\texttt{C++} program that uses MPI. A more typical scenario is that scientists leverage
-existing coarse-grained tools and frameworks that are optimized for HPC and use technologies like
-MPI or OpenMP internally (e.g.\ GROMACS~\cite{gromacs}). However, with both the experiments
-and HPC clusters becoming ever more complex each year, it is usually not sufficient to use only a
-single tool. Scientific experiments require running many independent steps, which encompass data
-transfer, preprocessing, postprocessing and the usage of potentially many different tools that have
-to be combined. These experiments can also be executed in potentially many instances that have
-different input parametrizations.
+It would be unreasonable to expect that all scientists that want to leverage \gls{hpc}
+to execute their experiments will ``roll up their sleeves'' and spend months implementing an
+explicitly parallel \texttt{C++} program that uses \gls{mpi}. A more typical
+scenario is that scientists leverage existing coarse-grained tools and frameworks that are
+optimized for \gls{hpc} and use technologies like \gls{mpi} or OpenMP
+internally (e.g.\ GROMACS~\cite{gromacs}). However, with both the experiments and
+\gls{hpc} clusters becoming ever more complex each year, it is usually not sufficient
+to use only a single tool. Scientific experiments require running many independent steps, which
+encompass data transfer, preprocessing, postprocessing and the usage of potentially many different
+tools that have to be combined. These experiments can also be executed in potentially many
+instances that have different input parametrizations.
 
 That is why in recent years, it became popular to define scientific computations using programming
 models where the high-level communication and parallelization structure of the computation is
@@ -78,8 +79,8 @@ distributed cluster. A further distinction can be made between batch-oriented wo
 define a computation with a clearly delimited set of inputs that is already available when the
 workflow starts, and which focus primarily on throughput, and streaming-oriented workflows, which
 operate continuously on streams of input data that arrive just-in-time, and which usually focus on
-latency. This thesis focuses exclusively on batch workflows, which are more common in HPC
-scenarios\todo{cite}.
+latency. This thesis focuses exclusively on batch workflows, which are more common in
+\gls{hpc} scenarios\todo{cite}.
 
 The term \emph{task} is also heavily overloaded in various areas of computer science, as
 it is used for many unrelated concepts, from an execution context in the Linux operating system,
@@ -91,16 +92,16 @@ Even though task-related terms can have a lot of different meanings, depending o
 an attempt of providing a single unifying task theory would need to gloss over many important
 details, it is still useful to provide a shared vocabulary of terms for this thesis. This chapter
 thus defines several task-related terms in a way that allows capturing the specifics of task
-execution in HPC environments, further described in Chapter~\ref{ch:challenges}, and that is
-general enough so that it can be mapped to concepts used by task execution tools that will be
-described in later chapters.
+execution in \gls{hpc} environments, further described in
+Chapter~\ref{ch:challenges}, and that is general enough so that it can be mapped to concepts
+used by task execution tools that will be described in later chapters.
 
 \section{Task graph}
-A computational workflow in the task-based programming model is represented with a directed acyclic
-graph (DAG) that we will label as a \emph{task graph}. From a high-level perspective, it
-describes which individual steps should be performed, what are the constraints for where and in
-which order are they computed and how should data be transferred between the individual steps of
-the workflow.
+A computational workflow in the task-based programming model is represented with a
+\gls{dag} that we will label as a \emph{task graph}. From a high-level
+perspective, it describes which individual steps should be performed, what are the constraints for
+where and in which order are they computed and how should data be transferred between the
+individual steps of the workflow.
 
 There are many variations of task graphs, based on the computational properties that they are able
 to describe. In the most basic form, task graph vertices represent computations to be performed,
@@ -246,10 +247,9 @@ semantics of the task execution tool.
 Apart from specifying the structure of required inputs and produced outputs, tasks can also define
 various constraints for the environment in which they will be executed. We will use the term
 \emph{resource requirements} for such constraints. As an example, a task that performs training of a
-machine learning model might require a GPU (Graphics Processing Unit) to be present on the
-computational node where the task will be executed. Other resources might include e.g.\ a minimum
-required amount of memory (RAM) or a required amount of processor cores necessary to execute the
-task.
+machine learning model might require a \gls{gpu} to be present on the computational
+node where the task will be executed. Other resources might include e.g.\ a minimum required amount
+of \gls{ram} or a required amount of processor cores necessary to execute the task.
 
 \section{Task graph execution}
 Task graphs merely describe some computation, therefore they have to be executed in order to
@@ -279,7 +279,7 @@ information about task execution status back to it. Each worker typically manage
 resources that are available for tasks during their execution. Hardware resources can be assigned
 to workers in various ways. There can be a single worker per whole computational node, or there
 could be multiple workers per node, each one managing a subset of the available resources (e.g.\ a
-worker per CPU core).
+worker per \gls{cpu} core).
 
 The second main aspect that has to be handled by the runtime is the management of tasks. It has to
 keep track of which tasks have already been computed, which tasks are currently being executed on
