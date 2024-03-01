@@ -1,5 +1,3 @@
-\todo[inline]{taskbench and hyperloom related work benchmarks}
-
 After performing the task scheduling experiments using \estee{}, our next goal
 was to find out how do other aspects of task runtimes (other than the scheduler) affect makespans
 of task graph executions, and also to validate some of the rather surprising results of our
@@ -435,27 +433,42 @@ $88\%$ of the performance of the work-stealing scheduler with a single node,
 and $95\%$ with seven nodes. The performance of the random scheduler thus gets
 closer to the performance of work-stealing when more workers are used.
 
-There are two effects that explain the reasonable performance of the random scheduler. Firstly, the
-computational complexity of work-stealing scales with the number of available workers. With more
-workers, the work-stealing scheduler has to perform more work to compute where should the tasks be
-computed, and it also generates additional network traffic by sending task stealing messages
-between workers. On the other hand, a random scheduler has a fixed computation cost per task,
-completely independent of the worker count, as it simply chooses a worker randomly, and it also
-sends no additional network messages other than one worker assignment per task. The difference in
-computational overhead between these two schedulers will be examined in more detail in the
-following experiment.
+The fact that the random scheduler's performance improves with a larger number of nodes is not
+surprising. With more nodes, it is easier to fully saturate the potential parallelism contained in
+each task graph. Furthermore, a random scheduler produces less network traffic, and has much
+smaller computational cost on the server; as we will see in the next experiment, the work-stealing
+scheduler's computational cost increases notably when more workers are present.
 
-The second effect is also related to the fact that the random scheduler performs better with more
-workers. Our benchmark set is compute-bound, so if there is a large enough number of workers
-(relative to the number of tasks), it might not be that difficult for the scheduler to saturate all
-the workers, even with a random schedule, as long as the task graph structure is not very
-complicated. Furthermore, if the scheduler wants to utilize all computational power of a cluster
-with many workers, network transfers are less avoidable, which decreases the chance that a random
-scheduler induces an unnecessary data transfer that could have been avoided by a smarter scheduler.
+Furthermore, for certain task graphs, a complex scheduling algorithm might not be needed, and a
+random schedule is sufficient to achieve reasonable results. However, all of that combined is still
+a rather weak explanation for why is a random scheduler so competitive with the work-stealing
+scheduler in \dask{}. In the following experiments, we will show that
+\dask{} has considerable runtime overhead, which might introduce a bottleneck
+that is more impactful than the effect of the used schedule. In the next section
+(\ref{sec:rsds-description}), we will see that with a more efficient runtime and less server
+overhead, random schedules will become less competitive.
 
-The results of this experiment suggest that in certain scenarios, a complex scheduling algorithm is
-not needed and a random schedule is sufficient for \dask{}. This shows that the
-scheduler might not be its main bottleneck. We will also examine this in the following experiments.
+%There are two effects that explain the reasonable performance of the random scheduler. Firstly, the
+%computational complexity of work-stealing scales with the number of available workers. With more
+%workers, the work-stealing scheduler has to perform more work to compute where should the tasks be
+%computed, and it also generates additional network traffic by sending task stealing messages
+%between workers. On the other hand, a random scheduler has a fixed computation cost per task,
+%completely independent of the worker count, as it simply chooses a worker randomly, and it also
+%sends no additional network messages other than one worker assignment per task. The difference in
+%computational overhead between these two schedulers will be examined in more detail in the
+%following experiment.
+
+%The second effect is also related to the fact that the random scheduler performs better with more
+%workers. Our benchmark set is compute-bound, so if there is a large enough number of workers
+%(relative to the number of tasks), it might not be that difficult for the scheduler to saturate all
+%the workers, even with a random schedule, as long as the task graph structure is not very
+%complicated. Furthermore, if the scheduler wants to utilize all computational power of a cluster
+%with many workers, network transfers are less avoidable, which decreases the chance that a random
+%scheduler induces an unnecessary data transfer that could have been avoided by a smarter scheduler.
+
+%The results of this experiment suggest that in certain scenarios, a complex scheduling algorithm is
+%not needed and a random schedule is sufficient for \dask{}. This shows that the
+%scheduler might not be its main bottleneck. We will also examine this in the following experiments.
 
 \subsubsection*{Overhead per task}
 \label{sec:dask-overhead-per-task}
@@ -807,7 +820,7 @@ with more workers.
 	\centering
 	\includegraphics[width=0.8\textwidth]{./imgs/rsds/charts/speedup-rsds-random-1}
 	\includegraphics[width=0.8\textwidth]{./imgs/rsds/charts/speedup-rsds-random-7}
-	\caption{Speedup of \dask{}/random scheduler; baseline is \dask{}/ws.}
+	\caption{Speedup of \rsds{}/random scheduler; baseline is \dask{}/ws.}
 	\label{fig:rsds-dask-random-all}
 \end{figure}
 
@@ -840,11 +853,56 @@ is further increased.
 		\textbf{Speedup}                                                                                 \\
 		\midrule
 		dask            & random             & 1                   & 24                   & $0.88\times$ \\
-		dask            & random             & 7                   & 168                  & $0.95\times$ \\
 		rsds            & random             & 1                   & 24                   & $1.04\times$ \\
-		rsds            & random             & 7                   & 168                  & $1.41\times$ \\
 		rsds            & ws                 & 1                   & 24                   & $1.28\times$ \\
+		dask            & random             & 7                   & 168                  & $0.95\times$ \\
+		rsds            & random             & 7                   & 168                  & $1.41\times$ \\
 		rsds            & ws                 & 7                   & 168                  & $1.66\times$ \\
+	\end{tabular}
+\end{table}
+
+In Section~\ref{sec:rsds-dask-overhead-analysis}, it was noted that the random scheduler used in
+\dask{} was quite competitive with the work-stealing scheduler implementation.
+Our hypothesis was that this phenomenon is reinforced by the runtime overhead of
+\dask{}. To test this hypothesis, we have also compared the performance of the
+random scheduler in \rsds{} vs its work-stealing implementation. The results
+can be observed in Figure~\ref{fig:rsds-random-baseline}. We can see that in the case of
+\rsds{}, the random scheduler is less competitive (you can compare the results
+with Figure~\ref{fig:dask-ws-vs-random}), and does not significantly outperform work-stealing in
+any of the benchmarked cases. This suggests that with a more reasonable runtime overhead of the
+server, a work-stealing scheduler is strictly better than a random scheduler, which is a much more
+intuitive result.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\textwidth]{./imgs/rsds/charts/speedup-rsds-random-1-baseline-rsds-ws}
+	\caption{Speedup of \rsds{}/random scheduler; baseline is \rsds{}/ws.}
+	\label{fig:rsds-random-baseline}
+\end{figure}
+
+To provide a clearer comparison of these results, Table~\ref{tab:rsds-random-geom-mean-speedup} shows the
+geometric mean of speedup of the random scheduler, compared to a work-stealing scheduler baseline
+of a corresponding server implementation. It is clear from the results that in
+\rsds{}, the random scheduler is less performant (relative to its work-stealing
+counterpart), than in \dask{}.
+
+\setlength{\tabcolsep}{5pt}
+\begin{table}
+	\caption{Geometric mean of speedup for random schedulers}
+	\centering
+	\label{tab:rsds-random-geom-mean-speedup}
+	\begin{tabular}{c|c|r|r|r|r}
+		\textbf{Server}      & \textbf{Scheduler} & \textbf{Baseline} & \textbf{Node count} &
+		\textbf{Worker	count} & \textbf{Speedup}                                                   \\
+		\midrule
+		dask                 & random             & dask/ws           & 1                   & 24
+		                     & $0.88\times$                                                       \\
+		rsds                 & random             & rsds/ws           & 1                   & 24
+		                     & $0.82\times$                                                       \\
+		dask                 & random             & dask/ws           & 7                   & 168
+		                     & $0.95\times$                                                       \\
+		rsds                 & random             & rsds/ws           & 7                   & 168
+		                     & $0.85\times$                                                       \\
 	\end{tabular}
 \end{table}
 
@@ -854,12 +912,13 @@ of \dask{} workflows in \gls{hpc} scenarios. In these
 use-cases, it is important for the runtime to scale to a large amount of workers, which can be
 provided by an \gls{hpc} cluster. We have designed an experiment which tests the
 strong scaling of both server implementations on several cluster sizes, ranging from
-$1$ node ($24$ workers) to $63$ nodes ($1512$ workers). The default, work-stealing scheduler was
-used for both server implementations.
+$1$ node ($24$ workers) to $63$
+nodes ($1512$ workers). The default, work-stealing scheduler was used for both
+server implementations.
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=\textwidth]{./imgs/rsds/charts/rsds-dask-scaling}
+	\includegraphics[width=0.8\textwidth]{./imgs/rsds/charts/rsds-dask-scaling}
 	\caption{Strong scaling of \rsds{} vs \dask{} on selected task graphs}
 	\label{fig:rsds-dask-scaling}
 \end{figure}
@@ -881,7 +940,7 @@ worker node, but four times slower with $63$ nodes
 additional worker node. On the other hand, with \rsds{}, the total makespan
 stays relatively constant, even after it stops scaling.
 
-The next tested benchmar was \texttt{groupby-2880-1S-16H}, which computes an analysis of table data
+The next tested benchmark was \texttt{groupby-2880-1S-16H}, which computes an analysis of table data
 using a task graph automatically generated by \dask{}, using the
 \texttt{DataFrame} \gls{api} inspired by the \texttt{pandas}
 interface. This task graph provides many opportunities for parallelization, as the individual tasks
@@ -938,8 +997,8 @@ performed with the \emph{zero worker} implementation.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{./imgs/rsds/charts/rsds-merge-task-scaling}
-	\caption{Overhead per task for \rsds{} and \dask{} with an increasing
-	number of tasks.}
+	\caption{Overhead per task for \rsds{} and \dask{} with an
+	increasing number of tasks.}
 	\label{fig:rsds-merge-task-scaling}
 \end{figure}
 
@@ -959,8 +1018,8 @@ general. However, it happens on a much smaller absolute scale than with
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{./imgs/rsds/charts/rsds-merge-worker-scaling}
-	\caption{Overhead per task for \rsds{} and \dask{} with an increasing
-	number of workers.}
+	\caption{Overhead per task for \rsds{} and \dask{} with an
+	increasing number of workers.}
 	\label{fig:rsds-merge-worker-scaling}
 \end{figure}
 
@@ -1012,55 +1071,34 @@ All these experiments have shown that \rsds{} exhibits similar performance
 behavior and scaling patterns as \dask{}, which is not surprising, given that
 it reuses its client and worker implementations. However, the most important result is that in
 absolute terms, it tends to be faster than \dask{}, across various task graphs
-and cluster sizes. The overall overhead present in the \dask{} cluster could be
-further reduced e.g.\ by also implementing the worker (or even the client) in another language than
-Python, however that would probably make it quite challenging to keep backwards compatibility with
-existing \dask{} programs.
+and cluster sizes. The overall overhead present in the whole \rsds{} cluster
+could be further reduced e.g.\ by also implementing the worker (or even the client) in another
+language than Python, however that would probably make it quite challenging to keep backwards
+compatibility with existing \dask{} programs.
 
 \section{Summary}
+We have analysed the performance of the \dask{} task runtime on a set of
+diverse benchmarks in an \gls{hpc} setting. Our analysis has demonstrated that
+\dask{} is heavily bottlenecked by the runtime overhead of its Python
+implementation, and also by other aspects related to the usage of Python, notably the presence of
+the \gls{gil}. This suggests that further optimizations should focus mainly on
+the overhead of its server, rather than its scheduler, as even a completely random scheduler is
+able to achieve quite reasonable performance, since the schedule is not the primary bottleneck, at
+least in certain cases.
 
-%%%%% TEZE %%%%%
-%%%%% Analysis/Conclusion %%%%%
-Our analysis has demonstrated that \dask{} was bottlenecked not so much by its
-scheduler, but by the runtime (in)efficiency of its central server. The inefficiencies were caused
-partly by the design of its communication protocol, but mainly by the fact that
-\dask{} is implemented in Python, which makes it difficult to fully utilize the
-available hardware potential. We have also found out that it was impractical to swap
-\dask{}'s scheduler implementation for another one, since its built-in
-work-stealing scheduling algorithm was quite firmly integrated into its components.
-
-In order to measure how could \dask{}'s performance be improved if it had a
-more efficient runtime, as a second main contribution of this work we have developed
-\rsds{}, an open-source drop-in replacement for the \dask{}
-central server\footnoteurl{https://github.com/it4innovations/rsds}. It was built from the ground up with a focus on runtime
+To improve the performance of \dask{} workflows, we have developed \rsds{}, an open-source
+drop-in replacement for the \dask{}
+server\footnoteurl{https://github.com/it4innovations/rsds}. It was built from the ground up with a focus on runtime
 efficiency and scheduler modularity, but at the same time we have designed it to be compatible with
-the \dask{} protocol, so it could be used by existing
-\dask{} users to speed up their task workflows.
+the original \dask{} protocol, which means that it is backwards-compatible with existing
+\dask{} programs, and can be used to speed them up.
 
 We have performed a series of experiments where we have compared the performance of
-\rsds{} vs \dask{}. Since \rsds{}
-allows its users to plug in a different scheduling algorithm easily, we have also compared the
-performance of \rsds{} with various scheduling algorithms. The experiments were
-conducted on task graphs generated from tracing real-world \dask{} task
-workflows, to make sure that we were benchmarking realistic use-cases.
-
-The results of our experiments indicate that optimizing the runtime is definitely a worthy effort
+\rsds{} vs \dask{}. The results of our experiments indicate that optimizing the runtime is definitely a worthy effort
 to pursuit, as \rsds{} has been able to outperform \dask{}
-in various scenarios, even though it used a much simpler work-stealing scheduling algorithm. We
-have also been able to validate our results from~\cite{estee}, for example that even
-a random scheduler is indeed competitive with other scheduling approaches in many scenarios.
+in various scenarios, even though it uses a much simpler work-stealing scheduling algorithm.
 
-We have contacted the authors and maintainers of \dask{} and discussed our
-\rsds{} approach with
-them\footnoteurl{https://github.com/dask/distributed/issues/3139}\footnoteurl{https://github .com/dask/distributed/issues/3783}\footnoteurl{https://github.com/dask/distributed/issues/3872}. Some of its
-ideas have been adapted in the \dask{} project and led to improving its
-performance.
-
-An interesting insight regarding task schedulers that we have gained from our work done
-in~\cite{estee,rsds} is just how much important are the specific details of scheduling
-algorithm implementations. While trying to implement various scheduling algorithms from existing
-literature, we have realized that they are often incomplete. Details like how often should the
-algorithm be invoked or how to choose between workers which receive an equal scheduling priority
-from the algorithm are often left up to the implementor. However, our experiments have shown us
-that these seemingly minor details can have a significant effect on the performance of the
-scheduler, both in terms of runtime efficiency and the quality of its generated schedules.
+After we had an indication that \rsds{} can be used to improve the efficiency of existing \dask{}
+workflows, we have contacted the authors and maintainers of \dask{}, and discussed the
+\rsds{} approach with them\footnoteurl{https://github.com/dask/distributed/issues/3139}\footnoteurl{https://github.com/dask/distributed/issues/3783}\footnoteurl{https://github.com/dask/distributed/issues/3872}. Some of its
+ideas have been since adapted in the \dask{} project and led to improving its performance.
