@@ -1086,19 +1086,22 @@ the overhead of its server, rather than its scheduler, as even a completely rand
 able to achieve quite reasonable performance, since the schedule is not the primary bottleneck, at
 least in certain cases.
 
-To improve the performance of \dask{} workflows, we have developed \rsds{}, an open-source
-drop-in replacement for the \dask{}
+To improve the performance of \dask{} workflows, we have developed
+\rsds{}, an open-source drop-in replacement for the \dask{}
 server\footnoteurl{https://github.com/it4innovations/rsds}. It was built from the ground up with a focus on runtime
 efficiency and scheduler modularity, but at the same time we have designed it to be compatible with
-the original \dask{} protocol, which means that it is backwards-compatible with existing
-\dask{} programs, and can be used to speed them up.
+the original \dask{} protocol, which means that it is backwards-compatible with
+existing \dask{} programs, and can be used to speed them up.
 
 We have performed a series of experiments where we have compared the performance of
-\rsds{} vs \dask{}. The results of our experiments indicate that optimizing the runtime is definitely a worthy effort
-to pursuit, as \rsds{} has been able to outperform \dask{}
-in various scenarios, even though it uses a much simpler work-stealing scheduling algorithm.
+\rsds{} vs \dask{}. The results of our experiments indicate
+that optimizing the runtime is definitely a worthy effort to pursuit, as
+\rsds{} has been able to outperform \dask{} in various
+scenarios, even though it uses a much simpler work-stealing scheduling algorithm.
 
-After we had an indication that \rsds{} can be used to improve the efficiency of existing \dask{}
-workflows, we have contacted the authors and maintainers of \dask{}, and discussed the
-\rsds{} approach with them\footnoteurl{https://github.com/dask/distributed/issues/3139}\footnoteurl{https://github.com/dask/distributed/issues/3783}\footnoteurl{https://github.com/dask/distributed/issues/3872}. Some of its
-ideas have been since adapted in the \dask{} project and led to improving its performance.
+After we had an indication that \rsds{} can be used to improve the efficiency
+of existing \dask{} workflows, we have contacted the authors and maintainers of
+\dask{}, and discussed the \rsds{} approach with
+them\footnoteurl{https://github.com/dask/distributed/issues/3139}\footnoteurl{https://github.com/dask/distributed/issues/3783}\footnoteurl{https://github.com/dask/distributed/issues/3872}. Some of its
+ideas have been since adapted in the \dask{} project and led to improving its
+performance.
