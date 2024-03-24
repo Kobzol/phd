@@ -8,62 +8,66 @@ bioinformatics~\cite{bioinformatics} or deep learning~\cite{hpcdl}.
 Over the last several decades, the performance of \gls{hpc} clusters has been steadily
 increasing, effectively doubling every few years, in line with Moore's Law and Dennard
 scaling~\cite{mooreslaw}. However, it also became more difficult for \gls{hpc}
-users to tap into that performance increase. Thirty years ago, it was possible to obtain a new
-(super)computer every two years and get essentially doubled performance for free, without having to
-modify existing programs. This phenomenon has started to diminish by the end of the last century,
-as chip designers became limited by the memory wall~\cite{memorywall} and especially the power
-wall~\cite{powerwall}.
+users to tap into that performance increase. Thirty years ago, it was possible to get essentially
+double the performance for free, just by using a new (super)computer every two years, without
+having to modify existing programs. This phenomenon has started to diminish by the end of the last
+century, as chip designers became limited by the memory wall~\cite{memorywall} and especially
+the power wall~\cite{powerwall}.
 
-To keep up with the expectation of exponential performance increases, processors had to become more
-complex, gaining various buffers and caches, multiple cores, simultaneous multithreading,
-out-of-order execution and a plethora of other techniques to make them run faster. The existence of
-multiple cores and sockets and the need for ever-increasing memory sizes has also made the memory
-system more complex, with \gls{numa} memories becoming commonplace in
-\gls{hpc}. To provide even more performance, \gls{hpc} clusters started
-massively adopting various accelerators, like the Intel Xeon Phi~\cite{xeonphi} manycore
-coprocessor or general-purpose \glspl{gpu} from NVIDIA or AMD, which eventually became
-the backbone of the majority of current supercomputers~\cite{top500gpu}. Some clusters have
-also adapted more unconventional accelerators, like reconfigurable hardware, such as
-\glspl{fpga}, or \gls{ai} accelerators, such as \glspl{tpu}.
-This trend gave rise to heterogeneous clusters that offer various types of hardware that are
-designed for specific workloads.
+To keep up with the expectations of exponential performance increases, \glspl{cpu} had
+to become more complex. Processor manufacturers started implementing various buffers and caches,
+multiple cores, simultaneous multithreading, out-of-order execution and a plethora of other
+techniques that would allow the \gls{cpu} to run faster, without requiring massive
+increases of power draw or memory bandwidth. The existence of multiple cores and sockets and the
+need for ever-increasing memory sizes has also made the memory system more complex, with
+\gls{numa} memories becoming commonplace in \gls{hpc}. To achieve even
+more performance, \gls{hpc} clusters started massively adopting various accelerators,
+like the Intel Xeon Phi~\cite{xeonphi} manycore coprocessor or general-purpose
+\glspl{gpu} from NVIDIA or AMD, which eventually became the backbone of the majority of
+current supercomputers~\cite{top500gpu}. Some clusters have also adapted more unconventional
+accelerators, like reconfigurable hardware, such as \glspl{fpga}, or
+\gls{ai} accelerators, such as \glspl{tpu}. This trend gave rise to
+heterogeneous clusters that offer various types of hardware, each designed for specific workloads.
 
 These hardware improvements have managed to keep up with Moore's Law, but no longer without
 requiring changes to the software. The increasing complexity and heterogeneity of
 \gls{hpc} hardware has caused the ``\gls{hpc} software stack'' and the
-corresponding programming models to become more complex, making full usage of the available
-performance far from trivial. Computing nodes consist of hundreds of cores, yet it is quite
-challenging to write programs that can scale to such high core counts. Main memory being split into
-multiple physical locations with various access latencies (\gls{numa}) and complex
-memory hierarchies require specialized programming techniques to achieve optimal performance. And
-using the ever-present accelerators, for example \glspl{gpu}, might require adopting
-completely different programming models and frameworks.
+corresponding programming models to become more complex, making it far from trivial to leverage the
+available performance offered by supercomputers. Individual computers of \gls{hpc}
+clusters (called \emph{computing nodes}) can consist of hundreds of \gls{cpu} cores
+each, yet it is quite challenging to write programs that can scale to such high core counts. The
+operational \gls{ram} of each node contains multiple levels of complex cache
+hierarchies, and it has such a large capacity that it has to be split into multiple physical
+locations with varying access latencies (\gls{numa}), which requires usage of
+specialized programming techniques to achieve optimal performance. And the ever-present
+accelerators, for example \glspl{gpu}, might require their users to adopt completely
+different programming models and frameworks.
 
 Historically, optimized \gls{hpc} software was usually written using system or
 scientifically focused programming languages (e.g.~\texttt{C}, \texttt{C++}
 or \texttt{Fortran}) and specialized libraries for parallelizing and distributing
-computation, such as \gls{openmp}, CUDA or \gls{mpi}~\cite{mpistudy}.
-While these rather low-level technologies are able to provide the best possible performance, it can
-be quite challenging and slow to develop (and maintain) applications that use them. It is
-unreasonable to expect that most domain scientists that write software which runs on
-\gls{hpc} resources (who are often not primarily software developers) will be able to
-use all these technologies in an efficient manner without making the development process slow and
-cumbersome. This task should be left to specialized performance engineers, enabling the scientists
-to focus on the problem domain~\cite{dace}.
+computation, such as \gls{openmp}~\cite{openmp}, CUDA~\cite{cuda} or
+\gls{mpi}~\cite{mpistudy}. While these rather low-level technologies are able
+to provide the best possible performance, it can be quite challenging and slow to develop (and
+maintain) applications that use them. It is unreasonable to expect that most domain scientists that
+develop software for \gls{hpc} clusters (who are often not primarily software
+developers) will be able to use all these technologies in an efficient manner without making the
+development process slow and cumbersome. This task should be left to specialized performance
+engineers, enabling the scientists to focus on the problem domain~\cite{dace}.
 
-With the advent of more powerful hardware and more advanced software, the computations performed on
-\gls{hpc} systems are also becoming more demanding, both in terms of the required
-computational power, but also in terms of data management, network communication patterns and
-general software design and architecture. Areas such as weather prediction, machine learning model
-training or big data analysis require executing thousands or even millions of simulations and
-experiments. These experiments can be quite complex, consisting of multiple dependent steps, such
-as data ingestion, preprocessing, computation, postprocessing, visualisation, etc. It is thus
-imperative for scientists to have a quick way of prototyping these applications, otherwise their
-development process would be too slow.
+With the advent of more powerful hardware, \gls{hpc} systems are able to solve new
+problems, which are more and more demanding, both in terms of the required computational power, but
+also in terms of data management, network communication patterns and general software design and
+architecture. Areas such as weather prediction, machine learning model training or big data
+analysis require executing thousands or even millions of simulations and experiments. These
+experiments can be quite complex, consisting of multiple dependent steps, such as data ingestion,
+preprocessing, computation, postprocessing, visualisation, etc. It is thus imperative for
+scientists to have a quick way of prototyping these applications, otherwise their development
+process would be too slow.
 
 The growing complexity of \gls{hpc} hardware, software and use-cases gave rise to the
-popularity of (distributed) task-based programming models and paradigms. This programming model
-allows users to focus on the problem domain and quickly prototype, while still being able to
+popularity of (distributed) task-based programming models and paradigms. Task-oriented programming
+models allow users to focus on their problem domain and quickly prototype, while still being able to
 describe complicated computations with a large number of individual steps and to efficiently
 utilize the available computational resources. Using a task-based approach, a computational
 workflow is described using a set of atomic computational blocks (\emph{tasks}) that are
@@ -78,15 +82,15 @@ does not make many assumptions about the target platform, therefore the same tas
 executed on various systems and clusters, provided there is a task execution runtime implemented
 for that cluster.
 
-Combined with the fact that task-based tools often allow users to write their program in very
-high-level languages, such as Python, or various \glspl{dsl}, it makes them an ideal
+Combined with the fact that task-based tools often allow users to implement their workflow in
+very high-level languages, such as Python, or various \glspl{dsl}, it makes them an ideal
 tool for rapid scientific prototyping.
 
 Task graphs are already commonly being used and deployed on various distributed
-systems~\cite{pegasus, workflows_at_scale, large_scale_modelling}, yet there are certain challenges that limit their development
-productivity and scalability when deployed specifically on \gls{hpc} systems. These
-challengs stem from various factors, such as the interaction of task-graphs with
-\gls{hpc} allocation managers, the heterogeneity and complexity of
+systems~\cite{pegasus, workflows_at_scale, large_scale_modelling}, yet there are certain
+challenges that limit their usage ergonomics and performance efficiency when deployed specifically
+on \gls{hpc} systems. These challenges stem from various factors, such as the interaction of
+task graphs with \gls{hpc} allocation managers, the heterogeneity and complexity of
 \gls{hpc} cluster hardware, or simply from the potentially enormous computational
 scale. When task graph authors encounter these problems, they might have to step out of the comfort
 zone of this easy to use programming model, and implement parts of their applications using other,
@@ -94,26 +98,27 @@ more complicated approaches, to either meet their performance goals or to even m
 execute their application on \gls{hpc} clusters at all. Removing or alleviating some
 of those challenges could lower the barrier of entry, make task graph execution better suited for
 various \gls{hpc} use-cases and turn it into an actual first-class citizen in the
-world of \gls{hpc}\@.
+world of supercomputing\@.
 
-The combination of a simple and ergonomic programming model with efficient execution on a
-distributed cluster is the key strength of task graphs, yet they have various shortcomings when
-applied in \gls{hpc} environments. This thesis sets out to identify the existing
-challenges and bottlenecks, alleviate them, and thus improve the execution of task graphs on
-\gls{hpc} systems in two main areas, namely development ergonomics and efficient
+This thesis sets out to identify and analyse the existing challenges and bottlenecks, and design
+approaches to alleviate them, in order to improve the execution of task graphs on
+\gls{hpc} systems in two main areas, namely usage ergonomics and efficient
 hardware utilization. It aims to achieve this objective via the following contributions: It
-introduces a task graph simulator for evaluating the quality of various task schedulers under
+introduces a task graph simulator for evaluating the quality of task schedulers under
 various conditions, and provides an extensive evaluation of several scheduling algorithms using
 this simulator. It provides an analysis of the performance bottlenecks of a state-of-the-art task
 runtime \dask{}, and introduces an alternative implementation of its server that
-provides significant performance improvements in \gls{hpc} scenarios. And primarily,
-it proposes a design for effortless execution of task graphs in the presence of
-\gls{hpc} allocation managers, and implements this design in \hyperqueue{},
-an \gls{hpc}-tailored task runtime that enables ergonomic execution of task graphs on
-heterogeneous supercomputers with focus on efficient usage of hardware resources.
+provides significant performance improvements in \gls{hpc} scenarios, while retaining backwards
+compatibility. And primarily, it proposes an approach for effortless execution of task graphs in the
+presence of \gls{hpc} allocation managers, and provides an implementation of this approach in
+\hyperqueue{}, an \gls{hpc}-tailored task runtime that enables ergonomic execution of task graphs on
+heterogeneous supercomputers with a focus on efficient usage of hardware resources.
+
+\todo[inline]{Diagram of how to read this thesis}
 
 The thesis is structured as follows. Chapter~\ref{ch:taskgraphs} introduces the task graph
-programming model and definition of key terms related to tasks, task graphs and task runtimes.
+programming model and definition of key terms related to tasks, task graphs and task runtimes. It
+also compares task-based programming with other programming models.
 Chapter~\ref{ch:challenges} outlines various challenges and bottlenecks that affect task graphs
 on \gls{hpc} systems. Chapter~\ref{ch:sota} describes a taxonomy of selected
 task runtimes and analyses their behavior in \gls{hpc} environments.
