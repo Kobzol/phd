@@ -67,8 +67,8 @@ process would be too slow.
 
 The growing complexity of \gls{hpc} hardware, software and use-cases gave rise to the
 popularity of (distributed) task-based programming models and paradigms. Task-oriented programming
-models allow users to focus on their problem domain and quickly prototype, while still being able to
-describe complicated computations with a large number of individual steps and to efficiently
+models allow users to focus on their problem domain and quickly prototype, while still being able
+to describe complicated computations with a large number of individual steps and to efficiently
 utilize the available computational resources. Using a task-based approach, a computational
 workflow is described using a set of atomic computational blocks (\emph{tasks}) that are
 composed together in a \emph{task graph} which captures dependencies between the individual
@@ -82,15 +82,15 @@ does not make many assumptions about the target platform, therefore the same tas
 executed on various systems and clusters, provided there is a task execution runtime implemented
 for that cluster.
 
-Combined with the fact that task-based tools often allow users to implement their workflow in
-very high-level languages, such as Python, or various \glspl{dsl}, it makes them an ideal
+Combined with the fact that task-based tools often allow users to implement their workflow in very
+high-level languages, such as Python, or various \glspl{dsl}, it makes them an ideal
 tool for rapid scientific prototyping.
 
 Task graphs are already commonly being used and deployed on various distributed
-systems~\cite{pegasus, workflows_at_scale, large_scale_modelling}, yet there are certain
-challenges that limit their usage ergonomics and performance efficiency when deployed specifically
-on \gls{hpc} systems. These challenges stem from various factors, such as the interaction of
-task graphs with \gls{hpc} allocation managers, the heterogeneity and complexity of
+systems~\cite{pegasus, workflows_at_scale, large_scale_modelling}, yet there are certain challenges that limit their usage ergonomics
+and performance efficiency when deployed specifically on \gls{hpc} systems. These
+challenges stem from various factors, such as the interaction of task graphs with
+\gls{hpc} allocation managers, the heterogeneity and complexity of
 \gls{hpc} cluster hardware, or simply from the potentially enormous computational
 scale. When task graph authors encounter these problems, they might have to step out of the comfort
 zone of this easy to use programming model, and implement parts of their applications using other,
@@ -102,31 +102,69 @@ world of supercomputing\@.
 
 This thesis sets out to identify and analyse the existing challenges and bottlenecks, and design
 approaches to alleviate them, in order to improve the execution of task graphs on
-\gls{hpc} systems in two main areas, namely usage ergonomics and efficient
-hardware utilization. It aims to achieve this objective via the following contributions: It
-introduces a task graph simulator for evaluating the quality of task schedulers under
-various conditions, and provides an extensive evaluation of several scheduling algorithms using
-this simulator. It provides an analysis of the performance bottlenecks of a state-of-the-art task
-runtime \dask{}, and introduces an alternative implementation of its server that
-provides significant performance improvements in \gls{hpc} scenarios, while retaining backwards
-compatibility. And primarily, it proposes an approach for effortless execution of task graphs in the
-presence of \gls{hpc} allocation managers, and provides an implementation of this approach in
-\hyperqueue{}, an \gls{hpc}-tailored task runtime that enables ergonomic execution of task graphs on
-heterogeneous supercomputers with a focus on efficient usage of hardware resources.
-
-\todo[inline]{Diagram of how to read this thesis}
+\gls{hpc} systems in two main areas, namely usage ergonomics and efficient hardware
+utilization. It aims to achieve this objective via the following contributions: It introduces a
+task graph simulator for evaluating the quality of task schedulers under various conditions, and
+provides an extensive evaluation of several scheduling algorithms using this simulator. It provides
+an analysis of the performance bottlenecks of a state-of-the-art task runtime
+\dask{}, and introduces an alternative implementation of its server that provides
+significant performance improvements in \gls{hpc} scenarios, while retaining backwards
+compatibility. And primarily, it proposes an approach for effortless execution of task graphs in
+the presence of \gls{hpc} allocation managers, and provides an implementation of this
+approach in \hyperqueue{}, an \gls{hpc}-tailored task runtime that enables
+ergonomic execution of task graphs on heterogeneous supercomputers with a focus on efficient usage
+of hardware resources.
 
 The thesis is structured as follows. Chapter~\ref{ch:taskgraphs} introduces the task graph
 programming model and definition of key terms related to tasks, task graphs and task runtimes. It
-also compares task-based programming with other programming models.
-Chapter~\ref{ch:challenges} outlines various challenges and bottlenecks that affect task graphs
-on \gls{hpc} systems. Chapter~\ref{ch:sota} describes a taxonomy of selected
-task runtimes and analyses their behavior in \gls{hpc} environments.
-Chapter~\ref{ch:estee} contains an evaluation of the performance of various task scheduling
-algorithms, and introduces \estee{}, a task graph simulator that was used for
-performing the evaluation. Chapter~\ref{ch:rsds} details an analysis of the runtime
-performance the task runtime \dask{}, and proposes an alternative implementation of
-its server that outperforms it in \gls{hpc} use-cases. Chapter~\ref{ch:hyperqueue}
-describes a design for executing task graphs in the presence of \gls{hpc} allocation
-managers, and the \hyperqueue{} task runtime. Finally, Chapter~\ref{ch:conclusion}
-summarizes the thesis and outlines future work.
+also compares task-based programming with other programming models. Chapter~\ref{ch:challenges}
+outlines various challenges and bottlenecks that affect task graphs on \gls{hpc}
+systems. Chapter~\ref{ch:sota} describes a taxonomy of selected task runtimes and analyses
+their behavior in \gls{hpc} environments. Chapter~\ref{ch:estee} contains an
+evaluation of the performance of various task scheduling algorithms, and introduces
+\estee{}, a task graph simulator that was used for performing the evaluation.
+Chapter~\ref{ch:rsds} details an analysis of the runtime performance the task runtime
+\dask{}, and proposes an alternative implementation of its server that outperforms
+it in \gls{hpc} use-cases. Chapter~\ref{ch:hyperqueue} describes a design for
+executing task graphs in the presence of \gls{hpc} allocation managers, and the
+\hyperqueue{} task runtime. Finally, Chapter~\ref{ch:conclusion} summarizes the thesis
+and outlines future work.
+
+Figure~\ref{fig:thesis-chapter-diagram} contains a diagram that shows how are the individual
+chapters related to one another, and also how do they relate to the two main topics of this
+thesis (\emph{ergonomics} and \emph{performance} of task graphs).
+
+% TODO: add performance/ergonomics to diagram
+
+\begin{figure}
+	\centering
+	\begin{tikzpicture}[>=latex,line join=bevel,every text node part/.style={align=center}]
+		\tikzset {chapter/.style={rectangle, draw, minimum width=5cm, font=\footnotesize}}
+
+		\newcommand{\chname}[1]{\emph{\nameref{#1}}}
+		\newcommand{\chnum}[1]{Chapter~\ref{#1}}
+
+		\node (taskgraphs) [chapter]
+		{\chname{ch:taskgraphs} \\\chnum{ch:taskgraphs}};
+
+		\node (estee) [chapter, below=of taskgraphs, xshift=3cm]
+		{\chname{ch:estee} \\\chnum{ch:estee}};
+
+		\node (challenges) [chapter, below=of taskgraphs,left=of estee, yshift=-1cm]
+		{\chname{ch:challenges} \\\chnum{ch:challenges}};
+
+		\node (rsds) [chapter, below=of estee]
+		{\chname{ch:rsds} \\\chnum{ch:rsds}};
+
+		\node (hq) [chapter, below=of rsds, xshift=-3cm]
+		{\chname{ch:hyperqueue} \\\chnum{ch:hyperqueue}};
+
+		\draw [->] (taskgraphs.south) -- (challenges.north);
+		\draw [->] (challenges.south) -- (hq.north);
+		\draw [->] (taskgraphs.south) -- (estee.north);
+		\draw [->] (estee.south) -- (rsds.north);
+		\draw [->] (rsds.south) -- (hq.north);
+	\end{tikzpicture}
+	\caption{Diagram of the thesis chapters}
+	\label{fig:thesis-chapter-diagram}
+\end{figure}
