@@ -115,24 +115,24 @@ approach in \hyperqueue{}, an \gls{hpc}-tailored task runtime that enables
 ergonomic execution of task graphs on heterogeneous supercomputers with a focus on efficient usage
 of hardware resources.
 
-The thesis is structured as follows. Chapter~\ref{ch:taskgraphs} introduces the task graph
+The thesis is structured as follows. \Autoref{ch:taskgraphs} introduces the task graph
 programming model and definition of key terms related to tasks, task graphs and task runtimes. It
-also compares task-based programming with other programming models. Chapter~\ref{ch:challenges}
+also compares task-based programming with other programming models. \Autoref{ch:challenges}
 outlines various challenges and bottlenecks that affect task graphs on \gls{hpc}
-systems. Chapter~\ref{ch:sota} describes a taxonomy of selected task runtimes and analyses
-their behavior in \gls{hpc} environments. Chapter~\ref{ch:estee} contains an
+systems. \Autoref{ch:sota} describes a taxonomy of selected task runtimes and analyses
+their behavior in \gls{hpc} environments. \Autoref{ch:estee} contains an
 evaluation of the performance of various task scheduling algorithms, and introduces
 \estee{}, a task graph simulator that was used for performing the evaluation.
-Chapter~\ref{ch:rsds} details an analysis of the runtime performance the task runtime
+\Autoref{ch:rsds} details an analysis of the runtime performance the task runtime
 \dask{}, and proposes an alternative implementation of its server that outperforms
-it in \gls{hpc} use-cases. Chapter~\ref{ch:hyperqueue} describes a design for
+it in \gls{hpc} use-cases. \Autoref{ch:hyperqueue} describes a design for
 executing task graphs in the presence of \gls{hpc} allocation managers, and the
-\hyperqueue{} task runtime. Finally, Chapter~\ref{ch:conclusion} summarizes the thesis
+\hyperqueue{} task runtime. Finally, \Autoref{ch:conclusion} summarizes the thesis
 and outlines future work.
 
-Figure~\ref{fig:thesis-chapter-diagram} contains a diagram that shows how are the individual
-chapters related to one another, and also how do they relate to the two main topics of this
-thesis (\emph{ergonomics} and \emph{performance} of task graphs).
+Figure~\ref{fig:thesis-chapter-diagram} contains a diagram that shows how are the individual chapters related
+to one another, and also how do they relate to the two main topics of this thesis
+(\emph{ergonomics} and \emph{performance} of task graphs).
 
 % TODO: add performance/ergonomics to diagram
 
@@ -142,7 +142,7 @@ thesis (\emph{ergonomics} and \emph{performance} of task graphs).
 		\tikzset {chapter/.style={rectangle, draw, minimum width=5cm, font=\footnotesize}}
 
 		\newcommand{\chname}[1]{\emph{\nameref{#1}}}
-		\newcommand{\chnum}[1]{Chapter~\ref{#1}}
+		\newcommand{\chnum}[1]{\Autoref{#1}}
 
 		\node (taskgraphs) [chapter]
 		{\chname{ch:taskgraphs} \\\chnum{ch:taskgraphs}};

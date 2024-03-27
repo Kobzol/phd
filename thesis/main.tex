@@ -23,8 +23,8 @@
 
 \usepackage[cpp]{diplomalst}
 \usepackage{hyperref}
-% TODOs
 \usepackage{todonotes}
+\usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{graphs}
 \usetikzlibrary{positioning}
@@ -34,6 +34,8 @@
 \usepackage[outputdir=../out]{minted}
 % Multiple footnotes at one place
 \usepackage[multiple]{footmisc}
+% Autoref with capitalization
+\usepackage[nameinlink]{cleveref}
 
 % Abbreviations (\gls, \glspl, \acrfull, \acrshort, \acrlong)
 \usepackage[
@@ -58,6 +60,7 @@
 \newcommand{\comment}[1]{}
 \newcommand{\workshare}[1]{\emph{#1}}
 \newcommand{\footnoteurl}[1]{\footnote{\url{#1}}}
+\newcommand{\Autoref}[1]{\Cref{#1}}
 
 % Tools
 \newcommand{\estee}{\textsc{Estee}}

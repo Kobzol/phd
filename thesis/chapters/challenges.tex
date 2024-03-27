@@ -16,6 +16,7 @@ should be offered by task runtimes in order to either support the mentioned requ
 alleviate the mentioned problems.
 
 \section{Allocation manager}
+\label{sec:allocation-manager}
 Users of \gls{hpc} clusters are not typically allowed to directly perform
 arbitrary computations on the computational nodes (machines designed to perform expensive
 \gls{hpc} computations) of the cluster. Instead, they can connect to machines that
@@ -133,17 +134,17 @@ In addition to partitioning the task graph, this approach typically requires fur
 efforts that are outside the boundaries of the task-based programming model. As an example, the
 intermediate outputs of computed tasks of a partitioned subgraph might have to be persisted (to a
 storage system) before the corresponding allocation ends, and the results from multiple allocations
-then have to be merged together. In order to support recomputation of failed tasks, and
-submission of new tasks while a task graph is already executing, it should also be possible to
-periodically submit new allocations that could dynamically provide needed computational resources,
-until the whole task graph is computed. This reduces the ergonomics of using task graphs, because
-it basically requires users to reimplement parts of the task runtime behavior on top of the
-allocation manager, in order to overcome its limitations.
+then have to be merged together. In order to support recomputation of failed tasks, and submission
+of new tasks while a task graph is already executing, it should also be possible to periodically
+submit new allocations that could dynamically provide needed computational resources, until the
+whole task graph is computed. This reduces the ergonomics of using task graphs, because it
+basically requires users to reimplement parts of the task runtime behavior on top of the allocation
+manager, in order to overcome its limitations.
 
 \vspace{5mm}
-The gap between allocation managers and task runtimes creates a disconnect for users
-attempting to scale their task graph computation. Executing a task graph on a personal computer
-tends to be quite simple. After that, moving to an \gls{hpc} cluster and executing the entire task
+The gap between allocation managers and task runtimes creates a disconnect for users attempting to
+scale their task graph computation. Executing a task graph on a personal computer tends to be quite
+simple. After that, moving to an \gls{hpc} cluster and executing the entire task
 graph inside a single allocation is also quite straightforward. But once the task graph has to be
 partitioned into multiple allocations, the simple abstraction of implicitly parallel task graphs
 that can be executed with a single command quickly falls apart, as the user has to perform a lot of
@@ -154,9 +155,9 @@ construct a task graph and execute it directly on an \gls{hpc} cluster in a
 straightforward way, by letting some tool perform the partitioning and load balancing across
 allocations automatically for them. This could be achieved either by adding support for executing
 fine-grained task graphs to allocation managers or by adding support for communicating with
-allocation managers to task runtimes, to enable transparent execution of task graphs on \gls{hpc} systems.
-This functionality is provided by several \emph{meta-schedulers}, which will be mentioned in the
-next chapter.
+allocation managers to task runtimes, to enable transparent execution of task graphs on
+\gls{hpc} systems. This functionality is provided by several
+\emph{meta-schedulers}, which will be mentioned in the next chapter.
 
 \section{Cluster heterogeneity}
 Even though task graphs are designed to be portable and ideally should not depend on any specific
@@ -379,4 +380,4 @@ The aforementioned requirements will serve as a basis for further research in th
 The goal of the thesis is to design approaches for executing task graphs on
 \gls{hpc} systems that take the aforementioned requirements into account. These
 approaches will leverage the \hyperqueue{} task runtime, which is described further
-in Chapter~\ref{ch:hyperqueue}.
+in \Autoref{ch:hyperqueue}.

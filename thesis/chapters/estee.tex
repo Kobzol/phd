@@ -90,13 +90,13 @@ difficult to reproduce and extend these results without having access to the exa
 to implement the schedulers and the simulation environment used in these surveys. As we will show
 in the following chapter, the performance of scheduling algorithms can be highly affected by
 seemingly trivial implementation details, and having access only to a high-level textual
-description or pseudocode of a scheduling algorithm doesn't guarantee that it will be possible to
+description or pseudocode of a scheduling algorithm does not guarantee that it will be possible to
 reproduce it independently with the same performance characteristics. This makes it challenging to
 compare results between different simulation environments.
 
 Apart from the environments used in existing surveys, there are also more general task simulation
 environments. DAGSim~\cite{dagsim} offers a framework for comparing scheduling
-algorithms, and compares the performance of a few algorithms, but doesn't provide its
+algorithms, and compares the performance of a few algorithms, but does not provide its
 implementation, which makes it difficult to reproduce or extend its results.
 SimDAG~\cite{simdag} is a task graph simulator focused on \gls{hpc}
 use-cases built on top of the SimGrid~\cite{simgrid} framework. It allows relatively
@@ -104,7 +104,7 @@ simple implementation of new task scheduling algorithms, however it does not sup
 resource requirements (e.g.\ the number of used \gls{cpu} cores).
 
 In addition to simply comparing the performance of different schedulers, our goal was also to test
-two factors that affect scheduling, which we haven't seen explored in detail in existing works.
+two factors that affect scheduling, which we have not seen explored in detail in existing works.
 Namely, we wanted to examine the effects of \gls{msd}, the delay between two
 invocations of the scheduler and \emph{information mode}, the amount of knowledge of task durations
 that is available to the scheduler. These factors will be described in detail in the following
@@ -193,7 +193,7 @@ Each task has an associated duration, and can contain multiple outputs (data obj
 associated size. It can also specify how many cores does it require, to model the common
 requirement of executing multithreaded functions and programs on modern \gls{hpc}
 machines. The used model of a task graph corresponds precisely to the task graph definition
-contained in Chapter~\ref{ch:taskgraphs}.
+contained in \Autoref{ch:taskgraphs}.
 
 \subsection{Communication model}
 Some previous scheduler surveys assume that the time to transfer a data object from one worker to
@@ -269,7 +269,7 @@ performance, and which we have not seen examined in detail in existing literatur
 				within the workflow. For example, in a task graph that performs three kinds of tasks (e.g.\
 				preprocessing, computation and postprocessing), each kind of task would have its own distribution.
 				We have categorized the tasks of task graphs that we have used for scheduler benchmarks described
-				in Section~\ref{sec:estee-benchmarks} manually, to simulate a user that has some knowledge of the task
+				in~\Autoref{sec:estee-benchmarks} manually, to simulate a user that has some knowledge of the task
 				graph that they are trying to compute and is able to provide some estimate of task durations and
 				data object sizes.
 			\item[\emph{mean}] The scheduler has only access to the mean duration of all tasks and the mean size of all data
@@ -329,7 +329,7 @@ some priority criteria, and then repeatedly chooses the task with the highest pr
 it to a worker (which is selected by another heuristic).
 
 Below is a list of schedulers that we have implemented and benchmarked\footnote{The labels of the individual schedulers correspond to labels used in charts that will be presented
-in a Section~\ref{sec:estee-benchmarks}.}:
+in~\Autoref{sec:estee-benchmarks}.}:
 \noindent\textbf{blevel}\quad \gls{hlfet}~\cite{hlfet1974} is a
 foundational list-based scheduling algorithm that prioritizes tasks based on their
 \emph{b-level}. B-level of a task is the length of the longest path from the task to any
@@ -371,15 +371,16 @@ generated instead.
 This is an implementation of a simple work-stealing algorithm. The default policy is that each task
 that is ready to be executed (all its dependencies are already computed) is always assigned to a
 worker where it can be started with a minimal transfer cost. The scheduler then continuously
-monitors the load of workers. When a worker starts to starve (and thus doesn't have enough tasks to
-compute), then a portion of tasks assigned to other workers is rescheduled to the starving worker.
+monitors the load of workers. When a worker starts to starve (and thus does not have enough tasks
+to compute), then a portion of tasks assigned to other workers is rescheduled to the starving
+worker.
 
 In addition to these schedulers, we have also implemented several naive schedulers, which serve as
 a baseline for scheduler comparisons.
 
 \noindent\textbf{single}\quad
 This scheduler simply assigns all tasks to a single worker (it selects the worker with the most
-cores). The resulting schedule never induces any data transfers between workers, and doesn't take
+cores). The resulting schedule never induces any data transfers between workers, and does not take
 advantage of any parallelism between workers.
 
 \noindent\textbf{random}\quad
@@ -472,7 +473,7 @@ our benchmarks.
 		were used in the benchmarks. The properties of all used graphs are summarized in
 		Table~\ref{tab:estee-graph-properties}. The generated task graph dataset is available as a reproducible
 		artifact~\cite{estee_graphs}.
-	\item[Schedulers] We have benchmarked all schedulers described in Section~\ref{sec:estee-simulator}. Schedulers that use
+	\item[Schedulers] We have benchmarked all schedulers described in~\Autoref{sec:estee-simulator}. Schedulers that use
 		the greedy transfer heuristic are labeled with a \emph{-gt} suffix in benchmark
 		results.
 	\item[Scheduler parameters] To evaluate the effect of minimal scheduling delay, we have used a baseline value of zero, where
@@ -661,7 +662,7 @@ information mode and a Minimal Scheduling Delay of 0.1s.
 
 \subsubsection*{Random scheduler}
 
-%TODO: chart doesn't start at zero
+%TODO: chart does not start at zero
 \begin{figure}
 	\caption{Performance of the \emph{random} scheduler}
 	\label{fig:estee-chart-random-scheduler}
@@ -691,7 +692,7 @@ We have been able to validate these results in~\cite{rsds}, where we have shown 
 the worker count becomes larger, scheduling decisions can in some cases become less important, and
 other factors (like runtime performance of the task runtime) might start to dominate the overall
 task graph execution cost. This will be described in more detail in
-Chapter~\ref{ch:rsds}.
+\Autoref{ch:rsds}.
 
 \subsubsection*{Worker selection strategy}
 
@@ -838,7 +839,7 @@ as performant as possible. That makes it difficult, or even infeasible, to repla
 algorithm without also modifying large parts of the runtime. Furthermore, some scheduling
 approaches might not even be compatible with the architecture of the runtime as a whole. For
 example, work-stealing schedulers perform a lot of communication between the server and the workers
-(potentially even between the workers themselves), and if the runtime doesn't implement the
+(potentially even between the workers themselves), and if the runtime does not implement the
 necessary infrastructure for facilitating these communication patterns, then implementing a
 work-stealing scheduler into such a runtime might amount to rewriting it from scratch.
 
@@ -846,7 +847,7 @@ In order to at least partially validate our simulation results, we have decided 
 version of the \dask{}~\cite{dask} task runtime as a validation
 framework. Apart from validating results from the \estee{} simulations, we have also
 used this modified version of \dask{} to perform other experiments and benchmarks
-that are described in Chapter~\ref{ch:rsds}, which also depicts the architecture of
+that are described in \Autoref{ch:rsds}, which also depicts the architecture of
 \dask{} and our performed modifications in detail.
 
 \dask{} is written in Python, which makes it relatively easy to modify and patch.
@@ -878,7 +879,7 @@ the other direction. We have executed several task graphs in \dask{}, and record
 their execution traces, so that we would have a completely accurate representation of all the
 executed task durations and data object sizes, which we could then accurately replicate in the
 simulated \estee{} environment. The recorded task graphs are described in
-Chapter~\ref{ch:rsds} and also in~\cite{rsds}. We have executed these task
+\Autoref{ch:rsds} and also in~\cite{rsds}. We have executed these task
 graphs with a $24x2$ cluster (24 cores on two nodes), and performed each execution
 and simulation three times.
 

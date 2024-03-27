@@ -14,7 +14,7 @@ for several reasons:
 	\item It is implemented in Python, which makes it relatively easy to modify.
 	\item It is quite versatile, because it allows executing arbitrary task graphs with dependencies and data
 	      objects, and completely supports the task programming model described in
-	      Chapter~\ref{ch:taskgraphs}.
+	      \Autoref{ch:taskgraphs}.
 	\item It uses a fairly standard distributed architecture with a centralized server that creates task
 	      schedules and assigns tasks to a set of distributed workers. This maps well to the cluster
 	      architecture used by \estee{}, and also to \gls{hpc} clusters in
@@ -28,8 +28,8 @@ bottleneck which should be prioritized.
 
 To answer that question, we have analyzed the runtime performance and the bottlenecks of
 \dask{} in
-\emph{Runtime vs Scheduler: Analyzing Dask's Overheads}\footnote{Note that this line of research follows after the task scheduler analysis described previously in
-Chapter~\ref{ch:estee}, even though it was published at an earlier date.}~\cite{rsds}. This work
+\emph{Runtime vs Scheduler: Analyzing Dask's Overheads}\footnote{Note that this line of research follows after the task scheduler analysis described previously
+in~\Autoref{ch:estee}, even though it was published at an earlier date.}~\cite{rsds}. This work
 provides the following contributions:
 \begin{enumerate}
 	\item We have created a set of benchmarks containing diverse task graphs implemented in
@@ -53,7 +53,7 @@ publication~\cite{rsds}.
 \workshare{I have collaborated on this work with Ada Böhm, we have both contributed to it equally. Source code contribution statistics for
 \rsds{} can be found on GitHub\footnoteurl{https://github.com/it4innovations/rsds/graphs/contributors}.}
 
-\section{Dask}
+\section{\dask{}}
 \label{sec:rsds-dask}
 % TODO: place Dask into SOTA and describe it more, if not already done in the SOTA chapter
 \dask{} is a distributed task runtime implemented in Python that can
@@ -112,7 +112,7 @@ from these high-level interfaces, it is also possible to build a task graph manu
 \emph{Futures} interface, to define complex computational workflows.
 
 The core computational abstraction of \dask{} is a \emph{task graph},
-which corresponds closely to the definition of task graphs in Chapter~\ref{ch:taskgraphs}.
+which corresponds closely to the definition of task graphs in \Autoref{ch:taskgraphs}.
 Each task represents a single invocation of a Python function. The return value of the function
 forms its \emph{output} (a data object), and the arguments of the function invocation define the
 \emph{inputs} of the task.
@@ -187,7 +187,7 @@ The primary bottlenecks that limit the efficiency of \dask{} are related to the
 programming language used for its implementation. All described components (server, worker and
 client), are implemented in Python, which has non-trivial consequences for its performance, because
 the Python language is not well suited for implementing high-performance infrastructure. The most
-commonly used Python interpreter (CPython\footnoteurl{https://github.com/python/cpython}) doesn't allow programmers to
+commonly used Python interpreter (CPython\footnoteurl{https://github.com/python/cpython}) does not allow programmers to
 make optimal use of hardware in general in an easy way, due to its indirect memory layout and
 automatic memory management that pervasively uses reference-counting.
 
@@ -202,10 +202,10 @@ multiple Python threads (e.g.\ by using blocking \gls{io}, which releases the
 There are some caveats to this, notably code written using native Python extensions (most commonly
 written in \texttt{C}, \texttt{C++} or \texttt{Rust})
 can run truly in parallel with other Python threads, but only if it opts into releasing the global
-lock, and if it doesn't need to interact with the Python interpreter at all while the native code
+lock, and if it does not need to interact with the Python interpreter at all while the native code
 is running.
 
-The \gls{gil} issue doesn't impact only \dask{}, of course.
+The \gls{gil} issue does not impact only \dask{}, of course.
 It is a pervasive issue across the whole Python ecosystem. There have been multiple attempts over
 the years to remove the \gls{gil} from CPython, but they have not been successful
 yet. The most recent attempt has progressed the furthest, and it has been accepted as a
@@ -565,7 +565,7 @@ the number of workers. They also show that the minimum duration of tasks execute
 overhead.
 
 These results also suggest that \dask{} can struggle with a larger number of
-workers. This wouldn't be an issue on its own, as every task runtime will have its scaling limit.
+workers. This would not be an issue on its own, as every task runtime will have its scaling limit.
 However, due to the already mentioned effect of \gls{gil},
 \dask{} users might be forced to use more workers than would be otherwise
 necessary to achieve reasonable performance. We will examine this in the next experiment.
@@ -602,7 +602,7 @@ some \dask{} workflows, users might need to carefully tune the configuration of
 workers to achieve optimal performance.
 
 \subsubsection*{Summary}
-Our experiments have shown that \dask{} doesn't scale optimally to a large
+Our experiments have shown that \dask{} does not scale optimally to a large
 number of workers and it might require manual tuning of worker configuration to achieve the optimal
 performance. This lead us to the idea of improving the implementation of the
 \dask{} server, in order to reduce its overhead in \gls{hpc}
@@ -628,7 +628,7 @@ server\footnoteurl{https://github.com/it4innovations/rsds}, with the following g
 
 \subsection*{Architecture}
 \rsds{} is implemented in the Rust programming language, which has a minimal
-runtime and doesn't dictate automatic memory management. This reduces the ubiquitous overhead of
+runtime and does not dictate automatic memory management. This reduces the ubiquitous overhead of
 reference counting and data indirection present in Python. It also has direct support for
 asynchronous \gls{io} and provides strong memory safety guarantees, hence it is
 well suited for writing distributed applications.
@@ -744,7 +744,7 @@ gain, and some of them cannot be implemented in a straightforward way in a diffe
 Python. For example, Dask contains an \gls{api} that allows clients to run a
 Python function on the server, yet this functionality does not have a direct counterpart in a
 server implemented in a different programming language. The fact that \rsds{}
-is able to execute all the benchmarks described in Section~\ref{sec:rsds-dask-overhead-analysis} demonstrates
+is able to execute all the benchmarks described in~\Autoref{sec:rsds-dask-overhead-analysis} demonstrates
 that it supports a wide variety of \dask{} programs.
 
 \subsection*{Schedulers}
@@ -791,7 +791,7 @@ such as work-stealing.
 We have performed a set of experiments to evaluate how does \rsds{} perform in
 comparison to \dask{}. The experiments were performed using the same hardware
 and benchmark set that was used for the previous \dask{} experiments, described
-in Section~\ref{sec:rsds-dask-overhead-analysis}. Our experiments are structured in the same way as the
+in~\Autoref{sec:rsds-dask-overhead-analysis}. Our experiments are structured in the same way as the
 \dask{} experiments, they focus on the comparison of the two schedulers, on the
 number of workers that each server implementation can scale to, and on their inner overhead per
 task. Unless stated explicitly, all experiments use the original \dask{} client
@@ -861,7 +861,7 @@ is further increased.
 	\end{tabular}
 \end{table}
 
-In Section~\ref{sec:rsds-dask-overhead-analysis}, it was noted that the random scheduler used in
+In~\Autoref{sec:rsds-dask-overhead-analysis}, it was noted that the random scheduler used in
 \dask{} was quite competitive with the work-stealing scheduler implementation.
 Our hypothesis was that this phenomenon is reinforced by the runtime overhead of
 \dask{}. To test this hypothesis, we have also compared the performance of the
@@ -988,7 +988,7 @@ to keep its performance relatively steady with an increasing number of workers, 
 scaling, even for short tasks.
 
 \subsubsection*{Overhead per task}
-In Section~\ref{sec:dask-overhead-per-task}, we have seen that the average overhead of
+In~\Autoref{sec:dask-overhead-per-task}, we have seen that the average overhead of
 \dask{} for each task is around $0.3ms$. In this experiment,
 we have measured the per-task overhead of \rsds{}, so that we could qualify how
 much was its overhead reduced, relative to the baseline. All the benchmarks in this experiment were
