@@ -125,7 +125,7 @@ existing literature and also a task graph generator that can be used to generate
 with properties similar to real-world task graphs.
 
 \subsection{Architecture}
-Figure~\ref{fig:estee-architecture} shows the architecture of \estee{}. The core of the
+\Autoref{fig:estee-architecture} shows the architecture of \estee{}. The core of the
 tool is the Simulator component, which uses discrete event simulation to simulate the execution of
 a task graph. It manages task lifetime, queries the Scheduler component for task-to-worker
 assignments (schedules) and then assigns the tasks to their corresponding workers. The Worker
@@ -147,12 +147,11 @@ scheduler and of the cluster and its network topology.
 One of our goals for \estee{} was to make it very easy to write new scheduling
 algorithms and make the scheduler approachable for other researchers that might want to experiment
 with task schedulers. That was also one of the motivations why we decided to create
-\estee{} in Python, which facilitates experimentation.
-Listing~\ref{lst:estee-example} shows an example of a task graph simulation that demonstrates the
-simplicity of defining task graph simulation using\estee{}. The output of the
-simulation is both the makespan (the duration it took to execute the task graph) and also a
-detailed trace that can be used to visualize the individual task-to-worker assignments and task
-execution time spans.
+\estee{} in Python, which facilitates experimentation. \Autoref{lst:estee-example} shows
+an example of a task graph simulation that demonstrates the simplicity of defining task graph
+simulation using \estee{}. The output of the simulation is both the makespan (the
+duration it took to execute the task graph) and also a detailed trace that can be used to visualize
+the individual task-to-worker assignments and task execution time spans.
 
 \begin{listing}
 	\caption{Simple task graph simulation example using \estee{}}
@@ -269,9 +268,9 @@ performance, and which we have not seen examined in detail in existing literatur
 				within the workflow. For example, in a task graph that performs three kinds of tasks (e.g.\
 				preprocessing, computation and postprocessing), each kind of task would have its own distribution.
 				We have categorized the tasks of task graphs that we have used for scheduler benchmarks described
-				in~\Autoref{sec:estee-benchmarks} manually, to simulate a user that has some knowledge of the task
-				graph that they are trying to compute and is able to provide some estimate of task durations and
-				data object sizes.
+				in~\Autoref{sec:estee-benchmarks} manually, to simulate a user that has some knowledge of the task graph
+				that they are trying to compute and is able to provide some estimate of task durations and data
+				object sizes.
 			\item[\emph{mean}] The scheduler has only access to the mean duration of all tasks and the mean size of all data
 				objects in the executed task graph. This simulates a situation where a similar task graph is
 				executed repeatedly, and thus there is at least some aggregated information about the task
@@ -435,7 +434,7 @@ that can be generated:
 \vspace{1mm}\noindent\textbf{elementary}\quad This category contains trivial graph
 shapes, such as tasks with no dependencies or simple fork-join graphs. These graphs can test the
 behavior of scheduler heuristics on basic task graph building blocks that frequently form parts of
-larger workflows. Examples of these graphs can be seen in Figure~\ref{fig:estee-elementary-shapes}.
+larger workflows. Examples of these graphs can be seen in \Autoref{fig:estee-elementary-shapes}.
 
 \vspace{1mm}\noindent\textbf{irw}\quad This generator creates graphs that are
 inspired by real-world workflows, such as machine learning cross-validations or map-reduce
@@ -473,9 +472,8 @@ our benchmarks.
 		were used in the benchmarks. The properties of all used graphs are summarized in
 		Table~\ref{tab:estee-graph-properties}. The generated task graph dataset is available as a reproducible
 		artifact~\cite{estee_graphs}.
-	\item[Schedulers] We have benchmarked all schedulers described in~\Autoref{sec:estee-simulator}. Schedulers that use
-		the greedy transfer heuristic are labeled with a \emph{-gt} suffix in benchmark
-		results.
+	\item[Schedulers] We have benchmarked all schedulers described in~\Autoref{sec:estee-simulator}. Schedulers that use the
+		greedy transfer heuristic are labeled with a \emph{-gt} suffix in benchmark results.
 	\item[Scheduler parameters] To evaluate the effect of minimal scheduling delay, we have used a baseline value of zero, where
 		the scheduler is invoked immediately after any task status update, and then a delay of 0.1, 0.4,
 		1.6 and 6.4 seconds. In the cases where \gls{msd} is non-zero, we have also added a 50
@@ -673,10 +671,10 @@ information mode and a Minimal Scheduling Delay of 0.1s.
 
 Given the fact that task scheduling is an NP-hard problem, it would seem that a random scheduling
 approach should produce unsatisfying results. We thus wanted to examine how does a completely
-random scheduler hold up against more sophisticated approaches. Figure~\ref{fig:estee-chart-random-scheduler}
-compares the simulated makespan durations of the \emph{random} scheduler vs. two other
-schedulers that are quite competitive (\emph{blevel-gt} and the work-stealing
-\emph{ws} scheduler) on several task graphs.
+random scheduler hold up against more sophisticated approaches. \Autoref{fig:estee-chart-random-scheduler} compares
+the simulated makespan durations of the \emph{random} scheduler vs. two other schedulers
+that are quite competitive (\emph{blevel-gt} and the work-stealing \emph{ws}
+scheduler) on several task graphs.
 
 While there are indeed cases where random scheduling falls short (for example on the
 cross-validation \emph{crossv} task graph, or in situations with many workers and a slow
@@ -691,8 +689,7 @@ performance is reasonable.
 We have been able to validate these results in~\cite{rsds}, where we have shown that as
 the worker count becomes larger, scheduling decisions can in some cases become less important, and
 other factors (like runtime performance of the task runtime) might start to dominate the overall
-task graph execution cost. This will be described in more detail in
-\Autoref{ch:rsds}.
+task graph execution cost. This will be described in more detail in \Autoref{ch:rsds}.
 
 \subsubsection*{Worker selection strategy}
 
@@ -707,11 +704,11 @@ task graph execution cost. This will be described in more detail in
 As was explained in~\ref{subsec:estee-schedulers}, the descriptions of several schedulers that we have
 implemented in~\estee{} do not specify the concrete strategy for selecting a worker
 that can start executing a given task as soon as possible. Yet, as we can see in
-Figure~\ref{fig:estee-chart-gt-scheduler}, this implementation detail is crucial. This chart shows the
-performance of two scheduling algorithms (\emph{blevel} and \emph{mcp}),
-each in two variants, with the simple selection strategy and with the greedy transfer strategy (the
-used worker selection strategy was the only difference between the simple and the
-\emph{-gt} suffixed variants).
+\Autoref{fig:estee-chart-gt-scheduler}, this implementation detail is crucial. This chart shows the performance of
+two scheduling algorithms (\emph{blevel} and \emph{mcp}), each in two
+variants, with the simple selection strategy and with the greedy transfer strategy (the used worker
+selection strategy was the only difference between the simple and the \emph{-gt}
+suffixed variants).
 
 It can be seen that there is a large difference between these two strategies. In fact, the results
 suggest that in these specific scenarios, the worker selection strategy had a larger effect on the
@@ -741,7 +738,7 @@ greedy transfer were highly correlated.
 	$32x4$}
 \end{figure}
 
-Figure~\ref{fig:estee-chart-irw-netmodel} demonstrates how does the used network model affect simulated task
+\Autoref{fig:estee-chart-irw-netmodel} demonstrates how does the used network model affect simulated task
 graph makespans for a selected set of task graphs and schedulers, using task graphs from the
 \emph{irw} dataset on the $32x4$ cluster with 32 workers. The Y axis
 is normalized with respect to the average makespan of simulations performed with the
@@ -758,7 +755,7 @@ magnitude apart. This is a quite significant, because the difference between the
 schedulers (with a fixed network model) is otherwise usually within a factor of two, which was
 demonstrated both by our other results and in~\cite{wang2018list}. The gap between the two
 network models depends heavily on the used task graph. For task graphs from the Pegasus dataset,
-the difference was much smaller, as can be seen in Figure~\ref{fig:estee-chart-pegasus-netmodel}.
+the difference was much smaller, as can be seen in \Autoref{fig:estee-chart-pegasus-netmodel}.
 
 \subsubsection*{Minimal scheduling delay}
 
@@ -771,13 +768,13 @@ the difference was much smaller, as can be seen in Figure~\ref{fig:estee-chart-p
 	$\gls{msd}=0$}
 \end{figure}
 
-In Figure~\ref{fig:estee-chart-irw-msd}, we can observe the effect of \gls{msd} on graphs
-from the \emph{irw} dataset, with the $32x4$ cluster configuration.
-The Y axis is normalized with respect to the configuration where \gls{msd} is zero.
-The results show that the effect of \gls{msd} is relatively limited. There does not
-seem to be any clear correlation or pattern that would suggest that a smaller
-\gls{msd} consistently improves performance of a scheduler. Although, interestingly a
-higher \gls{msd} value caused several makespan improvements, especially on the
+In \Autoref{fig:estee-chart-irw-msd}, we can observe the effect of \gls{msd} on graphs from the
+\emph{irw} dataset, with the $32x4$ cluster configuration. The Y axis
+is normalized with respect to the configuration where \gls{msd} is zero. The results
+show that the effect of \gls{msd} is relatively limited. There does not seem to be
+any clear correlation or pattern that would suggest that a smaller \gls{msd}
+consistently improves performance of a scheduler. Although, interestingly a higher
+\gls{msd} value caused several makespan improvements, especially on the
 \emph{gridcat} task graph.
 
 This is (again) an example of the non-trivial effect of scheduler heuristics. Increasing the
@@ -807,7 +804,7 @@ implementation and the task graph that it executes.
 %	\emph{exact} average; row: scheduler; cluster $32x4$}
 %\end{figure}
 
-Figure~\ref{fig:estee-chart-irw-imode} compares makespans of several scheduler and task graph combinations
+\Autoref{fig:estee-chart-irw-imode} compares makespans of several scheduler and task graph combinations
 from the \emph{irw} dataset on a $32x4$ cluster, with different
 information modes being used. The results are normalized to the mean makespan of the default
 \emph{exact} information mode. In general, the effect of information modes is more
@@ -879,9 +876,9 @@ the other direction. We have executed several task graphs in \dask{}, and record
 their execution traces, so that we would have a completely accurate representation of all the
 executed task durations and data object sizes, which we could then accurately replicate in the
 simulated \estee{} environment. The recorded task graphs are described in
-\Autoref{ch:rsds} and also in~\cite{rsds}. We have executed these task
-graphs with a $24x2$ cluster (24 cores on two nodes), and performed each execution
-and simulation three times.
+\Autoref{ch:rsds} and also in~\cite{rsds}. We have executed these task graphs
+with a $24x2$ cluster (24 cores on two nodes), and performed each execution and
+simulation three times.
 
 \begin{figure}
 	\caption{Scheduler performance relative to \emph{blevel} in \dask{} and \estee}
@@ -891,7 +888,7 @@ and simulation three times.
 	{\small x axis: scheduler; y axis: performance relative to \emph{blevel}}
 \end{figure}
 
-Figure~\ref{fig:estee-validation} shows the results of the validation comparison for three selected
+\Autoref{fig:estee-validation} shows the results of the validation comparison for three selected
 task graphs\footnote{Extended validation results can be found in~\cite{estee}.}. The performance of each scheduler was normalized to the
 makespan of the \emph{blevel} scheduler within the same environment (either
 \estee{} or \dask{}). Note that the relative ratios were centered
