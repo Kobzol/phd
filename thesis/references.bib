@@ -305,8 +305,116 @@ and Spjuth, Ola",
     url = {https://towardsdatascience.com/benchmarking-python-distributed-ai-backends-with-wordbatch-9872457b785c},
     urldate = {2020-04-20}
 }
-
-% Technologies
+@article{spmd,
+    author = {F. Darema and D.A. George and V.A. Norton and G.F. Pfister},
+    title = {A single-program-multiple-data computational model for EPEX/FORTRAN},
+    journal = {Parallel Computing},
+    volume = {7},
+    number = {1},
+    pages = {11-24},
+    year = {1988},
+    issn = {0167-8191},
+    doi = {https://doi.org/10.1016/0167-8191(88)90094-4},
+%    url = {https://www.sciencedirect.com/science/article/pii/0167819188900944},
+%    keywords = {Shared memory multiprocessor, EPEX/FORTRAN, computational model, parallelization features},
+%    abstract = {We present a single-program-multiple-data computational model which we have implemented in the EPEX system to run in parallel mode FORTRAN scientific application programs. The computational model assumes a shared memory organization and is based on the scheme that all processes executing a program in parallel remain in existence for the entire execution; however, the tasks to be executed by each process are determined dynamically during execution by the use of appropriate synchronizing constructs that are imbedded in the program. We have demonstrated the applicability of the model in the parallelization of several applications. We discuss parallelization features of these applications and performance issues such as overhead, speedup, efficiency.}
+}
+@INPROCEEDINGS{hybrid_openmp_mpi,
+    author={Rabenseifner, Rolf and Hager, Georg and Jost, Gabriele},
+    booktitle={2009 17th Euromicro International Conference on Parallel, Distributed and Network-based Processing},
+    title={Hybrid MPI/OpenMP Parallel Programming on Clusters of Multi-Core SMP Nodes},
+    year={2009},
+    volume={},
+    number={},
+    pages={427-436},
+%    keywords={Parallel programming;Yarn;High performance computing;Concurrent computing;Distributed computing;Hardware;Computer networks;Message passing;Topology;Taxonomy;Hybrid programming;MPI;OpenMP;multi-core;SMP},
+    doi={10.1109/PDP.2009.43}
+}
+@report{memory_safety_report,
+    author = {National Cybersecurity Strategy},
+    title = {Back to the Building Blocks: a Path Towards Secure and Measurable Software},
+    institution = {National Cybersecurity Strategy},
+    url = {https://www.whitehouse.gov/wp-content/uploads/2024/02/Final-ONCD-Technical-Report.pdf},
+    urldate = {2024-03-24},
+    year = {2024},
+}
+@article{fault_tolerant_mpi,
+    title={Fault tolerance in message passing interface programs},
+    author={Gropp, William and Lusk, Ewing},
+    journal={The International Journal of High Performance Computing Applications},
+    volume={18},
+    number={3},
+    pages={363--372},
+    year={2004},
+    publisher={Sage Publications Sage CA: Thousand Oaks, CA}
+}
+@article{horovod,
+    title={Horovod: fast and easy distributed deep learning in TensorFlow},
+    author={Alexander Sergeev and Mike Del Balso},
+    journal={ArXiv},
+    year={2018},
+    volume={abs/1802.05799},
+    url={https://api.semanticscholar.org/CorpusID:3398835}
+}
+@Book{cpp11_standard,
+    author =       "{ISO}",
+    title =        "{ISO\slash IEC 14882:2011 Information technology ---
+                 Programming languages --- C++}",
+    publisher =    pub-ISO,
+    address =      pub-ISO:adr,
+    edition =      "Third",
+%    pages =        "????",
+    day =          "1",
+    month =        sep,
+    year =         "2011",
+%    ISBN =         "????",
+%    ISBN-13 =      "????",
+%    LCCN =         "????",
+%    bibdate =      "Mon Dec 19 11:12:12 2011",
+%    bibsource =    "https://www.math.utah.edu/pub/tex/bib/isostd.bib;
+%                 https://www.math.utah.edu/pub/tex/bib/mathcw.bib",
+    URL =          "http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=50372",
+%    acknowledgement = ack-nhfb,
+%    remark =       "Revises ISO/IEC 14882:2003.",
+}
+@manual{intel_developer_manual,
+    added-at = {2008-09-15T08:33:44.000+0200},
+%    author = {?},
+%    biburl = {https://www.bibsonomy.org/bibtex/2d1fd8c578b32c046dc1e7de8410665b5/rekstorm},
+%    interhash = {eee5c9ed0fff42f3a37bc7bd3375dc39},
+%    intrahash = {d1fd8c578b32c046dc1e7de8410665b5},
+    keywords = {Architectures Manual},
+    month = {August},
+    organization = {Intel Corporation},
+    timestamp = {2008-09-15T08:52:53.000+0200},
+    title = {Intel 64 and IA-32 Architectures Software Developer's Manual - Volume 3B},
+    year = 2007
+}
+@software{hadoop,
+    author = {{Apache Software Foundation}},
+    title = {Hadoop},
+    url = {https://hadoop.apache.org},
+    version = {0.20.2},
+    date = {2010-02-19},
+}
+@article{spark,
+    author = {Zaharia, Matei and Xin, Reynold S. and Wendell, Patrick and Das, Tathagata and Armbrust, Michael and Dave, Ankur and Meng, Xiangrui and Rosen, Josh and Venkataraman, Shivaram and Franklin, Michael J. and Ghodsi, Ali and Gonzalez, Joseph and Shenker, Scott and Stoica, Ion},
+    title = {Apache Spark: a unified engine for big data processing},
+    year = {2016},
+    issue_date = {November 2016},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {59},
+    number = {11},
+    issn = {0001-0782},
+%    url = {https://doi.org/10.1145/2934664},
+    doi = {10.1145/2934664},
+%    abstract = {This open source computing framework unifies streaming, batch, and interactive big data workloads to unlock new applications.},
+    journal = {Commun. ACM},
+    month = {oct},
+    pages = {56–65},
+    numpages = {10}
+}
 @techreport{mpi,
     author = {Forum, Message P},
     title = {MPI: A Message-Passing Interface Standard},
@@ -334,6 +442,143 @@ and Spjuth, Ola",
     year={2001},
     publisher={Morgan kaufmann}
 }
+@article{cuda,
+    author = {Nickolls, John and Buck, Ian and Garland, Michael and Skadron, Kevin},
+    title = {Scalable Parallel Programming with CUDA.},
+    journal = {ACM Queue},
+    doi = {10.1145/1365490.1365500},
+%    keywords = {dblp},
+    number = 2,
+    pages = {40-53},
+    timestamp = {2018-11-07T11:49:23.000+0100},
+%    url = {http://dblp.uni-trier.de/db/journals/queue/queue6.html#NickollsBGS08},
+    volume = 6,
+    year = 2008
+}
+@misc{tensorflow,
+    title={ {TensorFlow}: Large-Scale Machine Learning on Heterogeneous Systems},
+    url={https://www.tensorflow.org/},
+    note={Software available from tensorflow.org},
+    author={
+    Mart\'{i}n~Abadi and
+    Ashish~Agarwal and
+    Paul~Barham and
+    Eugene~Brevdo and
+    Zhifeng~Chen and
+    Craig~Citro and
+    Greg~S.~Corrado and
+    Andy~Davis and
+    Jeffrey~Dean and
+    Matthieu~Devin and
+    Sanjay~Ghemawat and
+    Ian~Goodfellow and
+    Andrew~Harp and
+    Geoffrey~Irving and
+    Michael~Isard and
+    Yangqing Jia and
+    Rafal~Jozefowicz and
+    Lukasz~Kaiser and
+    Manjunath~Kudlur and
+    Josh~Levenberg and
+    Dandelion~Man\'{e} and
+    Rajat~Monga and
+    Sherry~Moore and
+    Derek~Murray and
+    Chris~Olah and
+    Mike~Schuster and
+    Jonathon~Shlens and
+    Benoit~Steiner and
+    Ilya~Sutskever and
+    Kunal~Talwar and
+    Paul~Tucker and
+    Vincent~Vanhoucke and
+    Vijay~Vasudevan and
+    Fernanda~Vi\'{e}gas and
+    Oriol~Vinyals and
+    Pete~Warden and
+    Martin~Wattenberg and
+    Martin~Wicke and
+    Yuan~Yu and
+    Xiaoqiang~Zheng},
+    year={2015},
+}
+@inproceedings{cost,
+    author = {McSherry, Frank and Isard, Michael and Murray, Derek G.},
+    title = {Scalability! but at what cost?},
+    year = {2015},
+    publisher = {USENIX Association},
+    address = {USA},
+%    abstract = {We offer a new metric for big data platforms, COST, or the Configuration that Outperforms a Single Thread. The COST of a given platform for a given problem is the hardware configuration required before the platform outperforms a competent single-threaded implementation. COST weighs a system's scalability against the overheads introduced by the system, and indicates the actual performance gains of the system, without rewarding systems that bring substantial but parallelizable overheads.We survey measurements of data-parallel systems recently reported in SOSP and OSDI, and find that many systems have either a surprisingly large COST, often hundreds of cores, or simply underperform one thread for all of their reported configurations.},
+    booktitle = {Proceedings of the 15th USENIX Conference on Hot Topics in Operating Systems},
+    pages = {14},
+    numpages = {1},
+    location = {Switzerland},
+    series = {HOTOS'15}
+}
+@INPROCEEDINGS{mpiusagestudy1,
+    author={Chunduri, Sudheer and Parker, Scott and Balaji, Pavan and Harms, Kevin and Kumaran, Kalyan},
+    booktitle={SC18: International Conference for High Performance Computing, Networking, Storage and Analysis},
+    title={Characterization of MPI Usage on a Production Supercomputer},
+    year={2018},
+    volume={},
+    number={},
+    pages={386-400},
+%    keywords={Tools;Hardware;Supercomputers;Libraries;Control systems;Production systems;MPI;monitoring;Autoperf;core-hours},
+    doi={10.1109/SC.2018.00033}
+}
+@article{mpiusagestudy2,
+    author = {Bernholdt, David E. and Boehm, Swen and Bosilca, George and Gorentla Venkata, Manjunath and Grant, Ryan E. and Naughton, Thomas and Pritchard, Howard P. and Schulz, Martin and Vallee, Geoffroy R.},
+    title = {A survey of MPI usage in the US exascale computing project},
+    journal = {Concurrency and Computation: Practice and Experience},
+    volume = {32},
+    number = {3},
+    pages = {e4851},
+    keywords = {exascale, MPI},
+    doi = {https://doi.org/10.1002/cpe.4851},
+%    url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/cpe.4851},
+%    eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1002/cpe.4851},
+    note = {e4851 cpe.4851},
+%    abstract = {Summary The Exascale Computing Project (ECP) is currently the primary effort in the United States focused on developing “exascale” levels of computing capabilities, including hardware, software, and applications. In order to obtain a more thorough understanding of how the software projects under the ECP are using, and planning to use the Message Passing Interface (MPI), and help guide the work of our own project within the ECP, we created a survey. Of the 97 ECP projects active at the time the survey was distributed, we received 77 responses, 56 of which reported that their projects were using MPI. This paper reports the results of that survey for the benefit of the broader community of MPI developers.},
+    year = {2020}
+}
+@inproceedings{mpiusagestudy3,
+    author = {Laguna, Ignacio and Marshall, Ryan and Mohror, Kathryn and Ruefenacht, Martin and Skjellum, Anthony and Sultana, Nawrin},
+    title = {A large-scale study of MPI usage in open-source HPC applications},
+    year = {2019},
+    isbn = {9781450362290},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+%    url = {https://doi.org/10.1145/3295500.3356176},
+    doi = {10.1145/3295500.3356176},
+%    abstract = {Understanding the state-of-the-practice in MPI usage is paramount for many aspects of supercomputing, including optimizing the communication of HPC applications and informing standardization bodies and HPC systems procurements regarding the most important MPI features. Unfortunately, no previous study has characterized the use of MPI on applications at a significant scale; previous surveys focus either on small data samples or on MPI jobs of specific HPC centers. This paper presents the first comprehensive study of MPI usage in applications. We survey more than one hundred distinct MPI programs covering a significantly large space of the population of MPI applications. We focus on understanding the characteristics of MPI usage with respect to the most used features, code complexity, and programming models and languages. Our study corroborates certain findings previously reported on smaller data samples and presents a number of interesting, previously un-reported insights.},
+    booktitle = {Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis},
+    articleno = {31},
+    numpages = {14},
+%    keywords = {MPI, applications survey, program analysis},
+    location = {Denver, Colorado},
+    series = {SC '19}
+}
+@InProceedings{task_checkpointing,
+    author="Verg{\'e}s, Pere
+and Lordan, Francesc
+and Ejarque, Jorge
+and Badia, Rosa M.",
+%    editor="Singer, Jeremy
+%and Elkhatib, Yehia
+%and Blanco Heras, Dora
+%and Diehl, Patrick
+%and Brown, Nick
+%and Ilic, Aleksandar",
+    title="Task-Level Checkpointing System for Task-Based Parallel Workflows",
+    booktitle="Euro-Par 2022: Parallel Processing Workshops",
+    year="2023",
+    publisher="Springer Nature Switzerland",
+    address="Cham",
+    pages="251--262",
+%    abstract="Scientific applications are large and complex; task-based programming models are a popular approach to developing these applications due to their ease of programming and ability to handle complex workflows and distribute their workload across large infrastructures. In these environments, either the hardware or the software may lead to failures from a myriad of origins: application logic, system software, memory, network, or disk. Re-executing a failed application can take hours, days, or even weeks, thus, dragging out the research. This article proposes a recovery system for dynamic task-based models to reduce the re-execution time of failed runs. The design encapsulates in a checkpointing manager the automatic checkpointing of the execution, leveraging different mechanisms that can be arbitrarily defined and tuned to fit the needs of each performance. Additionally, it offers an API call to establish snapshots of the execution from the application code. The experiments executed on a prototype implementation have reached a speedup of 1.9{\$}{\$}{\backslash}times {\$}{\$}{\texttimes}after re-execution and shown no overhead on the execution time on successful first runs of specific applications.",
+    isbn="978-3-031-31209-0"
+}
+
 
 % Allocation managers
 @InProceedings{slurm,
@@ -703,6 +948,19 @@ and van der Spoel, David",
     issn="0948-5023",
     doi="10.1007/s008940100045",
 %    url="https://doi.org/10.1007/s008940100045"
+}
+@article{gromacs_mpi,
+    title = {GROMACS: High performance molecular simulations through multi-level parallelism from laptops to supercomputers},
+    journal = {SoftwareX},
+    volume = {1-2},
+    pages = {19-25},
+    year = {2015},
+    issn = {2352-7110},
+    doi = {https://doi.org/10.1016/j.softx.2015.06.001},
+%    url = {https://www.sciencedirect.com/science/article/pii/S2352711015000059},
+    author = {Mark James Abraham and Teemu Murtola and Roland Schulz and Szilárd Páll and Jeremy C. Smith and Berk Hess and Erik Lindahl},
+%    keywords = {Molecular dynamics, GPU, SIMD, Free energy},
+%    abstract = {GROMACS is one of the most widely used open-source and free software codes in chemistry, used primarily for dynamical simulations of biomolecules. It provides a rich set of calculation types, preparation and analysis tools. Several advanced techniques for free-energy calculations are supported. In version 5, it reaches new performance heights, through several new and enhanced parallelization algorithms. These work on every level; SIMD registers inside cores, multithreading, heterogeneous CPU–GPU acceleration, state-of-the-art 3D domain decomposition, and ensemble-level parallelization through built-in replica exchange and the separate Copernicus framework. The latest best-in-class compressed trajectory storage format is supported.}
 }
 @inproceedings{hyperloom,
     author = {Cima, Vojtěch and Böhm, Stanislav and Martinovič, Jan and Dvorský, Jiří and Janurová, Kateřina and Aa, Tom Vander and Ashby, Thomas J. and Chupakhin, Vladimir},

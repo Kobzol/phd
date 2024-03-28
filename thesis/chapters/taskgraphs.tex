@@ -1,126 +1,344 @@
-There are many ways to design and program distributed and parallel programs for
-\gls{hpc} clusters. Historically, a popular way of creating \gls{hpc}
-applications was to implement the parallelization of computation and the distribution of data
-explicitly, typically using message-passing (e.g.\ \gls{mpi}~\cite{mpi}),
-global address space (e.g.\ \gls{pgas}~\cite{pgas}) and/or multithreading
-(e.g.\ \gls{openmp}~\cite{openmp}) frameworks, which are designed and fine-tuned
-for \gls{hpc} use-cases. With an explicitly parallel program, users have a lot of
-control over the exchange of data and communication between individual cores and distributed nodes,
-which allows them to create very performant programs. This approach is also quite flexible and
-enables expressing arbitrarily complex parallelization and data distribution strategies.
+This chapter describes and compares several models used for implementing parallel and distributed
+programs. Primarily, it focuses on the task-based programming model, which is a key topic of this
+thesis. It introduces basic terms and definitions related to tasks and task graphs, which will be
+needed in later chapters, and also describes a set of state-of-the-art tools that are based on
+tasks.
 
-However, even though such explicitly parallelized programs can be incredibly efficient,
-implementing them is notoriously difficult. Deadlocks and race conditions, which are already
-problematic for multithreaded programs, are even more of an issue for distributed programs.
-\gls{hpc} applications that use libraries for explicit distribution of data (such as
-various \gls{mpi} implementations) are also typically implemented in languages such as
-\texttt{C} or \texttt{C++} that are infamous for making it difficult to write
-correct, memory-safe programs without memory errors and undefined behaviour. This further increases
-the difficulty and decreases the speed of developing correct distributed programs.
+\section{HPC programming models}
+There are many ways to design and implement applications for distributed clusters. A distributed
+cluster is a set of computers (typically labeled as \emph{computing nodes}) that have their own
+independent processors and memory, and are connected together within a computer network. In the
+context of \gls{hpc}, such distributed clusters are called \emph{supercomputers}, and
+one of their distinguishing features is that all the computers of the cluster reside within one
+physical location, and they are connected with a very high-speed and low-latency network
+connection. There are also many other kinds of distributed clusters, such as data centers or
+cloud-based clusters, however this thesis focuses almost exclusively on \gls{hpc}
+systems and supercomputers.
 
-It would be unreasonable to expect that all scientists that want to leverage \gls{hpc}
-to execute their experiments will ``roll up their sleeves'' and spend months implementing an
-explicitly parallel \texttt{C++} program that uses \gls{mpi}. A more typical
-scenario is that scientists leverage existing coarse-grained tools and frameworks that are
-optimized for \gls{hpc} and use technologies like \gls{mpi} or OpenMP
-internally (e.g.\ GROMACS~\cite{gromacs}). However, with both the experiments and
-\gls{hpc} clusters becoming ever more complex each year, it is usually not sufficient
-to use only a single tool. Scientific experiments require running many independent steps, which
-encompass data transfer, preprocessing, postprocessing and the usage of potentially many different
-tools that have to be combined. These experiments can also be executed in potentially many
-instances that have different input parametrizations.
+Each approach (programming model) for creating distributed applications should be able to provide a
+way to efficiently utilize the available computing resources of the cluster, and to allow
+expressing communication patterns that enable the individual cluster nodes to cooperate and
+exchange data. Communication between nodes is crucial, as that is what allows distributed clusters
+to offer unparalleled performance by distributing the computational load amongst multiple
+computers.
 
-That is why in recent years, it became popular to define scientific computations using programming
-models where the high-level communication and parallelization structure of the computation is
-derived automatically from the program description. There are multiple ways of achieving that, such
-as using e.g.\ the MapReduce~\cite{mapreduce} model, however this thesis focuses on one
-approach in particular -- scientific workflows, also called pipelines. Workflows can describe a
-complex computation composed of potentially many different tool invocations that can depend on one
-another. They are often written in very high-level languages, such as Python, which allows users to
-focus on defining the computation easily and also to quickly prototype. Crucially, these workflows
-are typically based on a programming model that does not require explicit implementation of data
-exchange and parallelism -- the task-based programming model.
+This section describes the most important programming models that are used in the world of
+supercomputing. It divides the programming models into two broad categories; models that express
+parallelization and network communication explicitly, and models that do so implicitly.
+
+\subsection*{Explicit parallelization}
+One way to design distributed applications is to leverage programming models that express the
+parallelization of computation and the exchange of data between nodes explicitly. This has been the
+predominant way of creating \gls{hpc} software for many years, and it is still very
+popular today~\cite{mpiusagestudy1,mpiusagestudy2,mpiusagestudy3}. Below are a few examples of these explicit approaches.
+
+\begin{description}
+	\item[Message passing] has historically been the most popular method for implementing \gls{hpc} software. In
+		this model, a distributed computation is performed by a set of processes with separate memory
+		address spaces that are running on independent computing nodes. The processes cooperate together to
+		solve complex problemss by exchanging network messages (hence the term \emph{message passing}).
+		Message passing applications are commonly implemented using the
+		\gls{spmd}~\cite{spmd} computational model, where the implementation logic
+		of all the processes participating in the computation is embedded within a single program.
+
+		The most popular representative of this programming model is the
+		\gls{mpi}~\cite{mpi} framework, which is used by a large amount of
+		existing \gls{hpc} applications~\cite{mpiusagestudy2}. It defines a set of
+		communication primitives, operators and data types, which can be used to perform computations,
+		exchange data and synchronize progress between either two (\emph{point-to-point communication}) or multiple
+		(\emph{collective communication}) processes running on distributed nodes. \Autoref{lst:mpi-example} shows a
+		simple \gls{mpi} program which is designed to execute on two (potentially distributed)
+		processes. The first process sends a number to the second process, which waits until that number is
+		received, and then prints it to standard output. Notice how both network communication and
+		synchronization is expressed explicitly, by calling the \texttt{MPI\_Send} and
+		\texttt{MPI\_Recv} functions. We can also see the \gls{spmd} paradigm in practice,
+		because the code for both processes is interleaved within the same program.
+
+		\begin{listing}
+			\caption{Example of a simple \gls{mpi} program implemented in \texttt{C}}
+			\label{lst:mpi-example}
+			\begin{minted}[fontsize=\small]{c}
+#include <mpi.h>
+#include <stdio.h>
+
+int main() {
+    MPI_Init(NULL, NULL);
+
+    // Find out the ID of this process
+    int process_id;
+    MPI_Comm_rank(MPI_COMM_WORLD, &process_id);
+
+    if (process_id == 0) {
+        // Send one integer to process 1
+        int value = 42;
+        MPI_Send(&value, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
+    } else if (process_id == 1) {
+        // Receive one integer from process 0
+        int value = 0;
+        MPI_Recv(&value, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        printf("Process 1 received number %d from process 0\n", value);
+    }
+
+    MPI_Finalize();
+
+    return 0;
+}
+        \end{minted}
+		\end{listing}
+
+	\item[\gls{pgas}~\cite{pgas}] is a relatively similar programming model, which also often employs the \gls{spmd}
+		paradigm. Where it differs from message passing is in the way it expresses communication between
+		processes. Message passing processes share their memory by communicating with other processes,
+		while PGAS provides an abstraction of a shared memory address space and allows processes to
+		communicate through it\footnote{To paraphrase the famous ``Do not communicate by sharing memory; instead, share memory by communicating'' quote coined by the \texttt{Go} programming language.}. \gls{pgas} provides an illusion of a
+		global memory address space that is available to processes that participate in the communication,
+		which makes it slightly less explicit in terms of expressing the communication patterns within the
+		program, because it translates certain memory operations into network messages on behalf of the
+		programmer.
+
+		\gls{pgas} programs also often employ \emph{one-sided communication} techniques, such as
+		\gls{rdma}, which allows a process to directly read or write a region of memory from
+		the address space of a different process.
+
+	\item[Shared-memory multiprocessing] is an approach that focuses on the parallelization within a single computing node, by leveraging
+		multithreading to achieve speedup. In the area of \gls{hpc}, it is common to use the
+		\gls{openmp}~\cite{openmp} framework to implement multithreaded applications.
+		Apart from providing interfaces for parallelizing code, synchronizing threads through barriers or
+		various locks, or performing atomic operations, it is also able to offload computation to various
+		accelerators (like a \gls{gpu}) attached to the node. \gls{openmp} can be
+		used together with the two previously mentioned programming models (it is often combined especially
+		with \gls{mpi}~\cite{hybrid_openmp_mpi}), in order to achieve parallelization both
+		intra-node (via multithreading) and inter-node (via network communication).
+
+		\gls{openmp} does not only offer an \gls{api}, but it can also be integrated
+		directly within a compiler, e.g.\ in \gls{gcc} for programs written in the
+		\texttt{C} or \texttt{C++} programming languages. This enables it to provide
+		source code annotations (called \emph{pragmas}), which allow the programmer to parallelize
+		a region of code with very little effort. An example of this can be seen in \Autoref{lst:openmp-example},
+		where a loop is parallelized simply by adding a single annotation to the source code.
+
+		\begin{listing}
+			\caption{Example of a simple \gls{openmp} annotation}
+			\label{lst:openmp-example}
+			\begin{minted}[fontsize=\small]{c}
+void compute_parallel(int* items, int count) {
+    // This loop is executed in parallel
+    #pragma omp parallel for
+    for (int i = 0; i < count; i++) {
+        items[i] = compute(i);
+    }
+}
+        \end{minted}
+		\end{listing}
+\end{description}
+
+These explicit programming models share a lot of desirable properties. They give their users a lot
+of control over the exchange of data between individual cores and distributed nodes, which allows
+creating very performant programs. Having the option to explicitly describe how will the individual
+cores and nodes cooperate also enables expressing arbitrarily complex parallelization patterns and
+data distribution strategies. However, in order to fully exploit the performance potential of
+explicit parallelization, the programmer must have advanced knowledge of the \gls{cpu}
+or \gls{gpu} hardware micro-architecture~\cite{intel_developer_manual} and the memory model
+of the used programming language~\cite{cpp11_standard}.
+
+Even though explicitly parallelized programs can be incredibly efficient, implementing correct
+applications using them is notoriously difficult. Multithreaded and distributed programs are highly
+concurrent, which makes it easy to introduce various programming errors, such as deadlocks, race
+conditions or data races. Especially for distributed programs, debugging such issues can be
+incredibly challenging. Furthermore, programs that leverage explicitly parallel programming models
+are typically implemented in languages such as \texttt{C} or \texttt{C++},
+which are infamous for making it difficult to write correct, memory-safe programs without memory
+errors and undefined behaviour~\cite{memory_safety_report}. Memory safety issues are even more
+problematic in heavily concurrent programs, which further increases the difficulty and decreases
+the speed of developing correct distributed programs.
+
+Apart from correctness, using explicit communication interfaces can also lead to overdependence on
+a specific state of available computational resources. For example, \gls{mpi} programs
+typically assume a fixed number of processes participating in the computation, and
+\gls{mpi} itself struggles with situations where some of the processes participating
+in the computation crash or disappear, which infamously makes it challenging to implement fully
+fault-tolerant \gls{mpi} programs~\cite{fault_tolerant_mpi}.
+
+\subsection*{Implicit parallelization}
+Since it can take a lot of effort to implement a correct and efficient distributed program using
+explicitly parallel models, it would be unreasonable to expect that all users who want to leverage
+\gls{hpc} resources to execute their experiments will ``roll up their sleeves'' and
+spend months implementing an explicitly parallel \texttt{C++} program that uses
+\gls{mpi} and \gls{openmp}. In fact, with scientific experiments becoming
+more and more complex each year, in most cases it would not even be feasible to develop custom
+(explicitly parallel) code for them from scratch. Instead, high-performance parallelized primitives
+implemented by specialized performance engineers~\cite{dace} are moving into libraries
+and frameworks, such as GROMACS~\cite{gromacs,gromacs_mpi} or TensorFlow~\cite{tensorflow,horovod}, that
+still leverage technologies like \gls{mpi} or \gls{openmp} internally, but
+they do not necessarily expose them to their end users.
+
+This allows users of \gls{hpc} systems and scientists to focus on their problem
+domain, as their responsibility shifts from implementing communication and parallelization
+techniques by hand to describing high-level computational workflows using implicity parallel
+programming models that are able to automatically derive the communication and parallelization
+structure from the program description. In this scenario, the emphasis moves from
+\emph{how} to perform a distributed or parallelized computation (which is the essence
+of the explicit models) to \emph{what} should be computed and how are the individual
+computational steps related to each other, which is usually the main aspect that users want to
+focus on. This transition can be seen as analogous to the difference between imperative and
+declarative programming, although in this case, only the parts of the program that describe
+possible parallelization opportunities actually become declarative, while the rest of the code
+usually remains imperative.
+
+An example of an implicitly parallel programming model that has gained a lot of popularity in the
+area of distributed computing is MapReduce~\cite{mapreduce}. Its goal is to allow processing
+of large amounts of data in parallel on a distributed cluster, without requiring the programmer to
+explicitly implement the exact specifics of network communication between nodes. It does that by
+structuring the computation into three high-level operations:
+\begin{enumerate}
+	\item A \emph{map} operation (provided by the user) is performed on the input data. This
+	      operation performs data transformation and filtering, associates some form of a
+	      \emph{key} to each data item and produces a key-value tuple.
+	\item A \emph{shuffle} operation (implemented by a MapReduce framework) redistributes the tuples
+	      amongst a set of distributed nodes, based on the key of each tuple, so that tuples with the same
+	      key will end up at the same node.
+	\item A \emph{reduce} operation (provided by the user) is performed on each node. The reduction
+	      typically performs some aggregation operation (such as sum) on batches of tuples, where each batch
+	      contains tuples with the same key.
+\end{enumerate}
+
+\begin{listing}
+	\caption{Example of a word count MapReduce implementation in Python}
+	\label{lst:wordcount-example}
+	\begin{minted}[fontsize=\small, tabsize=4]{python}
+def word_count(context):
+	file = context.textFile("shakespeare.txt")
+	counts = file.flatMap(lambda line: line.split(" ")) \
+		.map(lambda word: (word, 1)) \
+		.reduceByKey(lambda x, y: x + y)
+	output = counts.collect()
+	print(output)
+	\end{minted}
+\end{listing}
+
+\Autoref{lst:wordcount-example} shows a simple Python program that computes the frequency of
+individual words in a body of text\footnote{This computation is commonly known as \emph{word count}.} using a popular implementation of
+MapReduce called Apache Spark~\cite{spark}. Even though the programmer only provided a
+few very simple \emph{map} and \emph{reduce} operations, this short program
+can be executed on a distributed cluster and potentially handle very large amounts of data. Note
+that multiple \emph{map} and \emph{reduce} operations can be combined in a
+single program, which can also be observed in this example. This program is implemented in the
+Python programming language, however since the most important part of the computation is expressed
+using a few very specific implicitly parallel operations (map and reduce), it can almost be seen as
+a form of a \gls{dsl} for expressing distributed computations.
+
+The primary benefit of this approach is that it is very easy to define a computation that can be
+automatically parallelized and distributed, without forcing the user to think about how exactly
+will this parallelization be performed. A framework or a tool that implements the MapReduce
+paradigm can ingest a MapReduce program, automatically execute it in a distributed fashion on a
+cluster, and also provide additional features, such as fault tolerance, out of the box. This is
+possible because the framework knows exactly how will the computation be structured.
+
+The main limitation of this model is that it only supports a constrained set of computations. If a
+computation cannot be expressed naturally using the \emph{map} and
+\emph{reduce} operations, it can be challenging, or even impossible, to implement it
+using the MapReduce paradigm. In particular, MapReduce assumes forward data-flow, where data is
+being sent through the computational pipeline in one direction, from a set of inputs, towards a set
+of outputs. This is problematic for iterative computations that have to execute repeatedly, e.g.\
+until some condition is reached, and which typically use the output of a previous iteration as an
+input for the next iteration, thus creating a loop in the flow of data.
+
+Another potential disadvantage is that MapReduce programs might not be able to achieve performance
+comparable to programs implemented using an explicitly parallel programming model. This is
+especially problematic for certain implementations of MapReduce that are very inefficient, such as
+Apache Hadoop~\cite{hadoop}. In general, when executing distributed computations, it is
+always a good idea to first make sure that it is not possible to solve the same problem faster with
+a single-threaded program running on a consumer-grade hardware~\cite{cost}.
+
+\section{Task-based programming models}
+The MapReduce model essentially constructs a graph of individual map and reduce operations, which
+can then be executed on a distributed cluster. However, the shape of the graph is relatively
+constrained, since it can only be constructed by combining these two supported operations. This
+approach can be generalized using a \emph{task-based programming model}, which allows describing almost
+arbitrary computational graphs that are able to express many computational patterns. This
+programming model has become very popular in distributed systems and \gls{hpc},
+because it very closely matches the structure of typical scientific \emph{workflows} (also called
+\emph{pipelines}).
+Workflows describe a complex computation composed of potentially many different and independent
+steps, which can leverage various tools and scripts, and can depend on one another. Such a
+computation can be naturally expressed using a computational graph, which is exactly what
+task-based programming models offer.
+
+Since task-based programming models are central to the topic of this thesis, the rest of this
+chapter and the thesis will focus exclusively on them.
 
 The task-based programming model allows users to describe the high-level structure of the
-computations that they want to perform using a \emph{task graph}. Users create the task graph
-by splitting their desired computation into a set of \emph{tasks}, atomic and independent
-computational blocks with explicitly described inputs and outputs that can be executed in a
-self-contained way. Additional constraints can also be encoded into the task graph, e.g.\ which
-data should be transferred between the individual tasks, which tasks cannot be executed until some
-other task finishes its execution, or the necessary properties of an environment in which a task
-will be executed.
+computations that they want to perform using a \emph{task graph}\footnote{The terms \emph{task graph} and \emph{workflow} will be used interchangeably in this
+thesis.}.
+Users create the task graph by splitting their desired computation into a set of
+\emph{tasks}, atomic and independent computational blocks with explicitly described
+inputs and outputs, that can be executed in a self-contained way. Additional constraints can also
+be encoded into the task graph, for example which data should be transferred between the individual
+tasks, which tasks cannot be executed until some other task finishes its execution, or the
+necessary properties of an environment in which a task should be executed.
 
-The primary benefit of describing a computational workflow in such a way is that the resulting
-program is \emph{implicitly parallel}. The author of the program does not imperatively specify how
-should the computation be parallelized or when and how should data be exchanged. They merely
-declaratively describe the individual parts of the program that can theoretically be executed in
-parallel (the tasks) and then pass the task graph to a dedicated execution tool that executes the
-tasks on a parallel machine (or even on a distributed cluster). Since the program is represented
-with an explicit graph, the execution tool can effectively analyze its properties (or even optimize
-the structure of the graph) in an automated way, and extract the available parallelism from it
-without requiring the user to define parallelization opportunities explicitly.
+Task-based programming models are also implicitly parallel, same as the MapReduce model, which is
+one of their largest benefits. The author of the program does not imperatively specify how should
+the computation be parallelized or when and how should data be exchanged. They merely declaratively
+describe the individual parts of the program that can theoretically be executed in parallel (the
+tasks) and then pass the task graph to a dedicated execution tool that executes the tasks on a
+parallel machine (or even on a distributed cluster). Since the program is represented with an
+explicit graph, the execution tool can effectively analyze its properties (or even optimize the
+structure of the graph) in an automated way, and extract the available parallelism from it without
+requiring the user to explicitly define how should the program be parallelized.
 
-Note that from the perspective of a task execution tool, each task is an opaque element. The tool
-knows how to execute it, but it typically does not have any further knowledge of the inner
+It is important to note that from the perspective of a task execution tool, each task is opaque.
+The tool knows how to execute it, but it typically does not have any further knowledge of the inner
 structure of the task. Therefore, the only parallelization opportunities that can be extracted by
 the tool have to be expressed by the structure of the task graph. A task graph containing a single
-task is thus not very useful on its own.
+task is thus not very useful on its own. The individual tasks can of course also be internally
+parallel, however this parallelization is not provided automatically by the task execution tool.
+Tasks often achieve internal parallelism using shared memory multiprocessing, for example using the
+\gls{openmp} framework.
 
-The task-based programming model is central to the topic of this thesis, and thus this chapter will
-define various terms and concepts related to it. Note that there are many variations of this
-programming model, based on the specific tool or environment where it is used, and thus the term
-\emph{task-based programming} is heavily overloaded. It is used in various related technologies, ranging
-from fine-grained tasks that execute a single function or just a handful of
-instructions~\cite{starpu,openmp} to coarse-grained task workflows that execute binaries which
-can run for hours or even days~\cite{dask, snakemake, nextflow}. This thesis primarily focuses on the latter
-type of task graphs, which represent very general computations (either functions or binaries) with
-various levels of granularity, that are intended to be distributed among multiple nodes of a
-distributed cluster. A further distinction can be made between batch-oriented workflows, which
-define a computation with a clearly delimited set of inputs that is already available when the
-workflow starts, and which focus primarily on throughput, and streaming-oriented workflows, which
-operate continuously on streams of input data that arrive just-in-time, and which usually focus on
-latency. This thesis focuses exclusively on batch workflows, which are more common in
-\gls{hpc} scenarios\todo{cite}.
+There are many variations of task programming models, as the term \emph{task-based programming} is
+heavily overloaded. The same holds for the \emph{task} term, which is used for many
+unrelated concepts in the area of computer science, from an execution context in the Linux
+operating system, through a block of code executed by \gls{openmp}, to a program
+executed by a complex distributed computational workflow. Even in the area of distributed
+computing, the terminology can vastly differ between different task execution tools and theoretical
+works. \Autoref{sec:sota-task-runtimes} describes and compares various tools and frameworks that leverage
+tasks and puts them into a broader context.
 
-The term \emph{task} is also heavily overloaded in various areas of computer science, as
-it is used for many unrelated concepts, from an execution context in the Linux operating system,
-through a block of code executed by the OpenMP library, to a program executed by a complex
-distributed computational workflow. Even in the area of distributed computing, the terminology can
-vastly differ between different task execution tools and theoretical works.
+Even though task-related terms can have a lot of different meanings, depending on the context where
+they are used, and an attempt to provide a single unifying task theory would necessarily gloss over
+many important details, it is still useful to provide a shared vocabulary of terms for this thesis.
+The rest of this section thus defines several terms related to tasks in a way that allows capturing
+the specific properties of task execution in \gls{hpc} environments, further
+described in~\Autoref{ch:challenges}, and that is general enough so that it can be mapped to
+concepts used by task execution tools that will be described in~\Autoref{sec:sota-task-runtimes} and also
+following chapters of the thesis.
 
-Even though task-related terms can have a lot of different meanings, depending on the context, and
-an attempt of providing a single unifying task theory would need to gloss over many important
-details, it is still useful to provide a shared vocabulary of terms for this thesis. This chapter
-thus defines several task-related terms in a way that allows capturing the specifics of task
-execution in \gls{hpc} environments, further described in
-Chapter~\ref{ch:challenges}, and that is general enough so that it can be mapped to concepts
-used by task execution tools that will be described in later chapters.
-
-\section{Task graph}
+\subsection{Task graphs}
 A computational workflow in the task-based programming model is represented with a
 \gls{dag} that we will label as a \emph{task graph}. From a high-level
-perspective, it describes which individual steps should be performed, what are the constraints for
-where and in which order are they computed and how should data be transferred between the
-individual steps of the workflow.
+perspective, it describes which individual computational steps should be performed, what are the
+constraints for where and in which order are they computed and how should data be transferred
+between the individual steps of the workflow.
 
 There are many variations of task graphs, based on the computational properties that they are able
 to describe. In the most basic form, task graph vertices represent computations to be performed,
-and the edges represent dependencies between the computations, which enforce an order in which will
-the computations be performed. However, numerous other concepts can also be encoded in a task
-graph. For example, in addition to dependencies, the edges could represent abstract communication
+and the arcs (edges) represent dependencies between the computations, which enforce an order in
+which they should be executed. However, numerous other concepts can also be encoded in a task
+graph. For example, in addition to dependencies, the arcs could represent abstract communication
 channels, through which the outputs of one computation are transferred to become the inputs of
-another computation that depends on it. There could be a special type of edge which specifies that
-the outputs of a computation will be streamed to a follow-up computation, instead of being
-transferred only after the previous computation has finished. There could also be e.g. a special
-type of node that defines iterative computation that is performed repeatedly until some condition
-is met.
+another computation that depends on it. As another example, there could be a special type of arc
+which specifies that the outputs of a computation will be streamed to a follow-up computation,
+instead of being transferred in bulk only after the previous computation has finished. There could
+also be e.g.\ a special type of node that defines iterative computation that is performed
+repeatedly until some condition is met.
 
-The exact semantics of vertices and edges of task graphs depend heavily on the specifics of tools
-that implement them, and thus it is not possible to have a single definition that would fit all
+The exact semantics of vertices and arcs of task graphs depend heavily on the specifics of tools
+that implement them, and thus it is not possible to provide a single definition that would fit all
 variants used ``in the wild''. To provide a general description, we will formally define a task
-graph designed for batch workflows, which can capture the structure of dependencies between
-computations and the notion of transferring data between them. This definition is general enough so
-that it can be mapped to the task execution tools described later in this thesis.
+graph that can capture the dependencies between computations and the notion of transferring data
+between them. This definition is general enough so that it can be mapped to the task execution
+tools described later in this thesis.
 
 A task graph is a tuple $(T, O, E)$, where $T$ is a set of
 \emph{tasks}, $O$ is a set of \emph{data objects} and
@@ -130,22 +348,22 @@ that produces it: $\forall o\in{}O: (\exists t_1\in{}T: (t_1, o) \in E \land
 	(\forall
 	t_2\in{}T: (t_2, o) \in E \Rightarrow t_1 = t_2))$.
 
-Below we will define several terms and properties that will be useful for working practically with
-task graphs:
+Below we will define several terms that will be useful for describing task graphs and their
+properties:
 \begin{enumerate}
-	\item If there is an arc between a task and a data object ($(t,o) \in (T\times{}O)$), then we call
+	\item If there is an arc from a task to a data object ($(t,o) \in (T\times{}O)$), then we call
 	      $t$ the \emph{producer} of $o$ and $o$
 	      the \emph{output} of $t$.
-	\item If there is an arc between a data object and a task ($(o,t) \in (O\times{}T)$), then we call
+	\item If there is an arc from a data object to a task ($(o,t) \in (O\times{}T)$), then we call
 	      $t$ the \emph{consumer} of $o$ and $o$
 	      the \emph{input} of $t$.
 
-	\item Let us introduce a binary relation $D_r$ over the set of tasks:
-	      $\{(t_1, t_2): (t_1, t_2)\in{}(T\times{}T)\land t_1 \neq t_2 \land
+	\item Let us introduce a binary relation $D_r$ over the set of tasks. Assume that we
+	      have a pair of tasks: $\{(t_1, t_2): (t_1, t_2)\in{}(T\times{}T)\land t_1 \neq t_2 \land
 		      \exists{}o\in{}O: (t_1, o)\in{}E
-		      \land (o, t_2)\in{}E\}$. When $(t_1, t_2) \in D_r$, we say that $t_2$
-	      \emph{directly depends} on $t_1$. We can also state that $t_2$
-	      consumes the output produced by $t_1$.
+		      \land (o, t_2)\in{}E\}$. When $(t_1, t_2) \in D_r$, we say that
+	      $t_2$ \emph{directly depends} on $t_1$. We can also state that
+	      $t_2$ consumes the output produced by $t_1$.
 
 	\item Let us introduce a binary relation $D$ over the set of tasks. Tasks
 	      $t_1$ and $t_n$ are in this relation if there is a sequence
@@ -163,13 +381,13 @@ task graphs:
 		      t_d)\notin D\}$.
 \end{enumerate}
 
-An example of a simple task graph is shown on Figure~\ref{fig:task-graph-example}. Tasks are represented
-as circles, data objects as (rounded) rectangles\footnote{This representation will be used in all following task graph diagrams.} and arcs as arrows. The
-source task $t_0$ generates two data objects, which are then used as inputs for
-four additional tasks. The outputs of these four tasks are then aggregated by a final task
+An example of a simple task graph is shown in \Autoref{fig:task-graph-example}. Tasks are represented as
+circles, data objects as (rounded) rectangles\footnote{This representation will be used in all following task graph diagrams.} and arcs as arrows. The source
+task $t_0$ generates two data objects, which are then used as inputs for four
+additional tasks. The outputs of these four tasks are then aggregated by a final task
 $t_5$. This can correspond e.g.\ to a workflow where $t_0$
-generates some data, $t_{1-4}$ performs some calculation on that data and
-$t_5$ performs some post-processing step and stores the results to disk.
+generates some data, $t_{1-4}$ performs a calculation on that data and
+$t_5$ then performs a final post-processing step and stores the results to disk.
 
 \begin{figure}[h]
 	\centering
@@ -197,271 +415,287 @@ $t_5$ performs some post-processing step and stores the results to disk.
 
 Note that the presented definition of a task graph does not describe its semantics -- how will the
 graph be created and executed and what will be the interactions between tasks and data objects.
-This depends on the specific tool or framework which uses task graphs to define its programming
-model. For example, in a distributed batch oriented setting, if a task $t_2$
-depends on another task $t_1$, then $t_2$ cannot start to execute
-until $t_1$ has finished executing and the data objects produced by
-$t_1$ have been transferred to the computational node that will execute
-$t_2$.
+This depends on the specific tool or framework that will execute the task graph. As an example, the
+dependence of task $t_2$ on task $t_1$ could define the following
+invariant: $t_2$ cannot start to execute until $t_1$ has finished
+executing and the data objects produced by $t_1$ have been transferred to the
+computational node that will execute $t_2$.
 
-\emph{Data object} is commonly represented as a serialized blob of data that has to be
-transferred from the node where its producer was computed to the node where its consumer is to be
-executed. If a task programming model does not encode any direct transfer of data between tasks,
-then the data objects serve simply as ``empty'' markers of dependencies, and they do not hold any
-actual data. In that case, we could even remove them from the task graph completely, and represent
-direct dependencies with arcs between tasks.
-
-\emph{Task} is a serializable description of a computation that can be executed
-repeatedly. The serializability property is crucial, as it allow us to treat computations as data,
-which is quite powerful, because it allows tasks to be sent between different nodes in a cluster or
-stored to disk and to be transparently recomputed an arbitrary number of times. Tasks might need to
-be recomputed e.g.\ after some failure occurs during their execution.
+A \emph{task} is a serializable description of a computation that can be executed
+repeatedly. The serializability property is crucial, as it allow us to treat computation as data.
+That is a quite powerful concept, because it allows tasks to be sent between different nodes in a
+cluster or stored to disk and to be transparently recomputed an arbitrary number of times. Enabling
+the recomputation of tasks is useful for achieving fault tolerance, as tasks might need to be
+recomputed later if some failure occurs during their execution.
 
 In practice, a single task will typically represent either the invocation a function (a block of
-code that can be executed in a self-contained way) or the execution of a program (an executable
-binary). Multiple tasks in a task graph can execute the same function or executable, and this is in
-fact the common case, as task graphs are often used to parametrize a single computation with many
-different input parameters.
+code that can be executed in a self-contained way) or the execution of a whole program. Multiple
+tasks in a task graph can refer to the same function or program, since each such task can have
+different inputs. In fact, this is a common case, as task graphs are often used to parametrize a
+small set of functions or programs with many different input parameters.
 
-Even though in the formal definition the inputs and outputs of tasks are sets, in practice they are
-usually represented either with ordered sequences or some mapping that associates a name with each
-input or output, because it is important to distinguish the identity and/or the order of each input
-and output. For functions, inputs are its arguments, and output is its return value, which can be
-structured so that a sequence of outputs is generated, instead of just a single output. For binary
-programs, inputs are e.g.\ command-line arguments or the content of its \texttt{standard input stream}, and
-the output can be e.g.\ the content of the \texttt{standard output stream} generated by the executed
-program.
+Even though the inputs and outputs of tasks were defined as sets in the formal definition, in
+practice they are usually stored using either ordered sequences or a mapping that associates a name
+with each input or output, because it is important to maintain a specific ordering both inputs and
+outputs. For functions, the inputs are passed as arguments, and the output is derived from its
+return value (which can potentially form a sequence of values). Therefore, we have to be able to
+associate each task input to a specific argument index. The same holds for tasks that execute
+programs. In this case, inputs can be mapped command-line arguments and the content of the
+\texttt{standard input stream}, and the output can be e.g.\ the content of the \texttt{standard output stream}
+generated by the executed program.
 
 While inputs and outputs explicitly describe how data flows in and out of tasks, when a task is
-executed, it can additionally also read the state of the environment in which it is being executed,
-or change the state in a way that is observable by other tasks. For example, a function can read or
-modify the value of a global variable, or an executable can read an environment variable or create
-a file on a disk which is not specified as a task output. Such actions, which we will label as
+executed, it can additionally also read and modify the state of the environment in which it is
+being executed, in a way that is observable by other tasks. For example, a function can read or
+modify the value of a global variable, while a program can read an environment variable or create a
+file on a disk, without it being specified as a task output. Such actions, which we will label as
 \emph{side effects}, are typically not encoded within the task graph. Tasks should ideally
-contain as few side effects as possible, because they can make task execution non-deterministic, by
-causing it to produce different outputs when executed multiple times, which might not be desired.
-To actually produce some output, most task graphs will eventually store some data to a file-system,
-which can be either considered a side effect, or a first-class operation, depending on the
-semantics of the task execution tool.
+contain as few side effects as possible, because they can make task execution non-deterministic,
+causing them to produce different outputs when executed multiple times, which might not be
+desirable. It might be difficult to completely avoid side effects though, as most task graphs will
+eventually store some data to a file-system when executed, usually to persist the results of the
+computation.
 
-Apart from specifying the structure of required inputs and produced outputs, tasks can also define
-various constraints for the environment in which they will be executed. We will use the term
+Apart from specifying the required inputs and produced outputs, tasks can also define various
+constraints for the environment in which they will be executed. We will use the term
 \emph{resource requirements} for such constraints. As an example, a task that performs training of a
 machine learning model might require a \gls{gpu} to be present on the computational
 node where the task will be executed. Other resources might include e.g.\ a minimum required amount
-of \gls{ram} or a required amount of processor cores necessary to execute the task.
+of \gls{ram} or a specific number of \gls{cpu} cores necessary to
+execute the task.
 
-\section{Task graph execution}
+A \emph{data object} represents the computed result of a task. Typically, it is a serialized
+blob of data that is eventually transferred from the node where its producer was computed to the
+node where its consumer should be executed. If a task programming model does not encode direct data
+transfers between tasks, then data objects simply serve as ``empty'' markers of dependencies, and
+they do not hold any actual data. In that case, we could even remove them from the task graph
+completely, and represent task dependencies directly with arcs between tasks.
+
+\subsection{Task graph execution}
 Task graphs merely describe some computation, therefore they have to be executed in order to
-actually produce some results (outputs). This is the responsibility of a \emph{task runtime}, a
-tool that analyzes task graphs and executes them in some \emph{computational environment}, e.g.\ a personal
-computer or a distributed cluster. Such an environment contains a set of computational providers
-that are able to execute tasks, these providers are commonly labeled as \emph{workers}. The
-\emph{execution} of a task is the act of performing its described computation by a specific
-worker (or a set of workers) with specific input(s), and producing some output(s).
+actually produce some outputs and results. This is the responsibility of a \emph{task runtime},
+a tool that analyzes task graphs and executes them in some \emph{computational environment}, e.g.\ a
+personal computer or a distributed cluster. Such an environment contains a set of computational
+providers that are able to execute tasks. We will label these providers as \emph{workers}.
+A worker can execute a task by invoking the computation assigned to it (typically by calling a
+function or executing a program), and passing it the inputs of the task. Usually a task can only be
+executed once all of its inputs are ready, which means that the dependencies of the task have been
+computed, and their outputs have been transferred to the computational node of the worker.
 
 There are many existing task runtimes, with varying architectures, features and trade-offs, which
 affect factors like performance, fault tolerance or expressivity of the supported variant of the
-task-based programming model. Some of these existing runtimes will be described in more detail in
-Chapter~\ref{ch:sota}. We will consider a common scenario in the rest of this chapter,
-which is a distributed task runtime with a centralized management component and a set of workers
-that communicate with it via network or inter-process comunication.
+task-based programming model. Several existing task runtimes will be described in more detail in
+\Autoref{sec:sota-task-runtimes}. \Autoref{ch:rsds} will describe the architecture of
+\dask{}, a state-of-the-art task runtime, and examine its performance bottlenecks.
+In the rest of this section, we will consider a case typical for \gls{hpc}
+environments; a distributed task runtime with a central manager that communicates with a set of
+workers running on distributed nodes that communicate together via a network.
 
-In general, a task runtime manages and monitors all aspects of task graph execution; primarily it
-manages tasks and workers. This agenda can be quite complex especially in a distributed setting,
-where the workers operate on remote computational nodes connected by a network.
+In general, a task runtime oversees all aspects of task graph execution. Its two main
+responsibilities can be divided into managing communication with the workers, and handling the
+scheduling and execution of tasks.
 
-Worker management involves handling the lifetime of workers (their connection/disconnection),
-facilitating data transfers between them or providing resiliency in case of worker failures. A
-single worker is typically a program running on a computational node, which is connected to the
-management component of the runtime. It receives commands from it, executes tasks and sends
-information about task execution status back to it. Each worker typically manages some hardware
-resources that are available for tasks during their execution. Hardware resources can be assigned
-to workers in various ways. There can be a single worker per whole computational node, or there
-could be multiple workers per node, each one managing a subset of the available resources (e.g.\ a
-worker per \gls{cpu} core).
+Worker management involves handling the lifetime of workers (connection and disconnection from the
+cluster), facilitating data transfers between them or providing resiliency in case of worker
+failures. A single worker is typically a program running on a computational node, which is
+connected to the runtime manager. It receives commands from it, executes tasks and sends
+information about task execution statuses back to the manager. Each worker typically manages some
+hardware resources that are available for tasks during their execution. Hardware resources can be
+assigned to workers in various ways. There can be a single worker per the whole computational node,
+or there could be multiple workers per node, each managing a subset of the available resources
+(e.g.\ a single worker per \gls{cpu} core).
 
 The second main aspect that has to be handled by the runtime is the management of tasks. It has to
 keep track of which tasks have already been computed, which tasks are currently being executed on
-some worker(s) or which tasks are ready to be executed next because their dependencies have already
-been computed. Two important responsibilities in this area are fault tolerance and scheduling.
+some worker(s) or which tasks are ready to be executed next, because their dependencies have
+already been computed. Two important responsibilities in this area are fault tolerance and
+scheduling.
 
-Fault tolerance is the ability to gracefully handle task execution failures, and provide ways of
-retrying failed computations. When the execution of a task fails with some error condition (e.g.\
-because a worker executing the task crashes), a fault-tolerant task runtime will be able to
-transparently restart it by launching a new execution of that task. We will use the term
-\emph{task instance} for a specific execution of a task. Runtimes might impose some limits on
-retrying failed tasks, e.g.\ by attempting to execute up to a fixed number of task instances for
-each task before giving up, to avoid endless failure loops.
+In the context of task graph execution, we will define \emph{fault tolerance} as the ability to
+gracefully handle task execution failures, and provide ways of retrying failed computations. When
+the execution of a task fails with some error condition (e.g.\ because a worker executing the task
+crashes), a fault-tolerant task runtime will be able to transparently restart it by launching a new
+execution of that task. We will use the term \emph{task instance} for a specific execution of a
+task. Runtimes might impose some limits on retrying failed tasks, e.g.\ by attempting to execute up
+to a fixed number of task instances for each task before giving up, to avoid endless failure loops.
 
 Tasks are usually considered to be atomic from the perspective of the runtime, i.e.\ they either
-execute completely (and successfully), or they fail, and then they have to be restarted from
-scratch. Granularity thus plays an important factor here -- if a task is large, then a lot of work
-might have to be redone if it fails and is re-executed. Some runtimes try to alleviate this cost by
-enabling task checkpointing, which is able to save a computational state during task execution and
-then restore computation from it in case of a failure, thus avoiding the need to start from the
-beginning.
+execute completely (and successfully), or they fail, in which case they might be restarted from
+scratch. Task granularity thus plays an important role here, since when a task is large, then a lot
+of work might have to be redone if it fails and is re-executed. Some runtimes try to alleviate this
+cost by leveraging task checkpointing~\cite{task_checkpointing}, which is able to save the
+computational state of a task during its execution, and then restore it in case of a failure, thus
+avoiding the need to start from the beginning.
 
 Fault tolerance is challenging in the presence of dependencies. When a task has inputs, the runtime
 might have to store them (either in memory or in a serialized format on disk) even after the task
 has started executing. Because there is always a possibility that it will have to restart the task
-in case of a failure, and thus it needs to hold on to its inputs. In some cases it can be a better
-trade-off to avoid storing the inputs and instead re-execute the dependencies of the task (even if
-they have executed successfully before) to re-generate the inputs. This can help reduce memory
-footprint, albeit at the cost of time, and it also might not work well if the dependencies are not
-deterministic.
+in case of a failure, and thus it needs to hold on to its inputs. In some cases, it can actually be
+a better trade-off to avoid storing the inputs and instead re-execute the dependencies of the task
+(even if they have been executed successfully before) to regenerate the inputs. This can help
+reduce memory footprint, albeit at the cost of additional computation time, and it also might not
+work well if the dependencies are not deterministic.
 
 Note that the fact that we are even able to execute a task multiple times is one of the core
 advantages of the task-based programming model, where tasks declaratively describe a self-contained
-computation that can be re-executed arbitrarily. This crucial property of tasks makes
+computation that can be re-executed arbitrarily many times. This crucial property of tasks makes
 fault-tolerant execution of task graphs possible.
 
-\section{Task scheduling}
-Arguably the most important responsibility of a task runtime, and one that gets the most attention
-in research works, is \emph{task scheduling}. It is the act of deciding in which order and on which
-specific workers should each task execute, in a way that optimizes some key metric. There are many
-metrics that can be optimized for, such as the latency to execute specific critical tasks, but the
-most common metric is \emph{makespan} -- the duration between the start of the execution of
-the first task to the completion of all tasks within the task graph. Scheduling is a crucial
-activity of the runtime, as it has a profound effect on the efficiency of the whole workflow
-execution. We will use the term \emph{scheduler} for a component of the task runtime that is
-responsible for assigning tasks to workers.
+\subsection{Task scheduling}
+Arguably the most important responsibility of a task runtime (which also gets the most attention in
+research works), is \emph{task scheduling}. It is the act of deciding in which order and on which
+specific worker(s) should each task execute, in a way that optimizes some key metric. There are
+many metrics that we can optimize for, such as the latency to execute specific critical tasks, but
+the most commonly used metric is \emph{makespan} -- the duration between the start of the
+execution of the first task to the completion of all tasks within the task graph.
 
-%TODO: define what is a schedule
+We will use the term \emph{scheduler} for a component of the task runtime that is
+responsible for assigning tasks to workers by creating \emph{schedules}. A schedule is a
+mapping that assigns tasks to specific workers that should execute them. It can be
+\emph{static}, in which case it is produced just once before the task graph begins
+executing, or \emph{dynamic}, where the scheduler generates the assignments on-the-fly,
+based on the current utilization of workers and the observed durations of tasks that have already
+been executed. Some schedulers can also retroactively modify already produced schedules in reaction
+to dynamic situations that occur during task graph execution (e.g.\ if a new worker connects to the
+cluster, or if some worker is starving).
 
-Figure~\ref{fig:scheduling-example} shows an example of how a schedule of a simple task graph looks like,
-and how a trivial change in the schedule can severely affect the resulting makespan. The figure
-contains a task graph with four tasks and two data objects. The size of the circles is proportional
-to the duration of the tasks and the size of the rectangles is proportional to the size of the data
-objects. Let us assume that we want to schedule this task graph to a cluster with three workers
-($w_0$, $w_1$, $w_2$). Two different schedules
-for this situation are shown in the figure. Schedule $S_0$ assigns tasks
-$t_0$ and $t_1$ to worker $w_0$, task
-$t_2$ to worker $w_1$ and task $t_3$ to worker
-$w_2$. The timeline of the schedule the shows execution of tasks (gray rectangles)
-and receiving of a data object from another worker (green rectangles) for each individual worker.
-It is clear that with the schedule $S_1$, the task graph will be computed quicker
-than with schedule $S_0$, even though the only difference between the two
-schedules is the tasks $t_1$ and $t_3$ were swapped between
-workers $w_0$ and $w_2$. Note that the schedule timeline assumes
-that a worker can overlap the computation of a task with sending/receiving a data object, which is
-a reasonable feature that is commonly provided by existing task runtimes.
-
+%TODO: nicer colors
 \begin{figure}[h]
 	\centering
 	\resizebox{!}{110mm}{
 	\begin{tikzpicture}
-            \tikzmath{
-                \tzerowidth = 15mm;
-                \tonewidth = 20mm;
-                \ttwowidth = 25mm;
-                \tthreewidth = 35mm;
-                \ozerowidth = 15mm;
-                \oonewidth = 30mm;
-            }
-            \tikzset {
-                taskstyle/.style={fill=gray, text=white, draw=none},
-                objstyle/.style={fill=black!60!green, text=white, draw=none},
-            }
+			\tikzmath{
+				\tzerowidth = 15mm;
+				\tonewidth = 20mm;
+				\ttwowidth = 25mm;
+				\tthreewidth = 35mm;
+				\ozerowidth = 15mm;
+				\oonewidth = 30mm;
+			}
+			\tikzset {
+				taskstyle/.style={fill=gray, text=white, draw=none},
+				objstyle/.style={fill=black!60!green, text=white, draw=none},
+			}
 
-            % T0
-            \node[task, taskstyle, minimum size=7.5mm] (t0) at (0, 0.5) {$t_0$};
-            \node[data, objstyle, minimum size=5mm] (d0a) at (-1, -1) {$d_0$};
-            \node[data, objstyle, minimum size=10mm] (d0b) at (1, -1) {$d_1$};
-            \draw [arrow] (t0) edge (d0a.north) (t0) edge (d0b.north);
+			% T0
+			\node[task, taskstyle, minimum size=7.5mm] (t0) at (0, 0.5) {$t_0$};
+			\node[data, objstyle, minimum size=5mm] (d0a) at (-1, -1) {$d_0$};
+			\node[data, objstyle, minimum size=10mm] (d0b) at (1, -1) {$d_1$};
+			\draw [arrow] (t0) edge (d0a.north) (t0) edge (d0b.north);
 
-            % T1 and T2
-            \node[task, taskstyle, minimum size=10mm] (t1) at (-2, -2.5) {$t_1$};
-            \node[task, taskstyle, minimum size=12.5mm] (t2) at (0, -2.5) {$t_2$};
-            \draw [arrow] (d0a) edge (t1.north) (d0a) edge (t2.north);
+			% T1 and T2
+			\node[task, taskstyle, minimum size=10mm] (t1) at (-2, -2.5) {$t_1$};
+			\node[task, taskstyle, minimum size=12.5mm] (t2) at (0, -2.5) {$t_2$};
+			\draw [arrow] (d0a) edge (t1.north) (d0a) edge (t2.north);
 
-            % T3
-            \node[task, taskstyle, minimum size=17.5mm] (t3) at (2, -2.5) {$t_3$};
-            \draw [arrow] (d0b.south) edge (t3.north);
+			% T3
+			\node[task, taskstyle, minimum size=17.5mm] (t3) at (2, -2.5) {$t_3$};
+			\draw [arrow] (d0b.south) edge (t3.north);
 
-            % Move below to draw the timelines
-            \tikzset{shift={(-4,-4)}}
+			% Move below to draw the timelines
+			\tikzset{shift={(-4,-4)}}
 
-            \node[anchor=west] at (0, 0) {Schedule $S_0$: $w_0$=\{$t_0$, $t_1$\}, $w_1$=\{$t_2$\}, $w_2$=\{$t_3$\}};
+			\node[anchor=west] at (0, 0) {Schedule $S_0$: $w_0$=\{$t_0$, $t_1$\}, $w_1$=\{$t_2$\}, $w_2$=\{$t_3$\}};
 
-            \tikzset{shift={(0,-0.75)}}
-            \node (tim1A) at (0, 0) {$w_0$};
-            \draw[arrow] (tim1A.east) -- ++(9, 0);
-            \node[below = 0.5 of tim1A.south] (tim1B) {$w_1$};
-            \draw[arrow] (tim1B.east) -- ++(9, 0);
-            \node[below = 0.5 of tim1B.south] (tim1C) {$w_2$};
-            \draw[arrow] (tim1C.east) -- ++(9, 0);
+			\tikzset{shift={(0,-0.75)}}
+			\node (tim1A) at (0, 0) {$w_0$};
+			\draw[arrow] (tim1A.east) -- ++(9, 0);
+			\node[below = 0.5 of tim1A.south] (tim1B) {$w_1$};
+			\draw[arrow] (tim1B.east) -- ++(9, 0);
+			\node[below = 0.5 of tim1B.south] (tim1C) {$w_2$};
+			\draw[arrow] (tim1C.east) -- ++(9, 0);
 
-            % Timeline 1, row 1
-            \node[taskstyle, minimum width=\tzerowidth, right = 0.2 of tim1A.east] (tim1t0) {$t_0$};
-            \node[taskstyle, minimum width=\tonewidth, right = 0.1 of tim1t0.east] (tim1t1) {$t_1$};
+			% Timeline 1, row 1
+			\node[taskstyle, minimum width=\tzerowidth, right = 0.2 of tim1A.east] (tim1t0) {$t_0$};
+			\node[taskstyle, minimum width=\tonewidth, right = 0.1 of tim1t0.east] (tim1t1) {$t_1$};
 
-            % Timeline 1, row 2
-            \node[objstyle, minimum width=\ozerowidth, below = 1 of tim1t1.west, anchor=west]
-            (tim1o0) {$d_0$ ($w_0$)};
-            \node[taskstyle, minimum width=\ttwowidth, right = 0.1 of tim1o0.east] (tim1t2) {$t_2$};
+			% Timeline 1, row 2
+			\node[objstyle, minimum width=\ozerowidth, below = 1 of tim1t1.west, anchor=west]
+			(tim1o0) {$d_0$ ($w_0$)};
+			\node[taskstyle, minimum width=\ttwowidth, right = 0.1 of tim1o0.east] (tim1t2) {$t_2$};
 
-            % Timeline 1, row 3
-            \node[objstyle, minimum width=\oonewidth, below = 1 of tim1o0.west, anchor=west]
-            (tim1o1) {$d_1$ ($w_0$)};
-            \node[taskstyle, minimum width=\tthreewidth, right = 0.1 of tim1o1.east]
-            (tim1t3) {$t_3$};
+			% Timeline 1, row 3
+			\node[objstyle, minimum width=\oonewidth, below = 1 of tim1o0.west, anchor=west]
+			(tim1o1) {$d_1$ ($w_0$)};
+			\node[taskstyle, minimum width=\tthreewidth, right = 0.1 of tim1o1.east]
+			(tim1t3) {$t_3$};
 
-            \draw[dashed, draw=red] (tim1t0.west) -- ++(0, -2.75) --
-            ([shift=({0,-0.75})]tim1t3.east) -- (tim1t3.east);
+			\draw[dashed, draw=red] (tim1t0.west) -- ++(0, -2.75) --
+			([shift=({0,-0.75})]tim1t3.east) -- (tim1t3.east);
 
-            \node[text=red] at (4.5, -3) {Makespan};
+			\node[text=red] at (4.5, -3) {Makespan};
 
-            % Move below to draw the timelines
-            \tikzset{shift={(0,-4)}}
+			% Move below to draw the timelines
+			\tikzset{shift={(0,-4)}}
 
-            \node[anchor=west] at (0, 0) {Schedule $S_1$: $w_0$=\{$t_0$, $t_3$\}, $w_1$=\{$t_2$\}, $w_2$=\{$t_1$\}};
+			\node[anchor=west] at (0, 0) {Schedule $S_1$: $w_0$=\{$t_0$, $t_3$\}, $w_1$=\{$t_2$\}, $w_2$=\{$t_1$\}};
 
-            \tikzset{shift={(0,-0.75)}}
-            \node (tim2A) at (0, 0) {$w_0$};
-            \draw[arrow] (tim2A.east) -- ++(9, 0);
-            \node[below = 0.5 of tim2A.south] (tim2B) {$w_1$};
-            \draw[arrow] (tim2B.east) -- ++(9, 0);
-            \node[below = 0.5 of tim2B.south] (tim2C) {$w_2$};
-            \draw[arrow] (tim2C.east) -- ++(9, 0);
+			\tikzset{shift={(0,-0.75)}}
+			\node (tim2A) at (0, 0) {$w_0$};
+			\draw[arrow] (tim2A.east) -- ++(9, 0);
+			\node[below = 0.5 of tim2A.south] (tim2B) {$w_1$};
+			\draw[arrow] (tim2B.east) -- ++(9, 0);
+			\node[below = 0.5 of tim2B.south] (tim2C) {$w_2$};
+			\draw[arrow] (tim2C.east) -- ++(9, 0);
 
-            % Timeline 2, row 1
-            \node[taskstyle, minimum width=\tzerowidth, right = 0.2 of tim2A.east] (tim2t0) {$t_0$};
-            \node[taskstyle, minimum width=\tthreewidth, right = 0.1 of tim2t0.east] (tim2t1)
-            {$t_3$};
+			% Timeline 2, row 1
+			\node[taskstyle, minimum width=\tzerowidth, right = 0.2 of tim2A.east] (tim2t0) {$t_0$};
+			\node[taskstyle, minimum width=\tthreewidth, right = 0.1 of tim2t0.east] (tim2t1)
+			{$t_3$};
 
-            % Timeline 2, row 2
-            \node[objstyle, minimum width=\ozerowidth, below = 1 of tim2t1.west, anchor=west]
-            (tim2o0) {$d_0$ ($w_0$)};
-            \node[taskstyle, minimum width=\ttwowidth, right = 0.1 of tim2o0.east] (tim2t2) {$t_2$};
+			% Timeline 2, row 2
+			\node[objstyle, minimum width=\ozerowidth, below = 1 of tim2t1.west, anchor=west]
+			(tim2o0) {$d_0$ ($w_0$)};
+			\node[taskstyle, minimum width=\ttwowidth, right = 0.1 of tim2o0.east] (tim2t2) {$t_2$};
 
-            % Timeline 2, row 3
-            \node[objstyle, minimum width=\ozerowidth, below = 1 of tim2o0.west, anchor=west]
-            (tim2o1) {$d_0$ ($w_0$)};
-            \node[taskstyle, minimum width=\tonewidth, right = 0.1 of tim2o1.east] (tim2t3) {$t_1$};
+			% Timeline 2, row 3
+			\node[objstyle, minimum width=\ozerowidth, below = 1 of tim2o0.west, anchor=west]
+			(tim2o1) {$d_0$ ($w_0$)};
+			\node[taskstyle, minimum width=\tonewidth, right = 0.1 of tim2o1.east] (tim2t3) {$t_1$};
 
-            \draw[dashed, draw=red] (tim2t0.west) -- ++(0, -2.75) --
-            ([shift=({0,-1.75})]tim2t2.east) -- (tim2t2.east);
-        \end{tikzpicture}
+			\draw[dashed, draw=red] (tim2t0.west) -- ++(0, -2.75) --
+			([shift=({0,-1.75})]tim2t2.east) -- (tim2t2.east);
+		\end{tikzpicture}
 	}
 	\caption{Simple task graph and two different schedules}
 	\label{fig:scheduling-example}
 \end{figure}
 
-Optimal scheduling of tasks to workers is NP-hard~\cite{Ullman1975}, even in the most basic
-scenarios, when the exact duration of executing each task is known, and even if we do not consider
-network costs of transferring data between workers. Task runtimes thus resort to various heuristics
-tailored to their users' needs. Some classic task scheduling heuristics and their comparisons can
-be found in~\cite{hlfet1974,kwok1998benchmarking,hagras2003static,wang2018list,estee}.
+Task scheduling is so crucial because it has a profound effect on the efficiency of the whole
+workflow execution. We can observe that in~\Autoref{fig:scheduling-example}, which shows a schedule for a
+simple task graph, and demonstrates how a trivial change in the schedule can severely affect the
+resulting makespan. The figure contains a task graph with four tasks and two data objects. The size
+of the circles is proportional to the execution duration of the tasks and the size of the rounded
+rectangles is proportional to the size of the data objects. Let us assume that we want to schedule
+this task graph to a cluster with three workers ($w_0$, $w_1$,
+$w_2$). Two different schedules for this situation are shown in the figure.
+Schedule $S_0$ assigns tasks $t_0$ and $t_1$ to
+worker $w_0$, task $t_2$ to worker $w_1$ and
+task $t_3$ to worker $w_2$. The timeline of the schedule shows
+the execution of tasks (gray rectangles) and the network transfers of data objects between workers
+(green rectangles) for each individual worker. It is clear that with the schedule
+$S_1$, the task graph will be computed faster than with schedule
+$S_0$, even though the only difference between the two schedules is that the tasks
+$t_1$ and $t_3$ were swapped between workers
+$w_0$ and $w_2$. Note that the schedule timeline assumes that a
+worker can overlap the computation of a task with the transfer a data object to another worker over
+the network, which is commonly supported by existing task runtimes.
 
-The scheduling heuristics have to take many factors into consideration when deciding on which
-worker should a task execute:
+Optimal scheduling of tasks to workers is an NP-hard~\cite{Ullman1975} problem even for the
+most basic scenarios, when the exact execution duration of each task is known, and even if we do
+not consider the duration of transferring data between workers over a network. Task runtimes thus
+resort to various heuristics tailored to their users' needs. Some classic task scheduling
+heuristics and their comparisons can be found in~\cite{hlfet1974,kwok1998benchmarking,hagras2003static,wang2018list,estee}. \Autoref{ch:estee}
+contains a comprehensive survey of various task scheduling algorithms.
+
+Scheduling heuristics have to take many factors into consideration when deciding on which worker
+should a task be executed:
 
 \begin{description}
-	\item[\textbf{Resource requirements}] The scheduler should respect all resource requirements specified by individual tasks. The runtime
-		thus has to observe the (dynamically changing) available resources of each worker and schedule
-		tasks accordingly to uphold their requirements. This can be challenging especially in the presence
-		of complex resource requirements.
+	\item[\textbf{Resource requirements}] The scheduler should respect all resource requirements specified by tasks. The runtime thus has to
+		observe the dynamically changing available resources of each worker and schedule tasks accordingly,
+		to uphold their requirements. This can be challenging especially in the presence of complex
+		resource requirements.
 	\item[\textbf{Data transfer cost}] If the runtime operates within a distributed cluster, one of the most important scheduling aspects
 		that it needs to consider is the transfer cost of data between workers over the network. All
 		benefits gained by computing a task on another worker to achieve more parallelization might be lost
@@ -470,20 +704,36 @@ worker should a task execute:
 		The scheduler thus has to carefully balance the communication-to-computation ratio, based on the
 		available network bandwidth, sizes of outputs produced by tasks and the current utilization of
 		workers.
-	\item[\textbf{Scheduling overhead}] The overhead of computing the scheduling decisions itself also cannot be underestimated. As already
-		stated, computing an optimal solution is infeasible, but even heuristical approaches can have
-		wildly different performance characteristics. Producing a lower quality schedule sooner, rather
-		than a higher quality schedule later, can be sometimes beneficial, as we have demonstrated
-		in~\cite{estee, rsds}.
+	\item[\textbf{Scheduling overhead}] The overhead of generating the schedule itself also cannot be underestimated. As was already
+		stated, computing an optimal solution quickly is infeasible, but even heuristical approaches can
+		have wildly different performance characteristics. Producing a lower quality schedule sooner,
+		rather than a higher quality schedule later, can be sometimes beneficial.
 	\item[\textbf{Memory consumption}] It is desirable to execute as many tasks in parallel on a given worker (with respect to its
 		available parallelism), to speed up the completion of the whole workflow. However, the scheduler
-		must also balance the number of executing tasks according to the total memory that they consume. In
-		general, it is quite hard to predict for how long will a task execute, and how much (peak) memory
-		will it consume. When a task executes longer than expected, the workflow will still be computed, it
-		will just take more time. But when a task uses more memory than expected, the scheduler puts many
-		such tasks on a worker, and the worker then runs out of memory, the worker will probably crash. If
-		this happens repeatedly, it can stall or completely stop the execution of the workflow. For these
-		kinds of memory-intensive workflows, the scheduler should assign fewer tasks at the same time to a
-		single worker, or reduce memory consumption in some other way, e.g.\ by keeping less cached data
-		objects in worker's memory.
+		should also balance the number of concurrently executing tasks according to the total amount of
+		memory that they consume. In general, it is quite hard to predict for how long will a task execute,
+		and how much (peak) memory will it consume. When a task executes longer than expected, the workflow
+		will still be computed, it will just take more time. But when a task uses more memory than
+		expected, or the scheduler puts too many tasks on a worker at the same time, then the worker might
+		run out of memory and crash. If this happens repeatedly, it can stall or completely stop the
+		execution of the workflow. For memory-intensive workflows, the runtime should assign fewer tasks at
+		the same time to a single worker, or reduce overall memory consumption in some other way, e.g.\ by
+		keeping less cached data objects in the worker's memory.
 \end{description}
+
+\section{State-of-the-art task runtimes}
+\label{sec:sota-task-runtimes}
+%TODO
+It is used in various technologies and frameworks, ranging from fine-grained tasks that execute a
+single function or just a handful of instructions~\cite{starpu,openmp} to coarse-grained task
+workflows that execute binaries which can run for hours or even days~\cite{dask, snakemake, nextflow}. This
+thesis primarily focuses on the latter type of task graphs, which represent very general
+computations (either functions or binaries) with various levels of granularity, that are intended
+to be distributed among multiple nodes of a distributed cluster. A further distinction can be made
+between batch-oriented workflows, which define a computation with a clearly delimited set of inputs
+that is already available when the workflow starts, and which focus primarily on throughput, and
+streaming-oriented workflows, which operate continuously on streams of input data that arrive
+just-in-time, and which usually focus on latency. This thesis focuses exclusively on batch
+workflows, which are more common in \gls{hpc} scenarios\todo{cite}.
+
+batch vs streaming
