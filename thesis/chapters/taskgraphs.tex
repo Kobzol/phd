@@ -17,7 +17,7 @@ concepts used by task runtimes described in the previous chapters, and also addi
 that are described in following chapters of the thesis.
 % TODO: remove if no additional tools are mentioned in the HQ chapter
 
-\subsection{Task graphs}
+\section{Task graphs}
 A computational workflow in the task-based programming model is represented with a
 \gls{dag} that we will label as a \emph{task graph}. From a high-level
 perspective, it describes which individual computational steps should be performed, what are the
@@ -173,7 +173,7 @@ transfers between tasks, then data objects simply serve as ``empty'' markers of 
 they do not hold any actual data. In that case, we could even remove them from the task graph
 completely, and represent task dependencies directly with arcs between tasks.
 
-\subsection{Task graph execution}
+\section{Task execution}
 Task graphs merely describe some computation, therefore they have to be executed in order to
 actually produce some outputs and results. This is the responsibility of a \emph{task runtime},
 a tool that analyzes task graphs and executes them in some \emph{computational environment}, e.g.\ a personal
@@ -243,7 +243,7 @@ advantages of the task-based programming model, where tasks declaratively descri
 computation that can be re-executed arbitrarily many times. This crucial property of tasks makes
 fault-tolerant execution of task graphs possible.
 
-\subsection{Task scheduling}
+\section{Task scheduling}
 Arguably the most important responsibility of a task runtime (which also gets the most attention in
 research works), is \emph{task scheduling}. It is the act of deciding in which order and on which
 specific worker(s) should each task execute, in a way that optimizes some key metric. There are

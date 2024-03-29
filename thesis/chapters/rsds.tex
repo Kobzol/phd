@@ -5,6 +5,8 @@ experiments, for example the competitiveness of the random scheduler, in a non-s
 To do that, we had to move from a simulator to a task runtime that can execute task graphs on an
 actual distributed cluster.
 
+%TODO: Expand why Dask
+
 We have decided to use \dask{}~\cite{dask} for our experiments,
 for several reasons:
 \begin{itemize}
@@ -52,7 +54,7 @@ publication~\cite{rsds}.
 \workshare{I have collaborated on this work with Ada Böhm, we have both contributed to it equally. Source code contribution statistics for
 \rsds{} can be found on GitHub\footnoteurl{https://github.com/it4innovations/rsds/graphs/contributors}.}
 
-\section{\dask{}}
+\section{\dask{} task runtime}
 \label{sec:rsds-dask}
 % TODO: place Dask into SOTA and describe it more, if not already done in the SOTA chapter
 \dask{} is a distributed task runtime implemented in Python that can
@@ -237,7 +239,7 @@ cases, it is thus necessary to carefully balance the trade-off between too few w
 hamper task execution parallelism) and too many workers (which can reduce the overall efficiency of
 the \dask{} runtime).
 
-\section{\dask{} overhead analysis}
+\section{Runtime overhead analysis}
 \label{sec:rsds-dask-overhead-analysis}
 We have designed a series of experiments to evaluate the inner overhead of
 \dask{} and to find out which factors affects its runtime performance the most.
@@ -606,7 +608,7 @@ performance. This lead us to the idea of improving the implementation of the
 \dask{} server, in order to reduce its overhead in \gls{hpc}
 scenarios.
 
-\section{\rsds{} (alternative \dask{} server)}
+\section{\rsds{} task runtime}
 \label{sec:rsds-description}
 In order to examine how much could the performance of \dask{} be improved if we
 were able to reduce its runtime overhead, we have developed \rsds{} (Rust \dask{} server), an
@@ -631,7 +633,7 @@ reference counting and data indirection present in Python. It also has direct su
 asynchronous \gls{io} and provides strong memory safety guarantees, hence it is
 well suited for writing distributed applications.
 
-\begin{figure}
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.8\linewidth]{./imgs/rsds/rsds-architecture}
 	\caption{Architecture of \rsds{} (\dask{} components are dashed)}
@@ -1079,7 +1081,7 @@ We have analysed the performance of the \dask{} task runtime on a set of
 diverse benchmarks in an \gls{hpc} setting. Our analysis has demonstrated that
 \dask{} is heavily bottlenecked by the runtime overhead of its Python
 implementation, and also by other aspects related to the usage of Python, notably the presence of
-the \gls{gil}. This suggests that further optimizations should focus mainly on
+the \gls{gil}. This suggests that further optimisations should focus mainly on
 the overhead of its server, rather than its scheduler, as even a completely random scheduler is
 able to achieve quite reasonable performance, since the schedule is not the primary bottleneck, at
 least in certain cases.
