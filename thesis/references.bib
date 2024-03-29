@@ -578,6 +578,74 @@ and Badia, Rosa M.",
 %    abstract="Scientific applications are large and complex; task-based programming models are a popular approach to developing these applications due to their ease of programming and ability to handle complex workflows and distribute their workload across large infrastructures. In these environments, either the hardware or the software may lead to failures from a myriad of origins: application logic, system software, memory, network, or disk. Re-executing a failed application can take hours, days, or even weeks, thus, dragging out the research. This article proposes a recovery system for dynamic task-based models to reduce the re-execution time of failed runs. The design encapsulates in a checkpointing manager the automatic checkpointing of the execution, leveraging different mechanisms that can be arbitrarily defined and tuned to fit the needs of each performance. Additionally, it offers an API call to establish snapshots of the execution from the application code. The experiments executed on a prototype implementation have reached a speedup of 1.9{\$}{\$}{\backslash}times {\$}{\$}{\texttimes}after re-execution and shown no overhead on the execution time on successful first runs of specific applications.",
     isbn="978-3-031-31209-0"
 }
+@article{dataflow,
+    title = {The Dataflow Model: A Practical Approach to Balancing Correctness, Latency, and Cost in Massive-Scale, Unbounded, Out-of-Order Data Processing},
+    author = {Tyler Akidau and Robert Bradshaw and Craig Chambers and Slava Chernyak and Rafael J. Fernández-Moctezuma and Reuven Lax and Sam McVeety and Daniel Mills and Frances Perry and Eric Schmidt and Sam Whittle},
+    year = 2015,
+    journal = {Proceedings of the VLDB Endowment},
+    volume = 8,
+    pages = {1792--1803}
+}
+@INPROCEEDINGS{stencil,
+    author={Maruyama, Naoya and Sato, Kento and Nomura, Tatsuo and Matsuoka, Satoshi},
+    booktitle={SC '11: Proceedings of 2011 International Conference for High Performance Computing, Networking, Storage and Analysis},
+    title={Physis: An implicitly parallel programming model for stencil computations on large-scale GPU-accelerated supercomputers},
+    year={2011},
+    volume={},
+    number={},
+    pages={1-12},
+%    keywords={Programming;Computational modeling;DSL;Graphics processing unit;Runtime;Optimization;Indexes;Domain Specific Languages;Application Framework;High Perforamnce Computing},
+    doi={10.1145/2063384.2063398}
+}
+@Inbook{parallel_haskell,
+    author="Hammond, Kevin",
+    editor="Padua, David",
+    title="Glasgow Parallel Haskell (GpH)",
+    bookTitle="Encyclopedia of Parallel Computing",
+    year="2011",
+    publisher="Springer US",
+    address="Boston, MA",
+    pages="768--779",
+    isbn="978-0-387-09766-4",
+    doi="10.1007/978-0-387-09766-4_46",
+%    url="https://doi.org/10.1007/978-0-387-09766-4_46"
+}
+@INPROCEEDINGS{workflows1,
+    author={Do, Tu Mai Anh and Pottier, Loïc and Yildiz, Orcun and Vahi, Karan and Krawczuk, Patrycja and Peterka, Tom and Deelman, Ewa},
+    booktitle={2022 22nd IEEE International Symposium on Cluster, Cloud and Internet Computing (CCGrid)},
+    title={Accelerating Scientific Workflows on HPC Platforms with In Situ Processing},
+    year={2022},
+    volume={},
+    number={},
+    pages={1-10},
+%    keywords={Cloud computing;Scientific computing;High performance computing;Genomics;Data transfer;Bioinformatics;Task analysis;Scientific Workflows;Workflow Management Systems;In situ;Pegasus;Decaf},
+    doi={10.1109/CCGrid54584.2022.00009}
+}
+@INPROCEEDINGS{bulkparallel1,
+    author={Cheatham, T. and Fahmy, A. and Stefanescu, D.C. and Valiant, L.G.},
+    booktitle={Proceedings of the Twenty-Eighth Annual Hawaii International Conference on System Sciences},
+    title={Bulk synchronous parallel computing-a paradigm for transportable software},
+    year={1995},
+    volume={2},
+    number={},
+    pages={268-275 vol.2},
+%    keywords={Concurrent computing;Software performance;Computer architecture;Yarn;Throughput;Parallel processing;Computer industry;Contracts;Laboratories;Reactive power},
+    doi={10.1109/HICSS.1995.375451}
+}
+@InProceedings{bulkparallel2,
+    author="Gerbessiotis, Alexandras V.
+and Valiant, Leslie G.",
+    editor="Nurmi, Otto
+and Ukkonen, Esko",
+    title="Direct bulk-synchronous parallel algorithms",
+    booktitle="Algorithm Theory --- SWAT '92",
+    year="1992",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="1--18",
+%    abstract="We describe a methodology for constructing parallel algorithms that are transportable among parallel computers having different numbers of processors, different bandwidths of interprocessor communication and different periodicity of global synchronisation. We do this for the bulk-synchronous parallel (BSP) model, which abstracts the characteristics of a parallel machine into three numerical parameters p, g, and L, corresponding to processors, bandwidth, and periodicity respectively. The model differentiates memory that is local to a processor from that which is not, but, for the sake of universality, does not differentiate network proximity. The advantages of this model in supporting shared memory or PRAM style programming have been treated elsewhere. Here we emphasise the viability of an alternative direct style of programming where, for the sake of efficiency the programmer retains control of memory allocation. We show that optimality to within a multiplicative factor close to one can be achieved for the problems of Gauss-Jordan elimination and sorting, by transportable algorithms that can be applied for a wide range of values of the parameters p, g, and L. We also give some simulation results for PRAMs on the BSP to identify the level of slack at which corresponding efficiencies can be approached by shared memory simulations, provided the bandwidth parameter g is good enough.",
+    isbn="978-3-540-47275-9"
+}
 
 
 % Allocation managers
@@ -1083,6 +1151,52 @@ and van der Spoel, David",
     number={},
     pages={58-72},
     doi={10.1109/PAW-ATM49560.2019.00011}
+}
+@article{flink,
+    author = {Carbone, Paris and Katsifodimos, Asterios and Kth, † and Sweden, Sics and Ewen, Stephan and Markl, Volker and Haridi, Seif and Tzoumas, Kostas},
+    year = {2015},
+    month = {01},
+%    pages = {},
+    title = {Apache Flink™: Stream and Batch Processing in a Single Engine},
+    volume = {38},
+    journal = {IEEE Data Engineering Bulletin}
+}
+@INPROCEEDINGS{kafka,
+    author={Shree, Rishika and Choudhury, Tanupriya and Gupta, Subhash Chand and Kumar, Praveen},
+    booktitle={2017 2nd International Conference on Telecommunication and Networks (TEL-NET)},
+    title={KAFKA: The modern platform for data management and analysis in big data domain},
+    year={2017},
+    volume={},
+    number={},
+    pages={1-5},
+    %    keywords={Real-time systems;Distributed databases;Tools;File systems;Ecosystems;Servers;Reliability;Apache Kafka;hadoop;stream processing;low latency;flume;high throughput;publish-subscribe;producer;consumer},
+    doi={10.1109/TEL-NET.2017.8343593}
+}
+@inproceedings{timely_dataflow,
+    author = {Murray, Derek G. and McSherry, Frank and Isaacs, Rebecca and Isard, Michael and Barham, Paul and Abadi, Mart\'{\i}n},
+    title = {Naiad: a timely dataflow system},
+    year = {2013},
+    isbn = {9781450323888},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+%    url = {https://doi.org/10.1145/2517349.2522738},
+    doi = {10.1145/2517349.2522738},
+%    abstract = {Naiad is a distributed system for executing data parallel, cyclic dataflow programs. It offers the high throughput of batch processors, the low latency of stream processors, and the ability to perform iterative and incremental computations. Although existing systems offer some of these features, applications that require all three have relied on multiple platforms, at the expense of efficiency, maintainability, and simplicity. Naiad resolves the complexities of combining these features in one framework.A new computational model, timely dataflow, underlies Naiad and captures opportunities for parallelism across a wide class of algorithms. This model enriches dataflow computation with timestamps that represent logical points in the computation and provide the basis for an efficient, lightweight coordination mechanism.We show that many powerful high-level programming models can be built on Naiad's low-level primitives, enabling such diverse tasks as streaming data analysis, iterative machine learning, and interactive graph mining. Naiad outperforms specialized systems in their target application domains, and its unique features enable the development of new high-performance applications.},
+    booktitle = {Proceedings of the Twenty-Fourth ACM Symposium on Operating Systems Principles},
+    pages = {439–455},
+    numpages = {17},
+    location = {Farminton, Pennsylvania},
+    series = {SOSP '13}
+}
+@article{sciluigi,
+    author = {Lampa, Samuel and Alvarsson, Jonathan and Spjuth, Ola},
+    year = {2016},
+    month = {11},
+    pages = {},
+    title = {Towards agile large-scale predictive modelling in drug discovery with flow-based programming design principles},
+    volume = {8},
+    journal = {Journal of Cheminformatics},
+    doi = {10.1186/s13321-016-0179-6}
 }
 
 % Datasets
