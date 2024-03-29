@@ -231,18 +231,19 @@ Since task-based programming models are implicitly parallel, their users do not 
 imperatively specify how should their computation be parallelized, or when and how should data be
 exchanged between distributed nodes. They merely declaratively describe the individual parts of the
 program that can theoretically be executed in parallel (the tasks) and then pass the task graph to
-a dedicated execution tool that executes the tasks, typically on a distributed cluster. Since the
-program is represented with an explicit graph, the execution tool can effectively analyze its
+a dedicated execution tool (that we will label as a \emph{task runtime}) that executes the tasks,
+typically on a distributed cluster. Since the
+program is represented with an explicit graph, the taks runtime can effectively analyze its
 properties (or even optimize the structure of the graph) in an automated way, and extract the
 available parallelism from it without requiring the user to explicitly define how should the
 program be parallelized.
 
-It is important to note that from the perspective of a task execution tool, each task is opaque.
+It is important to note that from the perspective of a taks runtime, each task is opaque.
 The tool knows how to execute it, but it typically does not have any further knowledge of the inner
 structure of the task. Therefore, the only parallelization opportunities that can be extracted by
 the tool have to be expressed by the structure of the task graph. A task graph containing a single
 task is thus not very useful on its own. The individual tasks can of course also be internally
-parallel, however this parallelization is not provided automatically by the task execution tool.
+parallel, however this parallelization is not provided automatically by the task runtime.
 Tasks often achieve internal parallelism using shared memory multiprocessing, for example using the
 \gls{openmp} framework.
 
@@ -372,13 +373,13 @@ as an input for the next iteration, thus creating a loop in the flow of data.
 Another potential disadvantage, which is shared by most implicitly parallel models, is that
 MapReduce programs might not be able to achieve performance comparable to programs implemented
 using explicit parallelism. This is especially problematic for certain implementations of MapReduce
-that are known to be very inefficient, such as Apache Hadoop~\cite{hadoop}. In general, when
-executing distributed computations, it is always a good idea to first make sure that it is not
-possible to solve the same problem faster with a single-threaded program running on
-consumer-grade hardware~\cite{cost}.
+that are known to be very inefficient, such as Apache Hadoop~\cite{hadoop}. In general,
+when executing distributed computations, it is always a good idea to first make sure that it is not
+possible to solve the same problem faster with a single-threaded program running on consumer-grade
+hardware~\cite{cost}.
 
-While MapReduce and similar models are very useful for computations that have a regular
-structure, \gls{hpc} scientific workflows can be quite complex, and it is not always possible to
+While MapReduce and similar models are very useful for computations that have a regular structure,
+\gls{hpc} scientific workflows can be quite complex, and it is not always possible to
 express them using such a constrained programming model. We will thus further only consider tools
 and models that allow executing arbitrarily shaped task graphs.
 

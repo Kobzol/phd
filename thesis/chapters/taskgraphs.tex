@@ -13,8 +13,9 @@ Nevertheless, it is still useful to provide a shared vocabulary for this thesis.
 defines the most important terms related to tasks, including concepts that are relevant to task
 graph execution in \gls{hpc} environments, which will be further described
 in~\Autoref{ch:challenges}. The definitions will be general enough so that they can be applied to
-concepts used by task execution tools described in the previous chapters, and also additional tools
+concepts used by task runtimes described in the previous chapters, and also additional tools
 that are described in following chapters of the thesis.
+% TODO: remove if no additional tools are mentioned in the HQ chapter
 
 \subsection{Task graphs}
 A computational workflow in the task-based programming model is represented with a
@@ -39,8 +40,7 @@ As was already noted, the exact semantics of vertices and arcs of task graphs de
 specifics of tools that implement them, and thus it is not possible to provide a single definition
 that would fit all variants used ``in the wild''. To provide a baseline definition, we will
 formally define a task graph that can capture dependencies between tasks and the notion of
-transferring data between them. This definition is general enough so that it can be applied to task
-execution tools mentioned in this thesis.
+transferring data between them.
 
 A task graph is a tuple $(T, O, E)$, where $T$ is a set of
 \emph{tasks}, $O$ is a set of \emph{data objects} and
