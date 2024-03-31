@@ -646,7 +646,53 @@ and Ukkonen, Esko",
 %    abstract="We describe a methodology for constructing parallel algorithms that are transportable among parallel computers having different numbers of processors, different bandwidths of interprocessor communication and different periodicity of global synchronisation. We do this for the bulk-synchronous parallel (BSP) model, which abstracts the characteristics of a parallel machine into three numerical parameters p, g, and L, corresponding to processors, bandwidth, and periodicity respectively. The model differentiates memory that is local to a processor from that which is not, but, for the sake of universality, does not differentiate network proximity. The advantages of this model in supporting shared memory or PRAM style programming have been treated elsewhere. Here we emphasise the viability of an alternative direct style of programming where, for the sake of efficiency the programmer retains control of memory allocation. We show that optimality to within a multiplicative factor close to one can be achieved for the problems of Gauss-Jordan elimination and sorting, by transportable algorithms that can be applied for a wide range of values of the parameters p, g, and L. We also give some simulation results for PRAMs on the BSP to identify the level of slack at which corresponding efficiencies can be approached by shared memory simulations, provided the bandwidth parameter g is good enough.",
     isbn="978-3-540-47275-9"
 }
-
+@article{split_apply_combine,
+    author = {Hadley, Wickham},
+    year = {2011},
+    month = {04},
+    pages = {},
+    title = {The Split-Apply-Combine Strategy for Data Analysis},
+    volume = {40},
+    journal = {Journal of Statistical Software},
+    doi = {10.18637/jss.v040.i01}
+}
+@article{cilk,
+    title = {Cilk: An Efficient Multithreaded Runtime System},
+    journal = {Journal of Parallel and Distributed Computing},
+    volume = {37},
+    number = {1},
+    pages = {55-69},
+    year = {1996},
+    issn = {0743-7315},
+    doi = {https://doi.org/10.1006/jpdc.1996.0107},
+%    url = {https://www.sciencedirect.com/science/article/pii/S0743731596901070},
+    author = {Robert D. Blumofe and Christopher F. Joerg and Bradley C. Kuszmaul and Charles E. Leiserson and Keith H. Randall and Yuli Zhou},
+%    abstract = {Cilk (pronounced “silk”) is a C-based runtime system for multithreaded parallel programming. In this paper, we document the efficiency of the Cilk work-stealing scheduler, both empirically and analytically. We show that on real and synthetic applications, the “work” and “critical-path length” of a Cilk computation can be used to model performance accurately. Consequently, a Cilk programmer can focus on reducing the computation's work and critical-path length, insulated from load balancing and other runtime scheduling issues. We also prove that for the class of “fully strict” (well-structured) programs, the Cilk scheduler achieves space, time, and communication bounds all within a constant factor of optimal. The Cilk runtime system currently runs on the Connection Machine CM5 MPP, the Intel Paragon MPP, the Sun Sparcstation SMP, and the Cilk-NOW network of workstations. Applications written in Cilk include protein folding, graphic rendering, backtrack search, and the ★Socrates chess program, which won second prize in the 1995 ICCA World Computer Chess Championship.}
+}
+@inproceedings{qr_factorization,
+    author = {Miletto, Marcelo and Schnorr, Lucas},
+    year = {2019},
+    month = {11},
+    pages = {25-36},
+    title = {OpenMP and StarPU Abreast: the Impact of Runtime in Task-Based Block QR Factorization Performance},
+    doi = {10.5753/wscad.2019.8654}
+}
+@article{tbb,
+    author = {Pheatt, Chuck},
+    title = {Intel® threading building blocks},
+    year = {2008},
+    issue_date = {April 2008},
+    publisher = {Consortium for Computing Sciences in Colleges},
+    address = {Evansville, IN, USA},
+    volume = {23},
+    number = {4},
+    issn = {1937-4771},
+%    abstract = {Intel® Threading Building Blocks [1] is a C++ runtime library that abstracts the low-level threading details necessary for effectively utilizing multi-core processors. It uses C++ templates to eliminate the need to create and manage threads. Applications tend to be more portable since parallelism is achieved through library calls and utilization of a task manager for scheduling. The task manager analyzes the system the software is running on, chooses the optimal number of threads, and performs load balancing that spreads out the work evenly across all processor cores. The library consists of data structures and algorithms that simplify parallel programming in C++ by avoiding requiring a programmer to use native threading packages such as POSIX threads or Windows threads, or even the portable Boost Threads.},
+    journal = {J. Comput. Sci. Coll.},
+    month = {apr},
+    pages = {298},
+    numpages = {1}
+}
 
 % Allocation managers
 @InProceedings{slurm,
@@ -1197,6 +1243,32 @@ and van der Spoel, David",
     volume = {8},
     journal = {Journal of Cheminformatics},
     doi = {10.1186/s13321-016-0179-6}
+}
+@article{vaex,
+    author = {Breddels, Maarten and Veljanoski, Jovan},
+    year = {2018},
+    month = {01},
+    pages = {},
+    title = {Vaex: Big Data exploration in the era of Gaia},
+    volume = {618},
+    journal = {Astronomy & Astrophysics},
+    doi = {10.1051/0004-6361/201732493}
+}
+@Manual{cudf,
+    title = {RAPIDS: Libraries for End to End GPU Data Science},
+    author = {RAPIDS Development Team},
+    year = {2023},
+    url = {https://rapids.ai}
+}
+@phdthesis{modin,
+    Author = {Petersohn, Devin},
+    Title = {Dataframe Systems: Theory, Architecture, and Implementation},
+    School = {EECS Department, University of California, Berkeley},
+    Year = {2021},
+    Month = {Aug},
+    URL = {http://www2.eecs.berkeley.edu/Pubs/TechRpts/2021/EECS-2021-193.html},
+    Number = {UCB/EECS-2021-193},
+%    Abstract = {Dataframes are a popular abstraction to represent, prepare, and analyze data. Despite the remarkable success of dataframe libraries in R and Python, dataframes face performance issues even on moderately large datasets. Moreover, there is significant ambiguity regarding dataframe semantics. In this thesis, we discuss the implications of signature dataframe features including flexible schemas, ordering, row/column equivalence, and data/meta-data fluidity, as well as the piecemeal, trial-and-error-based approach to interacting with dataframes. While most modern systems aim to scale dataframe workloads by changing properties of dataframes – or by adding new distributed systems knowledge requirements– we believe it is important to support scalable ops on dataframes without changing their semantics. This thesis takes a ground-up approach towards scaling dataframe systems,starting with a formal data model and algebra, and ending with a reference implementation. This implementation, Modin, has already accumulated a significant amount of community support: over 6,000 GitHub stars and over 1 million installs to date. This interest shows the need for systems that solve modern data science problems without changing semantics. Included in this thesis are several of our insights into how to build systems for data scientists and what data scientists prioritize. We believe these insights were instrumental in unlocking the interest and support from the community in our open source work.}
 }
 
 % Datasets

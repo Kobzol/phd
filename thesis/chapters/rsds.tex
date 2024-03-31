@@ -58,22 +58,21 @@ publication~\cite{rsds}.
 \label{sec:rsds-dask}
 % TODO: place Dask into SOTA and describe it more, if not already done in the SOTA chapter
 \dask{} is a distributed task runtime implemented in Python that can
-parallelize and distribute Python programs. It offers various programming interfaces
+parallelise and distribute Python programs. It offers various programming interfaces
 (\glspl{api}) that mimic the interfaces of popular Python packages. For example,
 \emph{Dask DataFrame} copies the \texttt{pandas}\footnoteurl{https://pandas.pydata.org}
 interface for table processing and database operations, \emph{Dask Arrays} copies the
 \texttt{numpy}\footnoteurl{https://numpy.org} interface for tensor computations and
 \emph{Dask ML} copies the \texttt{scikit-learn}\footnoteurl{https://scikit-learn.org}
 interface for machine learning. Thanks to this interface compatibility, existing Python programs
-leveraging these libraries can often be parallelized with \dask{} by changing
+leveraging these libraries can often be parallelised with \dask{} by changing
 only a handful of lines of code.
 
-This is demonstrated in Figures~\ref{lst:dask-array-example} and~\ref{lst:dask-dataframe-example}, which
-show two small Python programs that leverage the \emph{Dask Arrays} (\Autoref{lst:dask-array-example}) and
-\emph{Dask DataFrame}
-(\Autoref{lst:dask-dataframe-example}) \gls{api}. Notably, the only difference between these
-programs (which are leveraging \dask{}, and thus can be parallelized), and a
-standard sequential version, is the change of imports from \texttt{numpy} and
+This is demonstrated in~\Autoref{lst:dask-array-example} and~\ref{lst:dask-dataframe-example-2}, which show two
+small Python programs that leverage the \emph{Dask Arrays} and \emph{Dask DataFrame}
+\gls{api} respectively. Notably, the only difference between these programs
+(which are leveraging \dask{}, and thus can be parallelised), and a standard
+sequential version, is the change of imports from \texttt{numpy} and
 \texttt{pandas} to \dask{} Python modules.
 
 \begin{listing}[h]
@@ -92,7 +91,7 @@ y = (y * 2 + x.T).mean(axis=1)
 \begin{listing}[h]
 	\caption{Example of a Python program that leverages the \dask{} DataFrame
 	\gls{api}}
-	\label{lst:dask-dataframe-example}
+	\label{lst:dask-dataframe-example-2}
 	\begin{minted}[fontsize=\small]{python}
 # import pandas as pd
 import dask.dataframe as pd
@@ -106,11 +105,11 @@ df3 = df2.groupby("name").x.std()
 
 \subsection*{Computational model}
 \dask{} automatically transforms Python code leveraging these
-\glspl{api} into a task
-graph, which is then executed in parallel, possibly on multiple nodes of a distributed cluster.
-This enables almost transparent parallelization of sequentially looking Python code. However, apart
-from these high-level interfaces, it is also possible to build a task graph manually, using the
-\emph{Futures} interface, to define complex computational workflows.
+\glspl{api} into a task graph, which is then executed in parallel, possibly on
+multiple nodes of a distributed cluster. This enables almost transparent parallelization of
+sequentially looking Python code. However, apart from these high-level interfaces, it is also
+possible to build a task graph manually, using the \emph{Futures} interface, to define
+complex computational workflows.
 
 The core computational abstraction of \dask{} is a \emph{task graph},
 which corresponds closely to the definition of task graphs in \Autoref{ch:taskgraphs}. Each
@@ -125,14 +124,14 @@ out of Python code that uses its \glspl{api}. For example, a single line of Pyth
 code that performs a query over a \texttt{pandas}-like table (also called DataFrame)
 will be eventually converted to a set of individual tasks that e.g.\ perform the query on a subset
 of the table's rows. The selected number of these tasks (or partitions) is crucial, since it
-determines how effectively will the operation be parallelized. Too few (large) tasks can cause
+determines how effectively will the operation be parallelised. Too few (large) tasks can cause
 computational resources to be under-utilized, while too many (small) tasks can overwhelm the
 \dask{} runtime.
 
 \subsection*{Architecture}
 \dask{} supports multiple computational backends that can execute the task
 graphs generated from Python code. The default backend is able to execute the task graph in a
-parallelized fashion on a local computer, but there is also a distributed backend called
+parallelised fashion on a local computer, but there is also a distributed backend called
 \emph{Dask/distributed}\footnoteurl{https://distributed.dask.org}
 (or simply \emph{distributed}), which is able to execute task graphs on
 multiple nodes. Since this backend is most relevant for task graph execution on distributed and
@@ -160,7 +159,7 @@ The \emph{server} is the central component of the cluster, which communicates wi
 the workers and clients through a network, usually a \gls{tcpip} connection,
 handles client requests, coordinates task execution on workers and manages the whole
 \dask{} cluster. Its main duty is to process task graphs submitted by clients,
-by assigning individual tasks to workers, in order to parallelize the execution of the submitted
+by assigning individual tasks to workers, in order to parallelise the execution of the submitted
 task graph and in turn efficiently utilize the whole cluster. It uses a sophisticated work-stealing
 scheduler that uses many heuristics, which have been tuned for many years. Some of them are
 described in the \dask{} manual\footnoteurl{https://distributed.dask.org/en/latest/work-stealing.html}.
@@ -239,7 +238,7 @@ cases, it is thus necessary to carefully balance the trade-off between too few w
 hamper task execution parallelism) and too many workers (which can reduce the overall efficiency of
 the \dask{} runtime).
 
-\section{Runtime overhead analysis}
+\section{\dask{} runtime overhead analysis}
 \label{sec:rsds-dask-overhead-analysis}
 We have designed a series of experiments to evaluate the inner overhead of
 \dask{} and to find out which factors affects its runtime performance the most.
@@ -550,12 +549,12 @@ of a task is similar or smaller than the overhead of the runtime itself, executi
 the runtime will probably not yield any speedup. This is demonstrated in
 \Autoref{fig:dask-strong-scaling}, which shows the strong scaling of \dask{} on the
 $merge\_slow$ benchmark. The three charts demonstrate its scaling with tasks that take
-$1000ms$, $100ms$ and $10ms$
-(respectively). With tasks that take a second, \dask{} is able to scale
-relatively well up to $1512$ workers. However, when tasks take ten times less
-time, it only scales up to around $360$ workers, and when tasks take only
-$10ms$, \dask{} scales to around $168$
-workers, and adding further workers makes the makespan longer.
+$1000ms$, $100ms$ and $10ms$ respectively.
+With tasks that take a second, \dask{} is able to scale relatively well up to
+$1512$ workers. However, when tasks take ten times less time, it only scales up
+to around $360$ workers, and when tasks take only $10ms$,
+\dask{} scales to around $168$ workers, and adding further
+workers makes the makespan longer.
 
 The results of this experiment indicate that the general runtime overhead of
 \dask{} mainly grows with an increasing number of tasks, no matter which

@@ -76,7 +76,7 @@ tasks. Task graphs abstract away most of the complexity of network communication
 parallelization, and they are general enough to describe a large set of programs in a practical and
 simple way. At the same time, they remain amenable to compiler-driven optimisation and automatic
 parallelization, which helps to bring the performance of programs described by a task graph close
-to manually parallelized and distributed programs, at a fraction of the development cost for the
+to manually parallelised and distributed programs, at a fraction of the development cost for the
 application developer. They are also quite portable, as the task graph programming model typically
 does not make many assumptions about the target platform, therefore the same task graph can be
 executed on various systems and clusters, provided there is a task execution runtime implemented
@@ -159,7 +159,7 @@ thesis (\emph{ergonomics} and \emph{performance} of task graph execution in
 	\label{fig:thesis-chapter-diagram}
 \end{figure}
 
-\Autoref{ch:distributed-computing} introduces various approaches for designing parallelized programs
+\Autoref{ch:distributed-computing} introduces various approaches for designing parallelised programs
 on distributed clusters, and categorizes programming models based on computational workflows.
 \Autoref{ch:taskgraphs} then describes the task-based programming model in detail, and defines key
 terms related to tasks and task graphs. \Autoref{ch:challenges} outlines various ergonomic
@@ -168,9 +168,9 @@ challenges and performance bottlenecks that affect execution of task graphs on
 task graph execution. \Autoref{ch:estee} evaluates the performance of various task scheduling
 algorithms, and introduces \estee{}, a task graph execution simulator.
 \Autoref{ch:rsds} then analyses the runtime performance of \dask{}, a
-state-of-the-art task runtime, and proposes an alternative implementation of its server that
-is able to outperform \dask{} in various \gls{hpc} use-cases.
+state-of-the-art task runtime, and proposes an alternative implementation of its server that is
+able to outperform \dask{} in various \gls{hpc} use-cases.
 \Autoref{ch:hyperqueue} focuses on improving both the ergonomics and performance aspects of task
-execution in the presence of \gls{hpc} allocation managers, using a meta-scheduling design
-implemented by the \hyperqueue{} task runtime. Finally,~\Autoref{ch:conclusion} summarizes
-the thesis and outlines future work.
+execution in the presence of \gls{hpc} allocation managers, using a meta-scheduling
+design implemented by the \hyperqueue{} task runtime. Finally,~\Autoref{ch:conclusion}
+summarizes the thesis and outlines future work.
