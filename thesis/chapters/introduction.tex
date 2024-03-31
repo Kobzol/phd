@@ -23,7 +23,7 @@ need for ever-increasing memory sizes has also made the memory system more compl
 \gls{numa} memories becoming commonplace in \gls{hpc}. To achieve even
 more performance, \gls{hpc} clusters started massively adopting various accelerators,
 like the Intel Xeon Phi~\cite{xeonphi} manycore coprocessor or general-purpose
-\glspl{gpu} from NVIDIA or AMD, which eventually became the backbone of the majority of
+NVIDIA or AMD \glspl{gpu}, which eventually became the backbone of the majority of
 current supercomputers~\cite{top500gpu}. Some clusters have also adapted more unconventional
 accelerators, like reconfigurable hardware, such as \glspl{fpga}, or
 \gls{ai} accelerators, such as \glspl{tpu}. This trend gave rise to
@@ -36,7 +36,7 @@ corresponding programming models to become more complex, making it far from triv
 available performance offered by supercomputers. Individual computers of \gls{hpc}
 clusters (called \emph{computing nodes}) can consist of hundreds of \gls{cpu} cores
 each, yet it is quite challenging to write programs that can scale to such high core counts. The
-operational \gls{ram} of each node contains multiple levels of complex cache
+\gls{ram} of each node contains multiple levels of complex cache
 hierarchies, and it has such a large capacity that it has to be split into multiple physical
 locations with varying access latencies (\gls{numa}), which requires usage of
 specialized programming techniques to achieve optimal performance. And the ever-present
@@ -115,62 +115,54 @@ approach in \hyperqueue{}, an \gls{hpc}-tailored task runtime that enables
 ergonomic execution of task graphs on heterogeneous supercomputers with a focus on efficient usage
 of hardware resources.
 
-\Autoref{fig:thesis-chapter-diagram} contains a simple diagram that shows in which order you can read
-the individual chapters of the thesis, and also how do they relate to the two main topics of this
-thesis (\emph{ergonomics} and \emph{performance} of task graph execution in
-\gls{hpc} environments).
+The thesis is structured as follows. \Autoref{ch:distributed-computing} describes various approaches for
+designing parallelized programs on distributed clusters, introduces the task-based programming
+model, and discusses various ergonomic challenges and performance bottlenecks of executing task
+graphs on \gls{hpc} systems. \Autoref{ch:taskgraphs} then describes the task-based
+programming model in detail by defining key terms related to tasks and task graphs. The two
+subsequent chapters primarily focus on the performance aspects of task graph execution.
+\Autoref{ch:estee} evaluates the performance of various task scheduling algorithms and
+introduces \estee{}, a task graph execution simulator. \Autoref{ch:rsds} then
+analyses the runtime performance of \dask{}, a state-of-the-art task runtime, and
+proposes an alternative implementation of its server that is able to outperform it in various
+\gls{hpc} use-cases. \Autoref{ch:hyperqueue} focuses on improving both the ergonomics
+and performance aspects of task execution in the presence of \gls{hpc} allocation
+managers, using a meta-scheduling design implemented by the \hyperqueue{} task runtime.
+Finally,~\Autoref{ch:conclusion} summarizes the thesis and outlines future work.
 
-% TODO: add performance/ergonomics to diagram
-
-\begin{figure}
-	\centering
-	\begin{tikzpicture}[>=latex,line join=bevel,every text node part/.style={align=center}]
-		\tikzset {chapter/.style={rectangle, draw, minimum width=5cm, font=\footnotesize}}
-
-		\newcommand{\chname}[1]{\emph{\nameref{#1}}}
-		\newcommand{\chnum}[1]{\Autoref{#1}}
-
-		\node (distributed-computing) [chapter]
-		{\chname{ch:distributed-computing} \\\chnum{ch:distributed-computing}};
-
-		\node (taskgraphs) [chapter, below=of distributed-computing]
-		{\chname{ch:taskgraphs} \\\chnum{ch:taskgraphs}};
-
-		\node (estee) [chapter, below=of taskgraphs, xshift=3cm]
-		{\chname{ch:estee} \\\chnum{ch:estee}};
-
-		\node (challenges) [chapter, below=of taskgraphs,left=of estee, yshift=-1cm]
-		{\chname{ch:challenges} \\\chnum{ch:challenges}};
-
-		\node (rsds) [chapter, below=of estee]
-		{\chname{ch:rsds} \\\chnum{ch:rsds}};
-
-		\node (hq) [chapter, below=of rsds, xshift=-3cm]
-		{\chname{ch:hyperqueue} \\\chnum{ch:hyperqueue}};
-
-		\draw [->] (distributed-computing.south) -- (taskgraphs.north);
-		\draw [->] (taskgraphs.south) -- (challenges.north);
-		\draw [->] (challenges.south) -- (hq.north);
-		\draw [->] (taskgraphs.south) -- (estee.north);
-		\draw [->] (estee.south) -- (rsds.north);
-		\draw [->] (rsds.south) -- (hq.north);
-	\end{tikzpicture}
-	\caption{Diagram of the thesis chapters}
-	\label{fig:thesis-chapter-diagram}
-\end{figure}
-
-\Autoref{ch:distributed-computing} introduces various approaches for designing parallelized programs
-on distributed clusters, and categorizes programming models based on computational workflows.
-\Autoref{ch:taskgraphs} then describes the task-based programming model in detail, and defines key
-terms related to tasks and task graphs. \Autoref{ch:challenges} outlines various ergonomic
-challenges and performance bottlenecks that affect execution of task graphs on
-\gls{hpc} systems. The two subsequent chapters focus on the performance aspects of
-task graph execution. \Autoref{ch:estee} evaluates the performance of various task scheduling
-algorithms, and introduces \estee{}, a task graph execution simulator.
-\Autoref{ch:rsds} then analyses the runtime performance of \dask{}, a
-state-of-the-art task runtime, and proposes an alternative implementation of its server that is
-able to outperform \dask{} in various \gls{hpc} use-cases.
-\Autoref{ch:hyperqueue} focuses on improving both the ergonomics and performance aspects of task
-execution in the presence of \gls{hpc} allocation managers, using a meta-scheduling
-design implemented by the \hyperqueue{} task runtime. Finally,~\Autoref{ch:conclusion}
-summarizes the thesis and outlines future work.
+%\begin{figure}
+%	\centering
+%	\begin{tikzpicture}[>=latex,line join=bevel,every text node part/.style={align=center}]
+%		\tikzset {chapter/.style={rectangle, draw, minimum width=5cm, font=\footnotesize}}
+%
+%		\newcommand{\chname}[1]{\emph{\nameref{#1}}}
+%		\newcommand{\chnum}[1]{\Autoref{#1}}
+%
+%		\node (distributed-computing) [chapter]
+%		{\chname{ch:distributed-computing} \\\chnum{ch:distributed-computing}};
+%
+%		\node (taskgraphs) [chapter, below=of distributed-computing]
+%		{\chname{ch:taskgraphs} \\\chnum{ch:taskgraphs}};
+%
+%		\node (estee) [chapter, below=of taskgraphs, xshift=3cm]
+%		{\chname{ch:estee} \\\chnum{ch:estee}};
+%
+%		\node (challenges) [chapter, below=of taskgraphs,left=of estee, yshift=-1cm]
+%		{\chname{ch:challenges} \\\chnum{ch:challenges}};
+%
+%		\node (rsds) [chapter, below=of estee]
+%		{\chname{ch:rsds} \\\chnum{ch:rsds}};
+%
+%		\node (hq) [chapter, below=of rsds, xshift=-3cm]
+%		{\chname{ch:hyperqueue} \\\chnum{ch:hyperqueue}};
+%
+%		\draw [->] (distributed-computing.south) -- (taskgraphs.north);
+%		\draw [->] (taskgraphs.south) -- (challenges.north);
+%		\draw [->] (challenges.south) -- (hq.north);
+%		\draw [->] (taskgraphs.south) -- (estee.north);
+%		\draw [->] (estee.south) -- (rsds.north);
+%		\draw [->] (rsds.south) -- (hq.north);
+%	\end{tikzpicture}
+%	\caption{Diagram of the thesis chapters}
+%	\label{fig:thesis-chapter-diagram}
+%\end{figure}
