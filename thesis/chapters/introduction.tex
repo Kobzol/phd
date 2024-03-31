@@ -61,7 +61,7 @@ also in terms of data management, network communication patterns and general sof
 architecture. Areas such as weather prediction, machine learning model training or big data
 analysis require executing thousands or even millions of simulations and experiments. These
 experiments can be quite complex, consisting of multiple dependent steps, such as data ingestion,
-preprocessing, computation, postprocessing, visualisation, etc. It is thus imperative for
+preprocessing, computation, postprocessing, visualization, etc. It is thus imperative for
 scientists to have a quick way of prototyping these applications, otherwise their development
 process would be too slow.
 
@@ -74,9 +74,9 @@ workflow is described using a set of atomic computational blocks (\emph{tasks}) 
 composed together in a \emph{task graph} which captures dependencies between the individual
 tasks. Task graphs abstract away most of the complexity of network communication and
 parallelization, and they are general enough to describe a large set of programs in a practical and
-simple way. At the same time, they remain amenable to compiler-driven optimisation and automatic
+simple way. At the same time, they remain amenable to compiler-driven optimization and automatic
 parallelization, which helps to bring the performance of programs described by a task graph close
-to manually parallelised and distributed programs, at a fraction of the development cost for the
+to manually parallelized and distributed programs, at a fraction of the development cost for the
 application developer. They are also quite portable, as the task graph programming model typically
 does not make many assumptions about the target platform, therefore the same task graph can be
 executed on various systems and clusters, provided there is a task execution runtime implemented
@@ -159,7 +159,7 @@ thesis (\emph{ergonomics} and \emph{performance} of task graph execution in
 	\label{fig:thesis-chapter-diagram}
 \end{figure}
 
-\Autoref{ch:distributed-computing} introduces various approaches for designing parallelised programs
+\Autoref{ch:distributed-computing} introduces various approaches for designing parallelized programs
 on distributed clusters, and categorizes programming models based on computational workflows.
 \Autoref{ch:taskgraphs} then describes the task-based programming model in detail, and defines key
 terms related to tasks and task graphs. \Autoref{ch:challenges} outlines various ergonomic

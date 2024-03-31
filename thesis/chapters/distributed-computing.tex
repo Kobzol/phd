@@ -13,7 +13,7 @@ to provide a way to efficiently utilize the available computing resources of the
 allow expressing communication patterns that enable the individual cluster nodes to cooperate and
 exchange data. Communication between nodes is crucial, as that is what allows distributed clusters
 to offer unparalleled performance by distributing the computational load amongst multiple computers
-and thus achieving speedup through parallelisation.
+and thus achieving speedup through parallelization.
 
 There are many different programming models and tools for creating distributed applications, and it
 can be challenging to understand how do they relate to one another. It is especially difficult to
@@ -33,12 +33,12 @@ most relevant for the topic of this thesis.
 \section{Parallel programming models}
 This section describes the most important representatives of programming models that are used in
 the world of supercomputing. It divides the programming models into two broad categories; models
-that express parallelisation and network communication explicitly, and models that do so
+that express parallelization and network communication explicitly, and models that do so
 implicitly.
 
-\subsection*{Explicit parallelisation}
+\subsection*{Explicit parallelization}
 One way to design distributed applications is to leverage programming models that express the
-parallelisation of computation and the exchange of data between nodes explicitly. This has been the
+parallelization of computation and the exchange of data between nodes explicitly. This has been the
 predominant way of creating \gls{hpc} software for many years, and it is still very
 popular today~\cite{mpiusagestudy1,mpiusagestudy2,mpiusagestudy3}. Below are a few examples of these explicit approaches.
 
@@ -110,22 +110,22 @@ popular today~\cite{mpiusagestudy1,mpiusagestudy2,mpiusagestudy3}. Below are a f
 		\gls{rdma}, which allows a process to directly read or write a region of memory from
 		the address space of a different process.
 
-	\item[Shared-memory multiprocessing] is an approach that focuses on the parallelisation within a single computing node, by leveraging
+	\item[Shared-memory multiprocessing] is an approach that focuses on the parallelization within a single computing node, by leveraging
 		multithreading to achieve speedup. In the area of \gls{hpc}, it is common to use the
 		\gls{openmp}~\cite{openmp} framework to implement multithreaded applications.
 		Apart from providing interfaces for parallelizing code, synchronizing threads through barriers or
 		various locks, or performing atomic operations, it is also able to offload computation to various
 		accelerators (like a \gls{gpu}) attached to the node. \gls{openmp} can be
 		used together with the two previously mentioned programming models (it is often combined especially
-		with \gls{mpi}~\cite{hybrid_openmp_mpi}), in order to achieve parallelisation both
+		with \gls{mpi}~\cite{hybrid_openmp_mpi}), in order to achieve parallelization both
 		intra-node (via multithreading) and inter-node (via network communication).
 
 		\gls{openmp} does not only offer an \gls{api}, but it can also be integrated
 		directly within a compiler, e.g.\ in \gls{gcc} for programs written in the
 		\texttt{C} or \texttt{C++} programming languages. This enables it to provide
-		source code annotations (called \emph{pragmas}), which allow the programmer to parallelise
+		source code annotations (called \emph{pragmas}), which allow the programmer to parallelize
 		a region of code with very little effort. An example of this can be seen in \Autoref{lst:openmp-annotation},
-		where a loop is parallelised simply by adding a single annotation to the source code.
+		where a loop is parallelized simply by adding a single annotation to the source code.
 
 		\begin{listing}
 			\caption{Simple \gls{openmp} annotation}
@@ -145,13 +145,13 @@ void compute_parallel(int* items, int count) {
 These explicit programming models share a lot of desirable properties. They give their users a lot
 of control over the exchange of data between individual cores and distributed nodes, which allows
 creating very performant programs. Having the option to explicitly describe how will the individual
-cores and nodes cooperate also enables expressing arbitrarily complex parallelisation patterns and
+cores and nodes cooperate also enables expressing arbitrarily complex parallelization patterns and
 data distribution strategies. However, in order to fully exploit the performance potential of
-explicit parallelisation, the programmer must have advanced knowledge of the \gls{cpu}
+explicit parallelization, the programmer must have advanced knowledge of the \gls{cpu}
 or \gls{gpu} hardware micro-architecture~\cite{intel_developer_manual} and the memory model
 of the used programming language~\cite{cpp11_standard}.
 
-Even though explicitly parallelised programs can be incredibly efficient, implementing correct
+Even though explicitly parallelized programs can be incredibly efficient, implementing correct
 applications using them is notoriously difficult. Multithreaded and distributed programs are highly
 concurrent, which makes it easy to introduce various programming errors, such as deadlocks, race
 conditions or data races. Especially for distributed programs, debugging such issues can be
@@ -169,46 +169,46 @@ typically assume a fixed number of processes participating in the computation, a
 in the computation crash or disappear, which infamously makes it challenging to implement fully
 fault-tolerant \gls{mpi} programs~\cite{fault_tolerant_mpi}.
 
-\subsection*{Implicit parallelisation}
+\subsection*{Implicit parallelization}
 Since it can take a lot of effort to implement a correct and efficient distributed program using
 explicitly parallel models, it would be unreasonable to expect that all users who want to leverage
 \gls{hpc} resources to execute their experiments will ``roll up their sleeves'' and
 spend months implementing an explicitly parallel \texttt{C++} program that uses
 \gls{mpi} and \gls{openmp}. In fact, with scientific experiments becoming
 more and more complex each year, in most cases it would not even be feasible to develop custom
-(explicitly parallel) code for them from scratch. Instead, high-performance parallelised primitives
+(explicitly parallel) code for them from scratch. Instead, high-performance parallelized primitives
 implemented by specialized performance engineers~\cite{dace} are moving into libraries
 and frameworks, such as GROMACS~\cite{gromacs,gromacs_mpi} or TensorFlow~\cite{tensorflow,horovod}, that
 still leverage technologies like \gls{mpi} or \gls{openmp} internally, but
 they do not necessarily expose them to their end users.
 
 This allows users of \gls{hpc} systems and scientists to focus on their problem
-domain, as their responsibility shifts from implementing communication and parallelisation
+domain, as their responsibility shifts from implementing communication and parallelization
 techniques by hand to describing high-level computational workflows using \emph{implicity parallel}
-programming models that are able to automatically derive the communication and parallelisation
+programming models that are able to automatically derive the communication and parallelization
 structure from the program description. With an implicitly parallel model, the emphasis moves from
-\emph{how} to perform a distributed or parallelised computation (which is the essence
+\emph{how} to perform a distributed or parallelized computation (which is the essence
 of the explicit models) to \emph{what} should be computed and how are the individual
 computational steps related to each other, which is usually the main aspect that users actually
 want to focus on. Implicitly parallel programming models often combine aspects of two programming
-paradigms, declarative and imperative. The possible parallelisation opportunities are expressed
+paradigms, declarative and imperative. The possible parallelization opportunities are expressed
 using declarative approaches, for example using various \glspl{dsl}, while sequential
 parts of code usually remains imperative.
 
 The primary benefit of the implicitly parallel approaches is that they make it easy to define a
-computation that can be automatically parallelised, without forcing the user to think about how
-exactly will the parallelisation and network communication be performed. Execution frameworks are
+computation that can be automatically parallelized, without forcing the user to think about how
+exactly will the parallelization and network communication be performed. Execution frameworks are
 then able to ingest programs implemented with implicitly parallel models and automatically execute
 them on a parallel machine or even a distributed cluster in a parallel fashion, thus making it much
 easier for the user to leverage available hardware resources. Implicit models are easier to use
-than the explicit models, and they facilitate rapid prototyping of parallelised programs.
+than the explicit models, and they facilitate rapid prototyping of parallelized programs.
 
 On the other hand, the main disadvantage of these models is the lack of control of how exactly is
-parallelisation performed. Therefore, programs implemented using them might not be able to achieve
-the same performance as explicitly parallelised programs.
+parallelization performed. Therefore, programs implemented using them might not be able to achieve
+the same performance as explicitly parallelized programs.
 
-There are various models that support implicit parallelisation, for example stencil
-computations~\cite{stencil} or automatically parallelised functional
+There are various models that support implicit parallelization, for example stencil
+computations~\cite{stencil} or automatically parallelized functional
 languages~\cite{parallel_haskell}. But by far the most popular are the many tools and models based
 on tasks. Since task-based programming is a core topic of this thesis, the rest of the thesis will
 focus exclusively on programming models that leverage tasks. In particular, the following section
@@ -228,21 +228,21 @@ preprocessing, postprocessing and analysis computations, various simulations, et
 very flexible and easy to use, which is what makes them popular.
 
 Since task-based programming models are implicitly parallel, their users do not have to
-imperatively specify how should their computation be parallelised, or when and how should data be
+imperatively specify how should their computation be parallelized, or when and how should data be
 exchanged between distributed nodes. They merely declaratively describe the individual parts of the
 program that can theoretically be executed in parallel (the tasks) and then pass the task graph to
 a dedicated execution tool (that we will label as a \emph{task runtime}) that executes the
 tasks, typically on a distributed cluster. Since the program is represented with an explicit graph,
 the taks runtime can effectively analyze its properties (or even optimize the structure of the
 graph) in an automated way, and extract the available parallelism from it without requiring the
-user to explicitly define how should the program be parallelised.
+user to explicitly define how should the program be parallelized.
 
 It is important to note that from the perspective of a taks runtime, each task is opaque. The tool
 knows how to execute it, but it typically does not have any further knowledge of the inner
-structure of the task. Therefore, the only parallelisation opportunities that can be extracted by
+structure of the task. Therefore, the only parallelization opportunities that can be extracted by
 the tool have to be expressed by the structure of the task graph. A task graph containing a single
 task is thus not very useful on its own. The individual tasks can of course also be internally
-parallel, however this parallelisation is not provided automatically by the task runtime. Tasks
+parallel, however this parallelization is not provided automatically by the task runtime. Tasks
 often achieve internal parallelism using shared memory multiprocessing, for example using the
 \gls{openmp} framework.
 
@@ -359,7 +359,7 @@ few very specific implicitly parallel operations (\emph{map} and
 \gls{dsl} for expressing distributed computations.
 
 The primary benefit of this approach is that it is quite easy to define a computation that can be
-automatically parallelised and distributed. Furthermore, the ``layered'' shape of task graphs
+automatically parallelized and distributed. Furthermore, the ``layered'' shape of task graphs
 produced by MapReduce programs facilitates implementation of fault tolerance, because there are
 clearly delimited checkpoints where the intermediate results of the computation can be persisted to
 disk (at the end of each \emph{map} or \emph{reduce} operation), so that
@@ -401,7 +401,7 @@ df.groupby("Country").GDP.mean()
 	\end{minipage}
 \end{listing}
 
-Specialized types of task graphs are also commonly used to parallelise \emph{dataframe}
+Specialized types of task graphs are also commonly used to parallelize \emph{dataframe}
 processing, which is a popular approach for performing exploratory data analytics and
 \gls{olap} queries over two-dimensional tabular datasets (dataframes). Tools such as
 \dask{} DataFrame~\cite{dask}, Modin~\cite{modin},
@@ -430,7 +430,7 @@ In the extreme case, a \emph{coarse-grained} (low granularity) task could repres
 want to perform, while a \emph{fine-grained} (high granularity) task could represent only the execution of a
 single \gls{cpu} instruction. With an increasing granularity, the task performs less
 work, and the whole computation will thus have to be divided into a larger number of tasks. This
-makes it easier to parallelise the computational workflow, yet it also increases the overall
+makes it easier to parallelize the computational workflow, yet it also increases the overall
 overhead introduced by the task runtime, which has to manage and schedule more tasks. The same
 properties also apply vice versa for a decreasing granularity of tasks.
 
@@ -442,7 +442,7 @@ consider that it is highly granular, while if a task takes a long time to execut
 that it has low granularity.
 
 Task granularity is important primarily because it determines how efficiently can a task graph be
-parallelised and if it even makes sense to distribute it to multiple nodes at all. For example, if
+parallelized and if it even makes sense to distribute it to multiple nodes at all. For example, if
 certain tasks would take mere nanoseconds to execute, there would be no point in dynamically
 load-balancing them across multiple distributed nodes, because the overhead of doing so would dwarf
 the execution time of the tasks themselves, due to the latency induced by the network
@@ -455,16 +455,16 @@ excessive overhead.
 Some task-based programming models focus primarily on high granularity tasks, for example
 StarPU~\cite{starpu}, Cilk~\cite{cilk}, TBB~\cite{tbb} or
 \gls{openmp}~\cite{openmp}\footnote{Note that even though \gls{openmp} has been previously presented as an example of an
-explicitly parallel model, it also offers a task system that provides facilities for implicit parallelisation.}. In these models, which are
+explicitly parallel model, it also offers a task system that provides facilities for implicit parallelization.}. In these models, which are
 sometimes called \emph{task parallel}, tasks usually represent either functions or blocks of
 code that contain a handful of instructions, and are typically relatively quick to execute (they
 can run e.g.\ for milliseconds or seconds). While some of these tools also support distributed
-computing, their main use-case is to provide intra-node parallelisation on multicore systems with
+computing, their main use-case is to provide intra-node parallelization on multicore systems with
 shared memory, and often also to offload computation to attached accelerators, such as
 \glspl{gpu} or \glspl{fpga}.
 
 They can be used e.g.\ to implement high-performance numerically intensive computational kernels,
-such as matrix multiplication or QR factorization~\cite{qr_factorization}, or to parallelise
+such as matrix multiplication or QR factorization~\cite{qr_factorization}, or to parallelize
 recursive algorithms or algorithms with irregular data access patterns. \Autoref{lst:cilk-fibonacci}
 shows a program implemented in the Cilk programming language, which calculates the n-th Fibonacci
 number using a task parallel approach.
