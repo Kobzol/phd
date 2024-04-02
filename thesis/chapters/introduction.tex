@@ -22,9 +22,9 @@ increases of power draw or memory bandwidth. The existence of multiple cores and
 need for ever-increasing memory sizes has also made the memory system more complex, with
 \gls{numa} memories becoming commonplace in \gls{hpc}. To achieve even
 more performance, \gls{hpc} clusters started massively adopting various accelerators,
-like the Intel Xeon Phi~\cite{xeonphi} manycore coprocessor or general-purpose
-NVIDIA or AMD \glspl{gpu}, which eventually became the backbone of the majority of
-current supercomputers~\cite{top500gpu}. Some clusters have also adapted more unconventional
+like the Intel Xeon Phi~\cite{xeonphi} manycore coprocessor or general-purpose NVIDIA or
+AMD \glspl{gpu}, which eventually became the backbone of the majority of current
+supercomputers~\cite{top500gpu}. Some clusters have also adapted more unconventional
 accelerators, like reconfigurable hardware, such as \glspl{fpga}, or
 \gls{ai} accelerators, such as \glspl{tpu}. This trend gave rise to
 heterogeneous clusters that offer various types of hardware, each designed for specific workloads.
@@ -36,12 +36,12 @@ corresponding programming models to become more complex, making it far from triv
 available performance offered by supercomputers. Individual computers of \gls{hpc}
 clusters (called \emph{computing nodes}) can consist of hundreds of \gls{cpu} cores
 each, yet it is quite challenging to write programs that can scale to such high core counts. The
-\gls{ram} of each node contains multiple levels of complex cache
-hierarchies, and it has such a large capacity that it has to be split into multiple physical
-locations with varying access latencies (\gls{numa}), which requires usage of
-specialized programming techniques to achieve optimal performance. And the ever-present
-accelerators, for example \glspl{gpu}, might require their users to adopt completely
-different programming models and frameworks.
+\gls{ram} of each node contains multiple levels of complex cache hierarchies, and it
+has such a large capacity that it has to be split into multiple physical locations with varying
+access latencies (\gls{numa}), which requires usage of specialized programming
+techniques to achieve optimal performance. And the ever-present accelerators, for example
+\glspl{gpu}, might require their users to adopt completely different programming models
+and frameworks.
 
 Historically, optimized \gls{hpc} software was usually written using system or
 scientifically focused programming languages (e.g.~\texttt{C}, \texttt{C++}

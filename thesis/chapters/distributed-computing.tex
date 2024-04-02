@@ -110,10 +110,8 @@ approaches.
 		on behalf of the programmer.
 
 		\gls{pgas} programs also often employ \emph{one-sided communication} techniques, such
-		as
-		\gls{rdma}, which allows a process to directly read or write a region of memory
-		from
-		the address space of a different process.
+		as \gls{rdma}, which allows a process to directly read or write a region of memory
+		from the address space of a different process.
 
 	\item[Shared-memory multiprocessing] is an approach that focuses on the parallelization within a single computing node, by leveraging
 		multithreading to achieve speedup. In the area of \gls{hpc}, it is common to use
@@ -127,11 +125,10 @@ approaches.
 		intra-node (via multithreading) and inter-node (via network communication).
 
 		\gls{openmp} does not only offer an \gls{api}, but it can also be
-		integrated
-		directly within a compiler, e.g.\ in \gls{gcc} for programs written in the
-		\texttt{C} or \texttt{C++} programming languages. This enables it to
-		provide source code annotations (called \emph{pragmas}), which allow the programmer to
-		parallelize a region of code with very little effort. An example of this can be seen in
+		integrated directly within a compiler, e.g.\ in \gls{gcc} for programs written in
+		the \texttt{C} or \texttt{C++} programming languages. This enables it
+		to provide source code annotations (called \emph{pragmas}), which allow the programmer
+		to parallelize a region of code with very little effort. An example of this can be seen in
 		\Autoref{lst:openmp-annotation}, where a loop is parallelized simply by adding a single annotation to
 		the source code.
 
@@ -294,7 +291,7 @@ certain cases, parts of the computation can be generated dynamically, while the 
 executing. For example, iterative workflows perform a certain computation repeatedly in a loop,
 until some condition in met. Typical representatives of batch processing tools are for example
 \dask{}~\cite{dask}, SnakeMake~\cite{snakemake} or
-Luigi~\cite{sciluigi}.
+SciLuigi~\cite{sciluigi}.
 
 Streaming processing is common in the area of cloud computing, and is useful especially for
 analyzing data that is being generated in real-time. It is not very common in the world of
@@ -471,7 +468,8 @@ excessive overhead.
 
 Some task-based programming models focus primarily on high granularity tasks, for example
 StarPU~\cite{starpu}, Cilk~\cite{cilk},
-TBB~\cite{tbb} or
+HPX~\cite{hpx}, PaRSEC~\cite{parsec},
+Legion~\cite{legion}, TBB~\cite{tbb} or
 \gls{openmp}~\cite{openmp}\footnote{Note that even though \gls{openmp} has been previously presented as an example of an
 explicitly parallel model, it also offers a task system that provides facilities for implicit parallelization.}. In these
 models, which are sometimes called \emph{task parallel}, tasks usually represent either
@@ -517,47 +515,52 @@ milliseconds to hours or even days. The following section describes several stat
 processing distributed task runtimes.
 
 \section{Distributed task runtimes}
-There is a large body of tools that specialize in executing workflows on distributed clusters. They
-are called workflow management systems
+There is a large body of tools designed for executing arbitrary task graphs on diverse computing
+platforms, ranging from consumer-grade laptops, through cloud deployments, to distributed and
+\gls{hpc} clusters. They are known under various terms, such as workflow
+management systems, job managers, distributed job schedulers or orchestrators. We will use the term
+\emph{task runtime} for all such task execution tools in this thesis. Examples of such task
+runtimes include e.g.\ \dask{}~\cite{dask},
+Parsl~\cite{parsl}, Ray~\cite{ray},
+PyCOMPSs~\cite{pycompss}, HyperLoom~\cite{hyperloom},
+Pydra~\cite{pydra}, Snakemake~\cite{snakemake},
+SciLuigi~\cite{sciluigi}, Merlin~\cite{merlin},
+Autosubmit~\cite{autosubmit}, NextFlow~\cite{nextflow},
+StreamFlow~\cite{streamflow}, AiiDA~\cite{aiida},
+FireWorks~\cite{fireworks} or Apache Airflow~\cite{airfow}. Each task
+runtime defines its own instance of a task-based programming model, and has a different set of
+trade-offs in areas such as performance and scalability, fault tolerance, data
+provenance, ease-of-use, ease-of-deployment and others.
 
-- task runtime vs workflow management systems vs job managers
+Since this thesis focuses on the ergonomics and performance aspects of executing task graphs on \gls{hpc} clusters,
+this section discusses various challenges, bottlenecks and shortcomings that arise when the task
+existing
 
-- architecture
-- provenance
-- language/DSL/YAML
 
-~\cite{dask, snakemake, nextflow}
-
-%Taxonomy - https://link.springer.com/article/10.1007/s11227-018-2238-4 - HyperShell
-%(https://hyper-shell.readthedocs.io/en/latest/index.html) - flux - parsl - legate - pygion - dask -
-%ray - snakemake - merlin - airflow - luigi - autosubmit - airflow -
-%https://materialsproject.github.io/fireworks/ - pydra - (take more from references)
-
-% TODO: https://docs.google.com/document/d/1C43tAGIRqy1hDHajRTiyM2q_TeihJwH0e66ASeGOwfU/edit#heading=h.rzzu2ckt23ak
-
-\cite{task_based_taxonomy}
-
-\subsection{Inside/outside of HPC jobs}
-
-\subsection{Deployment}
-- Python is hard to deploy
-
-Task-based programming is quite popular, as it provides a simple way to define complex workflows
-which can then be executed in a wide range of environments, ranging from consumer laptops, through
-cloud deployments, to distributed \gls{hpc} clusters. However, as any programming
-model, it also has some disadvantages and problems. It is crucial to understand these limitations
-in order to design approaches for overcoming them.
-
-This chapter thus describes various challenges and requirements of this programing model, both in
-terms of efficient and scalable execution, and in terms of the offered productivity and ergonomics.
-It focuses specifically on challenges and requirements required by \gls{hpc}
-use-cases, which introduce a unique set of constraints stemming both from the inherent complexity
-of \gls{hpc} software and hardware and also from the sheer computational scale
+However, as any programming model, it also has some disadvantages and problems. It is crucial to
+understand these limitations in order to design approaches for overcoming them. This chapter thus
+describes various challenges and requirements of this programing model, both in terms of efficient
+and scalable execution, and in terms of the offered productivity and ergonomics. It focuses
+specifically on challenges and requirements required by \gls{hpc} use-cases,
+which introduce a unique set of constraints stemming both from the inherent complexity of
+\gls{hpc} software and hardware and also from the sheer computational scale
 required to efficiently utilize \gls{hpc} resources.
 
 In addition to the challenges, we will also mention various desired properties and features which
 should be offered by task runtimes in order to either support the mentioned requirements or to
 alleviate the mentioned problems.
+
+- architecture
+- language/DSL/YAML/CWL
+
+%Taxonomy - https://link.springer.com/article/10.1007/s11227-018-2238-4 - HyperShell
+%(https://hyper-shell.readthedocs.io/en/latest/index.html) - flux - parsl - legate - pygion - dask -
+%ray - snakemake - merlin - luigi - autosubmit - airflow -
+%https://materialsproject.github.io/fireworks/ - pydra - (take more from references)
+
+% TODO: https://docs.google.com/document/d/1C43tAGIRqy1hDHajRTiyM2q_TeihJwH0e66ASeGOwfU/edit#heading=h.rzzu2ckt23ak
+
+\cite{task_based_taxonomy}
 
 \subsection{Allocation manager}
 \label{sec:allocation-manager}
@@ -911,6 +914,9 @@ unknown number of steps. These scenarios and many others like them, are quite co
 To support iterative computation, task runtimes should allow the user to stop the execution of a
 task graph (or its subgraph) once a specific condition is met, and also to add new tasks to the
 task graph in a dynamic fashion, if it is discovered that more iterations are needed.
+
+\subsection{Deployment}
+- Python is hard to deploy
 
 \subsection{Summary}
 Even though more \gls{hpc} use-cases and oddities could always be found, it is
