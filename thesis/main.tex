@@ -32,7 +32,7 @@
 \usepackage[outputdir=../out]{minted}
 % Multiple footnotes at one place
 \usepackage[multiple]{footmisc}
-% Autoref with capitalization
+% Autoref with capitalization (need to use Cref)
 \usepackage[nameinlink]{cleveref}
 
 % Abbreviations (\gls, \glspl, \acrfull, \acrshort, \acrlong)
@@ -149,7 +149,6 @@ Finally, I would like to extend my gratitude to my wife Jana for her support and
 \label{ch:Introduction}
 \input{chapters/introduction}
 
-% Alternate title: State of the art
 \chapter{Parallel and distributed computing}
 \label{ch:distributed-computing}
 \input{chapters/distributed-computing}
@@ -157,6 +156,10 @@ Finally, I would like to extend my gratitude to my wife Jana for her support and
 \chapter{Task-based programming model}
 \label{ch:taskgraphs}
 \input{chapters/taskgraphs}
+
+\chapter{State-of-the-art/Task graph execution on HPC clusters}
+\label{ch:sota}
+\input{chapters/sota-challenges}
 
 \chapter{Task scheduling analysis}
 \label{ch:estee}

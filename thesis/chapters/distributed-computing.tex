@@ -26,7 +26,7 @@ though they might have very little in common.
 
 This chapter provides a broad overview of the most popular approaches for implementing distributed
 and parallel applications, with the focus on \gls{hpc} use-cases. It describes
-both various programming models and also state-of-the-art tools that leverage them. It categorizes
+various programming models and selected state-of-the-art tools that leverage them. It categorizes
 these tools based on several properties, and gradually concretizes which niches of this diverse
 area are most relevant for the topic of this thesis.
 
@@ -128,8 +128,8 @@ approaches.
 		integrated directly within a compiler, e.g.\ in \gls{gcc} for programs written in
 		the \texttt{C} or \texttt{C++} programming languages. This enables it
 		to provide source code annotations (called \emph{pragmas}), which allow the programmer
-		to parallelize a region of code with very little effort. An example of this can be seen in
-		\Autoref{lst:openmp-annotation}, where a loop is parallelized simply by adding a single annotation to
+		to parallelize a region of code with very little effort. An example of this can be seen
+		in~\Autoref{lst:openmp-annotation}, where a loop is parallelized simply by adding a single annotation to
 		the source code.
 
 		\begin{listing}
@@ -269,7 +269,7 @@ existing state-of-the-art tools that use task-based programming models based on 
 to put them into a broader context, and it will also gradually specify which niches of this diverse
 area are most relevant for the topic of this thesis.
 
-\subsection*{Batch vs stream processing}
+\subsection{Batch vs stream processing}
 One of the most distinguishing properties that divides distributed task processing tools into two
 broad categories is the approach used to trigger the execution of the workflow.
 \emph{Stream processing} tools are designed to execute continuously, and react to external
@@ -304,7 +304,7 @@ thus they can be more easily mapped to ephemeral, time-limited allocations of
 \gls{hpc} hardware resources. This thesis thus exclusively focuses on batch
 processing.
 
-\subsection*{Task graph generality}
+\subsection{Task graph generality}
 Even though basically all workflow processing tools are designed to execute a
 \gls{dag} of tasks, not all of them support arbitrary task graphs. Some tools use
 programming models designed for specialized use-cases, which allows them to offer very high-level
@@ -437,7 +437,7 @@ often used inside scientific workflows, but it typically represents only a certa
 workflow (e.g.\ a single task or a set of tasks), and it is not used to define the structure of the
 whole workflow.
 
-\subsection*{Task granularity}
+\subsection{Task granularity}
 Another important aspect of tasks is their \emph{granularity}. It is based on how much
 work the task performs, and it also determines into how many subtasks it could be potentially
 divided. In the extreme case, a \emph{coarse-grained} (low granularity) task could represent the whole
@@ -472,7 +472,7 @@ HPX~\cite{hpx}, PaRSEC~\cite{parsec},
 Legion~\cite{legion}, TBB~\cite{tbb} or
 \gls{openmp}~\cite{openmp}\footnote{Note that even though \gls{openmp} has been previously presented as an example of an
 explicitly parallel model, it also offers a task system that provides facilities for implicit parallelization.}. In these
-models, which are sometimes called \emph{task parallel}, tasks usually represent either
+models, which are sometimes called \emph{task-parallel}~\cite{task_based_taxonomy}, tasks usually represent either
 functions or blocks of code that contain a handful of instructions, and are typically relatively
 quick to execute (they can run e.g.\ for milliseconds or seconds). While some of these tools also
 support distributed computing, their main use-case is to provide intra-node parallelization on
@@ -483,7 +483,7 @@ They can be used e.g.\ to implement high-performance numerically intensive compu
 such as matrix multiplication or QR factorization~\cite{qr_factorization}, or to parallelize
 recursive algorithms or algorithms with irregular data access patterns. \Autoref{lst:cilk-fibonacci}
 shows a program implemented in the Cilk programming language, which calculates the n-th Fibonacci
-number using a task parallel approach.
+number using a task-parallel approach.
 
 \begin{listing}
 	\caption{Task-parallel Fibonacci calculation using Cilk\\Example adapted from~\cite{cilk}.}
@@ -507,567 +507,11 @@ cilk int fibonacci(int n)
 	\end{minted}
 \end{listing}
 
-Task parallel models definitely have their place in \gls{hpc}, however they are
+Task-parallel models definitely have their place in \gls{hpc}, however they are
 not primarily designed for executing complex scientific workflows, therefore they are not the
 primary focus of this thesis. Instead, we will mainly examine task-based programming models that
 are designed for distributed execution on a cluster, with tasks whose duration typically spans from
-milliseconds to hours or even days. The following section describes several such state-of-the-art
-batch processing distributed task runtimes, and the challenges they face when used in
-\gls{hpc} environments.
-
-% TODO: make a chapter out of this?
-\section{Distributed task runtimes}
-There is a large body of tools designed for executing arbitrary task graphs on diverse computing
-platforms, ranging from consumer-grade laptops, through cloud deployments, to distributed and
-\gls{hpc} clusters. They are known under various terms, such as workflow
-management systems, job managers, distributed job schedulers or orchestrators. We will use the term
-\emph{task runtime} for all such task execution tools in this thesis. Examples of such task
-runtimes include e.g.\ \dask{}~\cite{dask},
-Parsl~\cite{parsl}, Ray~\cite{ray},
-PyCOMPSs~\cite{pycompss}, HyperLoom~\cite{hyperloom},
-Pydra~\cite{pydra}, Snakemake~\cite{snakemake},
-SciLuigi~\cite{sciluigi}, Merlin~\cite{merlin},
-Autosubmit~\cite{autosubmit}, NextFlow~\cite{nextflow},
-StreamFlow~\cite{streamflow}, AiiDA~\cite{aiida},
-FireWorks~\cite{fireworks} or Apache Airflow~\cite{airfow}. Each task
-runtime defines its own instance of a task-based programming model, and has a different set of
-trade-offs in areas such as performance and scalability, fault tolerance, data provenance,
-ease-of-use, ease-of-deployment and others.
-
-Since this thesis focuses on the ergonomics and performance aspects of executing task graphs on
-\gls{hpc} clusters, this section discusses various challenges, bottlenecks and
-shortcomings that arise when the existing task runtimes are used for this specific use-case, which
-introduces a unique set of constraints, stemming both from the inherent complexity and
-idiosyncrasies of \gls{hpc} software and hardware, and also from the sheer
-computational scale required to efficiently utilize \gls{hpc} resources. In
-addition, we will also mention various desired properties and features of task runtimes that could
-alleviate the mentioned challenges.
-
-% More taxonomy:
-%- architecture
-%- language/DSL/YAML/CWL
-
-%Taxonomy - https://link.springer.com/article/10.1007/s11227-018-2238-4 - HyperShell
-%(https://hyper-shell.readthedocs.io/en/latest/index.html) - flux - parsl - legate - pygion - dask -
-%ray - snakemake - merlin - luigi - autosubmit - airflow -
-%https://materialsproject.github.io/fireworks/ - pydra - (take more from references)
-
-% TODO: https://docs.google.com/document/d/1C43tAGIRqy1hDHajRTiyM2q_TeihJwH0e66ASeGOwfU/edit#heading=h.rzzu2ckt23ak
-
-%\cite{task_based_taxonomy}
-
-\subsection{Allocation manager}
-\label{sec:allocation-manager}
-Users of \gls{hpc} clusters are not typically allowed to directly perform
-arbitrary computations on the computational nodes (machines designed to perform expensive
-computations) of the cluster. Instead, they connect to machines usually called
-\emph{login nodes}, from which they have to enqueue their desired computation into a queue
-handled by a submission system that manages the hardware resources of the cluster. We will use the
-term \emph{allocation manager} for these submission systems and the term
-\emph{allocation}\footnote{The term \emph{job} is also commonly used for the concept of
-\gls{hpc} computational requests. However, this term will be used for a different concept described later in the thesis, therefore we use \emph{allocation} instead.} for a computational request submitted by a
-user into these managers.
-
-Allocation managers are needed to provide fair access to the resources of the cluster, because
-\gls{hpc} clusters are typically used by many people at the same time. Without
-centralized management, hardware resources could be inadvertently shared amongst multiple users at
-once, which could have undesirable performance and security implications, and could lead to
-oversubscription. Furthermore, usage of these clusters is usually metered. Users can typically only
-use a certain amount of resources assigned to their \emph{computational project}, and when their
-resources run out, they have to ask (or pay) for more resources. Allocation managers thus also
-implement user and project accounting, so that there is a clear historical record of how many
-resources were consumed by individual users of the cluster.
-
-The majority of \gls{hpc} clusters~\cite{slurm-schedmd} use one of the two
-most popular allocation managers, Slurm~\cite{slurm} and
-\gls{pbs}~\cite{pbs} (or some of its many derivatives,
-such as TORQUE~\cite{torque} or OpenPBS~\cite{openpbs}). Unless otherwise noted, Slurm will be used
-as a default representative of allocation managers in the rest of this thesis.
-
-The following process describes how computations are typically executed on
-\gls{hpc} clusters that use an allocation manager:
-
-\begin{enumerate}
-	\item The user enqueues a computational request (allocation) into the manager from a login node. The
-	      request typically has to specify at least how many nodes should be allocated and what is the
-	      maximum duration of the computation (usually labeled as \emph{wall-time}), after which
-	      the computation will be forcibly stopped by the manager. It can also contain additional
-	      configuration, such as what kinds of nodes should be allocated or what is the priority of the
-	      computation.
-	\item The allocation manager puts the request into a queue and schedules it to be executed at some time
-	      in the future. Since users submit their allocations into the manager continuously, each allocation
-	      has different properties and priorities, and it is not possible to exactly predict for how long
-	      will an allocation run, the schedule can be quite dynamic. In other words, users can wait seconds,
-	      minutes, hours or even days before their allocation starts to execute, and it is not always easy to
-	      predict how long will this duration be.
-	\item Once the allocation gets to the front of the queue, and there are enough resources available, the
-	      manager provisions the requested amount of hardware resources (typically a number of whole
-	      computational nodes) and either executes a script or provides the user with an interactive terminal
-	      session on one of the allocated nodes. Allocations are often configured in a way that provides
-	      exclusive access to the hardware resources, in which case no other user will be able to use the
-	      allocated resources (nodes) until the allocation finishes.
-	\item Once the executed script finishes (or the wall-time duration is reached), the allocation ends, and
-	      its hardware resources are released, so that they can be used by another allocation.
-\end{enumerate}
-
-Although it might not be obvious from the above description, this process presents perhaps the
-largest obstacle for ergonomic execution of task graphs.
-
-
-Due to the limits imposed by it, it might be necessary to partition task graphs into multiple
-subgraphs in order to be fit them within an allocation, which can be challenging. Furthermore, it
-can result in non-optimal usage of hardware resources, because tasks from (sub)graphs submitted in
-separate allocations will only be load balanced within their own allocation, and not across
-different allocations.
-
-The primary issue of this mechanism is that it strictly ties together two separate aspects --
-\emph{what} does the user want to compute (the script that will be computed in the
-allocation) and \emph{where} should the computation take place (specific hardware
-resources and computational nodes). As was described in the process above, both of these things
-have to be specified together in an allocation.
-
-
-This approach works well when the granularity of the computation very closely matches the
-granularity of the requested hardware resources, and when the computation can make use of all the
-available hardware resources for the whole duration of the allocation. For example, distributed
-applications implemented using \gls{mpi} typically expect that they will be
-executed on a fixed amount of nodes, and that they will (ideally) use all their resources for the
-whole computation. They can also run for a potentially long time, e.g.\ hours, days or even more.
-Due to these properties, these applications fit the allocation model quite well.
-
-They tend to have fairly strict limits on the number of allocations that users can submit and the
-number of nodes that they can have reserved for their allocations at any given time. Because of
-these limits, allocations tend to be quite coarse-grained. They typically ask for a whole node at
-minimum, and usually run at least for minutes, but more typically hours or even days.
-
-Since users have to create allocations to compute anything on the cluster, and thus they cannot
-simply execute their task graphs directly, a question naturally arises -- how to map tasks (or task
-graphs) to allocations in a way that will efficiently utilize \gls{hpc}
-resources? Several ways of performing this task-to-allocation mapping are described below, however
-all of them come with significant disadvantages.
-
-\autoref{ch:hyperqueue} will discuss the interaction of task graphs and allocation managers in
-more detail, and describe a design for overcoming the mentioned challenges.
-
-%TODO: https://merlin.readthedocs.io/en/latest/tutorial/1_introduction/?h=many#how-can-merlin-run-so-many-simulations
-
-\subsubsection*{Execute the whole task graph in a single allocation}
-The simplest situation is when a task graph can be executed with a single allocation. If it does
-not have a large number of tasks, or if it can be executed relatively quickly, users can create an
-allocation that will compute the whole task graph. This approach is quite simple for the user,
-since they just execute the task graph using a task runtime in the same way as they would on a
-cluster without an allocation manager, or on a personal computer. The only difference is that they
-have to define and submit an allocation that will bootstrap the computation.
-
-However, since allocations are bound both by node count and a time limit, this approach is only
-usable for rather small task graphs. Indeed, if the computation is short, it might not even make
-sense to use an \gls{hpc} cluster to compute it. A more realistic scenario is
-that even if an individual task graph can be executed quickly, users might want to execute many
-such task graphs (for example to execute many experiments with different parametrizations). This
-situation can be seen as a special case of a large task graph that consists of many disjoint
-components (smaller task subgraphs). In this case, it will typically not be possible to execute all
-such task graphs inside a single allocation.
-
-\subsubsection*{Execute each task as an individual allocation}
-From a certain point of view, \gls{hpc} allocation managers can also be viewed as
-task runtimes that operate on a very coarse level -- their tasks being allocations that potentially
-span hundreds of nodes, run for days or even longer and consist of many different program
-executions. Ideally, there would be no difference between an allocation manager and a task runtime,
-and users would just be able to construct an arbitrarily granular task graph and execute it
-directly on an \gls{hpc} cluster in a straightforward way.
-
-% https://rse.princeton.edu/2020/01/monitoring-slurm-efficiency-with-reportseff/
-While this approach can certainly look tempting, in practice it is not usually feasible to use the
-currently popular allocation managers (\gls{pbs} and Slurm) in this way, because
-they operate on a level that is far too coarse for complex task graphs. While they do support
-expressing dependencies between individual allocations in a crude way, they tend to have large
-overhead per each allocation\todo[inline]{cite}, which can be several orders of magnitude
-larger than for typical task runtimes (e.g.\ seconds vs milliseconds). Furthermore, they seldom
-allow the user to create more than a few hundreds of allocations at the same time, both to provide
-fairness and also because they simply cannot scale to such a number of allocations.
-
-It should be noted that even though there is definitely room for improving the performance of
-\gls{hpc} allocation managers, some of their complexity and performance
-limitations are inherent. They have to provide accurate accounting, handle robust and secure
-cleanup of hardware resource sprovided to allocations, manage user and process isolation on the
-computational nodes, ensure user fairness and many other things. Many of these responsibilities are
-out of scope for task runtimes, which enables them to achieve higher performance.
-
-Another problem is node granularity. For ``small'' tasks that only use e.g.\ a few cores, users
-would like to schedule and execute multiple tasks on a single node at the same time, to leverage
-the available hardware resources efficiently. While allocation managers are able to create
-allocations that require only a fraction of a node, this functionality is not always available.
-Either for security reasons, because tasks from multiple users can then run on the same node at the
-same time, which reduces user isolation, or for performance reasons, because the overhead of
-scheduling a large number of allocations (in theory many allocations per each node) can become
-unmanageable for the allocation manager~\cite{it4i_node_scheduling_policy}. When the manager is configured
-in a way that a single allocation has to span at least a (complete) single node, it can lead to
-wasted resources if a single task is unable to leverage the whole computational node.
-
-Another reason why users might not want to use the allocation manager directly as a task runtime is
-that it is useful to debug and prototype task graphs in a small-scale scenario (e.g.\ locally, on a
-personal computer), before executing it on a large-scale \gls{hpc} system.
-However, it can be quite challenging for users to deploy systems like \gls{pbs}
-or Slurm locally. Therefore, they would need to use a different task runtime locally than on the
-target \gls{hpc} platform, which woult not be very practical.
-
-The mentioned issues stem from a dichotomy between the coarse-grained focused allocation manager
-and more fine-grained focused task runtimes, which can create a barrier for
-\gls{hpc} users. Users that want to execute a task graph on an
-\gls{hpc} system thus usually use a separate task runtime (e.g.\
-Dask~\cite{dask}) rather than using the allocation manager directly.
-
-\subsubsection*{Partition the task graph into a smaller number of allocations}
-The third approach that users may take is to partition their task graphs into smaller subgraphs,
-and then submit each subgraph as a single allocation, where the subgraph will be computed by an
-independent instance of a task runtime.
-
-This is sort of an ultimate approach that the users will probably sooner or later converge to, once
-their task graph becomes sufficiently complex and large, and they will have to somehow reconcile
-the coarse-grained nature of allocations with the fine-grained nature of tasks and overcome the
-overhead of creating too many allocations.
-
-This process is not straightforward, especially if users have to perform the partitioning manually.
-Graph partitioning itself is a notoriously difficult problem that is
-NP-hard~\cite{graph_partitioning}\todo[inline]{Ada: Is this OK?}, and it is thus difficult to decide
-beforehand how exactly should the task graph be split into allocations. Furthermore, if the
-partitioning of tasks into allocations is performed statically, before the computation begins, then
-it might lead to suboptimal hardware utilization, as it will not be possible to load-balance tasks
-across different allocations, even if multiple allocations do run concurrently.
-
-In addition to partitioning the task graph, this approach typically requires further implementation
-efforts that are outside the boundaries of the task-based programming model. As an example, the
-intermediate outputs of computed tasks of a partitioned subgraph might have to be persisted (to a
-storage system) before the corresponding allocation ends, and the results from multiple allocations
-then have to be merged together. In order to support recomputation of failed tasks, and submission
-of new tasks while a task graph is already executing, it should also be possible to periodically
-submit new allocations that could dynamically provide needed computational resources, until the
-whole task graph is computed. This reduces the ergonomics of using task graphs, because it
-basically requires users to reimplement parts of the task runtime behavior on top of the allocation
-manager, in order to overcome its limitations.
-
-\vspace{5mm}
-The gap between allocation managers and task runtimes creates a disconnect for users attempting to
-scale their task graph computation. Executing a task graph on a personal computer tends to be quite
-simple. After that, moving to an \gls{hpc} cluster and executing the entire task
-graph inside a single allocation is also quite straightforward. But once the task graph has to be
-partitioned into multiple allocations, the simple abstraction of implicitly parallel task graphs
-that can be executed with a single command quickly falls apart, as the user has to perform a lot of
-additional work to make this scenario execute efficiently.
-
-Ideally, users would not have to think about the allocation manager at all; they should be able to
-construct a task graph and execute it directly on an \gls{hpc} cluster in a
-straightforward way, by letting some tool perform the partitioning and load balancing across
-allocations automatically for them. This could be achieved either by adding support for executing
-fine-grained task graphs to allocation managers or by adding support for communicating with
-allocation managers to task runtimes, to enable transparent execution of task graphs on
-\gls{hpc} systems. This functionality is provided by several
-\emph{meta-schedulers}, which will be mentioned in the next chapter.
-
-\subsection{Cluster heterogeneity}
-Even though task graphs are designed to be portable and ideally should not depend on any specific
-execution environment, for certain types of tasks, we need to be able to describe at least some
-generic environment constraints. For example, when a task executes a program that leverages the
-CUDA programming framework~\cite{cuda}, which is designed to be executed on an
-NVIDIA graphics accelerator, it has to be executed on a node that has such a
-\gls{gpu} available, otherwise it will not work properly.
-
-It should thus be possible for a task to define \emph{resource requirements}, which specify
-resources that have to be provided by an environment that will execute such task. For example, a
-requirement could be the number of cores (some tasks can use only a single core, some can be
-multithreaded), the amount of available main memory, a minimum duration required to execute the
-task or (either optional or required) presence of an accelerator like a \gls{gpu}
-or an \gls{fpga}. In order to remain portable and independent of a specific
-execution environment, these requirements should be abstract and describe general, rather than
-specific, types of resources.
-
-The challenge related to resource requirements of \gls{hpc} tasks specifically is
-the diverse kinds of hardware present in modern \gls{hpc} clusters, which have
-started to become increasingly heterogeneous in recent years. This trend can be clearly seen in the
-TOP500 list of the most powerful supercomputers~\cite{top500analysis}. Individual cluster
-nodes contain varying amounts and types of cores and sockets, main memory,
-\gls{numa} nodes or accelerators like \glspl{gpu} or
-\glspl{fpga}. Since \gls{hpc} software is often designed to
-leverage these modern \gls{hpc} hardware features, this complexity is also
-propagated to tasks and their resource requirements.
-
-Tasks might require a combination of several requirements, for example two
-\glspl{gpu}, sixteen cores and 32 GiB of main memory. They can also be designed in
-a way that allows them to leverage an open-ended range of resources, e.g.\ a task might require at
-least four cores, but if more are available, it could use as many as possible. And some tasks might
-even support several variants of requirements, for example a task might either use four cores and a
-single \gls{gpu} (if there is one available), or it could use more cores (and no \gls{gpu})
-to offset the absence of an accelerator.
-
-A resource requirement that is fairly specific to \gls{hpc} systems is the usage
-of multiple nodes per single task. This requirement is necessary for programs that are designed to
-be executed in a distributed fashion, such as programs using \gls{mpi}, which are
-quite common in \gls{hpc}. The use-case of tasks using multiple nodes is
-discussed in more detail later in this chapter.
-
-Existing task runtimes usually support some notion of resource requirements, although they can be
-somewhat limited. Some runtimes support only a fixed set of known resources (typically the number
-of cores and the amount of memory), which is not enough to describe complex resources of
-heterogeneous clusters. Other runtimes, such as \dask{} or
-\snakemake{}, support arbitrary resources, although they do not allow expressing
-more complex patterns, such as the mentioned case where a task could define multiple resource
-requirement configurations. Supporting multiple nodes for a single task is not supported by most
-runtimes at all, because their programming model often assumes that a each task executes on a
-single node only.
-
-To support the mentioned scenarios, task runtimes should ideally allow users to specify arbitrarily
-fine-grained and abstract resource requirements for each task, with support for multiple
-requirement variants per task and multi-node tasks. They should also take these requirements into
-account when scheduling, both to make sure that they are upheld, but also to use this provided
-information to utilize the available hardware effectively.
-
-\subsection{Data transfers}
-After a task is computed, it can produce various outputs, such as standard error or output streams,
-files created on a filesystem or data objects that are then passed as inputs to dependent tasks.
-There are many approaches to storing and transferring these outputs.
-
-Some task frameworks store task outputs on the filesystem, since it is relatively simple to
-implement and it provides support for basic data resiliency out-of-the-box. A lot of existing
-software (that might be executed by a task) also makes liberal use of the filesystem, which can
-make it challenging to avoid filesystem access altogether. However, \gls{hpc}
-nodes often do not contain any local disks, but instead use shared filesystems that are accessed
-over a network. While this can be seen as an advantage, since with a shared filesystem it is much
-easier to share task outputs amongst different workers, it can also be a severe bottleneck. Shared
-networked filesystems can suffer from high latency and accessing them can consume precious network
-bandwidth that is also used e.g.\ for managing computation (sending commands to workers) or for
-direct worker-to-worker data exchange. Furthermore, data produced in \gls{hpc}
-computations can be quite large, and thus storing it to a disk can be a bottleneck even without
-considering networked filesystems.
-
-These bottlenecks can be alleviated by transferring task outputs directly between workers over the
-network (preferably without accessing the filesystem in the fast path), which is implemented e.g.\
-by \dask{}. Some runtimes (for example HyperLoom~\cite{hyperloom})
-also leverage \gls{ram} disks, which provide support for tasks that need to
-interact with a filesystem, while avoiding the performance bottlenecks associated with disk
-accesses. It is also possible to use \gls{hpc} specific technologies, such as
-\gls{mpi} or InfiniBand, to improve data transfer performance by fully exploiting
-the incredibly fast interconnects available in \gls{hpc} clusters.
-
-Data outputs produced by tasks tend to be considered immutable in existing task runtimes, since a
-single output can be used as an input to multiple tasks, and these might be executed on completely
-different computational nodes, so it would be challenging to synchronize concurrent mutations of
-these objects. A problem that can arise with this approach is that if the data outputs are large,
-but the computation of tasks that work with the data is short, then the serialization overhead (or
-even memory copy overhead, if the dependent task is executed on the same node) can dominate the
-execution time. Such use-cases can be solved with stateful data management, for example in the form
-of \emph{actors}, which can be seen as stateful tasks that operate on a single copy
-of some large piece of data, without the need to transfer or copy it.
-
-\subsection{Fault tolerance}
-Fault tolerance is relevant in all distributed computing environments, but
-\gls{hpc} systems have specific requirements in this regard. As was already
-mentioned, computational resources on \gls{hpc} clusters are provided through
-allocation managers. Computing nodes allocated by these managers are provided only for a limited
-duration, which means that for long-running computations, some nodes will disconnect and new nodes
-might appear dynamically during the lifecycle of the executed workflow. Furthermore, since the
-allocations go through a queue, it can take some time before new computational resources are
-available, therefore the computation can remain in a paused state, where no tasks are being
-executed, for potentially long periods of time.
-
-It is important for task runtimes to be prepared for these situations; they should handle node
-disconnections gracefully, even if a task was being executed on a node that is disconnected, and
-they should be able to restart previously interrupted tasks on newly arrived workers. In general,
-in \gls{hpc} scenarios, worker instability and frequent disconnects should be
-considered the normal mode of operation, rather than just a rare edge case.
-
-\subsection{Multi-node tasks}
-Many existing \gls{hpc} applications are designed to be executed on multiple
-(potentially hundreds or even thousands) nodes in parallel, using e.g.\ \gls{mpi}
-libraries or other communication frameworks. Multi-node execution could be seen as a special
-resource requirement, which states that a task should be executed on multiple workers at once.
-Support for multi-node tasks is challenging, because it affects many design areas of a task
-runtime:
-\begin{description}
-	\item[Scheduling] When a task requires multiple nodes for execution and not enough nodes are available at a given
-		moment, the scheduler has to decide on a strategy that will allow the multi-node task to execute.
-		If it would be constantly trying to backfill available workers with single-node tasks, the
-		multi-node tasks could be starved.
-
-		The scheduler might thus have to resort to keeping some nodes idle for a while to enable the
-		multi-node task to start as soon as possible. Another approach could be to interrupt the currently
-		executing tasks and checkpoint their state to make space for a multi-node task, and then resume
-		their execution once the multi-node task finishes.
-
-		In a way, this decision-making already has to be performed on the level of individual cores even
-		for single-node tasks, but adding multiple nodes per task makes the problem much more difficult.
-	\item[Data transfers] It is relatively straightforward to express data transfers between single-node tasks in a task
-		graph, where a task produces a set of complete data objects, which can then be used as inputs for
-		dependent tasks. With multi-node tasks, the data distribution patterns become more complex, because
-		when a task that is executed on multiple nodes produces a data object, the object itself might be
-		distributed across multiple workers, which makes it more challenging to use it in follow-up tasks.
-		The task graph semantics might have to be extended with expressing various data distribution
-		strategies, for example a reduction of data objects from multiple nodes to a single node, to
-		support this use-case.
-
-		When several multi-node tasks depend on one another, the task runtime should be able to exchange
-		data between them in an efficient manner. This might require some cooperation with the used
-		communication framework (e.g.\ \gls{mpi}) to avoid needless repeated serialization
-		and deserialization of data between nodes.
-	\item[Fault tolerance] When a node executing a single-node task crashes or disconnects from the runtime, its task can be
-		rescheduled to a different worker. In the case of multi-node tasks, failure handling is generally
-		more complex. For example, when a task is executing on four nodes and one of them fails, the
-		runtime has to make sure that the other nodes will be notified of this situation, so that they can
-		react accordingly (either by finishing the task with a smaller number of nodes or by failing
-		immediately).
-\end{description}
-
-Most existing task runtimes only consider single-node tasks and do not provide built-in support for
-multi-node tasks, which forces users to use various workarounds, for example by emulating a
-multi-node task with a single-node task that uses multi-node resources that are not managed by the
-task runtime itself. To enable common \gls{hpc} use-cases, task runtimes should
-be able to provide first-class support for multi-node tasks and allow them to be combined with
-single-node tasks in a seamless manner. Advanced multi-node task support could be provided e.g.\ by
-offering some kind of built-in integration with \gls{mpi} or similar common
-\gls{hpc} technologies.
-
-\subsection{Scalability}
-The massive scale of \gls{hpc} hardware (node count, core count, network
-interconnect bandwidth) opens up opportunities for executing large-scale task graphs, but that in
-turn presents unique challenges for task runtimes. Below you can find several examples of
-bottlenecks that might not matter in a small computational scale, but that can become problematic
-in the context of \gls{hpc}-scale task graphs.
-
-\begin{description}
-	\item[Task graph materialization] Large computations might require building massive task graphs that contain millions of tasks. The
-		task graphs are typically defined and built outside of computational nodes, e.g.\ on login nodes of
-		computing clusters or on client devices (e.g.\ laptops), whose performance can be limited. It can
-		take a lot of time to build, serialize and transfer such graphs over the network to the task
-		runtime that runs on powerful computational nodes. This can create a bottleneck even before any
-		task is executed. This has been identified as an issue in some existing task
-		runtimes~\cite{dask-client-perf}.
-
-		In such case, it can be beneficial to provide an \gls{api} for defining task
-		graphs in a symbolic way by representing a potentially large group of similar tasks with a
-		compressed representation to reduce the amount of consumed memory. For example, if we want to
-		express a thousand tasks that all share the same configuration, and differ e.g.\ only in an input
-		file that they work with, we could represent this a group of tasks with a size thousand, rather
-		than storing a thousand of individual task instance in memory. This could be seen as an example of
-		the classical Flyweight design pattern~\cite{gof}.
-
-		Such symbolic graphs could then be sent to the runtime in a compressed form and re-materialized
-		only at the last possible moment. In an extreme form, the runtime could operate on such graphs in a
-		fully symbolic way, without ever materializing them.
-	\item[Communication overhead] Scaling the number of tasks and workers will necessarily put a lot of pressure on the communication
-		network, both in terms of bandwidth (sending large task outputs between nodes) and latency (sending
-		small management messages between the scheduler and the workers). Using \gls{hpc}
-		technologies, such as \gls{mpi} or a lower-level interface like
-		\gls{rdma}, could provide a non-trivial performance boost in this regard. Some
-		existing runtimes, such as \dask{}, can make use of such
-		technologies~\cite{dask-ucx}.
-
-		As we have demonstrated in~\cite{pspin, spin2}, in-network computing can be also used to
-		optimize various networking applications by offloading some computations to an accelerated
-		\gls{nic}. This approach could also be leveraged in task runtimes, for example to
-		reduce the latency of management messages between the scheduler and workers or to increase the
-		bandwidth of large data exchanges amongst workers, by moving these operations directly onto the
-		network card. This line of research is not pursued in this thesis, although it could serve as an
-		interesting idea to be explored.
-	\item[Scheduling] Task scheduling is one of the most important responsibilities of a task runtime, and with large
-		task graphs, it can become a serious performance bottleneck. Existing task runtime, such as
-		\dask{}, can have problems with keeping up with the scale of
-		\gls{hpc} task graphs. The scheduling performance of various task scheduling
-		algorithms will be examined in detail in \autoref{ch:estee}. \autoref{ch:rsds}
-		then will describe the performance overhead of the \dask{} runtime and its
-		scheduler.
-	\item[Runtime overhead] A typical architecture of a task runtime consists of a centralized component that handles task
-		assignments, and a set of connected workers. As we have shown in~\cite{rsds}, task
-		runtimes with this architecture should be mindful of their task execution and communication
-		overhead. For example, even with an overhead of just $1ms$ per task, executing
-		a task graph with a million tasks would result in total accumulated overhead of more than fifteen
-		minutes! Our results indicate that increasing the performance of the central scheduling and
-		management component of a task runtime can have a large positive effect on the overall time it
-		takes to execute the whole task graph. This is explored in detail in \autoref{ch:rsds}.
-
-		However, the performance of the central server cannot be increased endlessly, and from some point,
-		a centralized architecture will become a bottleneck. Even if the workers exchange data outputs
-		directly between themselves, the central component might become overloaded simply by coordinating
-		and scheduling the workers using management messages.
-
-		In that case, a decentralized architecture could be leveraged to avoid the reliance on a central
-		component. Such a decentralized architecture can be found e.g.\ in Ray~\cite{ray}.
-		However, to realize the gains of a decentralized architecture, task submission itself has to be
-		decentralized in some way, which might not be a natural fit for common task graph workflows. If all
-		tasks are generated from a single component, the bottleneck will most likely remain even in an
-		otherwise fully decentralized system.
-\end{description}
-
-\subsection{Iterative computation}
-There are various \gls{hpc} use-cases that are inherently iterative, which means
-that they perform some computation repeatedly, until some condition (which is often determined
-dynamically) is satisfied. For example, the training of a machine learning model is typically
-performed in iterations (called epochs) that continue executing while the prediction error of the
-model keeps decreasing. Another example could be a molecular dynamics simulation that is repeated
-until a desired accuracy (or other property) has been reached.
-
-One approach to model such iterative computations would be to run the whole iterative process inide
-a single task. While this is simple to implement, it might not be very practical, since such
-iterative processes can take a long time to execute, and performing them in a single task would
-mean that we could not leverage desirable properties offered by the task graph abstraction, for
-example fault tolerance. Since the computation \emph{within} a single task is
-typically opaque to the task runtime, when the task would fail, it would need then need to be
-restarted from scratch.
-
-A better approach might be to model each iteration as a separate task. In such case, the task
-runtime might be able to restart the computation from the last iteration, if a failure occurs.
-However, this approach can be problematic if the number of iterations is not known in advance,
-since some task runtimes expect that the structure of the task graph will be immutable once the
-graph has been submitted for execution.
-
-To support iterative computation, task runtimes should allow their users to stop the execution of a
-task graph (or its subgraph) once a specific condition is met, and also to add new tasks to the
-task graph in a dynamic fashion, if it is discovered during its execution that more iterations are
-needed. \dask{} and \ray{} are examples of task runtimes
-that allow adding tasks to an existing task graph dynamically.
-
-\subsection{Deployment}
-Even though it might sound trivial at first, an important aspect that affects the ergonomics of
-executing task graphs is the ease of deploying the task runtime on an \gls{hpc}
-cluster. Supercomputing clusters are notable for providing only a severely locked-down environment
-for their users, which does not grant elevated privileges and requires users to either compile and
-assemble the runtime dependencies of their tools from scratch or choose from a limited set of
-precompiled dependencies available on the cluster, which can have incompatible versions or a
-non-optimal configuration.
-
-Deploying any kind of software (including task runtimes) that has non-trivial runtime dependencies,
-or non-trivial installation steps, if it is not available in a pre-compiled form for the target
-cluster, can serve as a barrier for using it on an \gls{hpc} cluster. Many
-existing task runtimes are not trivial to deploy. For example, several task runtimes, such as \dask{},
-\snakemake{} or \pycompss{}, are implemented in Python, a language
-that typically needs an interpreter to be executed, and also a set of packages in specific
-versions, that need to be available on the filesystem of the target cluster.
-
-Installing the correct version of a Python interpreter and Python package dependencies can already
-be slightly challenging in some cases, but there can also be other issues, caused by the
-dependencies of the task runtime conflicting with the dependencies of the software executed by the
-task graph itself. For example, since \dask{} is a Python package, it depends
-on a certain version of a Python interpreter and a certain set of Python packages. It supports
-tasks that can directly execute Python code in the process of a \dask{} worker.
-However, if the executed code requires a different version of a Python interpreter or Python
-packages than \dask{} itself, this can lead to runtime errors or subtle
-behavior changes\footnote{It is not straightforward to use multiple versions of the same Python package dependency in a
-single Python virtual environment. Conflicting versions thus simply override each other.}.
-
-Since it is probable that users of \gls{hpc} clusters will already have enough
-issues with installing the software executed by their workflows, the task runtime itself should
-ideally provide frictionless deployment and it should not interact with external dependencies
-required by the executed tasks.
-
-\subsection{Summary}
-Even though more \gls{hpc} use-cases and oddities could always be found, it is
-already clear from the mentioned challenges that \gls{hpc} use-cases that
-leverage task graphs can contain a lot of complexity. It could be possible to add support for some
-mentioned requirements to existing task runtimes, which are described in the next section. However,
-the described challenges are so diverse and complex that a dedicated approach which considers them
-holistically could provide a better solution that would avoid both ergonomics and performance from
-being compromised.
-
-The aforementioned requirements will serve as a basis for further research in the proposed thesis.
-The goal of the thesis is to design approaches for executing task graphs on
-\gls{hpc} systems that take the aforementioned requirements into account. These
-approaches will leverage the \hyperqueue{} task runtime, which is described further
-in~\Autoref{ch:hyperqueue}.
+milliseconds to hours or even days. The following chapter will define a vocabulary of terms
+relevant to task-based programming models, and~\Autoref{ch:sota} will then describe challenges
+faced by existing state-of-the-art batch processing distribtued task runtimes in \gls{hpc}
+environments.
