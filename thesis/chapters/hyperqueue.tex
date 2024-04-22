@@ -46,6 +46,8 @@ because that is the most important aspect of its design. Note that for simplicit
 used as an example of an allocation manager throughout this whole chapter, but it could be replaced
 by PBS or any other commonly used allocation manager without the loss of generality.
 
+Dask, Merlin
+
 As you may recall from~\Autoref{sec:allocation-manager}, perhaps the most pronounced ergonomic challenge of
 executing a task graph on an \gls{hpc} cluster is the presence of an allocation
 manager. Due to the limits imposed by it, it might be necessary to partition task graphs into
@@ -54,26 +56,13 @@ Furthermore, it can result in non-optimal usage of hardware resources, because t
 (sub)graphs submitted in separate allocations will only be load balanced within their own
 allocation, and not across different allocations.
 
-The following process describes how computations are typically executed on \gls{hpc}
-clusters in the presence of an allocation manager:
-
-\begin{enumerate}
-	\item The user sends a computational request (allocation) to the manager. It specifies how many nodes
-	      should be allocated, and what is the maximum duration of the computation (usually labeled as
-	      \emph{wall-time}), after which the computation will be forcibly stopped.
-	\item The allocation manager enqueues the request, and schedules it to be executed at some time in the
-	      future.
-	\item Once the allocation is ready, the manager provisions the requested amount of hardware resources
-	      (typically a number of whole computational nodes) and either executes a script on one of the
-	      allocated nodes, or provides the user with an interactive terminal session connected to one of the
-	      allocated nodes.
-\end{enumerate}
-
 The primary issue of this mechanism is that it strictly ties together two separate aspects --
 \emph{what} does the user want to compute (the script that will be computed in the
 allocation) and \emph{where} should the computation take place (specific hardware
 resources and computational nodes). As was described in the process above, both of these things
 have to be specified together in an allocation.
+
+%TODO: https://merlin.readthedocs.io/en/latest/tutorial/1_introduction/?h=many#how-can-merlin-run-so-many-simulations
 
 This approach works well when the granularity of the computation very closely matches the
 granularity of the requested hardware resources, and when the computation can make use of all the
