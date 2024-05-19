@@ -591,8 +591,14 @@ required by the executed tasks.
 \section*{Summary}
 Even though more \gls{hpc} peculiarities could always be found, it is already
 clear from all the mentioned challenges that \gls{hpc} use-cases that leverage
-task graphs can be very complex. While existing task runtimes are able to deal with some of the
-mentioned challenges with varying degrees of success, a unified, dedicated and
-\gls{hpc}-tailored approach for executing task graphs could provide added value
-to workflow authors, both in terms of ergonomics and performance. A design for such an approach
-will be explored in~\Autoref{ch:hyperqueue}.
+task graphs can be very complex and may require specialized approaches in order
+to reach maximum efficiency. The described challenges fall under two broad categories
+that also form the main focus of this thesis; how to make task graph execution on \gls{hpc}
+effortless for the users, and how to make it use hardware resources efficiently.
+
+The rest of the thesis will analyze challenges belonging to both categories, and introduce
+approaches for alleviating them. Chapters~\ref{ch:estee} and~\ref{ch:rsds} focus on the performance
+aspects, namely on task scheduling and the overhead introduced by task runtimes.~\Autoref{ch:hyperqueue}
+then deals with the ergonomical challenges, and proposes a design for an \gls{hpc}-tailored
+task runtime that ties all the described approaches together to enable truly first-class task graph
+execution on \gls{hpc} clusters.

@@ -126,18 +126,19 @@ towards this objective.
 The thesis is structured as follows. \Autoref{ch:distributed-computing} describes various approaches for
 designing parallelized programs on distributed clusters and introduces a specific subset of
 task-based programming models relevant for this thesis. \Autoref{ch:taskgraphs} then describes the
-task-based programming model in detail, by defining key terms related to tasks and task graphs. It
-is followed by~\Autoref{ch:sota}, which discusses state-of-the-art distributed task runtimes
-along with various ergonomic challenges and performance bottlenecks that they face when executing
-task graphs on \gls{hpc} systems. The two subsequent chapters primarily focus on the
-performance aspects of task graph execution. \Autoref{ch:estee} evaluates the performance of
+relevant task-based programming model in detail, by defining key terms related to tasks and task graphs. It
+is followed by~\Autoref{ch:sota}, which discusses various ergonomic challenges and performance bottlenecks
+faced by state-of-the-art distributed task runtimes when executing
+task graphs on \gls{hpc} systems. The following three chapters then discuss designs for overcoming
+these challenges. \Autoref{ch:estee} evaluates the performance of
 various task scheduling algorithms and introduces \estee{}, a task graph execution
-simulator. \Autoref{ch:rsds} then analyzes the runtime performance of \dask{},
+simulator. \Autoref{ch:rsds} analyzes the runtime performance of \dask{},
 a state-of-the-art task runtime, and proposes an alternative implementation of its server that is
-able to outperform it in various \gls{hpc} use-cases. \Autoref{ch:hyperqueue} focuses
-on improving both the ergonomics and performance aspects of task execution in the presence of
-\gls{hpc} allocation managers, using a meta-scheduling design implemented by the
-\hyperqueue{} task runtime. Finally,~\Autoref{ch:conclusion} summarizes the thesis and
+able to outperform it in various \gls{hpc} use-cases. \Autoref{ch:hyperqueue} then focuses
+on improving both the ergonomical and performance aspects of task execution using a meta-scheduling
+approach designed to facilitate task graph execution on \gls{hpc} clusters.
+This approach has been implemented in the \hyperqueue{} task runtime, which is also described in this
+chapter in detail. Finally,~\Autoref{ch:conclusion} summarizes the thesis and
 outlines future work.
 
 %\begin{figure}
