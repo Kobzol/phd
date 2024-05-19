@@ -1,20 +1,15 @@
-The previous chapter has described various approaches that can be used to implement distributed
-applications, and it has clarified the specific area of interest that will be examined and analyzed
-in this thesis. In particular, this thesis focuses on batch processing task graphs designed for
-execution on distributed \gls{hpc} clusters, which are defined by fully general
-\glspl{dag}, with task granularity ranging from milliseconds to hours or more.
-
-Even though that is a rather specific subset of the task-based programming landscape, there is
-still a large amount of tools that fall under it, with their own distinct concepts and semantic
-rules. Therefore, it is not feasible to provide a single complete unifying task theory that would
-encompass all of them, without glossing over many important details and heavily generalizing.
+Even though the previous chapter has specified a very precise subset of task-based programming
+models that will be examined and analyzed in this thesis, there is still a large amount of tools
+and systems that fall under this area of interest, each with their own distinct concepts and
+semantic rules. Therefore, it is not feasible to provide a single unifying and complete task theory
+that would encompass all of them, without generalizing heavily and glossing over many important
+details.
 
 Nevertheless, it is still useful to provide a shared vocabulary for this thesis. This chapter thus
 defines the most important terms related to tasks, including concepts that are relevant to task
 graph execution in \gls{hpc} environments, which will be further described
-in~\Autoref{ch:sota}. The definitions will be general enough so that they can be applied to
-concepts used by task runtimes described in the previous chapters, and also additional tools that
-are described in following chapters of the thesis.
+in~\Autoref{ch:sota}. The definitions are general enough so that they can be applied to
+concepts used by various task runtimes described in this thesis.
 
 \section{Task graphs}
 A computational workflow in the task-based programming model is represented with a
@@ -420,3 +415,8 @@ should a task be executed:
 		the same time to a single worker, or reduce overall memory consumption in some other way, e.g.\ by
 		keeping less cached data objects in the worker's memory.
 \end{description}
+
+\section*{Summary}
+Now that we have seen what kind of task-based programming models are the main focus of this thesis,
+and we have defined a vocabulary of task related terms, we can move on to the existing challenges
+that users and task runtimes face when they execute task graphs on \gls{hpc} clusters.

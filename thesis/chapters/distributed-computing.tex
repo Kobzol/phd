@@ -1,12 +1,13 @@
 There are many ways to design and implement applications for a distributed cluster, a set of
-computers (typically labeled as \emph{computing nodes}) that have their own independent processors
-and memory, and are connected together with a computer network. In the context of
-\gls{hpc}, such distributed clusters are called \emph{supercomputers}, and one of
-their distinguishing features is that all the computers of the cluster reside within one physical
-location, and they are connected with a very high-speed and low-latency network connection. There
-are also many other kinds of distributed clusters, such as data centers or cloud-based distributed
-systems, however this thesis focuses almost exclusively on \gls{hpc} systems and
-supercomputers.
+computers (typically labeled as computing nodes) that have their own independent processors and
+memory, and are connected together with a computer network so that they can cooperate on solving
+difficult problems. In the context of \gls{hpc}, such distributed clusters are called
+\emph{supercomputers}, and one of their distinguishing features is that all the computers of the
+cluster reside within one physical location, and they are connected with a very high-speed and
+low-latency network connection. There are other kinds of distributed clusters, such as data centers
+or cloud-based distributed systems, however this thesis focuses almost exclusively on
+\gls{hpc} systems and supercomputers. Therefore, the rest of the text will equate
+distributed clusters with \gls{hpc} clusters, unless noted otherwise.
 
 Distributed applications are implemented using various \emph{programming models}, which should be able
 to provide a way to efficiently utilize the available computing resources of the cluster, and to
@@ -24,11 +25,10 @@ represent vastly different concepts. It is thus possible to encounter two progra
 tools that both claim to use ``task-based programming'', even though they might have very little in
 common.
 
-This chapter provides a broad overview of the most popular approaches for implementing distributed
-and parallel applications, with the focus on \gls{hpc} use-cases. It describes various
-programming models and selected state-of-the-art tools that leverage them. It categorizes these
-tools based on several properties, and gradually concretizes which niches of this diverse area are
-most relevant for the topic of this thesis.
+The goal of this chapter is thus to provide a broad overview of the most popular approaches for
+implementing distributed and parallel applications (with particular focus on \gls{hpc}
+use-cases), and also to gradually concretize which niches of this diverse area are most relevant
+for the topic of this thesis.
 
 \section{Parallel programming models}
 This section describes the most important representatives of programming models that are used in
@@ -65,35 +65,35 @@ popular today~\cite{mpiusagestudy1,mpiusagestudy2,mpiusagestudy3}. Below are a f
 		because the code for both processes is interleaved within the same program.
 
 		\begin{listing}[h]
-			\caption{Simple \gls{mpi} program implemented in \texttt{C}}
+			\caption{\gls{mpi} program implemented in \texttt{C}}
 			\label{lst:mpi-example}
 			\begin{minted}[fontsize=\small]{c}
-	#include <mpi.h>
-	#include <stdio.h>
+#include <mpi.h>
+#include <stdio.h>
 
-	int main() {
-		MPI_Init(NULL, NULL);
+int main() {
+	MPI_Init(NULL, NULL);
 
-		// Find out the ID of this process
-		int process_id;
-		MPI_Comm_rank(MPI_COMM_WORLD, &process_id);
+	// Find out the ID of this process
+	int process_id;
+	MPI_Comm_rank(MPI_COMM_WORLD, &process_id);
 
-		if (process_id == 0) {
-			// Send one integer to process 1
-			int value = 42;
-			MPI_Send(&value, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
-		} else if (process_id == 1) {
-			// Receive one integer from process 0
-			int value = 0;
-			MPI_Recv(&value, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			printf("Process 1 received number %d from process 0\n", value);
-		}
-
-		MPI_Finalize();
-
-		return 0;
+	if (process_id == 0) {
+		// Send one integer to process 1
+		int value = 42;
+		MPI_Send(&value, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
+	} else if (process_id == 1) {
+		// Receive one integer from process 0
+		int value = 0;
+		MPI_Recv(&value, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		printf("Process 1 received number %d from process 0\n", value);
 	}
-				  \end{minted}
+
+	MPI_Finalize();
+
+	return 0;
+}
+		  	\end{minted}
 		\end{listing}
 
 	\item[\gls{pgas}~\cite{pgas}] is a relatively similar programming model, which also often employs the \gls{spmd}
@@ -128,15 +128,15 @@ popular today~\cite{mpiusagestudy1,mpiusagestudy2,mpiusagestudy3}. Below are a f
 		where a loop is parallelized simply by adding a single annotation to the source code.
 
 		\begin{listing}
-			\caption{Simple \gls{openmp} annotation}
+			\caption{\texttt{C} program using a simple \gls{openmp} annotation}
 			\label{lst:openmp-annotation}
 			\begin{minted}[fontsize=\small]{c}
 void compute_parallel(int* items, int count) {
-    // This loop is executed in parallel
-    #pragma omp parallel for
-    for (int i = 0; i < count; i++) {
-        items[i] = compute(i);
-    }
+	// This loop is executed in parallel
+	#pragma omp parallel for
+	for (int i = 0; i < count; i++) {
+		items[i] = compute(i);
+	}
 }
         \end{minted}
 		\end{listing}
@@ -492,11 +492,23 @@ cilk int fibonacci(int n)
 	\end{minted}
 \end{listing}
 
-Task-parallel models definitely have their place in \gls{hpc}, however they are not
-primarily designed for executing complex scientific workflows, therefore they are not the primary
-focus of this thesis. Instead, we will mainly examine task-based programming models that are
-designed for distributed execution on a cluster, with tasks whose duration typically spans from
-milliseconds to hours or even days. The following chapter will define a vocabulary of terms
-relevant to task-based programming models, and~\Autoref{ch:sota} will then describe
-challenges faced by existing state-of-the-art batch processing distribtued task runtimes in
+Task-parallel models definitely have their place in \gls{hpc}, however they have a
+different set of challenges and constraints in comparison to coarse-grained scientific workflows,
+and they are not primarily designed for such use-cases. Therefore, they are not the primary focus
+of this thesis.
+
+\section*{Summary}
+This chapter has introduced various approaches for creating distributed applications designed for
+\gls{hpc} clusters. It categorized them into two broad categories, explicitly
+parallel and implicitly parallel models, and showed several examples of both approaches.
+
+It has also specified the subset of distributed computing that is important for this thesis. In
+particular, this thesis focuses on batch processing task programming models that define
+computations using fully general \glspl{dag} and that are designed for distributed
+execution on an \gls{hpc} cluster, with tasks whose granularity (duration) typically
+spans from milliseconds to hours or even more.
+
+The following chapter will define a vocabulary of terms relevant to such task-based programming
+models, and~\Autoref{ch:sota} will then describe challenges faced by existing
+state-of-the-art distributed task runtimes that leverage these programming models in
 \gls{hpc} environments.
