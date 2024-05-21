@@ -25,10 +25,12 @@ represent vastly different concepts. It is thus possible to encounter two progra
 tools that both claim to use ``task-based programming'', even though they might have very little in
 common.
 
-The goal of this chapter is thus to provide a broad overview of the most popular approaches for
-implementing distributed and parallel applications (with particular focus on \gls{hpc}
-use-cases), and also to gradually concretize which niches of this diverse area are most relevant
-for the topic of this thesis.
+This thesis is focused on a particular subset of task-based programming models and their
+interaction with \gls{hpc} clusters. The goal of this chapter is thus to specify this
+subset. First, it provides a broad overview of the most popular approaches for implementing
+distributed and parallel applications (with particular focus on \gls{hpc} use-cases),
+and then it gradually concretize which niches of this diverse area are most relevant for the topic
+of this thesis.
 
 \section{Parallel programming models}
 This section describes the most important representatives of programming models that are used in
@@ -500,15 +502,15 @@ of this thesis.
 \section*{Summary}
 This chapter has introduced various approaches for creating distributed applications designed for
 \gls{hpc} clusters. It categorized them into two broad categories, explicitly
-parallel and implicitly parallel models, and showed several examples of both approaches.
+parallel and implicitly parallel models, and demonstrated several examples of both approaches.
 
-It has also specified the subset of distributed computing that is important for this thesis. In
+It has also specified the subset of distributed computing that is most relevant for this thesis. In
 particular, this thesis focuses on batch processing task programming models that define
 computations using fully general \glspl{dag} and that are designed for distributed
 execution on an \gls{hpc} cluster, with tasks whose granularity (duration) typically
 spans from milliseconds to hours or even more.
 
-The following chapter will define a vocabulary of terms relevant to such task-based programming
-models, and~\Autoref{ch:sota} will then describe challenges faced by existing
-state-of-the-art distributed task runtimes that leverage these programming models in
-\gls{hpc} environments.
+These programming models are being commonly used for defining scientific workflows using tools that
+will be described in~\Autoref{ch:sota}, which will also discuss various challenges faced by
+these tools on \gls{hpc} systems. But before that, the following chapter will first
+define a vocabulary of task related terms.

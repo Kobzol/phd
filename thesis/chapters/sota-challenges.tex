@@ -559,10 +559,10 @@ that allow adding tasks to an existing task graph dynamically.
 \section{Deployment}
 Even though it might sound trivial at first, an important aspect that can affect the ergonomics of
 executing task graphs (or any kind of computation, in general) on an \gls{hpc}
-cluster is ease-of-deployment. Supercomputing clusters are notable for providing only a
-severely locked-down environment for their users, which does not grant elevated privileges and
-requires users to either compile and assemble the runtime dependencies of their tools from scratch
-or choose from a limited set of precompiled dependencies available on the cluster, which can have
+cluster is ease-of-deployment. Supercomputing clusters are notable for providing only a severely
+locked-down environment for their users, which does not grant elevated privileges and requires
+users to either compile and assemble the runtime dependencies of their tools from scratch or choose
+from a limited set of precompiled dependencies available on the cluster, which can have
 incompatible versions or a non-optimal configuration.
 
 Deploying any kind of software (including task runtimes) that has non-trivial runtime dependencies,
@@ -572,8 +572,8 @@ existing task runtimes are not trivial to deploy. For example, several task runt
 \dask{}, \snakemake{} or \pycompss{}, are
 implemented in Python, a language that typically needs an interpreter to be executed, and also a
 set of packages in specific versions, that need to be available on the filesystem of the target
-cluster. Installing the correct version of a Python interpreter and Python package dependencies can already
-be slightly challenging in some cases, but there can also be other issues, caused by the
+cluster. Installing the correct version of a Python interpreter and Python package dependencies can
+already be slightly challenging in some cases, but there can also be other issues, caused by the
 dependencies of the task runtime conflicting with the dependencies of the software executed by the
 task graph itself. For example, since \dask{} is a Python package, it depends
 on a certain version of a Python interpreter and a certain set of Python packages. It supports
@@ -591,14 +591,15 @@ required by the executed tasks.
 \section*{Summary}
 Even though more \gls{hpc} peculiarities could always be found, it is already
 clear from all the mentioned challenges that \gls{hpc} use-cases that leverage
-task graphs can be very complex and may require specialized approaches in order
-to reach maximum efficiency. The described challenges fall under two broad categories
-that also form the main focus of this thesis; how to make task graph execution on \gls{hpc}
-effortless for the users, and how to make it use hardware resources efficiently.
+task graphs can be very complex and may require specialized approaches in order to reach maximum
+efficiency. The described challenges fall under two broad categories that also form the main focus
+of this thesis; how to make task graph execution on \gls{hpc} effortless for the
+users, and how to make it use hardware resources efficiently.
 
 The rest of the thesis will analyze challenges belonging to both categories, and introduce
-approaches for alleviating them. Chapters~\ref{ch:estee} and~\ref{ch:rsds} focus on the performance
-aspects, namely on task scheduling and the overhead introduced by task runtimes.~\Autoref{ch:hyperqueue}
-then deals with the ergonomical challenges, and proposes a design for an \gls{hpc}-tailored
-task runtime that ties all the described approaches together to enable truly first-class task graph
-execution on \gls{hpc} clusters.
+approaches for alleviating them. Chapters~\ref{ch:estee}
+and~\ref{ch:rsds} focus on the performance aspects, namely on task scheduling and the
+overhead introduced by task runtimes.~\Autoref{ch:hyperqueue} then deals with the ergonomical
+challenges, and proposes a design for an \gls{hpc}-tailored task runtime that
+ties all the described approaches together to enable truly first-class task graph execution on
+\gls{hpc} clusters.

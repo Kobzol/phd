@@ -89,28 +89,29 @@
 
 \SubmissionYear{2024}
 
-%TODO: přeožit abstrakt
+%TODO: přeložit abstrakt
 \CzechAbstract{TODO: přeložit}
 \CzechKeywords{distribuované výpočty, výpočetní grafy, vysokovýkonnostní počítání}
 
 %TODO: abstrakt a přínos
 \EnglishAbstract{This thesis deals with the execution of task graphs on High-performance Computing
-(HPC) clusters with focus on efficient usage of hardware resources and ergonomic interfaces for defining
-task graphs. Task graphs are a popular tool for executing scientific workflows on distributed clusters.
-However, executing them on HPC clusters introduces unique challenges, caused mainly by the large scale
-of workflows and an unwieldy interaction with HPC allocation managers like PBS (Portable Batch System)
+(HPC) clusters (supercomputers), with focus on efficient usage of hardware resources and ergonomic interfaces for
+task graph submission. Task graphs are a popular tool for executing scientific workflows on distributed
+clusters. However, executing them on supercomputers introduces unique challenges, caused mainly by the
+large scale of workflows and an unwieldy interaction with HPC allocation managers like PBS (Portable Batch System)
 or Slurm. This work examines these challenges in detail and proposes approaches on alleviating them.
 
 This thesis provides three main contributions. Firstly, it contains a comprehensive study of the performance
 of various task schedulers and provides a simulation environment that enables experiments with different
 task scheduling algorithms. Secondly, it analyses the performance of a state of the art
 task runtime \dask{} and provides an implementation of an alternative \dask{} server which
-improves its performance significantly on HPC clusters. And primarily, it introduces a new HPC-tailored
+improves its performance significantly on HPC clusters. And primarily, it introduces a design
+for effortless execution of task graphs on HPC clusters that facilitates efficient usage of hardware
+resources. It also provides an implementation of this design within an HPC-tailored
 task runtime called \hyperqueue{}, which offers an ergonomic way of executing task graphs while
 achieving high hardware utilization on heterogeneous HPC clusters. \hyperqueue{} is available as
 open-source software under the MIT (Massachusetts Institute of Technology) license at
-\url{https://github.com/it4innovations/hyperqueue}.
-}
+\url{https://github.com/it4innovations/hyperqueue}.}
 \EnglishKeywords{distributed computing, task graphs, hpc}
 
 \Acknowledgement{I would like to thank my supervisor, Jan Martinovič, for his advices.

@@ -1,15 +1,16 @@
-Even though the previous chapter has specified a very precise subset of task-based programming
-models that will be examined and analyzed in this thesis, there is still a large amount of tools
-and systems that fall under this area of interest, each with their own distinct concepts and
-semantic rules. Therefore, it is not feasible to provide a single unifying and complete task theory
-that would encompass all of them, without generalizing heavily and glossing over many important
-details.
+In order to discuss task-based programming models, it is useful to provide a vocabulary of terms
+related to them. This is not as straightforward as it might seem, because even though the previous
+chapter has specified a very precise subset of task-based programming models that will be examined
+and analyzed in this thesis, there is still a large amount of tools and systems that fall under
+this area of interest, each with their own distinct concepts and semantic rules. Therefore, it is
+not feasible to provide a single unifying and complete task theory that would encompass all of
+them, without generalizing heavily and glossing over many important details.
 
-Nevertheless, it is still useful to provide a shared vocabulary for this thesis. This chapter thus
-defines the most important terms related to tasks, including concepts that are relevant to task
-graph execution in \gls{hpc} environments, which will be further described
-in~\Autoref{ch:sota}. The definitions are general enough so that they can be applied to
-concepts used by various task runtimes described in this thesis.
+Nevertheless, this chapter introduces a basic set of concepts that form a lowest common denominator
+baseline that can be applied to all tools and use-cases discussed later in this thesis. In
+particular, it defines the most important terms related to tasks, including properties that are
+most relevant to task graph execution in \gls{hpc} environments, which will be further
+described in~\Autoref{ch:sota}.
 
 \section{Task graphs}
 A computational workflow in the task-based programming model is represented with a
