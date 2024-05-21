@@ -1,14 +1,25 @@
-\Autoref{ch:sota} has discussed several challenges that affect task graph execution on
-\gls{hpc}
-clusters. Some of these were related to performance and
+\Autoref{ch:sota} has introduced several challenges that affect task graph execution on
+\gls{hpc} clusters. Some of these were related to performance aspects caused by the
+unique scale of
+\gls{hpc} use-cases. The previous two chapters focused on these aspects, by examining
+various task scheduling algorithms and also bottlenecks that can limit the scalability of existing
+task runtimes.
+
+The remaining challenges are related to the second main focus of this thesis, namely the
+\emph{ergonomics} of task graph execution. This is a very broad term that encompasses multiple
+concepts, such as providing an easy way to define the structure of the task graph, allowing its
+execution it in an effortless manner (regardless whether it is on a local computer or a distributed
+cluster), handling fault tolerance without the user's intervention, allowing users to express
+complex resource requirements and many others.
+
+This thesis focuses primarily on ergonomical challenges that might cause a barrier for executing
+task graphs on \gls{hpc} clusters using off-the-shelf task runtimes.
+
 
 While existing task runtimes are able to deal with some of the mentioned challenges with varying
 degrees of success, a unified, dedicated and \gls{hpc}-tailored approach for executing
 task graphs could provide added value to workflow authors, both in terms of ergonomics and
 performance.
-
-The previous two chapters were focused almost exclusively on the performance aspects of task graph
-execution.
 
 Apart from efficiency, there are several other important challenges have been discussed in. These
 fall under the umbrella of \emph{ergonomics} of task graph execution, which is the second
@@ -80,6 +91,9 @@ resources and computational nodes). As was described in the process above, both 
 have to be specified together in an allocation.
 
 %TODO: https://merlin.readthedocs.io/en/latest/tutorial/1_introduction/?h=many#how-can-merlin-run-so-many-simulations
+%TODO: Balsam https://arxiv.org/abs/1909.08704
+%TODO: FireWorks https://onlinelibrary.wiley.com/doi/10.1002/cpe.3505
+%TODO: Parsl
 
 This approach works well when the granularity of the computation very closely matches the
 granularity of the requested hardware resources, and when the computation can make use of all the

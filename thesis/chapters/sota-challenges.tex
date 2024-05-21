@@ -17,14 +17,27 @@ runtime defines its own instance of a task-based programming model, and has a di
 trade-offs in areas such as performance and scalability, fault tolerance, data provenance,
 ease-of-use, ease-of-deployment and others.
 
-Since this thesis focuses on the ergonomics and performance aspects of executing task graphs on
-\gls{hpc} clusters, this chapter discusses various challenges, bottlenecks and
-shortcomings that arise when the existing task runtimes are used for this specific use-case. It
-describes a set of constraints that stem both from the inherent complexity and idiosyncrasies of
-\gls{hpc} software and hardware, and also from the sheer computational scale
-required to efficiently utilize \gls{hpc} resources. In addition, it also mentions
-various desired properties and features of task runtimes that could alleviate the mentioned
-challenges.
+These tools (and task-basd programming models) are quite popular, and they are being used for
+computing all kinds of scientific workflows on \gls{hpc} clusters~\cite{hpc_tasks, hpc_tasks_2, hpc_tasks_3, pegasus}.
+However, there are several challenges with this approach, which can limit the achievable
+hardware utilization and also worsen the developer experience of the task graph authors, since
+supercomputers contain various peculiar and idiosyncratic concepts and historically they were not designed
+primarily for executing such kinds of workflows. These challenges are further exacerbated when using
+off-the-shelf tools that were not designed for \gls{hpc} use-cases.
+
+The goal of this thesis is to identify these challenges and design approches for alleviating
+some of them, to help task graph execution on \gls{hpc} cluster becoming a first-class concept. In
+order to improve the status quo, it is first necessary to understand what challenges are task graph
+users facing on \gls{hpc} systems. This chapter discusses the most important challenges, bottlenecks
+and shortcomings that arise in this scenario. The mentioned challenges stem both from the inherent
+complexity and idiosyncrasies of \gls{hpc} software and hardware, and also from the sheer computational
+scale required to efficiently utilize \gls{hpc} resources. Some of them are more related to performance
+and hardware utilization, while some of them are about the ergonomics and developer experience of
+designing and executing task graphs. In addition to enumerating the potential problems, various desired
+properties and features of task runtimes that could alleviate the challenges will also be mentioned.
+
+%I have personally encountered most of these challenges during several years of working with
+%various \gls{hpc} use-cases
 
 \section{Allocation manager}
 \label{sec:allocation-manager}
@@ -304,14 +317,14 @@ CUDA programming framework~\cite{cuda}, which is designed to be executed on an
 NVIDIA graphics accelerator, it has to be executed on a node that has such a
 \gls{gpu} available, otherwise it will not work properly.
 
-It should thus be possible for a task to define \emph{resource requirements}, which specify resources
-that have to be provided by an environment that will execute such task. For example, a requirement
-could be the number of cores (some tasks can use only a single core, some can be multithreaded),
-the amount of available main memory, a minimum duration required to execute the task or (either
-optional or required) presence of an accelerator like a \gls{gpu} or an
-\gls{fpga}. In order to remain portable and independent of a specific execution
-environment, these requirements should be abstract and describe general, rather than specific,
-types of resources.
+It should thus be possible for a task to define \emph{resource requirements}, which specify
+resources that have to be provided by an environment that will execute such task. For example, a
+requirement could be the number of cores (some tasks can use only a single core, some can be
+multithreaded), the amount of available main memory, a minimum duration required to execute the
+task or (either optional or required) presence of an accelerator like a \gls{gpu}
+or an \gls{fpga}. In order to remain portable and independent of a specific
+execution environment, these requirements should be abstract and describe general, rather than
+specific, types of resources.
 
 The challenge related to resource requirements of \gls{hpc} tasks specifically is
 the diverse kinds of hardware present in modern \gls{hpc} clusters, which have
