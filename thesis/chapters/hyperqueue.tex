@@ -1,7 +1,6 @@
 \Autoref{ch:sota} has introduced several challenges that affect task graph execution on
-\gls{hpc} clusters. Some of these were related to performance aspects caused by the
-unique scale of
-\gls{hpc} use-cases. The previous two chapters focused on these aspects, by examining
+\gls{hpc} clusters. Some of these are related to performance aspects caused by the
+unique scale of \gls{hpc} use-cases. The previous two chapters focused on these aspects, by examining
 various task scheduling algorithms and also bottlenecks that can limit the scalability of existing
 task runtimes.
 
@@ -10,29 +9,26 @@ The remaining challenges are related to the second main focus of this thesis, na
 concepts, such as providing an easy way to define the structure of the task graph, allowing its
 execution it in an effortless manner (regardless whether it is on a local computer or a distributed
 cluster), handling fault tolerance without the user's intervention, allowing users to express
-complex resource requirements and many others.
+complex resource requirements and many others. This thesis primarily focuses on ergonomical challenges that
+cause a barrier for executing task graphs on \gls{hpc} clusters using off-the-shelf task runtimes.
 
-This thesis focuses primarily on ergonomical challenges that might cause a barrier for executing
-task graphs on \gls{hpc} clusters using off-the-shelf task runtimes.
+%While existing task runtimes are able to deal with some of the mentioned challenges with varying
+%degrees of success, a unified, dedicated and \gls{hpc}-tailored approach for executing
+%task graphs could provide added value to workflow authors, both in terms of ergonomics and
+%performance.
 
+%Apart from efficiency, there are several other important challenges have been discussed in. These
+%fall under the umbrella of \emph{ergonomics} of task graph execution, which is the second
+%primary focus of this thesis. Ergonomics and developer experience in general sometimes tends to be
+%neglected in \gls{hpc} applications and tools, which can be notoriously difficult to
+%deploy, configure and use.
 
-While existing task runtimes are able to deal with some of the mentioned challenges with varying
-degrees of success, a unified, dedicated and \gls{hpc}-tailored approach for executing
-task graphs could provide added value to workflow authors, both in terms of ergonomics and
-performance.
+%While using off-the-shelf task runtimes with \gls{hpc} clusters is possible, these
+%tools are not prepared to deal with the idiosyncracies and complexities of supercomputing systems.
 
-Apart from efficiency, there are several other important challenges have been discussed in. These
-fall under the umbrella of \emph{ergonomics} of task graph execution, which is the second
-primary focus of this thesis. Ergonomics and developer experience in general sometimes tends to be
-neglected in \gls{hpc} applications and tools, which can be notoriously difficult to
-deploy, configure and use.
-
-While using off-the-shelf task runtimes with \gls{hpc} clusters is possible, these
-tools are not prepared to deal with the idiosyncracies and complexities of supercomputing systems.
-
-Executing task graphs on \gls{hpc} clusters does not \emph{need} to be
-difficult though, if we use specialized approaches, rather than off-the-shelf tools that are not
-prepared to deal with the complexities of \gls{hpc} systems.
+%Executing task graphs on \gls{hpc} clusters does not \emph{need} to be
+%difficult though, if we use specialized approaches, rather than off-the-shelf tools that are not
+%prepared to deal with the complexities of \gls{hpc} systems.
 
 %Furthermore, ergonomics and performance do not
 %have to contradict each other -- as we will see in this chapter, approaches that increase
@@ -47,25 +43,106 @@ prepared to deal with the complexities of \gls{hpc} systems.
 %Some descriptions of \hyperqueue{} and related concepts in this chapter were adapted from our
 %publication~\cite{TODO}.
 
-This chapter presents \hyperqueue{}, an \gls{hpc}-tailored task runtime that
+This chapter introduces a holistic meta-scheduling design for effortless execution of task graphs
+on heterogeneous clusters in the presence of \gls{hpc} allocation managers, which is fault-tolerant
+and facilitates efficient hardware utilization. This design aims to resolve or alleviate
+the most important challenges described in~\Autoref{ch:sota}, by providing an approach for defining and
+executing task graphs that was built from the ground up for \gls{hpc} use-cases.
+
+This reference design has been implemented in \hyperqueue{}, an \gls{hpc}-tailored task runtime that
 was designed to enable transparent, ergonomic and efficient execution of task graphs on
 \gls{hpc} systems. \hyperqueue{} is a spiritual successor of
 \rsds{}, and builds upon its server and task scheduler implementation, however it
-does not use the \dask{} interface. It is also the culmination of the research and
+does not use the \dask{} interface. It is the culmination of the research and
 work presented in this thesis, which was made possible thanks to the experience gained from
-\estee{} and \rsds{}, and also from working with task graphs in an
-\gls{hpc} setting over the course of several years.
+\estee{} and \rsds{}, and also from working with many \gls{hpc} workflows and use-cases
+over the course of several years.
+
+\section{Meta-scheduling design}
+\Autoref{ch:sota} has described several challenges that limit the ease-of-use of \gls{hpc}
+workflows. The primary barrier is the presence of an allocation manager on \gls{hpc} clusters.
+- unless this is resolved, there is no point in talking about the other challenges
+
+perhaps the most pronounced ergonomic challenge of
+executing a task graph on an \gls{hpc} cluster is the presence of an allocation
+manager. Due to the limits imposed by it, it might be necessary to partition task graphs into
+multiple subgraphs in order to be fit them within an allocation, which can be challenging.
+Furthermore, it can result in non-optimal usage of hardware resources, because tasks from
+(sub)graphs submitted in separate allocations will only be load balanced within their own
+allocation, and not across different allocations.
+
+The primary issue of this mechanism is that it strictly ties together two separate aspects --
+\emph{what} does the user want to compute (the script that will be computed in the
+allocation) and \emph{where} should the computation take place (specific hardware
+resources and computational nodes). As was described in the process above, both of these things
+have to be specified together in an allocation.
+
+This approach works well when the granularity of the computation very closely matches the
+granularity of the requested hardware resources, and when the computation can make use of all the
+available hardware resources for the whole duration of the allocation. For example, distributed
+applications implemented using \gls{mpi} typically expect that they will be executed
+on a fixed amount of nodes, and that they will (ideally) use all their resources for the whole
+computation. They can also run for a potentially long time, e.g.\ hours, days or even more. Due to
+these properties, these applications fit the allocation model quite well.
+
+However, the situation is quite different for applications implemented with a task-based
+programming model. Task graphs do not assume a fixed amount of hardware resources. Even though
+individual tasks can specify their resource requirements, the specific set of resources on which
+the tasks execute can change during the computation of the task graph. Task graphs are thus
+designed to scale both up and down, in terms of hardware resource usage. However, this is not
+easily achieved when we compute a task graph inside a single allocation, because new resources
+cannot be dynamically added or removed from an allocation.
+
+The absence of scaling down can also lead to a waste of resources. For example, assume that we will
+execute a task graph inside an allocation that contains two nodes. The tasks will be load-balanced
+amongst these two nodes, but towards the end of the computation, there might be tasks that will
+take a long time to finish. This might lead to a situation where only one of the nodes will be
+computing the long tail of the remaining tasks, while the second node will be idle. Due to the fact
+that the allocation cannot release the second node while the computation is still ongoing, the user
+will unnecessarily pay the cost of both nodes until the task graph finishes computing, even though
+the second node might be idle.
+
+- an even bigger problem if you combine resources, e.g.\ CPU + GPU tasks
+
+
+
+
+
+\hyperqueue{} takes a holistic approach to facilitating task graph scheduling on
+\gls{hpc} clusters.
+
+
+
+The key idea of \hyperqueue{} is to disentangle the definition of the computation (tasks)
+and the hardware resources (computational nodes) where the computation will take place.
+
+- moves the responsibility of performing the task to allocation mapping from the user to
+\hyperqueue{},
+which improves ergonomics.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{\hyperqueue{}}
 
 \workshare{I have collaborated on this work with Ada Böhm, we have both contributed to it equally. I am the sole author of the design and implementation of
 specific components of \hyperqueue{},
-these will be marked as such in the rest of this chapter. While me and Ada are the primary
-contributors to \hyperqueue{}, it should be noted that multiple other people have contributed to it, as its development is a team effort. Source code contribution statistics for \hyperqueue{}
-can be found on GitHub\footnoteurl{https://github.com/it4innovations/hyperqueue/graphs/contributors}.}
+    these will be marked as such in the rest of this chapter. While me and Ada are the primary
+    contributors to \hyperqueue{}, it should be noted that multiple other people have contributed to it, as its development is a team effort. Source code contribution statistics for \hyperqueue{}
+    can be found on GitHub\footnoteurl{https://github.com/it4innovations/hyperqueue/graphs/contributors}.}
 
-%TODO: architecture
-
-% TODO: rename to "Interaction with allocation manager"
-\section{Design of \hyperqueue{}}
 \label{sec:hq-design}
 This section describes the high-level design of \hyperqueue{}, its most important features
 and also how it tackles the challenges mentioned in~\Autoref{ch:sota}. First, we will take a
