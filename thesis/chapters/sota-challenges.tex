@@ -18,23 +18,26 @@ trade-offs in areas such as performance and scalability, fault tolerance, data p
 ease-of-use, ease-of-deployment and others.
 
 These tools (and task-basd programming models) are quite popular, and they are being used for
-computing all kinds of scientific workflows on \gls{hpc} clusters~\cite{hpc_tasks, hpc_tasks_2, hpc_tasks_3, pegasus}.
-However, there are several challenges with this approach, which can limit the achievable
-hardware utilization and also worsen the developer experience of the task graph authors, since
-supercomputers contain various peculiar and idiosyncratic concepts and historically they were not designed
-primarily for executing such kinds of workflows. These challenges are further exacerbated when using
-off-the-shelf tools that were not designed for \gls{hpc} use-cases.
+computing all kinds of scientific workflows on \gls{hpc}
+clusters~\cite{hpc_tasks, hpc_tasks_2, hpc_tasks_3, pegasus}. However, there are several challenges with this approach,
+which can limit the achievable hardware utilization and also worsen the developer experience of the
+task graph authors, since supercomputers contain various peculiar and idiosyncratic concepts and
+historically they were not designed primarily for executing such kinds of workflows. These
+challenges are further exacerbated when using off-the-shelf tools that were not designed for
+\gls{hpc} use-cases.
 
-The goal of this thesis is to identify these challenges and design approches for alleviating
-some of them, to help task graph execution on \gls{hpc} cluster becoming a first-class concept. In
-order to improve the status quo, it is first necessary to understand what challenges are task graph
-users facing on \gls{hpc} systems. This chapter discusses the most important challenges, bottlenecks
-and shortcomings that arise in this scenario. The mentioned challenges stem both from the inherent
-complexity and idiosyncrasies of \gls{hpc} software and hardware, and also from the sheer computational
-scale required to efficiently utilize \gls{hpc} resources. Some of them are more related to performance
-and hardware utilization, while some of them are about the ergonomics and developer experience of
-designing and executing task graphs. In addition to enumerating the potential problems, various desired
-properties and features of task runtimes that could alleviate the challenges will also be mentioned.
+The goal of this thesis is to identify these challenges and design approches for alleviating some
+of them, to help task graph execution on \gls{hpc} cluster becoming a first-class
+concept. In order to improve the status quo, it is first necessary to understand what challenges
+are task graph users facing on \gls{hpc} systems. This chapter discusses the most
+important challenges, bottlenecks and shortcomings that arise in this scenario. The mentioned
+challenges stem both from the inherent complexity and idiosyncrasies of \gls{hpc}
+software and hardware, and also from the sheer computational scale required to efficiently utilize
+\gls{hpc} resources. Some of them are more related to performance and hardware
+utilization, while some of them are about the ergonomics and developer experience of designing and
+executing task graphs. In addition to enumerating the potential problems, various desired
+properties and features of task runtimes that could alleviate the challenges will also be
+mentioned.
 
 %I have personally encountered most of these challenges during several years of working with
 %various \gls{hpc} use-cases
