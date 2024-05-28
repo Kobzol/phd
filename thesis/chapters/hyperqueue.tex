@@ -170,36 +170,45 @@ handled by the task runtime (providing and scheduling computational resources).
 
 How can we disentangle these two concepts when allocations require us to specify both? The
 ``trick'' lies in leveraging meta-scheduling on top of allocation managers, which allows us to
-change what kind of computation is submitted in allocations. The proposed approach can be
-summarized with the following high-level properties:
+change what kind of computation is submitted in allocations. The proposed approach can be described
+with the following high-level principles:
 
 \begin{itemize}
-	\item The task graph is defined independently of allocations. This is enabled by submitting
-	      tasks into a single instance of a task runtime that is able to use computational resources across
-	      different allocations. This is where the term \emph{meta-scheduling} comes in; the core of the idea
-	      is to use a task runtime as a sort of high-level scheduler on top of an allocation manager. Instead
-	      of forcing users to think in terms of allocations, they are able to submit task graphs in the same
-	      way they would do it on a system that is not supervised by allocation managers.
-	\item The approach above resolves the issues with defining the task graph, since users no
-	longer need to manually split it into subgraphs or manually map tasks to allocations in
-	order to work around the limitations of allocation managers. However, it is still needed to
-	submit \emph{some} allocations, otherwise it would not be possible to compute anything on an
-	\gls{hpc} cluster at all. Instead of defining specific tasks that should be computed within
-	an allocation, the allocation will execute a generic computational provider, which will be
-	able to execute any task that is scheduled to it by the task runtime. This approach removes
-	the need to decide which tasks should be computed on which hardware resources and in which
-	allocations up front, and thus it improves the ability of the task runtime to load balance
-	tasks and improve hardware utilization. It also simplifies the submitted allocations,
-	because all of them will have the same structure; they will simply start the computational
-	provider, regardless of how is the user's task graph structured.
+	\item The task graph is defined independently of allocations. This is enabled by submitting tasks into a
+	      single instance of a task runtime that is able to use computational resources across different
+	      allocations. This is where the term \emph{meta-scheduling} comes in; the core of the idea is to use
+	      a task runtime as a sort of high-level scheduler on top of an allocation manager. Instead of
+	      forcing users to think in terms of allocations, they are able to submit task graphs in the same way
+	      they would do it on a system that is not supervised by allocation managers, and let the task
+	      runtime handle allocations on their behalf.
+	\item The approach above resolves the issues with defining the task graph, since users no longer need to
+	      manually split it into subgraphs or manually map tasks to allocations in order to work around the
+	      limitations of allocation managers. However, it is still required to submit \emph{some}
+	      allocations, otherwise it would not be possible to compute anything on an \gls{hpc}
+	      cluster at all. Instead of defining specific tasks that should be computed within an allocation,
+	      the allocation will execute a generic computational provider, which will be able to execute any
+	      task that is scheduled to it by the task runtime. This approach removes the need to decide which
+	      tasks should be computed on which hardware resources and in which allocations up front, and it also
+	      improves the ability of the task runtime to load balance tasks and improve hardware utilization.
+	      Additionally, it simplifies the submitted allocations, because all of them will have the same
+	      structure; they will simply start the computational provider, regardless of how is the user's task
+	      graph structured.
 
-	These generic allocations can be submitted either by users or even fully automatically by
-	the meta-scheduling task runtime. Note that even if the user submits these allocations
-	manually, it becomes much simpler for them than with the previously mentioned approaches.
-	They would simply ask for a set of computational providers to be started, without
-	having to think about mapping tasks to allocations.
-	\item The first two properties have
-	- resource requirements
+	      These generic allocations can be submitted either by users or even fully automatically by the
+	      meta-scheduling task runtime. Note that even if the user submits these allocations manually, it
+	      becomes much simpler for them than with the previously mentioned approaches. Users would simply ask
+	      for a set of computational providers to be started, without having to think about mapping tasks to
+	      allocations.
+	\item The principles described above separate the two core pillars of task graph execution; the
+	      definition of the task graph and the provisioning of hardware resources. However, we actually do
+	      need to have \emph{some} way of tying these two concepts together, because tasks might
+	      have various resource requirements and thus also some constraints on the environment in which they
+	      can be executed. While using allocations for submitting tasks directly provided this
+		binding implicitly, we saw that it also had many disadvantages. What we can do
+	instead is to use completely abstract definitions of resources required by tasks, and
+	resources provided by computational providers, and let the task runtime pair them together.
+
+		As an example, a task can specify that it requires four \gls{cpu} cores, two \glspl{gpu}
 \end{itemize}
 
 - allocation managers
