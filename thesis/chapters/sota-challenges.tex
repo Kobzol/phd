@@ -519,7 +519,7 @@ in the context of \gls{hpc}-scale task graphs.
 		task graphs, it can become a serious performance bottleneck. Existing task runtime, such as
 		\dask{}, can have problems with keeping up with the scale of
 		\gls{hpc} task graphs. The scheduling performance of various task scheduling
-		algorithms will be examined in detail in \Autoref{ch:estee}. \autoref{ch:rsds}
+		algorithms will be examined in detail in~\Autoref{ch:estee}. \autoref{ch:rsds}
 		then will describe the performance overhead of the \dask{} runtime and its
 		scheduler.
 	\item[Runtime overhead] A typical architecture of a task runtime consists of a centralized component that handles task
@@ -529,7 +529,7 @@ in the context of \gls{hpc}-scale task graphs.
 		a task graph with a million tasks would result in total accumulated overhead of more than fifteen
 		minutes! Our results indicate that increasing the performance of the central scheduling and
 		management component of a task runtime can have a large positive effect on the overall time it
-		takes to execute the whole task graph. This is explored in detail in \Autoref{ch:rsds}.
+		takes to execute the whole task graph. This is explored in detail in~\Autoref{ch:rsds}.
 
 		However, the performance of the central server cannot be increased endlessly, and from some point,
 		a centralized architecture will become a bottleneck. Even if the workers exchange data outputs
