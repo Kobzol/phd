@@ -115,13 +115,12 @@ To summarize, our goal was to have a simulation environment that would be open-s
 full reproducibility, would support basic task resource requirements and would enable us to examine
 the two mentioned factors that affect scheduling. To fulfill these goals, we have implemented a new
 task graph simulation framework called \estee{}. It is an \mbox{MIT-licensed}
-open-source tool~\cite{estee_github}.
-%\footnoteurl{https://github.com/it4innovations/estee} written in Python that provides an experimentation testbed
-for task runtime and scheduler developers and researchers. It is quite flexible, and can be used to
-define a cluster of workers, connect them together using a configurable network model, implement a
-custom scheduling algorithm and test its performance on arbitrary task graphs, with support for
-specifying required \gls{cpu} core counts for individual tasks. At the same time, it
-comes ``battery-included'', and contains baseline implementations of several task schedulers from
+open-source tool~\cite{estee_github} written in Python that provides an experimentation testbed for
+task runtime and scheduler developers and researchers. It is quite flexible; it can be used to define a cluster of
+workers, connect them together using a configurable network model, implement a custom scheduling
+algorithm and test its performance on arbitrary task graphs, with support for specifying required
+\gls{cpu} core counts for individual tasks. At the same time, it comes
+``battery-included'', and contains baseline implementations of several task schedulers from
 existing literature and also a task graph generator that can be used to generate randomized graphs
 with properties similar to real-world task graphs.
 
