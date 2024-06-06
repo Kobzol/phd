@@ -419,7 +419,22 @@ The programming model used by \hyperqueue{} is optimized for common
 
 \subsubsection{Multi-node tasks}
 
-\subsection{Automatic allocation submission}
+\subsection{Automatic submission of allocations}
+The meta-scheduling design employed by \hyperqueue{} resolves the most important
+challenges associated with allocation managers, and it makes creating allocations simple, so that
+users can scale the computational resources used for computing their task graphs
+at will. However, creating allocations manually can still be relatively demanding for some users,
+who might want to employ a more automated approach for scaling computational resources. Since
+\hyperqueue{} knows the state of all tasks and workers, and it is commonly executed on login
+nodes that have access to allocation managers, it is also able to automatically submit new
+allocations on behalf of the user, based on current computational load. This system, which is called
+\emph{Automatic allocator}, will be described in this section.
+
+\workshare{I am the primary author of the design and implementation of the automatic allocation
+system in \hyperqueue{}.}
+
+
+
 - experiment with hardware utilization
 
 \section{Case study: LiGen}
@@ -488,6 +503,7 @@ benchmarked stress test.
 % Other benchmarks
 - many sleep 0 tasks
 - hardware utilization
+- task storage optimization?
 
 \section{Comparison with state-of-the-art}
 %TODO: Merlin https://merlin.readthedocs.io/en/latest/tutorial/1_introduction/?h=many#how-can-merlin-run-so-many-simulations
