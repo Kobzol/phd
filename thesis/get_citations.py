@@ -207,7 +207,7 @@ if __name__ == "__main__":
     nonrelated = [analysis for analysis in analysed if not analysis.paper.related]
 
     now = datetime.datetime.now()
-    date_formatted = now.strftime("%d. %m. %Y")
+    date_formatted = now.strftime("%-d. %-m. %Y")
     with open("chapters/publications-generated.tex", "w") as f:
         f.write(
             f"""Citation data was taken from {resolver.name()}\\footnoteurl{{{resolver.url()}}} on {date_formatted}.
