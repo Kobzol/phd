@@ -165,10 +165,12 @@ class ScopusResolver:
         return results
 
 
-def calculate_h_index(results: List[CitationAnalysis]) -> int:
+def calculate_h_index(results: List[CitationAnalysis], include_own_citations=False) -> int:
     citation_counts = []
     for result in results:
-        citation_count = len(result.own) + len(result.nonown)
+        citation_count = len(result.nonown)
+        if include_own_citations:
+            citation_count += len(result.own)
         citation_counts.append(citation_count)
     for index in range(max(citation_counts), -1, -1):
         count = sum(1 if c >= index else 0 for c in citation_counts)
@@ -202,6 +204,9 @@ if __name__ == "__main__":
     aggregated = {res.paper.bibname: res for res in analysed}
 
     h_index = calculate_h_index(analysed)
+    total_nonown_citations = sum(len(analysis.nonown) for analysis in analysed)
+    total_own_citations = sum(len(analysis.own) for analysis in analysed)
+    print(f"Own citations: {total_own_citations}, non-own citations: {total_nonown_citations}, h-index: {h_index}")
 
     related = [analysis for analysis in analysed if analysis.paper.related]
     nonrelated = [analysis for analysis in analysed if not analysis.paper.related]
@@ -210,11 +215,14 @@ if __name__ == "__main__":
     date_formatted = now.strftime("%-d. %-m. %Y")
     with open("chapters/publications-generated.tex", "w") as f:
         f.write(
-            f"""Citation data was taken from {resolver.name()}\\footnoteurl{{{resolver.url()}}} on {date_formatted}.
-Self citation is defined as a citation by a publication where at least a single author is also the
-author of the cited paper. SJR (Scientific Journal Rankings) ranking was taken from Scimago Journal\\footnoteurl{{https://www.scimagojr.com}},
+            f"""All citation data presented below is actual as of {date_formatted}.
+Citation data was taken from {resolver.name()}\\footnoteurl{{{resolver.url()}}}.
+Self citation is defined as a citation by a publication where at least a single author is also amongst
+the authors of the cited paper (in other words, there is a non-empty overlap between the authors of the citing and the cited paper).
+SJR (Scientific Journal Rankings) ranking was taken from Scimago Journal\\footnoteurl{{https://www.scimagojr.com}},
 IF (Impact Factor) ranking was taken from Oxford Academic\\footnoteurl{{https://academic.oup.com/bioinformatics}}.
-The h-index of the author of this thesis according to the Scopus database is \\texttt{{{h_index}}}.
+The h-index of the author of this thesis according to the Scopus database is \\texttt{{{h_index}}},
+with \\texttt{{{total_nonown_citations}}} total citations (both excluding self citations).
 
 Note that Ada Böhm was named Stanislav Böhm in older publications.
 """)
