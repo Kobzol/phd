@@ -79,6 +79,8 @@
     arrow/.style={draw, thick, {->}}
 }
 
+\renewcommand\lstlistlistingname{List of Source Code Listings}
+
 % Metadata
 \ThesisAuthor{Ing. Jakub Beránek}
 
@@ -136,6 +138,7 @@ Finally, I would like to extend my gratitude to my wife Jana for her support and
 \MakeTitlePages
 
 %\glsaddall     % Automatically add all defined acronyms
+%\addcontentsline{toc}{chapter}{List of Abbreviations}
 \printglossaries
 
 \listoffigures
@@ -145,6 +148,7 @@ Finally, I would like to extend my gratitude to my wife Jana for her support and
 \clearpage
 
 \lstlistoflistings
+%\addcontentsline{toc}{chapter}{List of Source Code Listings}
 \clearpage
 
 % Make sure that related publications are first in the bibliography list
@@ -170,9 +174,9 @@ Finally, I would like to extend my gratitude to my wife Jana for her support and
 \label{ch:estee}
 \input{chapters/estee}
 
-%\chapter{Task runtime optimization}
-%\label{ch:rsds}
-%\input{chapters/rsds}
+\chapter{Task runtime optimization}
+\label{ch:rsds}
+\input{chapters/rsds}
 
 \chapter{Task graph meta-scheduling}
 \label{ch:hyperqueue}

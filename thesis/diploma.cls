@@ -85,7 +85,7 @@
 \RequirePackage{setspace}
 \RequirePackage{theorem}
 \RequirePackage{titlesec}
-\RequirePackage[nottoc,notindex,chapter]{tocbibind}
+\RequirePackage[nottoc,notlof,notlot,notindex,chapter]{tocbibind}
 \RequirePackage{xcolor}
 \RequirePackage{pdfpages}
 \RequirePackage[a-1b]{pdfx}
