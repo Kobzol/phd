@@ -437,7 +437,8 @@ status or perform operations on all (or some) tasks of a job at once.
 
 \hyperqueue{} currently does not support data transfers between tasks, as it is primarily
 focused on executing tasks that execute black-box binaries which communicate through files on a
-file-system. Task outputs are thus used only for specifying dependencies; no task data is actually
+file-system. Arbitrary binary data can be attached as an input for any task, but task outputs are
+only used for specifying dependencies; no task data is actually
 transferred between the workers. However, this is merely a limitation of the current
 implementation, which we plan to lift in the future.  %The \hq{} server is based on the \rsds{} %server, which does support data transfers between%TODO: incorporate this sentence in the above paragraph
 %workers.
@@ -687,9 +688,14 @@ workers allocated to the task. This nodefile can then be used by common \gls{mpi
 program launchers to start an \gls{mpi} program.
 
 \subsection{Task submission interfaces}
+The primary way of managing the \hyperqueue{} infrastructure (server and the workers)
+and submitting task graphs is through a \gls{cli}, which has been designed to be familiar
+to users of Slurm and \gls{pbs}. It is composed of composable subcommands that can
+Unix-like philosophy.
+
+
+
 - iterative computation?
-- Python API (vs Dask)
-- CLI
 - Python API
 
 %\subsubsection{Output streaming}
@@ -790,9 +796,19 @@ the benchmarked stress test.
 \subsection{Time request resource waste}
 
 \section{Related work}
-There are tens (possibly maybe even hundreds) of task runtimes whose functionality partially
-overlaps with \hyperqueue{}, and it is not feasible to compare it with all of these
-tools.
+\label{hq:related-work}
+This section will discuss several state-of-the-art task-based tools and compare them
+with \hyperqueue{}. There are hundreds of tools that are designed for executing some kind
+of a task graph, whose features partially overlap with \hyperqueue{}, and it is thus infeasible
+to mention all of them here.
+
+Instead, we will focus on a smaller subset of task runtime that leverage
+meta-scheduling on top of allocation managers. These tools can be more directly
+
+Workflow management systems - more high-level
+- reproducibility
+- monitoring
+- cron-like
 
 %TODO: Merlin https://merlin.readthedocs.io/en/latest/tutorial/1_introduction/?h=many#how-can-merlin-run-so-many-simulations
 %TODO: Balsam https://arxiv.org/abs/1909.08704
@@ -805,6 +821,7 @@ tools.
 
 - mega-scheduling
 - resources
+- data transfers
 - task overhead
 - fault tolerance
 - deployment
@@ -845,6 +862,9 @@ ACROSS~\cite{across} and MaX~\cite{max}.
 
 Given the use-cases mentioned above, I am confident that \hyperqueue{} does provide a
 tangible benefit for its users in terms of ergonomical and efficient execution of task graphs on
-supercomputers, and that it does alleviate many challenges, that have been extensively in this
-thesis, in practice. I hope that \hyperqueue{} will eventually see even more widespread
+supercomputers, and that it does alleviate many challenges that have been described
+extensively in this thesis. I hope that \hyperqueue{} will eventually see more widespread
 usage in the \gls{hpc} community.
+
+As future work, we plan to add the ability to pass task outputs as inputs to dependent task, and
+thus implement full data transfer functionality.

@@ -1,9 +1,8 @@
 There is a large body of tools designed for executing arbitrary task graphs on diverse computing
 platforms, ranging from consumer-grade laptops, through cloud deployments, to distributed and
-\gls{hpc} clusters. They are known under various terms, such as workflow
-management systems, job managers, distributed job schedulers or orchestrators. We will use the term
-\emph{task runtime} for all such task execution tools in this thesis, as has already been
-discussed in the previous chapter.
+\gls{hpc} clusters. They are known under various terms, such as task executors, job managers, distributed
+job schedulers or orchestrators. We will use the term \emph{task runtime} for all such task execution tools
+in this thesis, as has already been discussed in the previous chapter.
 
 Examples of such task runtimes include e.g.\ \dask{}~\cite{dask},
 Parsl~\cite{parsl}, Ray~\cite{ray},
@@ -12,12 +11,22 @@ Pydra~\cite{pydra}, Snakemake~\cite{snakemake},
 SciLuigi~\cite{sciluigi}, Merlin~\cite{merlin},
 Autosubmit~\cite{autosubmit}, NextFlow~\cite{nextflow},
 StreamFlow~\cite{streamflow}, AiiDA~\cite{aiida},
-FireWorks~\cite{fireworks} or Apache Airflow~\cite{airfow}. Each task
+FireWorks~\cite{fireworks}. Each task
 runtime defines its own instance of a task-based programming model, and has a different set of
 trade-offs in areas such as performance and scalability, fault tolerance, data provenance,
 ease-of-use, ease-of-deployment and others.
 
-These tools (and task-basd programming models) are quite popular, and they are being used for
+Note that there is a set of task-based tools that are commonly labeled as \emph{Workflow Management Systems},
+for example Apache Airflow~\cite{airfow}, Dagster~\cite{dagster}, Prefect~\cite{prefect} or Argo~\cite{argo}.
+Although it cannot be said that there is a single distinguishing feature that would separate these tools from other task
+runtimes, from my point of view these tools form a separate category. They are primarily designed for very coarse-grained
+workflows with a relatively small number of tasks, they put strong emphasis on workflow reproducibility, execution
+monitoring (typically through a web interface) and support scheduled execution (i.e.\ ``run this workflow every hour'').
+They are also typically being applied in cloud environments, moreso than on supercomputers.
+This thesis will not consider these tools in great detail, as they are not primarily
+designed nor used for \gls{hpc} use-cases.
+
+Task-based tools (and task-based programming models) are quite popular, and they are being used for
 computing all kinds of scientific workflows on \gls{hpc}
 clusters~\cite{hpc_tasks, hpc_tasks_2, hpc_tasks_3, pegasus}. However, there are several challenges with this approach,
 which can limit the achievable hardware utilization and also worsen the developer experience of the
@@ -25,6 +34,9 @@ task graph authors, since supercomputers contain various peculiar and idiosyncra
 historically they were not designed primarily for executing such kinds of workflows. These
 challenges are further exacerbated when using off-the-shelf tools that were not designed for
 \gls{hpc} use-cases.
+
+\Autoref{hq:related-work} will describe several task runtimes in more detail, and compare them with the proposed
+\hyperqueue{} tool.
 
 The goal of this thesis is to identify these challenges and design approches for alleviating some
 of them, to help task graph execution on \gls{hpc} cluster becoming a first-class
