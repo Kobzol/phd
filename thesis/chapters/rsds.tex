@@ -77,9 +77,6 @@ sequential version, is the change of imports from \texttt{numpy} and
 \texttt{pandas} to \dask{} Python modules.
 
 \begin{listing}[h]
-	\caption{Example of a Python program that leverages the \dask{} Array
-	\gls{api}}
-	\label{lst:dask-array-example}
 	\begin{minted}[fontsize=\small]{python}
 # import numpy as np
 import dask.array as np
@@ -87,12 +84,12 @@ import dask.array as np
 x = np.random.random((10000, 10000))
 y = (y * 2 + x.T).mean(axis=1)
 	\end{minted}
+	\caption{Example of a Python program that leverages the \dask{} Array
+	\gls{api}}
+	\label{lst:dask-array-example}
 \end{listing}
 
 \begin{listing}[h]
-	\caption{Example of a Python program that leverages the \dask{} DataFrame
-	\gls{api}}
-	\label{lst:dask-dataframe-example-2}
 	\begin{minted}[fontsize=\small]{python}
 # import pandas as pd
 import dask.dataframe as pd
@@ -102,6 +99,9 @@ df = pd.read_csv("data.csv")
 df2 = df[df.y > 0]
 df3 = df2.groupby("name").x.std()
 	\end{minted}
+	\caption{Example of a Python program that leverages the \dask{} DataFrame
+	\gls{api}}
+	\label{lst:dask-dataframe-example-2}
 \end{listing}
 
 \subsection*{Computational model}

@@ -67,8 +67,6 @@ popular today~\cite{mpiusagestudy1,mpiusagestudy2,mpiusagestudy3}. Below are a f
 		because the code for both processes is interleaved within the same program.
 
 		\begin{listing}[h]
-			\caption{\gls{mpi} program implemented in \texttt{C}}
-			\label{lst:mpi-example}
 			\begin{minted}[fontsize=\small]{c}
 #include <mpi.h>
 #include <stdio.h>
@@ -96,6 +94,8 @@ int main() {
 	return 0;
 }
 		  	\end{minted}
+			\caption{\gls{mpi} program implemented in \texttt{C}}
+			\label{lst:mpi-example}
 		\end{listing}
 
 	\item[\gls{pgas}~\cite{pgas}] is a relatively similar programming model, which also often employs the \gls{spmd}
@@ -130,8 +130,6 @@ int main() {
 		where a loop is parallelized simply by adding a single annotation to the source code.
 
 		\begin{listing}
-			\caption{\texttt{C} program using a simple \gls{openmp} annotation}
-			\label{lst:openmp-annotation}
 			\begin{minted}[fontsize=\small]{c}
 void compute_parallel(int* items, int count) {
 	// This loop is executed in parallel
@@ -140,7 +138,9 @@ void compute_parallel(int* items, int count) {
 		items[i] = compute(i);
 	}
 }
-        \end{minted}
+        	\end{minted}
+			\caption{\texttt{C} program using a simple \gls{openmp} annotation}
+			\label{lst:openmp-annotation}
 		\end{listing}
 \end{description}
 
@@ -335,8 +335,6 @@ to each chunk in parallel (this corresponds to the \emph{map} operation) and the
 \emph{combine} the results (this corresponds to the \emph{reduce} operation).
 
 \begin{listing}
-	\caption{MapReduce word count implemented in Python}
-	\label{lst:wordcount-example}
 	\begin{minted}[fontsize=\small, tabsize=4]{python}
 def word_count(context):
 	file = context.textFile("shakespeare.txt")
@@ -346,6 +344,8 @@ def word_count(context):
 	output = counts.collect()
 	print(output)
 	\end{minted}
+	\caption{MapReduce word count implemented in Python}
+	\label{lst:wordcount-example}
 \end{listing}
 
 \Autoref{lst:wordcount-example} shows a simple Python program that computes the frequency of
@@ -386,8 +386,6 @@ possible to solve the same problem faster with a single-threaded program running
 hardware~\cite{cost}.
 
 \begin{listing}[h]
-	\caption{\dask{} DataFrame query and its corresponding task graph}
-	\label{lst:dask-dataframe-example-1}
 	\begin{minipage}{.4\linewidth}
 		\begin{minted}[fontsize=\small, tabsize=4]{python}
 import dask.dataframe as pd
@@ -397,6 +395,8 @@ df = pd.read_csv("dataset.csv")
 # task graph shown on the right
 df.groupby("Country").GDP.mean()
 	\end{minted}
+	\caption{\dask{} DataFrame query and its corresponding task graph}
+	\label{lst:dask-dataframe-example-1}
 	\end{minipage}
 	\begin{minipage}{.6\linewidth}
 		\includegraphics[width=\linewidth]{imgs/dask-dataframe-1-graph}
@@ -473,8 +473,6 @@ shows a program implemented in the Cilk programming language, which calculates t
 number using a task-parallel approach.
 
 \begin{listing}
-	\caption{Task-parallel Fibonacci calculation using Cilk\\Example adapted from~\cite{cilk}.}
-	\label{lst:cilk-fibonacci}
 	\begin{minted}[fontsize=\small, tabsize=4]{c}
 cilk int fibonacci(int n)
 {
@@ -492,6 +490,8 @@ cilk int fibonacci(int n)
 	}
 }
 	\end{minted}
+	\caption{Task-parallel Fibonacci calculation using Cilk\\Example adapted from~\cite{cilk}.}
+	\label{lst:cilk-fibonacci}
 \end{listing}
 
 Task-parallel models definitely have their place in \gls{hpc}, however they have a

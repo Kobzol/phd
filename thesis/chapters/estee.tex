@@ -154,8 +154,6 @@ duration it took to execute the task graph) and also a detailed trace that can b
 the individual task-to-worker assignments and task execution time spans.
 
 \begin{listing}
-	\caption{Simple task graph simulation example using \estee{}}
-	\label{lst:estee-example}
 	\begin{minted}[fontsize=\small]{python}
 # Create task graph containing 3 tasks
 # (each task runs for 1s and requires 1 CPU)
@@ -184,7 +182,9 @@ netmodel = MaxMinFlowNetModel(bandwidth=100)
 simulator = Simulator(tg, workers, scheduler, netmodel, trace=True)
 makespan = simulator.run()
 print(f"Task graph execution makespan = {makespan}s")
-\end{minted}
+    \end{minted}
+	\caption{Simple task graph simulation example using \estee{}}
+	\label{lst:estee-example}
 \end{listing}
 
 \estee{} supports general task graphs represented by a \gls{dag}.
