@@ -215,12 +215,13 @@ if __name__ == "__main__":
     date_formatted = now.strftime("%-d. %-m. %Y")
     with open("chapters/publications-generated.tex", "w") as f:
         f.write(
-            f"""All citation data presented below is actual as of {date_formatted}.
-Citation data was taken from {resolver.name()}\\footnoteurl{{{resolver.url()}}}.
+            f"""All citation data presented below is actual as of {date_formatted}, unless otherwise
+            specified. Citation data was taken from {resolver.name()}\\footnoteurl{{{resolver.url()}}}.
 Self citation is defined as a citation by a publication where at least a single author is also amongst
 the authors of the cited paper (in other words, there is a non-empty overlap between the authors of the citing and the cited paper).
 SJR (Scientific Journal Rankings) ranking was taken from Scimago Journal\\footnoteurl{{https://www.scimagojr.com}},
-IF (Impact Factor) ranking was taken from Oxford Academic\\footnoteurl{{https://academic.oup.com/bioinformatics}}.
+IF (Impact Factor) ranking was taken from Oxford Academic\\footnoteurl{{https://academic.oup.com/bioinformatics}};
+the rankings are from the year when the corresponding article was published.
 The h-index of the author of this thesis according to the Scopus database is \\texttt{{{h_index}}},
 with \\texttt{{{total_nonown_citations}}} total citations (both excluding self citations).
 
