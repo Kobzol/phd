@@ -576,9 +576,7 @@ our benchmarks.
 \end{figure}
 
 \begin{table}
-	\caption{Scheduler benchmark task graph properties}
 	\centering
-	\label{tab:estee-graph-properties}
 	\begin{tabular}{l|lrrrr|T}
 		\toprule
 		Graph            & D & \#T & \#O   & TS     & LP  & \normalsize{Description}     \\
@@ -641,6 +639,9 @@ our benchmarks.
 	\vspace{2mm}
 	D = Dataset (e = elementary, i = irw, p = pegasus); \#T = Number of tasks; \#O = Number of outputs;
 	TS = Sum of all output object sizes (GiB); LP = longest oriented path in the graph
+
+	\caption{Scheduler benchmark task graph properties}
+	\label{tab:estee-graph-properties}
 \end{table}
 
 \subsection{Evaluation}
@@ -662,11 +663,11 @@ information mode and a Minimal Scheduling Delay of 0.1s.
 
 %TODO: chart does not start at zero
 \begin{figure}
-	\caption{Performance of the \emph{random} scheduler}
-	\label{fig:estee-chart-random-scheduler}
 	\centering
 	\includegraphics[width=\textwidth]{imgs/estee/charts/random-scheduler}\\
 	{\small x axis: bandwidth [MiB/s]; y axis: makespan [s]; row: cluster}
+	\caption{Performance of the \emph{random} scheduler}
+	\label{fig:estee-chart-random-scheduler}
 \end{figure}
 
 Given the fact that task scheduling is an NP-hard problem, it would seem that a random scheduling
@@ -694,11 +695,11 @@ task graph execution cost. This will be described in more detail in \Autoref{ch:
 \subsubsection*{Worker selection strategy}
 
 \begin{figure}
-	\caption{Comparison of worker selection strategy}
-	\label{fig:estee-chart-gt-scheduler}
 	\centering
 	\includegraphics[width=0.8\textwidth]{imgs/estee/charts/gt-scheduler}\\
 	{\small x axis: bandwidth [MiB/s]; y axis: makespan [s]; row: cluster}
+	\caption{Comparison of worker selection strategy}
+	\label{fig:estee-chart-gt-scheduler}
 \end{figure}
 
 As was explained in~\ref{subsec:estee-schedulers}, the descriptions of several schedulers that we have
@@ -718,24 +719,24 @@ greedy transfer were highly correlated.
 \subsubsection*{Network models}
 
 \begin{figure}
-	\caption{Comparison of \emph{max-min} and \emph{simple} network models
-	(\emph{irw} dataset)}
-	\label{fig:estee-chart-irw-netmodel}
 	\centering
 	\includegraphics[width=\textwidth]{imgs/estee/charts/irw-32x4-netmodel-score}\\
 	{\small x axis: bandwidth [MiB/s]; y axis: makespan normalized to average
 	of makespan of \emph{simple} model; row: scheduler; cluster $32x4$}
+	\caption{Comparison of \emph{max-min} and \emph{simple} network models
+		(\emph{irw} dataset)}
+	\label{fig:estee-chart-irw-netmodel}
 \end{figure}
 
 \begin{figure}
-	\caption{Comparison of \emph{maxmin} and \emph{simple} network models
-	(\emph{pegasus} dataset)}
-	\label{fig:estee-chart-pegasus-netmodel}
 	\centering
 	\includegraphics[width=\textwidth]{imgs/estee/charts/pegasus-32x4-netmodel-score}
 	\\ {\small x axis: bandwidth [MiB/s]; y axis: execution makespan normalized
 	to average of makespan of \emph{simple} model; row: scheduler, cluster
 	$32x4$}
+	\caption{Comparison of \emph{maxmin} and \emph{simple} network models
+		(\emph{pegasus} dataset)}
+	\label{fig:estee-chart-pegasus-netmodel}
 \end{figure}
 
 \Autoref{fig:estee-chart-irw-netmodel} demonstrates how does the used network model affect simulated task
@@ -760,12 +761,12 @@ the difference was much smaller, as can be seen in \Autoref{fig:estee-chart-pega
 \subsubsection*{Minimal scheduling delay}
 
 \begin{figure}
-	\caption{Comparison of \gls{msd}; cluster 32x4}
-	\label{fig:estee-chart-irw-msd}
 	\centering
 	\includegraphics[width=0.8\textwidth]{imgs/estee/charts/irw-32x4-schedtime-score}\\
 	{\small x axis: bandwidth [MiB/s]; y axis: makespan normalized to
 	$\gls{msd}=0$}
+	\caption{Comparison of \gls{msd}; cluster 32x4}
+	\label{fig:estee-chart-irw-msd}
 \end{figure}
 
 In \Autoref{fig:estee-chart-irw-msd}, we can observe the effect of \gls{msd} on graphs from the
@@ -786,22 +787,22 @@ implementation and the task graph that it executes.
 \subsubsection*{Information modes}
 
 \begin{figure}
-	\caption{Comparison of information modes (\emph{irw} dataset)}
-	\label{fig:estee-chart-irw-imode}
 	\centering
 	\includegraphics[width=\textwidth]{imgs/estee/charts/irw-32x4-imode-score}\\
 	{\small x axis: bandwidth [MiB/s]; y axis: makespan normalized to
 	\emph{exact}
 	imode; row: scheduler; cluster $32x4$}
+	\caption{Comparison of information modes (\emph{irw} dataset)}
+	\label{fig:estee-chart-irw-imode}
 \end{figure}
 
 %\begin{figure}
-%	\caption{Comparison of information modes (\emph{elementary} dataset)}
-%	\label{fig:estee-chart-elementary-imode}
 %	\centering
 %	\includegraphics[width=0.8\textwidth]{imgs/estee/charts/elementary-32x4-imode-score}\\
 %	{\small x axis: bandwidth [MiB/s]; y axis: makespan normalized to
 %	\emph{exact} average; row: scheduler; cluster $32x4$}
+%   \caption{Comparison of information modes (\emph{elementary} dataset)}
+%   \label{fig:estee-chart-elementary-imode}
 %\end{figure}
 
 \Autoref{fig:estee-chart-irw-imode} compares makespans of several scheduler and task graph combinations
@@ -881,11 +882,11 @@ with a $24x2$ cluster (24 cores on two nodes), and performed each execution and
 simulation three times.
 
 \begin{figure}
-	\caption{Scheduler performance relative to \emph{blevel} in \dask{} and \estee}
-	\label{fig:estee-validation}
 	\centering
 	\includegraphics[width=\textwidth]{imgs/estee/charts/estee-validation}\\
 	{\small x axis: scheduler; y axis: performance relative to \emph{blevel}}
+	\caption{Scheduler performance relative to \emph{blevel} in \dask{} and \estee}
+	\label{fig:estee-validation}
 \end{figure}
 
 \Autoref{fig:estee-validation} shows the results of the validation comparison for three selected

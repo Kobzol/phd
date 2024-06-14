@@ -253,9 +253,7 @@ Table~\ref{tab:dask-graph-properties}.
 
 \setlength{\tabcolsep}{5pt}
 \begin{table}
-	\caption{Properties of \dask{} benchmark task graphs}
 	\centering
-	\label{tab:dask-graph-properties}
 	\begin{tabular}{l|rrrrrc}
 		\toprule
 		\textbf{Task graph} & \textbf{\#T} & \textbf{\#I}       & \textbf{S} &
@@ -303,6 +301,8 @@ Table~\ref{tab:dask-graph-properties}.
 	S = Average task output size [KiB]; AD = Average task
 	duration [ms]; \\ LP = longest oriented path in the graph; \\ D = DataFrame; B
 	= Bag; A = Arrays; F = Futures; X = XArray
+	\caption{Properties of \dask{} benchmark task graphs}
+	\label{tab:dask-graph-properties}
 \end{table}
 
 Most of the task graphs are heavily inspired by programs from the \dask{}
@@ -845,9 +845,7 @@ is further increased.
 
 \setlength{\tabcolsep}{5pt}
 \begin{table}
-	\caption{Geometric mean of speedup over the \dask{}/ws baseline}
 	\centering
-	\label{tab:rsds-geom-mean-speedup}
 	\begin{tabular}{c|c|r|r|r}
 		\textbf{Server} & \textbf{Scheduler} & \textbf{Node count} & \textbf{Worker	count} &
 		\textbf{Speedup}                                                                                 \\
@@ -859,6 +857,8 @@ is further increased.
 		rsds            & random             & 7                   & 168                  & $1.41\times$ \\
 		rsds            & ws                 & 7                   & 168                  & $1.66\times$ \\
 	\end{tabular}
+	\caption{Geometric mean of speedup over the \dask{}/ws baseline}
+	\label{tab:rsds-geom-mean-speedup}
 \end{table}
 
 In~\Autoref{sec:rsds-dask-overhead-analysis}, it was noted that the random scheduler used in
@@ -888,9 +888,7 @@ counterpart) than in \dask{}.
 
 \setlength{\tabcolsep}{5pt}
 \begin{table}
-	\caption{Geometric mean of speedup for random schedulers}
 	\centering
-	\label{tab:rsds-random-geom-mean-speedup}
 	\begin{tabular}{c|c|r|r|r|r}
 		\textbf{Server}      & \textbf{Scheduler} & \textbf{Baseline} & \textbf{Node count} &
 		\textbf{Worker	count} & \textbf{Speedup}                                                   \\
@@ -904,6 +902,8 @@ counterpart) than in \dask{}.
 		rsds                 & random             & rsds/ws           & 7                   & 168
 		                     & $0.85\times$                                                       \\
 	\end{tabular}
+	\caption{Geometric mean of speedup for random schedulers}
+	\label{tab:rsds-random-geom-mean-speedup}
 \end{table}
 
 \subsection*{Scaling comparison}
