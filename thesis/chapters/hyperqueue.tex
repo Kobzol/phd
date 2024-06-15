@@ -149,7 +149,7 @@ computation being aborted, as fault tolerance is not a default property of \gls{
 applications~\cite{fault_tolerant_mpi}.
 
 These properties of \gls{mpi} applications are similar to the mentioned properties of
-allocations, therefore they fit together quite well, and using allocations to execute them is
+allocations, therefore they fit together well, and using allocations to execute them is
 relatively straightforward. In fact, it is clear that the allocation model itself was designed with
 \gls{mpi}-like use-cases in mind. At the same time, it is also not very surprising
 that the allocation model is not a good match for programming models that are very different from
@@ -555,12 +555,12 @@ an arbitrary set of additional pools. There are two kinds of resource pools:
 	      \gls{numa} socket present on the worker's node. Tasks can then specify if they want to
 	      prioritize drawing resources that belong to the same group, this will be described later.
 	\item [Sum pool] is designed for resources that are fungible. Such resources are typically
-	      numerous, and it wouldn't be practical to track each individual resource separately. A sum pool
+	      numerous, and it would not be practical to track each individual resource separately. A sum pool
 	      thus does not define its individual resources through indices, but only defines a single number
 	      that specifies the amount of resources available in the pool. A typical representative of a sum
 	      pool is \gls{ram} available on a worker. Modern \gls{hpc} nodes can
-	      contain hundreds of GiBs of memory, or even more, and it wouldn't be practical to track each
-	      individual byte separately. At the same time, tasks usually do not need such fine-grained tracking;
+	      contain hundreds of GiBs of memory, or even more, and it is not feasible to treat each byte
+	      as a separate resource. At the same time, tasks usually do not need such fine-grained tracking;
 	      if they care about memory requirements, they just specify how much memory do they need.
 \end{description}
 
@@ -584,7 +584,7 @@ scheduling more flexible. For example, assume that a worker has $128$ cores (eac
 with their own identity), and there is a task that requires two cores. It would not be very
 practical if the task had to specify that it requires specifically cores with ID
 $0$ and $1$ or $5$ and
-$8$, etc. Instead, it just specifies the amount of \gls{cpu} cores
+$8$, etc. Instead, it just specifies the number of \gls{cpu} cores
 it needs, and lets the scheduler decide which specific cores will it assign to the task, based on
 what cores will be available on the given worker at the time the task is about to start executing.
 
@@ -693,8 +693,6 @@ and submitting task graphs is through a \gls{cli}, which has been designed to be
 to users of Slurm and \gls{pbs}. It is composed of composable subcommands that can
 Unix-like philosophy.
 
-
-
 - iterative computation?
 - Python API
 
@@ -703,20 +701,58 @@ Unix-like philosophy.
 
 \subsection{Automatic submission of allocations}
 The meta-scheduling design employed by \hyperqueue{} resolves the most important
-challenges associated with allocation managers, and it makes creating allocations simple, so that
+challenges associated with allocation managers, since it automates the mapping of tasks to
+allocations. It also makes creating allocations simple, so that
 users can scale the computational resources used for computing their task graphs at will. However,
 creating allocations manually can still be relatively demanding for some users, who might want to
 employ a more automated approach for scaling computational resources. Since \hyperqueue{}
 knows the state of all tasks and workers, and it is commonly executed on login nodes that have
-access to allocation managers, it is also able to automatically submit new allocations on behalf of
-the user, based on current computational load. This system, which is called
-\emph{Automatic allocator}, will be described in this section.
+access to allocation managers, it is natural to provide it with the ability to
+automatically submit new allocations on behalf of the user, based on current computational load.
+This system has been implemented under the name
+\emph{Automatic allocator} (shortened as \emph{autoalloc}), and it will be described in this
+section.
 
-- idle time
+%TODO: keep it here?
+\workshare{I am the primary author of the design and implementation of the
+\hyperqueue{} automatic allocator.}
 
-\workshare{I am the primary author of the design and implementation of the automatic allocation system in
-\hyperqueue{}.}
+The automatic allocator system in \hyperqueue{} was created with the following design goals:
+\begin{description}
+	\item Allow computational resources to scale up. If there are tasks (at any given moment)
+	that are waiting to be executed, and there are no free computational resources, autoalloc should
+	attempt to add more resources by creating new allocations. At the same time, it should
+	respect backpressure from the allocation manager to avoid overloading it.
+	\item Allow computational resources to scale down. Keeping allocations running on a
+	supercomputer can be quite costly. Autoalloc should thus make sure to shutdown allocations
+	that are not performing useful work because they do not have anything to compute anymore,
+	in order to avoid wasting resources.
+	\item Be flexible. Allocation managers typically provide various configuration knobs that
+	can affect the behavior of allocations. While it will not ever be possible to support all
+	possible implementations of allocation managers out of the box, the automatic allocator should
+	provide extension points that enable users to configure the submitted allocations to their
+	liking.
+\end{description}
 
+It has been implemented as a system that runs as a background service within the \hyperqueue{}
+server. To use it, users first need to create at least one \emph{allocation queue}. Such a
+queue describes a template for creating new allocations, which will be submitted by \hq{} when
+there is a demand for more computational resources. Each queue defines several important properties:
+
+\begin{itemize}
+	\item Time limit
+	\item Backlog
+	\item Worker count per allocation
+	\item Max worker count
+	\item Idle timeout
+	\item Worker resources
+	\item Custom allocation parameters
+\end{itemize}
+
+%TODO: autoalloc CLI example
+
+- explain how backlog works
+- integration with the scheduler?
 - experiment with hardware utilization
 
 \section{Case study: LiGen}
@@ -753,7 +789,7 @@ nodes~\cite{leonardo_time_limit}, and terminate the process if it exceeds the ma
 \end{figure}
 
 To evaluate how many resources does the server consume, we have performed an experiment on the
-Karolina cluster, where the server had to schedule a large amount of tasks in a short time period
+Karolina cluster, where the server had to schedule a large number of tasks in a short time period
 (which acts as a stress test), and we measured its total \gls{cpu} time consumption
 across all cores.
 
@@ -764,12 +800,12 @@ had to schedule an increasing number of tasks (from $10$ to
 $200$ thousand) over a fixed time span. The duration of each task was scaled so
 that the whole task graph would always finish computing in exactly one minute. We measured the
 total amount of \gls{cpu} time consumed by the server (both in user-space and in the
-kernel), using standard Linux monitors.
+kernel), using standard Linux monitors. Each measurement was repeated five times.
 
 We can observe the results of this experiment in~\Autoref{fig:hq-server-cpu-consumption}. The horizontal axis shows
 the number of tasks that were used for the given benchmark run, and the vertical axis shows the
 \gls{cpu} time consumed by the server over the one-minute period. We can see that the
-amount of \gls{cpu} resources scales linearly with the amount of tasks scheduled by
+amount of \gls{cpu} resources scales linearly with the number of tasks scheduled by
 the server. In the worst case, the server has consumed less than five seconds of
 \gls{cpu} time over one minute of real time, even though it had to schedule
 $200$ thousand tasks within this short period, which is an extreme stress test
@@ -849,8 +885,7 @@ scheduling capabilites. It facilitates this use-case by offering a machine-reada
 other tools to use \hyperqueue{} programmatically. This has been leveraged by several
 workflow management systems that have integrated \hyperqueue{} as one of their task
 execution backends, such as Aiida~\cite{aiida-hq}, NextFlow~\cite{nextflow-hq},
-UM-Bridge~\cite{umbridge}, StreamFlow~\cite{streamflow-hq} or
-ERT~\cite{ert}.
+UM-Bridge~\cite{umbridge}, StreamFlow~\cite{streamflow-hq}, ERT~\cite{ert} or HEAppE~\cite{heappe}.
 
 \hyperqueue{} is also being used by in various research projects. As an example,
 scientists from the Czech Academy of Sciences use it to execute tasks that analyze data from the

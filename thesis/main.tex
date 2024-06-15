@@ -27,6 +27,7 @@
 \usetikzlibrary{graphs}
 \usetikzlibrary{positioning}
 \usetikzlibrary{arrows.meta}
+\usetikzlibrary{automata}
 \usetikzlibrary{math}
 % Source code highlighting
 \usepackage[outputdir=../out,newfloat]{minted}
@@ -65,6 +66,7 @@
 \newcommand{\estee}{\textsc{Estee}}
 \newcommand{\rsds}{\textsc{RSDS}}
 \newcommand{\hyperqueue}{\textsc{HyperQueue}}
+\newcommand{\hq}{\textsc{HQ}}
 \newcommand{\dask}{\textsc{Dask}}
 \newcommand{\ray}{\emph{Ray}}
 \newcommand{\snakemake}{\emph{SnakeMake}}
@@ -105,7 +107,7 @@ or Slurm. This work examines these challenges in detail and proposes approaches 
 
 This thesis provides three main contributions. Firstly, it contains a comprehensive study of the performance
 of various task schedulers and provides a simulation environment that enables experiments with different
-task scheduling algorithms. Secondly, it analyses the performance of a state of the art
+task scheduling algorithms. Secondly, it analyzes the performance of a state of the art
 task runtime \dask{} and provides an implementation of an alternative \dask{} server which
 improves its performance significantly on HPC clusters. And primarily, it introduces a design
 for effortless execution of task graphs on HPC clusters that facilitates efficient usage of hardware
@@ -154,21 +156,21 @@ Finally, I would like to extend my gratitude to my wife Jana for her support and
 % Make sure that related publications are first in the bibliography list
 \nocite{estee, rsds, ligate}
 
-%\chapter{Introduction}
-%\label{ch:Introduction}
-%\input{chapters/introduction}
+\chapter{Introduction}
+\label{ch:Introduction}
+\input{chapters/introduction}
 
-%\chapter{Parallel and distributed computing}
-%\label{ch:distributed-computing}
-%\input{chapters/distributed-computing}
+\chapter{Parallel and distributed computing}
+\label{ch:distributed-computing}
+\input{chapters/distributed-computing}
 
-%\chapter{Task-based programming model}
-%\label{ch:taskgraphs}
-%\input{chapters/taskgraphs}
+\chapter{Task-based programming model}
+\label{ch:taskgraphs}
+\input{chapters/taskgraphs}
 
-%\chapter{Task graph execution on HPC clusters}
-%\label{ch:sota}
-%\input{chapters/sota-challenges}
+\chapter{Task graph execution on HPC clusters}
+\label{ch:sota}
+\input{chapters/sota-challenges}
 
 \chapter{Task scheduling analysis}
 \label{ch:estee}
