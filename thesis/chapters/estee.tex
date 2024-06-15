@@ -77,7 +77,7 @@ configuration used in this chapter were adapted from our publication~\cite{estee
 \label{sec:estee-simulator}
 To analyze scheduling algorithms, some form of an environment for executing task has to be used.
 One possibility would be to use an actual distributed cluster, and implement multiple schedulers
-into an existing task runtime. However, this approach can be quite expensive, both computationally
+into an existing task runtime. However, this approach can be expensive, both computationally
 (executing a large number of task graphs with various configurations would consume a lot of cluster
 computational time) and implementation-wise (adapting existing runtimes to different scheduling
 algorithms is challenging). Therefore, task graph scheduling surveys tend to use some form of a
@@ -116,7 +116,7 @@ full reproducibility, would support basic task resource requirements and would e
 the two mentioned factors that affect scheduling. To fulfill these goals, we have implemented a new
 task graph simulation framework called \estee{}. It is an \mbox{MIT-licensed}
 open-source tool~\cite{estee_github} written in Python that provides an experimentation testbed
-for task runtime and scheduler developers and researchers. It is quite flexible; it can be used to
+for task runtime and scheduler developers and researchers. It is flexible; it can be used to
 define a cluster of workers, connect them together using a configurable network model, implement a
 custom scheduling algorithm and test its performance on arbitrary task graphs, with support for
 specifying required \gls{cpu} core counts for individual tasks. At the same time, it
@@ -251,7 +251,7 @@ performance, and which we have not seen examined in detail in existing literatur
 	\item[Information mode] Many existing task scheduler descriptions assume that the duration of each task (and the size of
 		each data object) is known in advance. However, this assumption is very seldom upheld when
 		executing real-world task graphs. Tasks are usually specified using arbitrary functions or binary
-		invocations, and it can be quite difficult to estimate their duration up front. Task runtimes thus
+		invocations, and it is difficult to estimate their duration up front. Task runtimes thus
 		have to work with completely missing information about task durations, depend on potentially
 		imprecise user estimates, or calculate their own estimates based on historical task execution data.
 		Task benchmarks usually use simulated task durations, which are provided to the scheduler. However,
@@ -277,7 +277,7 @@ performance, and which we have not seen examined in detail in existing literatur
 				properties available from an earlier run.
 		\end{description}
 		Another possible mode to consider could be to not provide the scheduler with any task durations nor
-		data object sizes in advance. This behaviour would in fact correspond quite closely to a real-world
+		data object sizes in advance. This behaviour would in fact correspond closely to a real-world
 		execution of a task graph, where we usually do not know these task properties a priori. However, it
 		is challenging to use this approach when benchmarking schedulers. Scheduler implementations are
 		typically described with the assumption that task durations are known, and the scheduling
@@ -302,7 +302,7 @@ performance, and which we have not seen examined in detail in existing literatur
 %TODO: uncomment?
 %\subsection{Worker inner scheduler}
 %Since each worker has to keep track of its running tasks, manage resources, and
-%handle data object transfers, it becomes quite complex. In practice, the global
+%handle data object transfers, it becomes relatively complex. In practice, the global
 %scheduler cannot micromanage each worker because this approach could not scale
 %to a larger number of workers. Therefore, we model a situation where each
 %worker has its own inner scheduler. We call it \emph{w-scheduler} and we
@@ -403,7 +403,7 @@ an estimated network transfer cost based on uncontended network bandwidth (in ot
 \emph{simple} network model is used for the scheduler's estimation of the network
 transfer cost).
 
-In order to test our hypothesis that the worker selection approach is quite important and affects
+In order to test our hypothesis that the worker selection approach is important and affects
 the scheduler's behavior, we have also created extended versions of the \emph{blevel},
 \emph{tlevel} and \emph{mcp} schedulers. These modified versions use a
 worker selection heuristic called ``greedy transfer``. We have not applied this heuristic to other
@@ -679,7 +679,7 @@ scheduler) on several task graphs.
 
 While there are indeed cases where random scheduling falls short (for example on the
 cross-validation \emph{crossv} task graph, or in situations with many workers and a slow
-network), in most cases its performance is quite similar to other schedulers, and it even surpasses
+network), in most cases its performance is similar to other schedulers, and it even surpasses
 them in a few situations! Its performance gets better with increasing worker count and network
 speed. This makes sense, because if there are enough workers and the network is fast enough to
 overcome the cost of exchanging many data objects between them, the specific assignment of tasks
@@ -752,11 +752,11 @@ estimation to be overly optimistic. As network bandwidth goes up, the difference
 there is less overall contention and the transfers are faster in general.
 
 The makespans of simulations with these two network models are sometimes up to an order of
-magnitude apart. This is a quite significant, because the difference between the performance of
+magnitude apart. This is quite significant, because the difference between the performance of
 schedulers (with a fixed network model) is otherwise usually within a factor of two, which was
 demonstrated both by our other results and in~\cite{wang2018list}. The gap between the two
 network models depends heavily on the used task graph. For task graphs from the Pegasus dataset,
-the difference was much smaller, as can be seen in \Autoref{fig:estee-chart-pegasus-netmodel}.
+the difference was much smaller, as can be seen in~\Autoref{fig:estee-chart-pegasus-netmodel}.
 
 \subsubsection*{Minimal scheduling delay}
 
@@ -831,7 +831,7 @@ network, it does not know the current (and most importantly, future) network uti
 only has a crude estimation of the real transfer duration.
 
 \subsection{Validation}
-It is quite challenging to validate the performance of different task schedulers in actual task
+It is challenging to validate the performance of different task schedulers in actual task
 runtimes. Schedulers of existing runtime tend to be deeply integrated within them, in order to be
 as performant as possible. That makes it difficult, or even infeasible, to replace the scheduling
 algorithm without also modifying large parts of the runtime. Furthermore, some scheduling
@@ -947,7 +947,7 @@ We have also demonstrated that even a completely random scheduler can be competi
 scheduling approaches for certain task graphs and cluster configurations.
 
 This supports the conclusion made in~\cite{wang2018list}, where the authors have also observed
-that relatively simple scheduling algorithms can be quite competitive, and more complex algorithms
+that relatively simple scheduling algorithms can be competitive, and more complex algorithms
 are useful mostly for special situations and edge cases, where the simple heuristics might fail to
 produce reasonable results.
 

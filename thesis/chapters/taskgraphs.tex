@@ -1,7 +1,7 @@
 In order to discuss task-based programming models, it is useful to provide a vocabulary of terms
 related to them. This is not as straightforward as it might seem, because even though the previous
 chapter has specified a very precise subset of task-based programming models that will be examined
-and analyzed in this thesis, there is still a large amount of tools and systems that fall under
+and analyzed in this thesis, there is still a large number of tools and systems that fall under
 this area of interest, each with their own distinct concepts and semantic rules. Therefore, it is
 not feasible to provide a single unifying and complete task theory that would encompass all of
 them, without generalizing heavily and glossing over many important details.
@@ -120,7 +120,7 @@ computational node that will execute $t_2$.
 
 A \emph{task} is a serializable description of a computation that can be executed
 repeatedly. The serializability property is crucial, as it allow us to treat computation as data.
-That is a quite powerful concept, because it allows tasks to be sent between different nodes in a
+That is a powerful concept, because it allows tasks to be sent between different nodes in a
 cluster or stored to disk and to be transparently recomputed an arbitrary number of times. Enabling
 the recomputation of tasks is useful for achieving fault tolerance, as tasks might need to be
 recomputed later if some failure occurs during their execution.
@@ -407,7 +407,7 @@ should a task be executed:
 	\item[\textbf{Memory consumption}] It is desirable to execute as many tasks in parallel on a given worker (with respect to its
 		available parallelism), to speed up the completion of the whole workflow. However, the scheduler
 		should also balance the number of concurrently executing tasks according to the total amount of
-		memory that they consume. In general, it is quite hard to predict for how long will a task execute,
+		memory that they consume. In general, it is difficult to predict for how long will a task execute,
 		and how much (peak) memory will it consume. When a task executes longer than expected, the workflow
 		will still be computed, it will just take more time. But when a task uses more memory than
 		expected, or the scheduler puts too many tasks on a worker at the same time, then the worker might

@@ -35,7 +35,7 @@ requiring changes to the software. The increasing complexity and heterogeneity o
 corresponding programming models to become more complex, making it far from trivial to leverage the
 available performance offered by supercomputers. Individual computers of \gls{hpc}
 clusters (called \emph{computing nodes}) can consist of hundreds of \gls{cpu} cores
-each, yet it is quite challenging to write programs that can scale to such high core counts. The
+each, yet it is challenging to write programs that can scale to such high core counts. The
 \gls{ram} of each node contains multiple levels of complex cache hierarchies, and it
 has such a large capacity that it has to be split into multiple physical locations with varying
 access latencies (\gls{numa}), which requires usage of specialized programming
@@ -60,7 +60,7 @@ problems, which are more and more demanding, both in terms of the required compu
 also in terms of data management, network communication patterns and general software design and
 architecture. Areas such as weather prediction, machine learning model training or big data
 analysis require executing thousands or even millions of simulations and experiments. These
-experiments can be quite complex, consisting of multiple dependent steps, such as data ingestion,
+experiments can be very complex, consisting of multiple dependent steps, such as data ingestion,
 preprocessing, computation, postprocessing, visualization, etc. It is thus imperative for
 scientists to have a quick way of prototyping these applications, otherwise their development
 process would be too slow.
@@ -77,8 +77,8 @@ parallelization, and they are general enough to describe a large set of programs
 simple way. At the same time, they remain amenable to compiler-driven optimization and automatic
 parallelization, which helps to bring the performance of programs described by a task graph close
 to manually parallelized and distributed programs, at a fraction of the development cost for the
-application developer. They are also quite portable, as the task graph programming model typically
-does not make many assumptions about the target platform, therefore the same task graph can be
+application developer. They are also relatively portable by default, as the task graph programming model
+typically does not make many assumptions about the target platform, therefore the same task graph can be
 executed on various systems and clusters, provided there is a task execution runtime implemented
 for that cluster.
 

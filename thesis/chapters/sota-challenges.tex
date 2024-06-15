@@ -20,11 +20,11 @@ Note that there is a set of task-based tools that are commonly labeled as \emph{
 for example Apache Airflow~\cite{airfow}, Dagster~\cite{dagster}, Prefect~\cite{prefect} or Argo~\cite{argo}.
 Although it cannot be said that there is a single distinguishing feature that would separate these tools from other task
 runtimes, from my point of view these tools form a separate category. They are primarily designed for very coarse-grained
-workflows with a relatively small number of tasks, they put strong emphasis on workflow reproducibility, execution
+workflows with a relatively small number of tasks, they put strong emphasis on workflow reproducibility, data provenance, execution
 monitoring (typically through a web interface) and support scheduled execution (i.e.\ ``run this workflow every hour'').
 They are also typically being applied in cloud environments, moreso than on supercomputers.
 This thesis will not consider these tools in great detail, as they are not primarily
-designed nor used for \gls{hpc} use-cases.
+designed for \gls{hpc} use-cases.
 
 Task-based tools (and task-based programming models) are quite popular, and they are being used for
 computing all kinds of scientific workflows on \gls{hpc}
@@ -96,8 +96,8 @@ The following process describes how computations are typically executed on
 	\item The allocation manager puts the request into a queue and schedules it to be executed at some time
 	      in the future. Since users submit their allocations into the manager continuously, each allocation
 	      has different properties and priorities, and it is not possible to precisely predict for how long
-	      will an allocation run, the schedule can be quite dynamic, so users might have to wait seconds,
-	      minutes, hours or even days before their allocation starts to execute.
+	      will an allocation run, the schedule can be very dynamic and unpredictable, so users might have
+	  	  to wait seconds, minutes, hours or even days before their allocation starts to execute.
 	\item Once the allocation gets to the front of the queue and there are enough resources available, the
 	      manager provisions the requested amount of hardware resources (typically a number of whole
 	      computational nodes) and either executes a script (a \emph{batch} allocation) or
@@ -163,14 +163,14 @@ long wall-time duration and/or request many computational nodes typically spend 
 in the allocation manager queue, because it is more difficult for the manager to make sure that all
 the requested resources are available at the same time. As a concrete example, ten allocations that
 require a one hour wall-time can potentially be completed much quicker than a single allocation
-that requests a ten hour wall-time (and similar behavior can be expected w.r.t.\ the amount of
+that requests a ten hour wall-time (and similar behavior can be expected w.r.t.\ the number of
 requested nodes), because these allocations do not need to run at the same time, therefore it is
 easier for the manager to schedule them.
 
 In terms of task runtime support, this approach can be used with essentially all existing task
 runtimes, since it does not require any special support from the runtime. The user simply submits a
 single allocation, and when it starts, the whole task graph is computed with a task runtime all in
-one go. This approach is thus quite simple for the user, although as has been mentioned, it might
+one go. This approach is thus relatively simple for the user, although as has been mentioned, it might
 not be feasible for many use-cases, and it can lead to resource waste and a long latency before
 receiving first results (finished tasks).
 
@@ -223,12 +223,12 @@ allocation arrays, therefore even the array approach might not be enough to enco
 massive task graphs.
 
 Apart from the maximum allocation count, there are other limitations that can be imposed by
-allocation managers. Some tasks of scientific workflows can be quite granular, and require only a
+allocation managers. Some tasks of scientific workflows can be granular, and require only a
 handful of resources, e.g.\ a single \gls{cpu} core. To avoid wasting resources,
 an allocation mapped to such a task should thus ask only for the exact set of resources needed by
 it. However, allocation managers are sometimes configured in a way that only offers node-level
 granularity of hardware resources, and thus does not allow users to request less than a whole
-computational node~\cite{it4i_node_scheduling_policy}. In these cases, it would be quite wasteful if we had
+computational node~\cite{it4i_node_scheduling_policy}. In these cases, it would be wasteful if we had
 to request a whole computational node e.g.\ for a simple task that runs for just a few seconds and
 requires only a handful of cores.
 
@@ -396,7 +396,7 @@ easier to share task outputs amongst different workers, it can also be a severe 
 networked filesystems can suffer from high latency and accessing them can consume precious network
 bandwidth that is also used e.g.\ for managing computation (sending commands to workers) or for
 direct worker-to-worker data exchange. Furthermore, data produced in \gls{hpc}
-computations can be quite large, and thus storing it to a disk can be a bottleneck even without
+computations can be large, and thus storing it to a disk can be a bottleneck even without
 considering networked filesystems.
 
 These bottlenecks can be alleviated by transferring task outputs directly between workers over the
@@ -531,7 +531,7 @@ in the context of \gls{hpc}-scale task graphs.
 		task graphs, it can become a serious performance bottleneck. Existing task runtime, such as
 		\dask{}, can have problems with keeping up with the scale of
 		\gls{hpc} task graphs. The scheduling performance of various task scheduling
-		algorithms will be examined in detail in~\Autoref{ch:estee}. \autoref{ch:rsds}
+		algorithms will be examined in detail in~\Autoref{ch:estee}. \Autoref{ch:rsds}
 		then will describe the performance overhead of the \dask{} runtime and its
 		scheduler.
 	\item[Runtime overhead] A typical architecture of a task runtime consists of a centralized component that handles task
