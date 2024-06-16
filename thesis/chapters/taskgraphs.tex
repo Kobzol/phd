@@ -392,12 +392,12 @@ contains a comprehensive survey of various task scheduling algorithms.
 Scheduling heuristics have to take many factors into consideration when deciding on which worker
 should a task be executed:
 
-\begin{description}
-	\item[\textbf{Resource requirements}] The scheduler should respect all resource requirements specified by tasks. The runtime thus has to
+\begin{description}[wide=0pt]
+	\item[Resource requirements] The scheduler should respect all resource requirements specified by tasks. The runtime thus has to
 		observe the dynamically changing available resources of each worker and schedule tasks accordingly,
 		to uphold their requirements. This can be challenging especially in the presence of complex
 		resource requirements.
-	\item[\textbf{Data transfer cost}] If the runtime operates within a distributed cluster, one of the most important scheduling aspects
+	\item[Data transfer cost] If the runtime operates within a distributed cluster, one of the most important scheduling aspects
 		that it needs to consider is the transfer cost of data between workers over the network. All
 		benefits gained by computing a task on another worker to achieve more parallelization might be lost
 		if it takes too much time to send the data (task outputs) to that worker.
@@ -405,11 +405,11 @@ should a task be executed:
 		The scheduler thus has to carefully balance the communication-to-computation ratio, based on the
 		available network bandwidth, sizes of outputs produced by tasks and the current utilization of
 		workers.
-	\item[\textbf{Scheduling overhead}] The overhead of generating the schedule itself also cannot be underestimated. As was already
+	\item[Scheduling overhead] The overhead of generating the schedule itself also cannot be underestimated. As was already
 		stated, computing an optimal solution quickly is infeasible, but even heuristical approaches can
 		have wildly different performance characteristics. Producing a lower quality schedule sooner,
 		rather than a higher quality schedule later, can be sometimes beneficial.
-	\item[\textbf{Memory consumption}] It is desirable to execute as many tasks in parallel on a given worker (with respect to its
+	\item[Memory consumption] It is desirable to execute as many tasks in parallel on a given worker (with respect to its
 		available parallelism), to speed up the completion of the whole workflow. However, the scheduler
 		should also balance the number of concurrently executing tasks according to the total amount of
 		memory that they consume. In general, it is difficult to predict for how long will a task execute,

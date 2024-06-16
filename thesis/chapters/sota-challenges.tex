@@ -444,7 +444,7 @@ libraries or other communication frameworks. Multi-node execution could be seen 
 resource requirement, which states that a task should be executed on multiple workers at once.
 Support for multi-node tasks is challenging, because it affects many design areas of a task
 runtime:
-\begin{description}
+\begin{description}[wide=0pt]
 	\item[Scheduling] When a task requires multiple nodes for execution and not enough nodes are available at a given
 		moment, the scheduler has to decide on a strategy that will allow the multi-node task to execute.
 		If it would be constantly trying to backfill available workers with single-node tasks, the
@@ -494,7 +494,7 @@ turn presents unique challenges for task runtimes. Below you can find several ex
 bottlenecks that might not matter in a small computational scale, but that can become problematic
 in the context of \gls{hpc}-scale task graphs.
 
-\begin{description}
+\begin{description}[wide=0pt]
 	\item[Task graph materialization] Large computations might require building massive task graphs that contain millions of tasks. The
 		task graphs are typically defined and built outside of computational nodes, e.g.\ on login nodes of
 		computing clusters or on client devices (e.g.\ laptops), whose performance can be limited. It can

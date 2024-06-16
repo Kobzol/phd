@@ -225,10 +225,9 @@ It is possible to choose an arbitrary network bandwidth amount for a given simul
 networking model.
 
 \subsection{Scheduler parameters}
-%TODO: odstranit konec této  věty?
 \estee{} implements support for two parameters that can affect scheduler
 performance, and which we have not seen examined in detail in existing literature:
-\begin{description}
+\begin{description}[wide=0pt]
 	\item[Minimal scheduling delay] Non-trivial schedulers create task assignments continuously during task graph execution, based on
 		the current worker load and task completion times. That means that they are not invoked only once,
 		but rather the task runtime invokes them repeatedly, to ask them to produce assignments for tasks
@@ -261,9 +260,9 @@ performance, and which we have not seen examined in detail in existing literatur
 		We use a parameter called \emph{Information mode (imode)}, which controls the amount of knowledge the
 		scheduler has of the duration of tasks. It can be set to one of the following values:
 		\begin{description}
-			\item[\emph{exact}] The scheduler has access to the exact duration of each task and the exact size of each data object
+			\item[exact] The scheduler has access to the exact duration of each task and the exact size of each data object
 				in the whole task graph.
-			\item[\emph{user}] The scheduler has access to user-defined estimations for each task in the task graph. These
+			\item[user] The scheduler has access to user-defined estimations for each task in the task graph. These
 				estimations are sampled from a random distribution that corresponds to a specific kind of task
 				within the workflow. For example, in a task graph that performs three kinds of tasks (e.g.\
 				preprocessing, computation and postprocessing), each kind of task would have its own distribution.
@@ -271,7 +270,7 @@ performance, and which we have not seen examined in detail in existing literatur
 				in~\Autoref{sec:estee-benchmarks} manually, to simulate a user that has some knowledge of the task graph
 				that they are trying to compute and is able to provide some estimate of task durations and data
 				object sizes.
-			\item[\emph{mean}] The scheduler has only access to the mean duration of all tasks and the mean size of all data
+			\item[mean] The scheduler has only access to the mean duration of all tasks and the mean size of all data
 				objects in the executed task graph. This simulates a situation where a similar task graph is
 				executed repeatedly, and thus there is at least some aggregated information about the task
 				properties available from an earlier run.
@@ -472,7 +471,7 @@ mentioned scheduler parameters.
 This section describes the cluster, scheduler and task graph configurations that we have used for
 our benchmarks.
 
-\begin{description}
+\begin{description}[wide=0pt]
 	\item[Task graphs] The \estee{} graph generators were used to generate a collection of task graphs that
 		were used in the benchmarks. The properties of all used graphs are summarized in
 		Table~\ref{tab:estee-graph-properties}. The generated task graph dataset is available as a reproducible
