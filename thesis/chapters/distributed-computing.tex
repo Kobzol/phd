@@ -498,6 +498,18 @@ Task-parallel models definitely have their place in \gls{hpc}, however they have
 different set of challenges and constraints, and they are not primarily designed to execute more
 coarse-grained scientific workflows. Therefore, they are not the primary focus of this thesis.
 
+There is also a set of task-based tools that reside at the other end of the granularity spectrum,
+for example Apache Airflow~\cite{airfow}, Dagster~\cite{dagster},
+Prefect~\cite{prefect} or Argo~\cite{argo}. These are commonly labeled as
+\emph{Workflow Management Systems}. Although it cannot be said that there is a single distinguishing feature
+that would separate these tools from other task runtimes, from my point of view these tools form a
+separate category. They are primarily designed for very coarse-grained workflows with a relatively
+small number of tasks, they put strong emphasis on workflow reproducibility, data provenance,
+execution monitoring (typically through a web interface) and support scheduled execution (i.e.\
+``run this workflow every hour''). They are also typically being applied in cloud environments,
+moreso than on supercomputers. This thesis will thus not consider these tools in great detail, as
+they are not primarily designed for \gls{hpc} use-cases.
+
 \section*{Summary}
 This chapter has introduced various approaches for creating distributed applications designed for
 \gls{hpc} clusters. It categorized them into two broad categories, explicitly
@@ -507,7 +519,7 @@ It has also specified the subset of distributed computing that is most relevant 
 particular, this thesis focuses on batch processing task programming models that define
 computations using fully general \glspl{dag} and that are designed for distributed
 execution on an \gls{hpc} cluster, with tasks whose granularity (duration) typically
-spans from milliseconds to hours or even more.
+spans from milliseconds to hours.
 
 These programming models are being commonly used for defining scientific workflows using tools that
 will be described in~\Autoref{ch:sota}, which will also discuss various challenges faced by

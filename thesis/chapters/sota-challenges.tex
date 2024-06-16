@@ -1,57 +1,44 @@
 There is a large body of tools designed for executing arbitrary task graphs on diverse computing
 platforms, ranging from consumer-grade laptops, through cloud deployments, to distributed and
 \gls{hpc} clusters. They are known under various terms, such as task executors,
-job managers, distributed job schedulers or orchestrators. We will use the term
+job managers, distributed job schedulers, dataflow engines or orchestrators. We will use the term
 \emph{task runtime} for all such task execution tools in this thesis, as has already been
-discussed in the previous chapter.
+discussed in the previous chapter. These runtimes are quite popular, and they are being used for
+computing all kinds of scientific workflows on \gls{hpc}
+clusters~\cite{hpc_tasks, hpc_tasks_2, hpc_tasks_3, pegasus}.
 
+% TODO: remove AiiDa/NextFlow/StreamFlow?
 Examples of such task runtimes include e.g.\ \dask{}~\cite{dask},
 Parsl~\cite{parsl}, Ray~\cite{ray},
 PyCOMPSs~\cite{pycompss}, HyperLoom~\cite{hyperloom},
 Pydra~\cite{pydra}, Snakemake~\cite{snakemake},
 SciLuigi~\cite{sciluigi}, Merlin~\cite{merlin},
 Autosubmit~\cite{autosubmit}, NextFlow~\cite{nextflow},
-StreamFlow~\cite{streamflow}, AiiDA~\cite{aiida},
+StreamFlow~\cite{streamflow}, AiiDA~\cite{aiida} or
 FireWorks~\cite{fireworks}. Each task runtime defines its own instance of a task-based
 programming model, and has a different set of trade-offs in areas such as performance and
-scalability, fault tolerance, data provenance, ease-of-use, ease-of-deployment and others.
+scalability, fault tolerance, ease-of-use, ease-of-deployment and others.
 
-Note that there is a set of task-based tools that are commonly labeled as
-\emph{Workflow Management Systems}, for example Apache Airflow~\cite{airfow},
-Dagster~\cite{dagster}, Prefect~\cite{prefect} or
-Argo~\cite{argo}. Although it cannot be said that there is a single distinguishing
-feature that would separate these tools from other task runtimes, from my point of view these tools
-form a separate category. They are primarily designed for very coarse-grained workflows with a
-relatively small number of tasks, they put strong emphasis on workflow reproducibility, data
-provenance, execution monitoring (typically through a web interface) and support scheduled
-execution (i.e.\ ``run this workflow every hour''). They are also typically being applied in cloud
-environments, moreso than on supercomputers. This thesis will not consider these tools in great
-detail, as they are not primarily designed for \gls{hpc} use-cases.
+The goal of this thesis is to design approaches for seamless and performant execution of task
+graphs on supercomputers, and for that it is first necessary to understand what are the challenges
+that users are facing in this area, and how do existing task runtimes deal with them.
+\Autoref{ch:rsds} will describe and analyze \dask{}, a state-of-the-art
+task runtime, in detail, and~\Autoref{hq:related-work} will then provide a more general comparison
+of selected task runtimes with the proposed \hyperqueue{} tool.
 
-Task-based tools (and task-based programming models) are quite popular, and they are being used for
-computing all kinds of scientific workflows on \gls{hpc}
-clusters~\cite{hpc_tasks, hpc_tasks_2, hpc_tasks_3, pegasus}. However, there are several challenges with this approach,
-which can limit the achievable hardware utilization and also worsen the developer experience of the
-task graph authors, since supercomputers contain various peculiar and idiosyncratic concepts and
-historically they were not designed primarily for executing such kinds of workflows. These
-challenges are further exacerbated when using off-the-shelf tools that were not designed for
-\gls{hpc} use-cases.
+This chapter provides a general overview of the most important aspects of task graph execution on
+supercomputers, and in particular of the challenges associated with it. These challenges can limit
+the achievable hardware utilization and also worsen the developer experience of task graph authors.
+Most of the challenges stem from the sheer scale of \gls{hpc} workloads, and
+primarily from the complexity and idiosyncracies of supercomputers, which have been historically
+designed for different kinds of programming models. These challenges are also further exacerbated
+when using off-the-shelf tools that were not designed for \gls{hpc} use-cases.
 
-\Autoref{hq:related-work} will describe several task runtimes in more detail, and compare them
-with the proposed \hyperqueue{} tool.
-
-The goal of this thesis is to identify these challenges and design approches for alleviating some
-of them, to help task graph execution on \gls{hpc} cluster becoming a first-class
-concept. In order to improve the status quo, it is first necessary to understand what challenges
-are task graph users facing on \gls{hpc} systems. This chapter discusses the most
-important challenges, bottlenecks and shortcomings that arise in this scenario. The mentioned
-challenges stem both from the inherent complexity and idiosyncrasies of \gls{hpc}
-software and hardware, and also from the sheer computational scale required to efficiently utilize
-\gls{hpc} resources. Some of them are more related to performance and hardware
-utilization, while some of them are about the ergonomics and developer experience of designing and
-executing task graphs. In addition to enumerating the potential problems, various desired
-properties and features of task runtimes that could alleviate the challenges will also be
-mentioned.
+Some of the described challenges are more related to scalability, performance and hardware
+utilization, while some of them affect the ergonomics and developer experience of designing and
+executing task graphs. In addition to enumerating both existing and potential problems, this
+chapter also mentions how some existing tools deal with them, and what could be some desired
+properties of an ideal task runtime that would be able to alleviate the described challenges.
 
 %I have personally encountered most of these challenges during several years of working with
 %various \gls{hpc} use-cases
@@ -298,9 +285,9 @@ allocations. We will use the term \emph{meta-schedulers} for these task runtimes
 
 An example of such as tool is \snakemake~\cite{snakemake}, which allows users to define
 complex task graphs that be executed in multiple allocations. It is also able to partition the task
-graph into \emph{groups}, where all tasks of a single group are always executed
-inside the same allocation. However, this partitioning has to be specified explicitly by the author
-of the workflow, which can be laborious.
+graph into \emph{groups}, where all tasks of a single group are always executed inside
+the same allocation. However, this partitioning has to be specified explicitly by the author of the
+workflow, which can be laborious.
 
 While automating the partitioning process is useful, a \emph{static} division of
 subgraphs into allocations (be it performed manually or in an automated fashion) that has to be
@@ -318,13 +305,12 @@ the task graph partitioning and load-balancing across multiple allocations autom
 This could be achieved by integrating allocation managers and task runtimes more closely. We have
 seen that adding support for executing fine-grained task graphs to allocation managers is probably
 not realistic, since they have too many other responsibilities. However, a promising approach is to
-extend meta-schedulers, which know how to communicate with allocation managers, with dynamic
-scheduling of tasks across different allocations, to enable flexible load-balancing and simple
-execution of task graphs on \gls{hpc} systems.
+leverage meta-scheduling, i.e.\ schedule tasks on top of the allocation manager, to enable flexible
+load-balancing across different allocations without forcing users to devise the task to allocation
+mapping themselves.
 
-\Autoref{ch:hyperqueue} will discuss the interaction of task graphs and allocation managers in
-more detail, and describe a design for a fully dynamic mapping of tasks to allocations that can
-overcome the challenges mentioned in this section.
+\Autoref{ch:hyperqueue} will further explore this approach by introducing a design for a fully
+dynamic mapping of tasks to allocations that can overcome the challenges mentioned in this section.
 
 \section{Cluster heterogeneity}
 Even though task graphs are designed to be portable and ideally should not depend on any specific
@@ -623,14 +609,15 @@ required by the executed tasks.
 Even though more \gls{hpc} peculiarities could always be found, it is already
 clear from all the mentioned challenges that \gls{hpc} use-cases that leverage
 task graphs can be very complex and may require specialized approaches in order to reach maximum
-efficiency. The described challenges fall under two broad categories that also form the main focus
-of this thesis; how to make task graph execution on \gls{hpc} effortless for the
-users, and how to make it use hardware resources efficiently.
+efficiency. The challenges that were described in this chapter belong to two broad categories that
+also form the main focus of this thesis; how to make task graph execution on
+\gls{hpc} effortless for the users, and how to make it use hardware resources
+efficiently.
 
-The rest of the thesis will analyze challenges belonging to both categories, and introduce
-approaches for alleviating them. Chapters~\ref{ch:estee}
-and~\ref{ch:rsds} focus on the performance aspects, namely on task scheduling and the
-overhead introduced by task runtimes.~\Autoref{ch:hyperqueue} then deals with the ergonomical
-challenges, and proposes a design for an \gls{hpc}-tailored task runtime that
-ties all the described approaches together to enable truly first-class task graph execution on
-\gls{hpc} clusters.
+The rest of the thesis will analyze challenges belonging to both categories, and discuss approaches
+for alleviating them. Chapters~\ref{ch:estee} and~\ref{ch:rsds} focus on
+the performance aspects, namely on task scheduling and the overhead introduced by task
+runtimes.~\Autoref{ch:hyperqueue} then also deals with the ergonomical challenges, and proposes
+a design for an \gls{hpc}-tailored task runtime that ties all the described
+approaches together to enable truly first-class task graph execution on \gls{hpc}
+clusters.
