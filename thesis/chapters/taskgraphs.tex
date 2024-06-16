@@ -120,9 +120,9 @@ computational node that will execute $t_2$.
 
 A \emph{task} is a serializable description of a computation that can be executed
 repeatedly. The serializability property is crucial, as it allow us to treat computation as data.
-That is a powerful concept, because it allows tasks to be sent between different nodes in a
-cluster or stored to disk and to be transparently recomputed an arbitrary number of times. Enabling
-the recomputation of tasks is useful for achieving fault tolerance, as tasks might need to be
+That is a powerful concept, because it allows tasks to be sent between different nodes in a cluster
+or stored to disk and to be transparently recomputed an arbitrary number of times. Enabling the
+recomputation of tasks is useful for achieving fault tolerance, as tasks might need to be
 recomputed later if some failure occurs during their execution.
 
 In practice, a single task will typically represent either the invocation a function (a block of

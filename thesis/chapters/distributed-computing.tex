@@ -50,7 +50,7 @@ popular today~\cite{mpiusagestudy1,mpiusagestudy2,mpiusagestudy3}. Below are a f
 		address spaces that are running on independent computing nodes. The processes cooperate together to
 		solve complex problemss by exchanging network messages (hence the term \emph{message passing}).
 		Message passing applications are commonly implemented using the
-		\gls{spmd}~\cite{spmd} computational model, where the implementation logic
+		\gls{spmd}~\cite{spmd} programming model, where the implementation logic
 		of all the processes participating in the computation is embedded within a single program.
 
 		The most popular representative of this programming model is the
@@ -395,8 +395,8 @@ df = pd.read_csv("dataset.csv")
 # task graph shown on the right
 df.groupby("Country").GDP.mean()
 	\end{minted}
-	\caption{\dask{} DataFrame query and its corresponding task graph}
-	\label{lst:dask-dataframe-example-1}
+		\caption{\dask{} DataFrame query and its corresponding task graph}
+		\label{lst:dask-dataframe-example-1}
 	\end{minipage}
 	\begin{minipage}{.6\linewidth}
 		\includegraphics[width=\linewidth]{imgs/dask-dataframe-1-graph}
@@ -495,9 +495,8 @@ cilk int fibonacci(int n)
 \end{listing}
 
 Task-parallel models definitely have their place in \gls{hpc}, however they have a
-different set of challenges and constraints, and they are not primarily designed to execute
-more coarse-grained scientific workflows. Therefore, they are not the primary focus
-of this thesis.
+different set of challenges and constraints, and they are not primarily designed to execute more
+coarse-grained scientific workflows. Therefore, they are not the primary focus of this thesis.
 
 \section*{Summary}
 This chapter has introduced various approaches for creating distributed applications designed for

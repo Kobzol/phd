@@ -15,8 +15,8 @@ vehicle for our experiments. After evaluating several of them, we have decided t
 	\item It is very popular within the scientific community~\cite{dask-user-survey}, therefore any
 	      insights on how it could be improved could benefit a wide range of users.
 	\item It is implemented in Python, which makes it relatively easy to modify.
-	\item It is quite versatile, because it allows executing arbitrary task graphs with dependencies and data
-	      objects, and completely supports the task programming model described in~\Autoref{ch:taskgraphs}.
+	\item It is quite versatile, as it allows executing arbitrary task graphs with dependencies
+		  and data object exchanges between workers.
 	\item It uses a fairly standard distributed architecture with a centralized server that creates task
 	      schedules and assigns tasks to a set of distributed workers. This maps well to the cluster
 	      architecture used by \estee{}, and also to \gls{hpc} clusters in
@@ -49,8 +49,7 @@ provides the following contributions:
 \end{enumerate}
 
 Various descriptions of task graph benchmarks, \dask{} and
-\rsds{} used in this chapter were adapted from this
-publication~\cite{rsds}.
+\rsds{} used in this chapter were adapted from our publication~\cite{rsds}.
 
 \workshare{I have collaborated on this work with Ada Böhm, we have both contributed to it equally. Source code contribution statistics for
 \rsds{} can be found on GitHub\footnoteurl{https://github.com/it4innovations/rsds/graphs/contributors}.}
@@ -104,7 +103,7 @@ df3 = df2.groupby("name").x.std()
 	\label{lst:dask-dataframe-example-2}
 \end{listing}
 
-\subsection*{Computational model}
+\subsection*{Programming model}
 \dask{} automatically transforms Python code leveraging these
 \glspl{api} into a task graph, which is then executed in parallel, possibly on
 multiple nodes of a distributed cluster. This enables almost transparent parallelization of
@@ -113,7 +112,7 @@ possible to build a task graph manually, using the \emph{Futures} interface, to 
 complex computational workflows.
 
 The core computational abstraction of \dask{} is a \emph{task graph},
-which corresponds closely to the definition of task graphs in \Autoref{ch:taskgraphs}. Each
+which corresponds closely to the definition of task graphs in~\Autoref{ch:taskgraphs}. Each
 task represents a single invocation of a Python function. The return value of the function forms
 its \emph{output} (a data object), and the arguments of the function invocation define the
 \emph{inputs} of the task.
@@ -133,7 +132,7 @@ computational resources to be under-utilized, while too many (small) tasks can o
 \dask{} supports multiple computational backends that can execute the task
 graphs generated from Python code. The default backend is able to execute the task graph in a
 parallelized fashion on a local computer, but there is also a distributed backend called
-\emph{Dask/distributed}\footnoteurl{https://distributed.dask.org}
+\emph{dask/distributed}\footnoteurl{https://distributed.dask.org}
 (or simply \emph{distributed}), which is able to execute task graphs on
 multiple nodes. Since this backend is most relevant for task graph execution on distributed and
 \gls{hpc} clusters, our experiments focus solely on this backend, and any further
@@ -300,9 +299,7 @@ Table~\ref{tab:dask-graph-properties}.
 	\#T = Number of tasks; \#I = Number of dependencies; \\
 	S = Average task output size [KiB]; AD = Average task
 	duration [ms]; \\ LP = longest oriented path in the graph; \\ D = DataFrame; B
-	= Bag; A = Arrays; F = Futures; X = XArray
-	\caption{Properties of \dask{} benchmark task graphs}
-	\label{tab:dask-graph-properties}
+	= Bag; A = Arrays; F = Futures; X = XArray \caption{Properties of \dask{} benchmark task graphs} \label{tab:dask-graph-properties}
 \end{table}
 
 Most of the task graphs are heavily inspired by programs from the \dask{}
@@ -423,11 +420,11 @@ graphs.
 \end{figure}
 
 We can observe the results of benchmarks that compare \dask{} using its
-baseline work-stealing scheduler vs a completely random scheduler in \Autoref{fig:dask-ws-vs-random}.
+baseline work-stealing scheduler vs a completely random scheduler in~\Autoref{fig:dask-ws-vs-random}.
 Based on these results, it is clear that the random scheduler fares relatively well on both small
-and medium sized clusters. At worst, it produces a twice longer makespan, but overall it is
-close to the performance of the work-stealing scheduler, and in some cases it even outperforms it
-with a $1.4\times$ speedup.
+and medium sized clusters. At worst, it produces a twice longer makespan, but overall it is close
+to the performance of the work-stealing scheduler, and in some cases it even outperforms it with a
+$1.4\times$ speedup.
 
 If we aggregate the results with a geometric mean, the random scheduler achieves
 $88\%$ of the performance of the work-stealing scheduler with a single node,
@@ -525,14 +522,14 @@ node) and $168$ workers (seven nodes) for the work-stealing scheduler.
 	\label{fig:dask-merge-worker-scaling}
 \end{figure}
 
-This can be examined in more detail in \Autoref{fig:dask-merge-worker-scaling}, which shows how does the
+This can be examined in more detail in~\Autoref{fig:dask-merge-worker-scaling}, which shows how does the
 overhead increase when more workers are available. It is clear that the performance of the
 work-stealing degrades rapidly when more workers are added to the custer, while the overhead of th
 random scheduler stays almost constant, inependent on the number of workers.
 
 The \dask{} manual states that ``Each task suffers about 1ms of overhead. A
 small computation and a network roundtrip can complete in less than
-10ms.''~\footnote{\url{https://distributed.dask.org/en/latest}}. Our experiment shows that the overhead is less than
+10ms.''\footnote{\url{https://distributed.dask.org/en/latest}}. Our experiment shows that the overhead is less than
 $1ms$ for most of our benchmarks.
 
 \begin{figure}
@@ -547,15 +544,15 @@ $1ms$ for most of our benchmarks.
 The overhead per task is an important property of the task runtime, since it determines the minimal
 duration of a task that is still viable for parallel execution with that runtime. If the duration
 of a task is similar or smaller than the overhead of the runtime itself, executing such task with
-the runtime will probably not yield any speedup. This is demonstrated in
-\Autoref{fig:dask-strong-scaling}, which shows the strong scaling of \dask{} on the
-$merge\_slow$ benchmark. The three charts demonstrate its scaling with tasks that take
-$1000ms$, $100ms$ and $10ms$ respectively.
-With tasks that take a second, \dask{} is able to scale relatively well up to
-$1512$ workers. However, when tasks take ten times less time, it only scales up
-to around $360$ workers, and when tasks take only $10ms$,
-\dask{} scales to around $168$ workers, and adding further
-workers makes the makespan longer.
+the runtime will probably not yield any speedup. This is demonstrated
+in~\Autoref{fig:dask-strong-scaling}, which shows the strong scaling of \dask{} on
+the $merge\_slow$ benchmark. The three charts demonstrate its scaling with tasks that
+take $1000ms$, $100ms$ and $10ms$
+respectively. With tasks that take a second, \dask{} is able to scale
+relatively well up to $1512$ workers. However, when tasks take ten times less
+time, it only scales up to around $360$ workers, and when tasks take only
+$10ms$, \dask{} scales to around $168$
+workers, and adding further workers makes the makespan longer.
 
 The results of this experiment indicate that the general runtime overhead of
 \dask{} mainly grows with an increasing number of tasks, no matter which
@@ -640,7 +637,7 @@ well suited for writing distributed applications.
 	\label{fig:rsds-architecture}
 \end{figure}
 
-The architecture of \rsds{} is shown in \Autoref{fig:rsds-architecture}. It reuses
+The architecture of \rsds{} is shown in~\Autoref{fig:rsds-architecture}. It reuses
 the client and worker components from \dask{}, but replaces its server (and
 therefore also the scheduler). The main architectural difference between the two implementations is
 that \rsds{} separates the server into two parts: \emph{reactor}
@@ -741,11 +738,12 @@ performance differences in respect to the original \dask{} message encoding.
 \rsds{} does not actually implement all \dask{} message
 types. Some of them are rarely used, and their implementation would be highly complex, for minimal
 gain, and some of them cannot be implemented in a straightforward way in a different language than
-Python. For example, Dask contains an \gls{api} that allows clients to run a
-Python function on the server, yet this functionality does not have a direct counterpart in a
-server implemented in a different programming language. The fact that \rsds{}
-is able to execute all the benchmarks described in~\Autoref{sec:rsds-dask-overhead-analysis} demonstrates that it
-supports a wide variety of \dask{} programs.
+Python. For example, \dask{} contains an \gls{api} that
+allows clients to run a Python function on the server, yet this functionality does not have a
+direct counterpart in a server implemented in a different programming language. The fact that
+\rsds{} is able to execute all the benchmarks described
+in~\Autoref{sec:rsds-dask-overhead-analysis} demonstrates that it supports a wide variety of
+\dask{} programs.
 
 \subsection*{Schedulers}
 We have implemented two schedulers in \rsds{}, to allow us comparing its
@@ -809,8 +807,8 @@ and worker implementations.
 
 In the first experiment, we have compared the efficiency of the \rsds{} and
 \dask{} server implementations on a diverse set of benchmarks, using both the
-work-stealing and the random scheduler. The results for the work-stealing schedulers are shown in
-\Autoref{fig:rsds-dask-ws-all}. The data confirms our expectation that reducing the overhead of the
+work-stealing and the random scheduler. The results for the work-stealing schedulers are shown
+in~\Autoref{fig:rsds-dask-ws-all}. The data confirms our expectation that reducing the overhead of the
 server can help improve the makespan of executed task graphs by a non-trivial amount. Even though
 \rsds{} uses a much simpler work-stealing scheduler, its more efficient runtime
 provides in most cases better performance. This effect is accentuated for a larger cluster with
@@ -829,7 +827,7 @@ Since the work-stealing implementations of \rsds{} and
 a difference in scheduling, rather than reduced runtime overhead. To eliminate that possibility, we
 have also performed an experiment where we compare \rsds{} using a random
 scheduler with \dask{} using its sophihisticated work-stealing scheduler. The
-results of this experiment can be seen in \Autoref{fig:rsds-dask-random-all}. They clearly confirm that
+results of this experiment can be seen in~\Autoref{fig:rsds-dask-random-all}. They clearly confirm that
 the speedup is not caused by \rsds{} having a better scheduler, because even
 with a completely random schedule, it is still able to outperform \dask{}. This
 serves as an evidence that the improved performance of \rsds{} with
@@ -862,8 +860,8 @@ is further increased.
 \end{table}
 
 In~\Autoref{sec:rsds-dask-overhead-analysis}, it was noted that the random scheduler used in
-\dask{} was relatively competitive with the work-stealing scheduler implementation.
-Our hypothesis was that this phenomenon is reinforced by the runtime overhead of
+\dask{} was relatively competitive with the work-stealing scheduler
+implementation. Our hypothesis was that this phenomenon is reinforced by the runtime overhead of
 \dask{}. To test this hypothesis, we have also compared the performance of the
 random scheduler in \rsds{} vs its work-stealing implementation. The results
 can be observed in~\Autoref{fig:rsds-random-baseline}. We can see that in the case of
@@ -923,7 +921,7 @@ server implementations.
 	\label{fig:rsds-dask-scaling}
 \end{figure}
 
-The results of this experiment are shown in \Autoref{fig:rsds-dask-scaling}. The first examined task
+The results of this experiment are shown in~\Autoref{fig:rsds-dask-scaling}. The first examined task
 graph is \texttt{merge-100K}, which executes hundred thousand trivial, almost instant
 tasks. It is an adversarial case for a scheduler, as the tasks are short and thus the overhead of
 scheduling and network transfers will overcome most parallelism gains. Therefore, increasing the
@@ -1060,7 +1058,7 @@ makespan, for both \dask{} and \rsds{}. Note that we could
 not have evaluated all the benchmarks with the zero worker mode, since some of the task graphs
 depend on the actual computed contents of data objects generated by tasks, however the zero worker
 implementation does not execute tasks, and it is thus not able to generate the correct data. The
-results of this benchmark can be found in \Autoref{fig:rsds-zero-worker-speedup}. In all the tested
+results of this benchmark can be found in~\Autoref{fig:rsds-zero-worker-speedup}. In all the tested
 benchmarks, \rsds{} produced shorter makespans than
 \dask{}; in some cases it was up to six times faster. This speedup is larger
 than with the standard worker implementation; this shows that if the overhead of the worker was
@@ -1088,8 +1086,8 @@ diverse benchmarks in an \gls{hpc} setting. Our analysis has demonstrated that
 implementation, and also by other aspects related to the usage of Python, notably the presence of
 the \gls{gil}. This suggests that further optimizations should focus mainly on
 the overhead of its server, rather than its scheduler, as even a completely random scheduler is
-able to achieve reasonable performance, since the schedule is not the primary bottleneck, at
-least in certain cases.
+able to achieve reasonable performance, since the schedule is not the primary bottleneck, at least
+in certain cases.
 
 To improve the performance of \dask{} workflows, we have developed
 \rsds{}, an open-source drop-in replacement for the \dask{}
@@ -1104,9 +1102,16 @@ that optimizing the runtime is definitely a worthy effort to pursuit, as
 \rsds{} has been able to outperform \dask{} in various
 scenarios, even though it uses a much simpler work-stealing scheduling algorithm.
 
-After we had an indication that \rsds{} can be used to improve the efficiency
-of existing \dask{} workflows, we have contacted the authors and maintainers of
-\dask{}, and discussed the \rsds{} approach with
-them\footnoteurl{https://github.com/dask/distributed/issues/3139}\footnoteurl{https://github.com/dask/distributed/issues/3783}\footnoteurl{https://github.com/dask/distributed/issues/3872}. Some of its
-ideas have been since adapted in the \dask{} project and led to improving its
-performance.
+\section*{Impact}
+After we had an indication that \rsds{} could be leveraged to improve the
+efficiency of existing \dask{} workflows, we have contacted the authors and
+maintainers of \dask{} and presented them our research and
+\rsds{}. Although replacing their server implementation or switching from
+Python to a different implementation language was not a feasible approach for them, some of the
+ideas implemented in \rsds{} have been since adapted in the
+\dask{} project, which helped resolve some of the bottlenecks that we have
+discovered with our experiments, and improved the performance of \dask{} in
+general\footnoteurl{https://github.com/dask/distributed/issues/3139}\footnoteurl{https://github.com/dask/distributed/issues/3783}\footnoteurl{https://github.com/dask/distributed/issues/3872}. The
+\rsds{} task scheduler and parts of its runtime that were not
+\dask{}-specific have been used as a basis for the implementation of the
+\hyperqueue{} task runtime, which is described in the following chapter.

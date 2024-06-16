@@ -1,8 +1,9 @@
 There is a large body of tools designed for executing arbitrary task graphs on diverse computing
 platforms, ranging from consumer-grade laptops, through cloud deployments, to distributed and
-\gls{hpc} clusters. They are known under various terms, such as task executors, job managers, distributed
-job schedulers or orchestrators. We will use the term \emph{task runtime} for all such task execution tools
-in this thesis, as has already been discussed in the previous chapter.
+\gls{hpc} clusters. They are known under various terms, such as task executors,
+job managers, distributed job schedulers or orchestrators. We will use the term
+\emph{task runtime} for all such task execution tools in this thesis, as has already been
+discussed in the previous chapter.
 
 Examples of such task runtimes include e.g.\ \dask{}~\cite{dask},
 Parsl~\cite{parsl}, Ray~\cite{ray},
@@ -11,20 +12,21 @@ Pydra~\cite{pydra}, Snakemake~\cite{snakemake},
 SciLuigi~\cite{sciluigi}, Merlin~\cite{merlin},
 Autosubmit~\cite{autosubmit}, NextFlow~\cite{nextflow},
 StreamFlow~\cite{streamflow}, AiiDA~\cite{aiida},
-FireWorks~\cite{fireworks}. Each task
-runtime defines its own instance of a task-based programming model, and has a different set of
-trade-offs in areas such as performance and scalability, fault tolerance, data provenance,
-ease-of-use, ease-of-deployment and others.
+FireWorks~\cite{fireworks}. Each task runtime defines its own instance of a task-based
+programming model, and has a different set of trade-offs in areas such as performance and
+scalability, fault tolerance, data provenance, ease-of-use, ease-of-deployment and others.
 
-Note that there is a set of task-based tools that are commonly labeled as \emph{Workflow Management Systems},
-for example Apache Airflow~\cite{airfow}, Dagster~\cite{dagster}, Prefect~\cite{prefect} or Argo~\cite{argo}.
-Although it cannot be said that there is a single distinguishing feature that would separate these tools from other task
-runtimes, from my point of view these tools form a separate category. They are primarily designed for very coarse-grained
-workflows with a relatively small number of tasks, they put strong emphasis on workflow reproducibility, data provenance, execution
-monitoring (typically through a web interface) and support scheduled execution (i.e.\ ``run this workflow every hour'').
-They are also typically being applied in cloud environments, moreso than on supercomputers.
-This thesis will not consider these tools in great detail, as they are not primarily
-designed for \gls{hpc} use-cases.
+Note that there is a set of task-based tools that are commonly labeled as
+\emph{Workflow Management Systems}, for example Apache Airflow~\cite{airfow},
+Dagster~\cite{dagster}, Prefect~\cite{prefect} or
+Argo~\cite{argo}. Although it cannot be said that there is a single distinguishing
+feature that would separate these tools from other task runtimes, from my point of view these tools
+form a separate category. They are primarily designed for very coarse-grained workflows with a
+relatively small number of tasks, they put strong emphasis on workflow reproducibility, data
+provenance, execution monitoring (typically through a web interface) and support scheduled
+execution (i.e.\ ``run this workflow every hour''). They are also typically being applied in cloud
+environments, moreso than on supercomputers. This thesis will not consider these tools in great
+detail, as they are not primarily designed for \gls{hpc} use-cases.
 
 Task-based tools (and task-based programming models) are quite popular, and they are being used for
 computing all kinds of scientific workflows on \gls{hpc}
@@ -35,8 +37,8 @@ historically they were not designed primarily for executing such kinds of workfl
 challenges are further exacerbated when using off-the-shelf tools that were not designed for
 \gls{hpc} use-cases.
 
-\Autoref{hq:related-work} will describe several task runtimes in more detail, and compare them with the proposed
-\hyperqueue{} tool.
+\Autoref{hq:related-work} will describe several task runtimes in more detail, and compare them
+with the proposed \hyperqueue{} tool.
 
 The goal of this thesis is to identify these challenges and design approches for alleviating some
 of them, to help task graph execution on \gls{hpc} cluster becoming a first-class
@@ -96,8 +98,8 @@ The following process describes how computations are typically executed on
 	\item The allocation manager puts the request into a queue and schedules it to be executed at some time
 	      in the future. Since users submit their allocations into the manager continuously, each allocation
 	      has different properties and priorities, and it is not possible to precisely predict for how long
-	      will an allocation run, the schedule can be very dynamic and unpredictable, so users might have
-	  	  to wait seconds, minutes, hours or even days before their allocation starts to execute.
+	      will an allocation run, the schedule can be very dynamic and unpredictable, so users might have to
+	      wait seconds, minutes, hours or even days before their allocation starts to execute.
 	\item Once the allocation gets to the front of the queue and there are enough resources available, the
 	      manager provisions the requested amount of hardware resources (typically a number of whole
 	      computational nodes) and either executes a script (a \emph{batch} allocation) or
@@ -170,9 +172,9 @@ easier for the manager to schedule them.
 In terms of task runtime support, this approach can be used with essentially all existing task
 runtimes, since it does not require any special support from the runtime. The user simply submits a
 single allocation, and when it starts, the whole task graph is computed with a task runtime all in
-one go. This approach is thus relatively simple for the user, although as has been mentioned, it might
-not be feasible for many use-cases, and it can lead to resource waste and a long latency before
-receiving first results (finished tasks).
+one go. This approach is thus relatively simple for the user, although as has been mentioned, it
+might not be feasible for many use-cases, and it can lead to resource waste and a long latency
+before receiving first results (finished tasks).
 
 \subsection*{Execute each task as a separate allocation}
 The previous approach mapped all tasks to a single allocation. An opposite extreme would be to map
@@ -223,13 +225,13 @@ allocation arrays, therefore even the array approach might not be enough to enco
 massive task graphs.
 
 Apart from the maximum allocation count, there are other limitations that can be imposed by
-allocation managers. Some tasks of scientific workflows can be granular, and require only a
-handful of resources, e.g.\ a single \gls{cpu} core. To avoid wasting resources,
-an allocation mapped to such a task should thus ask only for the exact set of resources needed by
-it. However, allocation managers are sometimes configured in a way that only offers node-level
+allocation managers. Some tasks of scientific workflows can be granular, and require only a handful
+of resources, e.g.\ a single \gls{cpu} core. To avoid wasting resources, an
+allocation mapped to such a task should thus ask only for the exact set of resources needed by it.
+However, allocation managers are sometimes configured in a way that only offers node-level
 granularity of hardware resources, and thus does not allow users to request less than a whole
-computational node~\cite{it4i_node_scheduling_policy}. In these cases, it would be wasteful if we had
-to request a whole computational node e.g.\ for a simple task that runs for just a few seconds and
+computational node~\cite{it4i_node_scheduling_policy}. In these cases, it would be wasteful if we had to
+request a whole computational node e.g.\ for a simple task that runs for just a few seconds and
 requires only a handful of cores.
 
 There are two primary reasons why allocation managers limit the granularity of allocations. First,
@@ -296,9 +298,9 @@ allocations. We will use the term \emph{meta-schedulers} for these task runtimes
 
 An example of such as tool is \snakemake~\cite{snakemake}, which allows users to define
 complex task graphs that be executed in multiple allocations. It is also able to partition the task
-graph into \emph{groups}, where all tasks of a single group are always executed inside
-the same allocation. However, this partitioning has to be specified explicitly by the author of the
-workflow, which can be laborious.
+graph into \emph{groups}, where all tasks of a single group are always executed
+inside the same allocation. However, this partitioning has to be specified explicitly by the author
+of the workflow, which can be laborious.
 
 While automating the partitioning process is useful, a \emph{static} division of
 subgraphs into allocations (be it performed manually or in an automated fashion) that has to be
