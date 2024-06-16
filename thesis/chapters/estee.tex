@@ -1,10 +1,4 @@
 % Algoritmy: https://docs.google.com/document/d/1cDg8dV4Rso5sAE2gYkBPsJ8a_dMLqA8MHRR1ZvceWZM/edit#heading=h.7z19cc4fgwy4
-%TODO: Our results indicate that network models used by many previous works might produce results
-%that are off by an order of magnitude in comparison to a more realistic model. Additionally, we
-%show that certain implementation details of scheduling algorithms which
-%are often neglected can have a large effect on the scheduler’s performance, and they
-%should thus be described in great detail to enable proper evaluation.
-
 Task scheduling is one of the most important responsibilities of a task runtime in terms of
 performance, because the quality of the generated schedule has a large effect on the total makespan
 of the task graph execution and also on the achieved hardware utilization of worker nodes. It is
@@ -213,9 +207,8 @@ decrease the allocation of some other participant with an equal or smaller alloc
 object transfer starts or finishes, the data flow between workers is recomputed immediately, thus
 we neglect the fact that it may take some time for the bandwidth to fully saturate.
 
-%TODO: odkomentovat?
-%This model is not as accurate as e.g.\ packet-level simulation implemented in some other
-%simulators~\cite{simgrid}, but it is a notable improvement over the naive model.
+This model is not as accurate as e.g.\ packet-level simulation implemented in some other
+simulators~\cite{simgrid}, but it is a notable improvement over the naive model.
 
 To provide a baseline that corresponds to the naive model described above, which has been used in
 several previous works, \estee{} also implements a \emph{simple} network
@@ -298,7 +291,6 @@ performance, and which we have not seen examined in detail in existing literatur
 		similar workflows.
 \end{description}
 
-%TODO: uncomment?
 %\subsection{Worker inner scheduler}
 %Since each worker has to keep track of its running tasks, manage resources, and
 %handle data object transfers, it becomes relatively complex. In practice, the global
