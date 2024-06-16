@@ -308,41 +308,32 @@ Examples repository\footnoteurl{https://examples.dask.org}. The definitions of t
 a GitHub repository\footnoteurl{https://github.com/It4innovations/rsds/blob/master/scripts/usecases.py}. A short summary of the individual benchmarks is
 provided below.
 
-\noindent\textbf{merge-n} creates $n$ independent trivial tasks
-that are merged at the end (all of their outputs are used as an input for a final merge task). This
-benchmark is designed to stress the scheduler and the server, because the individual tasks are very
-short (essentially they do no work).
-
-\noindent\textbf{merge\_slow-n-t} is similar to \texttt{merge-n}, but with longer,
-$t$ second tasks.
-
-\noindent\textbf{tree-n} performs a tree reduction of $2^n$
-numbers using a binary tree with height $n-1$.
-
-\noindent\textbf{xarray-n} calculates aggregations (mean, sum) on a
-three-dimensional grid of air temperatures~\cite{airdataset}, $n$
-specifies size of grid partitions.
-
-\noindent\textbf{bag-n-p} works with a dataset of $n$ records in
-$p$ partitions. It performs a cartesian product, filtering and aggregations.
-
-\noindent\textbf{numpy-n-p} transposes and aggregates a two-dimensional
-distributed NumPy array using the \emph{Arrays} interface. The array has size
-$(n,n)$ and it is split into partitions of size $(n/p,n/p)$.
-
-\noindent\textbf{groupby-d-f-p} works with a table with $d$ days of
-records, each record is $f$ time units apart, records are partitioned by
-$p$ time units. It performs a groupby operation with an aggregation.
-
-\noindent\textbf{join-d-f-p} uses the same table, but performs a self-join.
-
-\noindent\textbf{vectorizer-n-p} uses
-Wordbatch\footnoteurl{https://github.com/anttttti/Wordbatch}, a text processing library, to compute hashed features of
-$n$ reviews from a TripAdvisor dataset~\cite{wordbatcharticle} split
-into $p$ partitions.
-
-\noindent\textbf{wordbag-n-p} uses the same dataset, but computes a full text processing
-pipeline with text normalization, spelling correction, word counting and feature extraction.
+\begin{description}[wide=0pt]
+	\item[merge-n] creates $n$ independent trivial tasks that are merged at the end (all of
+		their outputs are used as an input for a final merge task). This benchmark is designed to stress
+		the scheduler and the server, because the individual tasks are very short (essentially they do no
+		work).
+	\item[merge\_slow-n-t] is similar to \texttt{merge-n}, but with longer, $t$ second tasks.
+	\item[tree-n] performs a tree reduction of $2^n$ numbers using a binary tree with height
+		$n-1$.
+	\item[xarray-n] calculates aggregations (mean, sum) on a three-dimensional grid of air
+		temperatures~\cite{airdataset}, $n$ specifies size of grid
+		partitions.
+	\item[bag-n-p] works with a dataset of $n$ records in $p$ partitions.
+		It performs a cartesian product, filtering and aggregations.
+	\item[numpy-n-p] transposes and aggregates a two-dimensional distributed NumPy array using the
+		\emph{Arrays} interface. The array has size $(n,n)$ and it is split
+		into partitions of size $(n/p,n/p)$.
+	\item[groupby-d-f-p] works with a table with $d$ days of records, each record is
+		$f$ time units apart, records are partitioned by $p$
+		time units. It performs a groupby operation with an aggregation.
+	\item[join-d-f-p] uses the same table, but performs a self-join.
+	\item[vectorizer-n-p] uses Wordbatch\footnoteurl{https://github.com/anttttti/Wordbatch}, a text processing library, to compute hashed features of
+		$n$ reviews from a TripAdvisor dataset~\cite{wordbatcharticle} split into
+		$p$ partitions.
+	\item[wordbag-n-p] uses the same dataset, but computes a full text processing pipeline with text normalization,
+		spelling correction, word counting and feature extraction.
+\end{description}
 
 \subsection*{Benchmark configuration}
 Our experiments were performed on the Salomon supercomputer\footnoteurl{https://docs.it4i.cz/salomon/introduction}. Each
@@ -918,7 +909,8 @@ server implementations.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.8\textwidth]{./imgs/rsds/charts/rsds-dask-scaling}
-	\caption{Strong scaling of \rsds{} vs \dask{} on selected task graphs}
+	\caption{Strong scaling of \rsds{} vs \dask{} on selected task
+	graphs}
 	\label{fig:rsds-dask-scaling}
 \end{figure}
 
