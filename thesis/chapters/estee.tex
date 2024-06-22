@@ -323,49 +323,49 @@ in~\Autoref{sec:estee-benchmarks}.}:
 
 \begin{description}[wide=0pt]
 	\item[blevel] \gls{hlfet}~\cite{hlfet1974} is a
-	foundational list-based scheduling algorithm that prioritizes tasks based on their
-	\emph{b-level}. B-level of a task is the length of the longest path from the task to any
-	leaf task (in our case the length of the path is computed using durations of tasks, without taking
-	data object sizes into account). The tasks are scheduled in a decreasing order based on their
-	b-level.
+		foundational list-based scheduling algorithm that prioritizes tasks based on their
+		\emph{b-level}. B-level of a task is the length of the longest path from the task to any
+		leaf task (in our case the length of the path is computed using durations of tasks, without taking
+		data object sizes into account). The tasks are scheduled in a decreasing order based on their
+		b-level.
 
 	\item[tlevel]
-	Smallest Co-levels First with Estimated Times~\cite{kwok1999static} is similar to
-	\gls{hlfet}, with the exception that the priority value computed for each task (which
-	is called \emph{t-level} here) is computed as the length of the longest path from any
-	source task to the given task. This value corresponds to the earliest time that the task can start.
-	The tasks are scheduled in an increasing order based on their t-level.
+		Smallest Co-levels First with Estimated Times~\cite{kwok1999static} is similar to
+		\gls{hlfet}, with the exception that the priority value computed for each task (which is
+		called \emph{t-level} here) is computed as the length of the longest path from any source
+		task to the given task. This value corresponds to the earliest time that the task can start. The
+		tasks are scheduled in an increasing order based on their t-level.
 
 	\item[dls]
-	Dynamic Level Scheduling~\cite{sih1993compile} calculates a dynamic level for each task-worker
-	pair. It is equal to the static b-level lessened by the earliest time that the task can start on a
-	given worker (considering necessary data transfers). In each scheduling step, the task-worker pair
-	that maximizes this value is selected.
+		Dynamic Level Scheduling~\cite{sih1993compile} calculates a dynamic level for each task-worker
+		pair. It is equal to the static b-level lessened by the earliest time that the task can start on a
+		given worker (considering necessary data transfers). In each scheduling step, the task-worker pair
+		that maximizes this value is selected.
 
 	\item[mcp]
-	The Modified Critical Path~\cite{wu1990hypertool} scheduler calculates the ALAP
-	(as-late-as-possible) time for each task. This corresponds to the latest time the task can start
-	without increasing the total schedule makespan. The tasks are then ordered in ascending order based
-	on this value, and scheduled to the worker that allows their earliest execution.
+		The Modified Critical Path~\cite{wu1990hypertool} scheduler calculates the ALAP
+		(as-late-as-possible) time for each task. This corresponds to the latest time the task can start
+		without increasing the total schedule makespan. The tasks are then ordered in ascending order based
+		on this value, and scheduled to the worker that allows their earliest execution.
 
 	\item[etf]
-	The ETF (Earliest Time First) scheduler~\cite{hwang1989scheduling} selects the task-worker pair that
-	can start at the earliest time at each scheduling step. Ties are broken by a higher b-level
-	precomputed at the start of task graph execution.
+		The ETF (Earliest Time First) scheduler~\cite{hwang1989scheduling} selects the task-worker pair that
+		can start at the earliest time at each scheduling step. Ties are broken by a higher b-level
+		precomputed at the start of task graph execution.
 
 	\item[genetic]
-	This scheduler uses a genetic algorithm to schedule tasks to workers, using the mutation and
-	crossover operators described in~\cite{omara2009genetic}. Only valid schedules are considered, if
-	no valid schedule can be found within a reasonable number of iterations, a random schedule is
-	generated instead.
+		This scheduler uses a genetic algorithm to schedule tasks to workers, using the mutation and
+		crossover operators described in~\cite{omara2009genetic}. Only valid schedules are considered, if no
+		valid schedule can be found within a reasonable number of iterations, a random schedule is
+		generated instead.
 
 	\item[ws]
-	This is an implementation of a simple work-stealing algorithm. The default policy is that each task
-	that is ready to be executed (all its dependencies are already computed) is always assigned to a
-	worker where it can be started with a minimal transfer cost. The scheduler then continuously
-	monitors the load of workers. When a worker starts to starve (and thus does not have enough tasks
-	to compute), then a portion of tasks assigned to other workers is rescheduled to the starving
-	worker.
+		This is an implementation of a simple work-stealing algorithm. The default policy is that each task
+		that is ready to be executed (all its dependencies are already computed) is always assigned to a
+		worker where it can be started with a minimal transfer cost. The scheduler then continuously
+		monitors the load of workers. When a worker starts to starve (and thus does not have enough tasks
+		to compute), then a portion of tasks assigned to other workers is rescheduled to the starving
+		worker.
 \end{description}
 
 In addition to these schedulers, we have also implemented several naive schedulers, which serve as
@@ -373,11 +373,11 @@ a baseline for scheduler comparisons.
 
 \begin{description}[wide=0pt]
 	\item[single]
-	This scheduler simply assigns all tasks to a single worker (it selects the worker with the most
-	cores). The resulting schedule never induces any data transfers between workers, and does not take
-	advantage of any parallelism between workers.
+		This scheduler simply assigns all tasks to a single worker (it selects the worker with the most
+		cores). The resulting schedule never induces any data transfers between workers, and does not take
+		advantage of any parallelism between workers.
 	\item[random]
-	This scheduler simply assigns each task to a random worker using a \gls{prng} engine.
+		This scheduler simply assigns each task to a random worker using a \gls{prng} engine.
 \end{description}
 
 We have strived to implement the mentioned list-based schedulers (\emph{blevel},
@@ -426,21 +426,20 @@ sampled from a normal distribution. Below is a description of the three categori
 that can be generated:
 
 \begin{description}[wide=0pt]
-	\item[elementary] This category contains trivial graph
-	shapes, such as tasks with no dependencies or simple ``fork-join'' graphs. These graphs can test the
-	behavior of scheduler heuristics on basic task graph building blocks that frequently form parts of
-	larger workflows. Examples of these graphs can be seen in~\Autoref{fig:estee-elementary-shapes}.
+	\item[elementary] This category contains trivial graph shapes, such as tasks with no dependencies or simple
+		``fork-join'' graphs. These graphs can test the behavior of scheduler heuristics on basic task
+		graph building blocks that frequently form parts of larger workflows. Examples of these graphs can
+		be seen in~\Autoref{fig:estee-elementary-shapes}.
 
-	\item[irw] This generator creates graphs that are
-	inspired by real-world workflows, such as machine learning cross-validations or map-reduce
-	computations.
+	\item[irw] This generator creates graphs that are inspired by real-world workflows, such as machine learning
+		cross-validations or map-reduce computations.
 
-	\item[pegasus] This category is derived from graphs
-	created by the Synthetic Workflow Generators~\cite{pegasusgraphs}. The generated graphs
-	correspond to the \emph{montage}, \emph{cybershake}, \emph{epigenomics},
-	\emph{ligo} and \emph{sipht} Pegasus workflows. The graphs have been
-	extended with additional properties required for testing information modes (notably expected task
-	durations and data object sizes for the \emph{user} information mode).
+	\item[pegasus] This category is derived from graphs created by the Synthetic Workflow
+		Generators~\cite{pegasusgraphs}. The generated graphs correspond to the \emph{montage},
+		\emph{cybershake}, \emph{epigenomics}, \emph{ligo} and \emph{sipht}
+		Pegasus workflows. The graphs have been extended with additional properties required for testing
+		information modes (notably expected task durations and data object sizes for the
+		\emph{user} information mode).
 \end{description}
 
 \section{Task scheduler benchmarks}

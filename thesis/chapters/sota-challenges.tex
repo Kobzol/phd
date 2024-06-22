@@ -301,12 +301,12 @@ utilization.
 Ideally, users would not have to think about task graph partitioning (or even the allocation
 manager) at all; they should be able to construct a task graph and execute it directly on an
 \gls{hpc} cluster in a straightforward way, by letting the task runtime perform
-the task graph partitioning and load-balancing across multiple allocations automatically for them.
+the task graph partitioning and load balancing across multiple allocations automatically for them.
 This could be achieved by integrating allocation managers and task runtimes more closely. We have
 seen that adding support for executing fine-grained task graphs to allocation managers is probably
 not realistic, since they have too many other responsibilities. However, a promising approach is to
 leverage meta-scheduling, i.e.\ schedule tasks on top of the allocation manager, to enable flexible
-load-balancing across different allocations without forcing users to devise the task to allocation
+load balancing across different allocations without forcing users to devise the task to allocation
 mapping themselves.
 
 \Autoref{ch:hyperqueue} will further explore this approach by introducing a design for a fully
