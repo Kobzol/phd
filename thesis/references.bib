@@ -782,6 +782,23 @@ and Grondona, Mark",
     url = {https://www.schedmd.com/slurm-support/our-services/high-performance-computing},
     urldate = {2024-04-22}
 }
+@inproceedings{slurm-workflow,
+    author = {Rodrigo, Gonzalo P. and Elmroth, Erik and \"{O}stberg, Per-Olov and Ramakrishnan, Lavanya},
+    title = {Enabling Workflow-Aware Scheduling on HPC Systems},
+    year = {2017},
+    isbn = {9781450346993},
+%    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+%    url = {https://doi.org/10.1145/3078597.3078604},
+    doi = {10.1145/3078597.3078604},
+%    abstract = {Scientific workflows are increasingly common in the workloads of current High Performance Computing (HPC) systems. However, HPC schedulers do not incorporate workflow-specific mechanisms beyond the capacity to declare dependencies between their jobs. Thus, workflows are run as sets of batch jobs with dependencies, which induces long intermediate wait times and, consequently, long workflow turnaround times. Alternatively, to reduce their turnaround time, workflows may be submitted as single pilot jobs that are allocated their maximum required resources for their entire runtime. Pilot jobs achieve shorter turnaround times but reduce the HPC system's utilization because resources may idle during the workflow's execution. We present a workflow-aware scheduling (WoAS) system that enables existing scheduling algorithms to exploit fine-grained information on a workflow's resource requirements and structure without modification. The current implementation of WoAS is integrated into Slurm, a widely used HPC batch scheduler. We evaluate the system using a simulator using real and synthetic workflows and a synthetic baseline workload that captures job patterns observed over three years of workload data from Edison, a large supercomputer hosted at the National Energy Research Scientific Computing Center. Our results show that WoAS reduces workflow turnaround times and improves system utilization without significantly slowing down conventional jobs.},
+    booktitle = {Proceedings of the 26th International Symposium on High-Performance Parallel and Distributed Computing},
+    pages = {3–14},
+    numpages = {12},
+%    keywords = {high performance computing, hpc, scheduling, simulation, slurm, workflows},
+    location = {Washington, DC, USA},
+    series = {HPDC '17}
+}
 @inproceedings{pbs,
     author = {Staples, Garrick},
     title = {TORQUE Resource Manager},
@@ -1029,6 +1046,23 @@ and Grondona, Mark",
     numpages = {16},
 %    keywords = {multiprocessors, clustering, processor allocation, list scheduling, parallel
 %	scheduling, task graphs., Algorithms}
+}
+@InProceedings{glume,
+    author="Hataishi, Evan
+and Dutot, Pierre-Fran{\c{c}}ois
+and Silva, Rafael Ferreira da
+and Casanova, Henri",
+    editor="Klus{\'a}{\v{c}}ek, Dalibor
+and Cirne, Walfredo
+and Rodrigo, Gonzalo P.",
+    title="GLUME: A Strategy for Reducing Workflow Execution Times on Batch-Scheduled Platforms",
+    booktitle="Job Scheduling Strategies for Parallel Processing",
+    year="2021",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="210--230",
+%    abstract="Many scientific workflows have computational demands that require the use of compute platforms managed by batch schedulers, which are unfortunately poorly suited to these applications. This work proposes GLUME, a strategy for partitioning a workflow into batch jobs. The novelty is that these jobs are explicitly constructed to minimize overall workflow execution time. Experimental evaluation via simulation of production batch workloads and workflows shows that our heuristic is more effective than previously proposed strategies when executing workflows with moderate to high computational demand.",
+    isbn="978-3-030-88224-2"
 }
 
 % Distributed/task tools
@@ -1533,6 +1567,18 @@ and van der Spoel, David",
     journal = {GitHub repository},
     howpublished = {\url{https://github.com/It4innovations/hyperqueue}},
     commit = {4a37594fabe54934d2ea5e2a77b204112e29e359}
+}
+@online{hq_docs,
+    author = {Jakub Beránek and Ada Böhm},
+    title = {HyperQueue documentation},
+    url = {https://it4innovations.github.io/hyperqueue/stable/},
+    urldate = {2024-06-22},
+}
+@online{hq_pypi,
+    author = {Jakub Beránek and Ada Böhm},
+    title = {HyperQueue Python package at Python Package Index (PyPi)},
+    url = {https://pypi.org/project/hyperqueue/},
+    urldate = {2024-06-22},
 }
 
 % HyperQueue impact

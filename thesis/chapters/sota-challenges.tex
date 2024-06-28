@@ -103,7 +103,11 @@ manager actually presents perhaps the largest obstacle for ergonomic execution o
 \gls{hpc} systems. Instead of executing their task graphs directly, users have to
 think about how to split the task graph into allocations and then submit them. While this is true
 of any computation executed on \gls{hpc} clusters in general, in the case of task
-graphs it is especially difficult because of their complex structure.
+graphs it is especially difficult because of their complex structure. The fact that mapping complex
+task workflows to \gls{hpc} allocations is non-trivial has been noted in existing
+research~\cite{glume,slurm-workflow}, and it even led to proposals for making existing
+allocation managers workflow-aware~\cite{slurm-workflow} or even creating new allocation
+managers that have better support workflows~\cite{flux}.
 
 To execute a task graph using an allocation manager, it is necessary to find a way how to map tasks
 to allocations, ideally in a way that efficiently utilizes \gls{hpc} resources and
@@ -145,23 +149,25 @@ of resources that contain such an accelerator. The issue is that all resources o
 reserved for its whole duration, therefore we will have to pay the price for the expensive
 accelerated nodes (and prevent others from using them) even during the execution of workflow steps
 in which they will be underutilized or completely idle. This is caused by the fact that all
-allocated resources are tied to the lifetime of the whole allocation.
+allocated resources are tied to the lifetime of the whole allocation, and using this approach we
+have to ask for a set of resources that form a union of the resource requirements of all tasks of
+the workflow.
 
-One additional disadvantage of this approach is queue latency. Large allocations that require a
+One additional disadvantage of this approach is queuing latency. Large allocations that require a
 long wall-time duration and/or request many computational nodes typically spend a much longer time
 in the allocation manager queue, because it is more difficult for the manager to make sure that all
 the requested resources are available at the same time. As a concrete example, ten allocations that
 require a one hour wall-time can potentially be completed much quicker than a single allocation
-that requests a ten hour wall-time (and similar behavior can be expected w.r.t.\ the number of
-requested nodes), because these allocations do not need to run at the same time, therefore it is
-easier for the manager to schedule them.
+that requests a ten hour wall-time, because these allocations do not need to run at the same time,
+therefore it is easier for the manager to schedule them. Similar behavior can be observed w.r.t.\
+the number of requested nodes.
 
 In terms of task runtime support, this approach can be used with essentially all existing task
 runtimes, since it does not require any special support from the runtime. The user simply submits a
 single allocation, and when it starts, the whole task graph is computed with a task runtime all in
 one go. This approach is thus relatively simple for the user, although as has been mentioned, it
 might not be feasible for many use-cases, and it can lead to resource waste and a long latency
-before receiving first results (finished tasks).
+before receiving the first results of finished tasks.
 
 \subsection*{Execute each task as a separate allocation}
 The previous approach mapped all tasks to a single allocation. An opposite extreme would be to map
