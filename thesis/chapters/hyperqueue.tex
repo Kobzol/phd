@@ -75,9 +75,9 @@ on several use-cases and compare it with other state-of-the-art meta-scheduling 
 
 %TODO: how HQ solves the challenges?
 
-%We have described the design and key ideas of \hyperqueue{} in
-%\emph{HyperQueue: efficient and ergonomic task graphs on HPC clusters}~\cite{TODO}. The architecture of \hyperqueue{} and
-%various other descriptions presented in this chapter were adapted from this publication.
+We have described the design and key ideas of \hyperqueue{} in
+\emph{HyperQueue: efficient and ergonomic task graphs on HPC clusters}~\cite{hyperqueue}.
+The architecture of \hyperqueue{} and various other descriptions presented in this chapter were adapted from this publication.
 
 \workshare{I have collaborated on this work with Ada Böhm, we have both contributed to it equally. I am the sole author of the design and implementation of
 the automatic allocator component, and I have also contributed to the design and implementation of most remaining parts of
@@ -964,8 +964,8 @@ Each queue contains several properties that can be configured by users:
 		For example, if the only tasks waiting to be computed have a \emph{time request} that is longer
 		than the time limit of a given allocation queue, it does not make sense to create allocations in
 		this queue, because workers started in these allocations could not execute such tasks anyway.
-	\item[Backlog] This parameter specifies the maximum number of allocations that can be ``in-flight`` (queued or
-		running) at any given time. It exists to make sure that the automatic allocator does not overload
+	\item[Backlog] This parameter specifies the maximum number of allocations that can be queued in the allocation
+		manager at any given time. It is designed to ensure that the automatic allocator does not overload
 		the allocation manager.
 	\item[Worker count per allocation] Determines how many nodes (workers) should be requested for each allocation. Unless users want to
 		execute multi-node tasks, it is usually convenient to use the default value
@@ -982,24 +982,71 @@ Each queue contains several properties that can be configured by users:
 		\hyperqueue{} (e.g. \gls{fpga} devices).
 	\item[Custom allocation parameters] Users can also specify arbitrary command-line parameters that will be passed to the submit command
 		sent to the corresponding allocation manager, like the computational project that should be used,
-		or the Slurm partition where the allocation should be created.
+		or the Slurm partition where the allocation should be created. To make debugging easier, \hyperqueue{}
+		will submit a test allocation by default immediately after the allocation queue is created, to test that the
+		allocation parameters can be handled by the manager. If this test allocation is successfully created, it is then
+		immediately canceled to avoid wasting computational resources.
 \end{description}
 
-- explain how backlog works
-- overloading the allocation manager, caching
-- rate limiter
-- see the future
-- task duration prediction (TODO: citation, e.g.\
-https://www.sciencedirect.com/science/article/pii/S0167739X23000274)
-- integration with the scheduler?
+\Autoref{lst:hq-cli-autoalloc} shows several examples of commands for creating allocation queues and observing allocation
+state using the \hyperqueue{} \gls{cli}.
 
-%TODO: autoalloc CLI example
+\begin{listing}[h]
+	\begin{minted}[fontsize=\small, tabsize=4]{bash}
+# Create an allocation queue for Slurm
+$ hq alloc add slurm --time-limit 1h -- -Aproject-1 -pcpu_partition
+
+# Create an allocation queue for PBS with GPU resources
+$ hq alloc add pbs --resource "gpus/nvidia=range(1-2)" ...
+
+# Display information about (in)active allocations from the given queue
+$ hq alloc info 1
+	\end{minted}
+	\caption{Handling task failure using the \hyperqueue{} \gls{cli}}
+	\label{lst:hq-cli-autoalloc}
+\end{listing}
+
+\Autoalloc{} is a reactive system. It observes events from the server (such as new jobs being submitted or new workers
+being connected) and manages allocations in response to these events. If it encounters a situation where there are
+tasks that are in the waiting state, and no workers can execute them (either because there are no workers or all of them
+are fully occupied), it will start submitting allocations to the allocation manager. It will submit allocations up until
+the configured \emph{backlog} value, or until the allocation manager applies back-pressure (whichever comes sooner).
+Note that \autoalloc{} does not limit the total number of allocations that are ``in-flight'' (queued or running), just
+the queued ones. This allows it to potentially create a large number of allocations and thus make use of all available
+resources of the cluster, if the allocation manager allows it. Users can use other configuration parameters (such as the
+total amount of workers) to limit the amount of submitted resources. \Autoalloc{} also contains an internal rate limiter
+that makes sure that it does not submit allocations too often and that it pauses the allocation process if the allocations
+start failing too often.
+
+It is crucial for \autoalloc{} to maintain an updated state of its created allocations, so that it can report their state
+to the user, and also so that it knows if it can submit new allocations. Originally, it was using a polling approach to determine
+the latest state, where it was repeatedly querying the allocation manager about the state of allocations. However, this
+turned out to put a lot of pressure on the allocation managers, which were not very optimized for this use-case, especially
+if the polling frequency was very high (every few seconds). Some allocation managers are even configured in a way where
+they cache the state of allocations when they are queried too often; this reduces the chance of them being overloaded, but
+it also means that \hyperqueue{} would not get the latest data, which is not ideal. We can observe that it is not actually
+required to poll the allocation manager though. The only allocation events that are important for the allocator are
+the start and an end of an allocation. And this information can be gained through a proxy; the connections are disconnections
+of \hq{} workers. When a worker is started in an allocation, it will connect to the server, and tell it its allocation ID.
+This lets the automatic allocator learn about new allocations. On the contrary, when such a worker disconnects, it signifies
+that its containing allocation has also been completed. Using this approach, the allocator is able to maintain the latest
+state of allocations without explicitly asking the allocation manager at all.
+
+\Autoalloc{} attempts to take certain task properties into account when creating allocations. For example, if a task
+has a \emph{time request} of two hours, but a configured allocation queue only has a time limit of one hour, the allocator
+will not submit allocations using this queue to provide resources for such a task, because workers started in these allocations
+could not compute such a task anyway. It should be noted that in general, it is very difficult to guess when and how many
+allocations should be created, because the allocator does not know in advance which tasks will be submitted in the future,
+nor for how long will the currently submitted tasks run. It also cannot precisely predict how long will its submitted allocations
+stay in the allocation manager queue. As a future extension, the allocator could be extended with a prediction of allocation
+queuing times~\cite{allocation-duration-prediction} or with a prediction of task execution times~\cite{task-duration-prediction}.
 
 \Autoref{sec:hq-exp-autoalloc} will evaluate how well is the automatic allocation system able
 scale in response to computational demand and how it limits the waste of computational resources.
 
 \section{Case study: LiGen virtual screening}
-\hyperqueue{} has been used in LIGATE~\cite{ligate}.
+\hyperqueue{} has been used in the LIGATE~\cite{ligate} project as a task runtime for defining and executing molecular
+dynamics workflows that leverage the LiGen~\cite{TODO} and GROMACS~\cite{TODO} tools.
 
 \section{Related work}
 \label{hq:related-work}
@@ -1220,7 +1267,7 @@ ATLAS~\cite{atlas} experiment performed at CERN. In this case, it was able to im
 hardware utilization by 30\%~\cite{cern-hq} on the IT4Innovations \gls{hpc}
 cluster. \hyperqueue{} has also been used to execute workflows in several European Union
 projects, such as LIGATE~\cite{ligate}, EVEREST~\cite{everest},
-ACROSS~\cite{across} and MaX~\cite{max}.
+ACROSS~\cite{across} and MaX~\cite{max}. TODO: Exa4Mind
 
 Given the use-cases mentioned above, I am confident that \hyperqueue{} provides a
 tangible benefit in terms of ergonomical and efficient execution of task graphs on supercomputers,
