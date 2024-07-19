@@ -34,11 +34,12 @@ class CitationAnalysis:
     paper: Paper
     own: List[str]
     nonown: List[str]
+    year: int
     journal: Optional[bool] = None
 
 
 def format_entry(analysis: CitationAnalysis) -> str:
-    metadata = f"\\vspace{{2mm}}\\\\Status: {analysis.paper.status}\\\\"
+    metadata = f"\\vspace{{2mm}}\\\\Status: {analysis.paper.status} ({analysis.year})\\\\"
 
     # Venue
     if analysis.journal is not None:
@@ -89,7 +90,7 @@ class SemanticScholarResolver:
 
         sources = [source(p) for p in papers]
         response = requests.post(
-            f"https://api.semanticscholar.org/graph/v1/paper/batch?fields=title,authors,publicationVenue,citations,citations.title,citations.authors",
+            f"https://api.semanticscholar.org/graph/v1/paper/batch?fields=title,authors,publicationVenue,year,citations,citations.title,citations.authors",
             json={
                 "ids": sources
             }).json()
@@ -123,6 +124,7 @@ class SemanticScholarResolver:
             is_journal = venue == "journal"
             analysed.append(
                 CitationAnalysis(paper=paper, own=own_citations, nonown=nonown_citations,
+                                 year=data["year"],
                                  journal=is_journal))
         return analysed
 
@@ -146,6 +148,7 @@ class ScopusResolver:
             except pybliometrics.scopus.exception.Scopus404Error:
                 print(f"{paper.bibname} not found on Scopus")
                 continue
+            year = int(abstract.coverDate.split("-")[0])
             paper_author_ids = set(author.auid for author in abstract.authors)
             # Refresh if too old
             citations = ScopusSearch(f"REF({abstract.eid})", refresh=1)
@@ -161,6 +164,7 @@ class ScopusResolver:
                     own_citations.append(citation.title)
             is_journal = abstract.aggregationType.lower() == "journal"
             results.append(CitationAnalysis(paper=paper, own=own_citations, nonown=nonown_citations,
+                                            year=year,
                                             journal=is_journal))
         return results
 
