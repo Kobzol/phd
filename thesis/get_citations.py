@@ -181,6 +181,8 @@ def calculate_h_index(results: List[CitationAnalysis], include_own_citations=Fal
 
 if __name__ == "__main__":
     papers: List[Paper] = [
+        Paper(bibname="hyperqueue", doi="10.1016/j.softx.2024.101814", related=True, index="SCOPUS",
+              SJR=0.544),
         Paper(bibname="rsds", doi="10.1109/WORKS51914.2020.00006", related=True, index="SCOPUS"),
         Paper(bibname="estee", doi="10.1007/s11227-022-04438-y", related=True, index="SCOPUS",
               SJR=0.684),
@@ -220,8 +222,7 @@ if __name__ == "__main__":
 Self citation is defined as a citation by a publication where at least a single author is also amongst
 the authors of the cited paper (in other words, there is a non-empty overlap between the authors of the citing and the cited paper).
 SJR (Scientific Journal Rankings) ranking was taken from Scimago Journal\\footnoteurl{{https://www.scimagojr.com}},
-IF (Impact Factor) ranking was taken from Oxford Academic\\footnoteurl{{https://academic.oup.com/bioinformatics}};
-the rankings are from the year when the corresponding article was published.
+IF (Impact Factor) ranking was taken from Oxford Academic\\footnoteurl{{https://academic.oup.com/bioinformatics}}.
 The h-index of the author of this thesis according to the Scopus database is \\texttt{{{h_index}}},
 with \\texttt{{{total_nonown_citations}}} total citations (both excluding self citations).
 
