@@ -52,7 +52,8 @@ Various descriptions of task graph benchmarks, \dask{} and
 \rsds{} used in this chapter were adapted from our
 publication~\cite{rsds}.
 
-\workshare{I have collaborated on this work with Ada Böhm, we have both contributed to it equally. Source code contribution statistics for
+\workshare{I have collaborated on this work with Ada Böhm, we have both contributed to it equally.
+I have designed and performed all the experiments described in this chapter. Source code contribution statistics for
 \rsds{} can be found on GitHub\footnoteurl{https://github.com/it4innovations/rsds/graphs/contributors}.}
 
 \section{\dask{} task runtime}
@@ -243,7 +244,7 @@ the \dask{} runtime).
 We have designed a series of experiments to evaluate the inner overhead of
 \dask{} and to find out which factors affects its runtime performance the most.
 
-\subsection*{Benchmarks}
+\subsection{Benchmarks}
 To evaluate the runtime, we have prepared a diverse set of benchmarks that span from simple
 map-reduce aggregations to text processing workloads and table queries. The properties of the task
 graphs used in our experiments along with the \dask{}
@@ -334,7 +335,7 @@ provided below.
 		spelling correction, word counting and feature extraction.
 \end{description}
 
-\subsection*{Benchmark configuration}
+\subsection{Benchmark configuration}
 Our experiments were performed on the Salomon supercomputer\footnoteurl{https://docs.it4i.cz/salomon/introduction}. Each
 Salomon node has two sockets containing Intel Xeon E5-2680v3 with 12 cores clocked at
 $2.5$ GHz ($24$ cores in total),
@@ -377,7 +378,8 @@ between each benchmark execution.
 The following abbreviations are used in figures with benchmark results: \emph{ws}
 marks the work-stealing scheduler and \emph{random} represents the random scheduler.
 
-\subsection*{Evaluation}
+\subsection{Evaluation}
+\label{dask:evaluation}
 We have designed three specific experiments, which focus on \dask{}'s
 scheduler, on its inner overhead, and on the effect of \gls{gil} on its
 performance.
@@ -1101,7 +1103,7 @@ maintainers of \dask{} and presented them our research and
 \rsds{}. Although replacing their server implementation or switching from
 Python to a different implementation language was not a feasible approach for them, some of the
 ideas implemented in \rsds{} have been since adapted in the
-\dask{} project, which helped resolve some of the bottlenecks that we have
+\dask{} project, which helped alleviate some of the bottlenecks that we have
 discovered with our experiments, and improved the performance of \dask{} in
 general\footnoteurl{https://github.com/dask/distributed/issues/3139}\footnoteurl{https://github.com/dask/distributed/issues/3783}\footnoteurl{https://github.com/dask/distributed/issues/3872}. The
 \rsds{} task scheduler and parts of its runtime that were not
