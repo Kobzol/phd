@@ -101,40 +101,40 @@
 \CzechAbstract{TODO: přeložit}
 \CzechKeywords{distribuované výpočty, výpočetní grafy, vysokovýkonnostní počítání}
 
-%TODO: extend
 \EnglishAbstract{This thesis deals with the execution of task graphs on High-performance Computing
 (HPC) clusters (supercomputers), with focus on efficient usage of hardware resources and ergonomic interfaces for
 task graph submission. Task graphs are a popular tool for executing scientific workflows on distributed
-clusters. However, executing them on supercomputers introduces unique challenges, caused mainly by the
-large scale of workflows and an unwieldy interaction with HPC allocation managers like PBS (Portable Batch System)
-or Slurm. This work examines these challenges in detail and proposes approaches on alleviating them.
+clusters, but executing them on supercomputers introduces unique challenges, caused mainly by performance
+issues caused by the large scale of HPC workflows and also by cumbersome interaction with HPC allocation
+managers like PBS (Portable Batch System) or Slurm. This work examines what are the main challenges
+in this area and how do they affect task graph execution, and it proposes various approaches for alleviating
+these challenges, both in terms of efficiency and developer ergonomics.
 
-This thesis provides three main contributions. Firstly, it contains a comprehensive study of the performance
-of various task schedulers and provides a simulation environment that enables experiments with different
-task scheduling algorithms. Secondly, it analyzes the performance of a state of the art
-task runtime \dask{} and provides an implementation of an alternative \dask{} server which
-improves its performance significantly on HPC clusters. And primarily, it introduces a design
-for effortless execution of task graphs on HPC clusters that facilitates efficient usage of hardware
-resources. It also provides an implementation of this design within an HPC-tailored
-task runtime called \hyperqueue{}, which offers an ergonomic way of executing task graphs while
-achieving high hardware utilization on heterogeneous HPC clusters. \hyperqueue{} is available as
-open-source software under the MIT (Massachusetts Institute of Technology) license at
+This thesis provides three main contributions. Firstly, it provides a task graph simulation environment
+that enables prototyping and benchmarking of various task scheduling algorithms, and performs a comprehensive
+study of the performance of various task schedulers using this environment. Secondly, it analyzes the
+bottlenecks and overall performance of a state-of-the-art task runtime \dask{} and provides an implementation
+of an alternative \dask{} server which significantly improves its performance in HPC use-cases. And
+primarily, it introduces a meta-scheduling design for effortless execution of task graphs on HPC clusters
+that facilitates efficient usage of hardware resources. It also provides a reference implementation
+of this design within an HPC-tailored task runtime called \hyperqueue{}, which offers an ergonomic
+way of executing task graphs while achieving high hardware utilization on heterogeneous HPC clusters.
+\hyperqueue{} is available as open-source software under the MIT (Massachusetts Institute of Technology) license at
 \url{https://github.com/it4innovations/hyperqueue}.}
 \EnglishKeywords{distributed computing, task graphs, hpc}
 
 \Acknowledgement{I would like to thank my supervisor, Jan Martinovič, for his advices.
 I would also like to thank Ada Böhm, Vojtěch Cima and Martin Šurkovský, who have co-authored several
 publications with me and supported me during my PhD studies. I am especially grateful to Ada Böhm
-for her mentorship and constant readiness to provide both research and technical guidance.
+for her mentorship and constant readiness to provide both research and technical guidance. My thanks
+also go to Vanessa DeRhen for proofreading this thesis.
+
+Last but not least, I would like to extend my gratitude to my wife Jana for her support and endless patience.
 
 % TODO(Honza): ask which acknowledgments should be here
 The development of \hyperqueue{} was supported by the LIGATE project. It has received funding from the
 European High-Performance Computing Joint Undertaking (JU) under grant agreement No 956137.
-% The tool Kaira, which is the central topic of this thesis, was supported by grants:
-%GAČR P202/11/0340, IT4Innovations Center of Excellence (project CZ.1.05/1.1.00/
-%02.0070), and student grant SP2011/25 prolonged as SP2012/127 and SP2013/145.
-
-Finally, I would like to extend my gratitude to my wife Jana for her support and endless patience.}
+}
 
 \addbibresource{references.bib}
 \addbibresource{publications.bib}
