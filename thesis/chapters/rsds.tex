@@ -52,9 +52,9 @@ Various descriptions of task graph benchmarks, \dask{} and
 \rsds{} used in this chapter were adapted from our
 publication~\cite{rsds}.
 
-\workshare{I have collaborated on this work with Ada Böhm, we have both contributed to it equally.
-I have designed and performed all the experiments described in this chapter. Source code contribution statistics for
-\rsds{} can be found on GitHub\footnoteurl{https://github.com/it4innovations/rsds/graphs/contributors}.}
+\workshare{I have collaborated on this work with Ada Böhm, we have both contributed to it equally. I have designed and performed all the experiments described
+in this chapter. Source code contribution statistics for \rsds{} can be found
+on GitHub\footnoteurl{https://github.com/it4innovations/rsds/graphs/contributors}.}
 
 \section{\dask{} task runtime}
 \label{sec:rsds-dask}
@@ -1096,16 +1096,6 @@ that optimizing the runtime is definitely a worthy effort to pursuit, as
 \rsds{} has been able to outperform \dask{} in various
 scenarios, even though it uses a much simpler work-stealing scheduling algorithm.
 
-\section*{Impact}
-After we had an indication that \rsds{} could be leveraged to improve the
-efficiency of existing \dask{} workflows, we have contacted the authors and
-maintainers of \dask{} and presented them our research and
-\rsds{}. Although replacing their server implementation or switching from
-Python to a different implementation language was not a feasible approach for them, some of the
-ideas implemented in \rsds{} have been since adapted in the
-\dask{} project, which helped alleviate some of the bottlenecks that we have
-discovered with our experiments, and improved the performance of \dask{} in
-general\footnoteurl{https://github.com/dask/distributed/issues/3139}\footnoteurl{https://github.com/dask/distributed/issues/3783}\footnoteurl{https://github.com/dask/distributed/issues/3872}. The
-\rsds{} task scheduler and parts of its runtime that were not
+The \rsds{} task scheduler and parts of its runtime that were not
 \dask{}-specific have been used as a basis for the implementation of the
 \hyperqueue{} task runtime, which is described in the following chapter.

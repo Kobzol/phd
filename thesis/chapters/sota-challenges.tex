@@ -300,7 +300,7 @@ subgraphs into allocations (be it performed manually or in an automated fashion)
 decided \emph{before} the allocations are submitted might still lead to suboptimal
 hardware utilization. When the individual subgraphs are executed by independent instances of a task
 runtime that run in separate allocations and do not communicate with each other, it will not be
-possible to load-balance tasks across different allocations, which can limit the achieved hardware
+possible to load balance tasks across different allocations, which can limit the achieved hardware
 utilization.
 
 \subsection*{Fully dynamic scheduling across allocations}
@@ -399,8 +399,9 @@ by \dask{}. Some runtimes (for example HyperLoom~\cite{hyperloom})
 also leverage \gls{ram} disks, which provide support for tasks that need to
 interact with a filesystem, while avoiding the performance bottlenecks associated with disk
 accesses. It is also possible to use \gls{hpc} specific technologies, such as
-\gls{mpi} or InfiniBand, to improve data transfer performance by fully exploiting
-the incredibly fast interconnects available in \gls{hpc} clusters.
+InfiniBand~\cite{infiniband} or \gls{mpi}, to improve data transfer
+performance by fully exploiting the incredibly fast interconnects available in
+\gls{hpc} clusters.
 
 Data outputs produced by tasks tend to be considered immutable in existing task runtimes, since a
 single output can be used as an input to multiple tasks, and these might be executed on completely
