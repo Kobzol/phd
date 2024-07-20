@@ -317,7 +317,7 @@ Ostrava,~\ifthenelse{\equal{\the\Dipl@SubmissionYear}{\empty}}{\number\year}{\th
 {
 \mbox{}
 \vfill
-\section*{\Dipl@LanguageDependentText{Poděkování}{Poďakovanie}{Acknowledgement}}
+\section*{\Dipl@LanguageDependentText{Poděkování}{Poďakovanie}{Acknowledgment}}
 \the\Dipl@Acknowledgement
 \clearpage
 }
