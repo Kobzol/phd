@@ -364,7 +364,7 @@ Ostrava,~\ifthenelse{\equal{\the\Dipl@SubmissionYear}{\empty}}{\number\year}{\th
 \addcontentsline{toc}{chapter}{Prílohy}
 }
 {
-\addcontentsline{toc}{chapter}{Appendices}
+%\addcontentsline{toc}{chapter}{Appendices}
 }
 }
 \newcommand{\Dipl@LanguageDependentText}[3]{\ifthenelse{\value{Dipl@CurrentThesisLanguage}=\Dipl@CzechLanguage}{#1}{\ifthenelse{\value{Dipl@CurrentThesisLanguage}=\Dipl@SlovakLanguage}{#2}{#3}}}

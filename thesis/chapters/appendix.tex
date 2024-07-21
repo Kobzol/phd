@@ -1,0 +1,150 @@
+\chapter{\estee{} benchmark definitions}
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}{.2\textwidth}
+        \centering
+        \includegraphics[width=.8\textwidth]{imgs/estee/shapes/plain}
+        \caption{}
+        \label{fig:tg-plain}
+    \end{subfigure}%
+    \begin{subfigure}{.2\textwidth}
+        \centering
+        \includegraphics[width=.8\linewidth]{imgs/estee/shapes/fork}
+        \caption{}
+        \label{fig:tg-fork}
+    \end{subfigure}
+    \begin{subfigure}{.2\textwidth}
+        \centering
+        \includegraphics[width=.8\linewidth]{imgs/estee/shapes/fork2}
+        \caption{}
+        \label{fig:tg-fork2}
+    \end{subfigure}
+    \begin{subfigure}{.2\textwidth}
+        \centering
+        \includegraphics[width=.8\linewidth]{imgs/estee/shapes/v}
+        \caption{}
+        \label{fig:tg-v}
+    \end{subfigure}
+    \\
+    \begin{subfigure}{.2\textwidth}
+        \centering
+        \includegraphics[width=.8\linewidth]{imgs/estee/shapes/w}
+        \caption{}
+        \label{fig:tg-w}
+    \end{subfigure}
+    \begin{subfigure}{.2\textwidth}
+        \centering
+        \includegraphics[width=.8\linewidth]{imgs/estee/shapes/merge}
+        \caption{}
+        \label{fig:tg-merge}
+    \end{subfigure}
+    \begin{subfigure}{.2\textwidth}
+        \centering
+        \includegraphics[width=.8\linewidth]{imgs/estee/shapes/merge-triplets}
+        \caption{}
+        \label{fig:tg-merge-triplets}
+    \end{subfigure}
+    \begin{subfigure}{.2\textwidth}
+        \centering
+        \includegraphics[width=.8\linewidth]{imgs/estee/shapes/triplets}
+        \caption{}
+        \label{fig:tg-triplets}
+    \end{subfigure}
+    \\
+    \begin{subfigure}{.2\textwidth}
+        \centering
+        \includegraphics[width=.8\linewidth]{imgs/estee/shapes/grid}
+        \caption{}
+        \label{fig:tg-grid}
+    \end{subfigure}
+    \begin{subfigure}{.2\textwidth}
+        \centering
+        \includegraphics[width=.8\linewidth]{imgs/estee/shapes/splitters}
+        \caption{}
+        \label{fig:tg-splitters}
+    \end{subfigure}
+    \begin{subfigure}{.2\textwidth}
+        \centering
+        \includegraphics[width=.8\linewidth]{imgs/estee/shapes/conflux}
+        \caption{}
+        \label{fig:tg-conflux}
+    \end{subfigure}
+    \begin{subfigure}{.2\textwidth}
+        \centering
+        \includegraphics[width=.8\linewidth]{imgs/estee/shapes/fern}
+        \caption{}
+        \label{fig:tg-fern}
+    \end{subfigure}
+
+    \caption{Task graph shapes in the \emph{elementary} \estee{} benchmark data set}
+    \label{fig:estee-elementary-shapes}
+\end{figure}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{l|lrrrr|T}
+        \toprule
+        Graph            & D & \#T & \#O   & TS     & LP  & \normalsize{Description}     \\
+        \midrule
+        plain1n          & e & 380 & 0     & 0.00   & 1   & Independent tasks;
+        normally distributed durations (Fig.~\ref{fig:tg-plain})                         \\
+        plain1e          & e & 380 & 0     & 0.00   & 1   & Independent tasks;
+        exponentially distributed durations (Fig.~\ref{fig:tg-plain})                    \\
+        plain1cpus       & e & 380 & 0     & 0.00   & 1   & Independent tasks with
+        varying core requirements (Fig.~\ref{fig:tg-plain})                              \\
+        triplets         & e & 330 & 220   & 17.19  & 3   & Task triplets; middle
+        task requires 4 cores (Fig.~\ref{fig:tg-triplets})                               \\
+        merge\_neighb.   & e & 214 & 107   & 10.36  & 2   & Merge of adjacent
+        task pairs (Fig.~\ref{fig:tg-w})                                                 \\
+        merge\_triplets  & e & 148 & 111   & 10.77  & 2   & Merge of task
+        triplets (Fig.~\ref{fig:tg-merge-triplets})                                      \\
+        merge\_sm-big    & e & 240 & 160   & 7.74   & 2   & Merge of two
+        results (0.5 MiB and 100 MiB data objects) (Fig.~\ref{fig:tg-v})                 \\
+        fork1            & e & 300 & 100   & 9.77   & 2   & Tasks with a pair of
+        consumers each consuming the same output (Fig.~\ref{fig:tg-fork})                \\
+        fork2            & e & 300 & 200   & 19.53  & 2   & Tasks with a pair of
+        consumers each consuming different output (Fig.~\ref{fig:tg-fork2})              \\
+        bigmerge         & e & 321 & 320   & 31.25  & 2   & Merge of a large
+        number of tasks (variant of Fig.~\ref{fig:tg-merge})                             \\
+        duration\_stairs & e & 380 & 0     & 0.00   & 1   & Independent
+        tasks; task durations range from 1 to 190 s (Fig.~\ref{fig:tg-plain})            \\
+        size\_stairs     & e & 191 & 190   & 17.53  & 2   & 1 producer 190
+        outputs / 190 consumers; sizes range from 1 to 190 MiB                           \\
+        splitters        & e & 255 & 255   & 32.25  & 8   & Binary tree of
+        splitting tasks (Fig.~\ref{fig:tg-splitters})                                    \\
+        conflux          & e & 255 & 255   & 31.88  & 8   & Merging task pairs
+        (inverse of \emph{splitters}) (Fig.~\ref{fig:tg-conflux})                        \\
+        grid             & e & 361 & 361   & 45.12  & 37  & Tasks organized in a 2D grid
+        (i.e. \emph{splitters} followed by \emph{conflux}) (Fig.~\ref{fig:tg-grid})
+        \\
+        fern             & e & 401 & 401   & 11.11  & 201 & Long task sequence with
+        side tasks (Fig.~\ref{fig:tg-fern})                                              \\ \hline
+        gridcat          & i & 401 & 401   & 115.71 & 4   & Merge of pairs of 300 MiB
+        files                                                                            \\
+        crossv           & i & 94  & 90    & 8.52   & 5   & Cross validation             \\
+        crossvx          & i & 200 & 200   & 32.66  & 5   & Several instances of cross
+        validation                                                                       \\
+        fastcrossv       & i & 94  & 90    & 8.52   & 5   & Same as \emph{crossv}
+        but tasks are $50\times$ shorter                                                 \\
+        mapreduce        & i & 321 & 25760 & 439.06 & 3   & Map-reduce pattern           \\
+        nestedcrossv     & i & 266 & 270   & 28.41  & 8   & Nested cross
+        validation                                                                       \\ \hline
+        montage          & p & 77  & 150   & 0.21   & 6   & Montage workflow
+        from Pegasus                                                                     \\
+        cybershake       & p & 104 & 106   & 0.84   & 4   & Cybershake
+        workflow from Pegasus                                                            \\
+        epigenomics      & p & 204 & 305   & 1.36   & 8   & Epigenomics
+        workflow from Pegasus                                                            \\
+        ligo             & p & 186 & 186   & 0.11   & 6   & Ligo workflow from
+        Pegasus                                                                          \\
+        sipht            & p & 64  & 136   & 0.12   & 5   & Sipht workflow from
+        Pegasus                                                                          \\
+        \bottomrule
+    \end{tabular}\\
+    \vspace{2mm}
+    D = Dataset (e = elementary, i = irw, p = pegasus); \#T = Number of tasks; \#O = Number of outputs;
+    TS = Sum of all output object sizes (GiB); LP = longest oriented path in the graph
+
+    \caption{\estee{} scheduler benchmark task graph properties}
+    \label{tab:estee-graph-properties}
+\end{table}
