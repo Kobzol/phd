@@ -57,7 +57,7 @@ user into these managers.
 
 Allocation managers are required for providing fair access to the resources of the cluster, because
 \gls{hpc} clusters are typically used by many people at the same time. Without a
-centralized management, hardware resources could be inadvertently shared amongst multiple users at
+centralized management, hardware resources could be inadvertently shared among multiple users at
 once, which could have undesirable performance and security implications, and could lead to
 oversubscription. Furthermore, usage of these clusters is usually metered. Users can typically only
 use a certain amount of resources assigned to their \emph{computational project}, and when their
@@ -146,7 +146,7 @@ post-processing steps are usually not very resource intensive and run on \glspl{
 only, while the training step typically consumes a lot of resources and is usually executed on a
 \gls{gpu} accelerator. To execute such a workflow, we will need to ask for a set
 of resources that contain such an accelerator. The issue is that all resources of an allocation are
-reserved for its whole duration, therefore we will have to pay the price for the expensive
+reserved for its whole duration; therefore, we will have to pay the price for the expensive
 accelerated nodes (and prevent others from using them) even during the execution of workflow steps
 in which they will be underutilized or completely idle. This is caused by the fact that all
 allocated resources are tied to the lifetime of the whole allocation, and using this approach we
@@ -173,7 +173,7 @@ before receiving the first results of finished tasks.
 The previous approach mapped all tasks to a single allocation. An opposite extreme would be to map
 each task to a separate allocation. This approach might seem intuitive, because from a certain
 point of view, \gls{hpc} allocation managers can also be viewed as task runtimes,
-if we consider allocations to be tasks, therefore it might be tempting to treat them as such. Both
+if we consider allocations to be tasks; therefore, it might be tempting to treat them as such. Both
 \gls{pbs} and Slurm even support a crude notion of dependencies between
 allocations, which could allow users to express computational graphs. Indeed, in an ideal world,
 there would be no difference between an allocation manager and a task runtime, and users could
@@ -183,17 +183,17 @@ into the allocation manager.
 However, in practice, this approach is mostly infeasible, at least with the currently popular
 allocation managers (\gls{pbs} and Slurm), because they introduce a non-trivial
 amount of overhead per each allocation. In an ideal scenario, Slurm is able to launch a few hundred
-allocations per second~\cite{slurm-throughput}, however more realistically, users on a crowded
+allocations per second~\cite{slurm-throughput}; however, more realistically, users on a crowded
 cluster might experience at least a few hundred milliseconds overhead per allocation, if not more,
 which is order(s) of magnitude more than the overhead of a typical task
 runtime~\cite{rsds}.
 
 Even though there is probably room for reducing the overhead of contemporary
 \gls{hpc} allocation managers, it is important to note that some of the
-performance limitations are inherent. Allocation managers have to (amongst other things) provide
+performance limitations are inherent. Allocation managers have to (among other things) provide
 accurate accounting, handle robust and secure provisioning and cleanup of hardware resources
 provided to allocations, manage user and process isolation on computational nodes and ensure user
-fairness. These responsibilities are out of scope for most task runtimes, therefore it is not
+fairness. These responsibilities are out of scope for most task runtimes; therefore, it is not
 surprising that they can usually achieve much higher performance. While in theory, it could be
 possible to design an allocation manager that can also act as a (performant) task runtime at the
 same time (and some efforts have been made on this front~\cite{flux}), it is
@@ -214,7 +214,7 @@ heterogeneous tasks with different resource requirements, and it also has only a
 for dependencies between the submitted tasks. Another disadvantage is fault tolerance; if some of
 the tasks of the array fail, users might have to manually identify them and resubmit them in
 another allocation, which is far from effortless. And of course, clusters do impose limits also for
-allocation arrays, therefore even the array approach might not be enough to encompass all tasks of
+allocation arrays; therefore, even the array approach might not be enough to encompass all tasks of
 massive task graphs.
 
 Apart from the maximum allocation count, there are other limitations that can be imposed by
@@ -329,7 +329,7 @@ NVIDIA graphics accelerator, it has to be executed on a node that has such a
 It should thus be possible for a task to define \emph{resource requirements}, which specify
 resources that have to be provided by an environment that will execute such task. For example, a
 requirement could be the number of cores (some tasks can use only a single core, some can be
-multithreaded), the amount of available main memory, a minimum duration required to execute the
+multi-threaded), the amount of available main memory, a minimum duration required to execute the
 task or (either optional or required) presence of an accelerator like a \gls{gpu}
 or an \gls{fpga}. In order to remain portable and independent of a specific
 execution environment, these requirements should be abstract and describe general, rather than
@@ -386,7 +386,7 @@ software (that might be executed by a task) also makes liberal use of the filesy
 make it challenging to avoid filesystem access altogether. However, \gls{hpc}
 nodes often do not contain any local disks, but instead use shared filesystems that are accessed
 over a network. While this can be seen as an advantage, since with a shared filesystem it is much
-easier to share task outputs amongst different workers, it can also be a severe bottleneck. Shared
+easier to share task outputs among different workers, it can also be a severe bottleneck. Shared
 networked filesystems can suffer from high latency and accessing them can consume precious network
 bandwidth that is also used e.g.\ for managing computation (sending commands to workers) or for
 direct worker-to-worker data exchange. Furthermore, data produced in \gls{hpc}
@@ -421,7 +421,7 @@ allocation managers. Computing nodes allocated by these managers are provided on
 duration, which means that for long-running computations, some nodes will disconnect and new nodes
 might appear dynamically during the lifecycle of the executed workflow. Furthermore, since the
 allocations go through a queue, it can take some time before new computational resources are
-available, therefore the computation can remain in a paused state, where no tasks are being
+available; therefore, the computation can remain in a paused state, where no tasks are being
 executed, for potentially long periods of time.
 
 It is important for task runtimes to be prepared for these situations; they should handle node
@@ -519,7 +519,7 @@ in the context of \gls{hpc}-scale task graphs.
 		optimize various networking applications by offloading some computations to an accelerated
 		\gls{nic}. This approach could also be leveraged in task runtimes, for example to
 		reduce the latency of management messages between the scheduler and workers or to increase the
-		bandwidth of large data exchanges amongst workers, by moving these operations directly onto the
+		bandwidth of large data exchanges among workers, by moving these operations directly onto the
 		network card. This line of research is not pursued in this thesis, although it could serve as an
 		interesting idea to be explored.
 	\item[Scheduling] Task scheduling is one of the most important responsibilities of a task runtime, and with large
@@ -624,7 +624,7 @@ efficiently.
 The rest of the thesis will analyze challenges belonging to both categories, and discuss approaches
 for alleviating them. Chapters~\ref{ch:estee} and~\ref{ch:rsds} focus on
 the performance aspects, namely on task scheduling and the overhead introduced by task
-runtimes.~\Autoref{ch:hyperqueue} then also deals with the ergonomical challenges, and proposes
+runtimes.~\Autoref{ch:hyperqueue} then also deals with the ergonomic challenges, and proposes
 a design for an \gls{hpc}-tailored task runtime that ties all the described
 approaches together to enable truly first-class task graph execution on \gls{hpc}
 clusters.

@@ -10,7 +10,7 @@ Over the last several decades, the performance of \gls{hpc} clusters
 line with Moore's Law and Dennard scaling~\cite{mooreslaw}. However, it also became more
 difficult for \gls{hpc} users to tap into that performance increase. Thirty years ago,
 it was possible to get essentially double the performance for free, just by using a new
-(super)computer every two years, without having to modify existing programs. This phenomenon has
+(super)computer every two years, without having to modify existing programs. This phenomenon had
 started to diminish by the end of the last century, as chip designers became limited by the memory
 wall~\cite{memorywall} and especially the power wall~\cite{powerwall}.
 
@@ -43,7 +43,7 @@ techniques to achieve optimal performance. And the ever-present accelerators, fo
 \glspl{gpu}, might require their users to adopt completely different programming models
 and frameworks.
 
-Historically, optimized \gls{hpc} software was usually written using system or
+Historically, optimized \gls{hpc} software was often written using system or
 scientifically focused programming languages (e.g.~\texttt{C}, \texttt{C++}
 or \texttt{Fortran}) and specialized libraries for parallelizing and distributing
 computation, such as \gls{openmp}~\cite{openmp}, CUDA~\cite{cuda} or
@@ -51,7 +51,7 @@ computation, such as \gls{openmp}~\cite{openmp}, CUDA~\cite{cuda} or
 to provide the best possible performance, it can be quite challenging and slow to develop (and
 maintain) applications that use them. It is unreasonable to expect that most domain scientists that
 develop software for \gls{hpc} clusters (who are often not primarily software
-developers) will be able to use all these technologies in an efficient manner without making the
+developers) will be able to use all these technologies efficiently without making the
 development process slow and cumbersome. This task should be left to specialized performance
 engineers, enabling the scientists to focus on the problem domain~\cite{dace}.
 
@@ -61,11 +61,11 @@ also in terms of data management, network communication patterns and general sof
 architecture. Areas such as weather prediction, machine learning model training or big data
 analysis require executing thousands or even millions of simulations and experiments. These
 experiments can be very complex, consisting of multiple dependent steps, such as data ingestion,
-preprocessing, computation, postprocessing, visualization, etc. It is thus imperative for
-scientists to have a quick way of prototyping these applications, otherwise their development
-process would be too slow.
+preprocessing, computation, postprocessing, visualization, etc. It is imperative for
+scientists to have a quick way of prototyping these applications, because their requirements
+change rapidly, and it would be infeasible to develop them using only very low-level technologies.
 
-The growing complexity of \gls{hpc} hardware, software and use-cases gave rise to the
+The growing complexity of \gls{hpc} hardware, software and use-cases has given rise to the
 popularity of (distributed) task-based programming models and paradigms. Task-oriented programming
 models allow users to focus on their problem domain and quickly prototype, while still being able
 to describe complicated computations with a large number of individual steps and to efficiently
@@ -78,7 +78,7 @@ simple way. At the same time, they remain amenable to compiler-driven optimizati
 parallelization, which helps to bring the performance of programs described by a task graph close
 to manually parallelized and distributed programs, at a fraction of the development cost for the
 application developer. They are also relatively portable by default, as the task graph programming
-model typically does not make many assumptions about the target platform, therefore the same task
+model typically does not make many assumptions about the target platform; therefore, the same task
 graph can be executed on various systems and clusters, provided there is a task execution runtime
 implemented for that cluster.
 
@@ -135,7 +135,7 @@ scheduling algorithms and introduces \estee{}, a task graph execution simulator.
 \Autoref{ch:rsds} analyzes the runtime performance of \dask{}, a
 state-of-the-art task runtime, and proposes an alternative implementation of its server that is
 able to outperform it in various \gls{hpc} use-cases. \Autoref{ch:hyperqueue} then
-focuses on improving both the ergonomical and performance aspects of task execution using a
+focuses on improving both the ergonomic and performance aspects of task execution using a
 meta-scheduling approach designed to facilitate task graph execution on \gls{hpc}
 clusters. This approach has been implemented in the \hyperqueue{} task runtime, which is
 also described in this chapter in detail. Finally,~\Autoref{ch:conclusion} summarizes the thesis and
