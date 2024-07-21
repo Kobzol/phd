@@ -404,7 +404,6 @@ scheduler's behavior, we have also created extended versions of the \emph{blevel
 worker selection heuristic called ``greedy transfer``. We have not applied this heuristic to other
 list-based schedulers, where it would fundamentally change their behavior.
 
-%TODO: reword this? better differentiate between the naive heuristic and greedy-transfer?
 The greedy transfer heuristic assigns the selected task to a worker that has a sufficient number of
 free cores on which the task may be executed, and that requires the minimal data transfer (sum over
 all sizes of data objects that have to be transferred to that worker). It also adds support for
@@ -488,7 +487,6 @@ our benchmarks.
 		16$\times$8, 32$\times$16.
 \end{description}
 
-%TODO: fix cut task graph
 \begin{figure}
 	\centering
 	\begin{subfigure}{.2\textwidth}
@@ -654,9 +652,12 @@ otherwise specified, the individual experiments were performed with the default 
 configuration that uses the \emph{max-min} network model, the \emph{exact}
 information mode and a Minimal Scheduling Delay of 0.1s.
 
+Note that the vertical axis of some charts presented in this section does not start at zero, as
+the goal was to focus on the relative difference between different scheduling algorithms rather
+than on the absolute makespan durations.
+
 \subsubsection*{Random scheduler}
 
-%TODO: chart does not start at zero
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{imgs/estee/charts/random-scheduler}\\
