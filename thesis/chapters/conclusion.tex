@@ -67,7 +67,7 @@ further improve its ability to provide ergonomic and efficient task graph execut
 		performance by avoiding filesystem \gls{io}.
 
 		For use-cases that are limited by \gls{io} bandwidth due to creating too many
-		standard (error) output files on distribtued filesystems, \hyperqueue{} offers
+		standard (error) output files on distributed filesystems, \hyperqueue{} offers
 		\emph{output streaming}, which is able to avoid filesystem limitations by streaming task output
 		to the server and storing it in a single file.
 	\item[Fault tolerance] \hyperqueue{} offers fault tolerance by default; tasks that do not
@@ -87,7 +87,7 @@ further improve its ability to provide ergonomic and efficient task graph execut
 		able to scale to \gls{hpc}-level workflows and that it does not introduce
 		significant overhead over executing tasks manually. Its performance could be further improved by
 		integrating \gls{hpc}-specific technologies, such as
-		Infiniband~\cite{infiniband} or \gls{mpi}, to speed-up network
+		InfiniBand~\cite{infiniband} or \gls{mpi}, to speed-up network
 		communication or filesystem \gls{io}, or by adding support for stateful task
 		environments. These could help avoid the need to create a separate Linux process for each executed
 		task, which can have a non-trivial overhead on certain \gls{hpc} clusters, as was
@@ -145,11 +145,12 @@ NextFlow~\cite{nextflow-hq}, UM-Bridge~\cite{umbridge},
 StreamFlow~\cite{streamflow-hq}, ERT~\cite{ert} or
 HEAppE~\cite{heappe}.
 
+% https://www.epj-conferences.org/articles/epjconf/pdf/2020/21/epjconf_chep2020_09010.pdf
 \hyperqueue{} is also used in various research projects. As an example,
 scientists from the Czech Academy of Sciences use it to execute tasks that analyze data from the
 ATLAS~\cite{atlas} experiment performed at CERN. In this case, it was able to improve
-hardware utilization by 30\%~\cite{cern-hq} on the IT4Innovations Karolina and Barbora
-clusters. \hyperqueue{} has also been used to execute workflows in several projects
+hardware utilization by 30\%~\cite{cern-hq} on the IT4Innovations Karolina~\cite{karolina} and
+Barbora~\cite{barbora} supercomputers. \hyperqueue{} has also been used to execute workflows in several projects
 funded by the European Union, such as EVEREST~\cite{everest},
 ACROSS~\cite{across}, Exa4Mind~\cite{exa4mind} and
 MaX~\cite{max}. It was especially crucial for the LIGATE~\cite{ligate}

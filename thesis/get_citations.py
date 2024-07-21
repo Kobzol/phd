@@ -223,7 +223,7 @@ if __name__ == "__main__":
         f.write(
             f"""All citation data presented below is actual as of {date_formatted}, unless otherwise
             specified. Citation data was taken from {resolver.name()}\\footnoteurl{{{resolver.url()}}}.
-Self citation is defined as a citation by a publication where at least a single author is also amongst
+Self citation is defined as a citation by a publication where at least a single author is also among
 the authors of the cited paper (in other words, there is a non-empty overlap between the authors of the citing and the cited paper).
 SJR (Scientific Journal Rankings) ranking was taken from Scimago Journal\\footnoteurl{{https://www.scimagojr.com}},
 IF (Impact Factor) ranking was taken from Oxford Academic\\footnoteurl{{https://academic.oup.com/bioinformatics}}.

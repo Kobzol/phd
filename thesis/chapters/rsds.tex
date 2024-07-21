@@ -39,7 +39,7 @@ provides the following contributions:
 	      performance in various \gls{hpc}-inspired scenarios. We have evaluated the
 	      per-task-overhead and scalability of \dask{} and compared how different task
 	      scheduling algorithms affect its performance.
-	\item We demonstrate that even a naïve (completely random) scheduling algorithm can be competitive in
+	\item We demonstrate that even a naive (completely random) scheduling algorithm can be competitive in
 	      many common situations with the sophisticated hand-tuned work-stealing scheduler used in
 	      \dask{}.
 	\item We provide \rsds{}, an alternative \dask{} server that is
@@ -61,10 +61,10 @@ on GitHub\footnoteurl{https://github.com/it4innovations/rsds/graphs/contributors
 \dask{} is a distributed task runtime implemented in Python that can
 parallelize and distribute Python programs. It offers various programming interfaces
 (\glspl{api}) that mimic the interfaces of popular Python packages. For example,
-\emph{Dask DataFrame} copies the \texttt{pandas}\footnoteurl{https://pandas.pydata.org}
+\emph{Dask DataFrame} copies the \texttt{pandas}~\cite{pandas}
 interface for table processing and database operations, \emph{Dask Arrays} copies the
-\texttt{numpy}\footnoteurl{https://numpy.org} interface for tensor computations and
-\emph{Dask ML} copies the \texttt{scikit-learn}\footnoteurl{https://scikit-learn.org}
+\texttt{numpy}~\cite{numpy} interface for tensor computations and
+\emph{Dask ML} copies the \texttt{scikit-learn}~\cite{scikit-learn}
 interface for machine learning. Thanks to this interface compatibility, existing Python programs
 leveraging these libraries can often be parallelized with \dask{} by changing
 only a handful of lines of code.
@@ -229,7 +229,7 @@ been observed for example in~\cite{dasksparkcomparison}, where several workflows
 at all from multi-threaded \dask{} workers.
 
 To alleviate this limitation, \dask{} workers can be executed in multiple
-copies on the same node, each running inside a separate process. In this setup, each worker has its
+instances on the same node, each running inside a separate process. In this setup, each worker has its
 own copy of the CPython interpreter, and therefore also its own copy of the
 \gls{gil}, and thus tasks running inside one worker do not affect (and most
 importantly, block) tasks running on other workers. However, this also means that certain overhead
@@ -321,7 +321,7 @@ provided below.
 		partitions.
 	\item[bag-n-p] works with a dataset of $n$ records in $p$ partitions.
 		It performs a Cartesian product, filtering and aggregations.
-	\item[numpy-n-p] transposes and aggregates a two-dimensional distributed NumPy array using the
+	\item[numpy-n-p] transposes and aggregates a two-dimensional distributed \texttt{numpy} array using the
 		\emph{Arrays} interface. The array has size $(n,n)$ and it is split
 		into partitions of size $(n/p,n/p)$.
 	\item[groupby-d-f-p] works with a table with $d$ days of records, each record is
@@ -336,7 +336,7 @@ provided below.
 \end{description}
 
 \subsection{Benchmark configuration}
-Our experiments were performed on the Salomon supercomputer\footnoteurl{https://docs.it4i.cz/salomon/introduction}. Each
+Our experiments were performed on the Salomon supercomputer~\cite{salomon}. Each
 Salomon node has two sockets containing Intel Xeon E5-2680v3 with 12 cores clocked at
 $2.5$ GHz ($24$ cores in total),
 $128$ GiB of \gls{ram} clocked at $2133$
@@ -348,7 +348,7 @@ Unless otherwise specified, by default we spawn $24$
 chose this setting because of the CPython \gls{gil} issue described earlier.
 Since our benchmarks are mostly compute-bound and not \gls{io}-bound, a single
 worker cannot effectively use more than a single thread. Not even the popular
-\texttt{NumPy} and \texttt{Pandas} libraries used in our benchmarks are
+\texttt{numpy} and \texttt{pandas} libraries used in our benchmarks are
 multi-threaded by default, which is also why \dask{} provides direct
 \gls{api} support for their parallelization. Using the same number of workers as
 the available cores ensures that no more than a single task per core is executed at any given
@@ -525,14 +525,14 @@ random scheduler stays almost constant, independent of the number of workers.
 The \dask{} manual states that ``Each task suffers about 1ms of overhead. A
 small computation and a network roundtrip can complete in less than
 10ms.''\footnote{\url{https://distributed.dask.org/en/latest}}. Our experiment shows that the overhead is less than
-$1ms$ for most of our benchmarks.
+$1$ ms for most of our benchmarks.
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.9\textwidth]{imgs/rsds/charts/dask-strong-scaling}
 	\caption{Strong scaling of \dask{} with different task durations
-	($1000ms$, $100ms$ and
-	$10ms$).}
+	($1000$ ms, $100$ ms and
+	$10$ ms).}
 	\label{fig:dask-strong-scaling}
 \end{figure}
 
@@ -542,11 +542,11 @@ of a task is similar or smaller than the overhead of the runtime itself, executi
 the runtime will probably not yield any speedup. This is demonstrated
 in~\Autoref{fig:dask-strong-scaling}, which shows the strong scaling of \dask{} on
 the $merge\_slow$ benchmark. The three charts demonstrate its scaling with tasks that
-take $1000ms$, $100ms$ and $10ms$
+take $1000$ ms, $100$ ms and $10$ ms
 respectively. With tasks that take a second, \dask{} is able to scale
 relatively well up to $1512$ workers. However, when tasks take one tenth of the time, it only
 scales up to around $360$ workers, and when tasks take only
-$10ms$, \dask{} scales to around $168$
+$10$ ms, \dask{} scales to around $168$
 workers, and adding further workers makes the makespan longer.
 
 The results of this experiment indicate that the general runtime overhead of
@@ -940,8 +940,8 @@ using a task graph automatically generated by \dask{}, using the
 interface. This task graph provides many opportunities for parallelization, as the individual tasks
 work on a subset of rows and thus have more computational density compared to the
 \texttt{merge} task graph. However, Table~\ref{tab:dask-graph-properties} shows that the
-average computation time is still only around $10ms$, while the average task
-output is $1 MiB$. This benchmark thus produces considerable network traffic.
+average computation time is still only around $10$ ms, while the average task
+output is $1$ MiB. This benchmark thus produces considerable network traffic.
 While both \dask{} and \rsds{} have identical performance
 with a single worker node, \dask{} stops scaling at $7$
 nodes, and furthermore, its performance degrades and eventually becomes slower than the single node
@@ -985,7 +985,7 @@ scaling, even for short tasks.
 
 \subsubsection*{Overhead per task}
 In~\Autoref{sec:dask-overhead-per-task}, we have seen that the average overhead of
-\dask{} for each task is around $0.3ms$. In this experiment,
+\dask{} for each task is around $0.3$ ms. In this experiment,
 we have measured the per-task overhead of \rsds{}, so that we could qualify how
 much its overhead was reduced, relative to the baseline. All the benchmarks in this experiment were
 performed with the \emph{zero worker} implementation.

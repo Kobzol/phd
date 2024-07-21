@@ -25,7 +25,7 @@ executing task graphs on \gls{hpc} clusters.
 %deploy, configure and use.
 
 %While using off-the-shelf task runtimes with \gls{hpc} clusters is possible, these
-%tools are not prepared to deal with the idiosyncracies and complexities of supercomputing systems.
+%tools are not prepared to deal with the idiosyncrasies and complexities of supercomputing systems.
 
 %Executing task graphs on \gls{hpc} clusters does not \emph{need} to be
 %difficult though, if we use specialized approaches, rather than off-the-shelf tools that are not
@@ -70,17 +70,17 @@ The work presented in this chapter makes the following contributions:
 	      and benchmarks.
 \end{enumerate}
 
-This chapter will first describe the general meta-scheduling design for mapping tasks to
-allocations. Then we will describe the architecture of \hyperqueue{}, which implements
-the proposed design. We will also provide a performance analysis of \hyperqueue{},
-evaluate it on several use-cases and compare it with other state-of-the-art meta-scheduling task
-runtimes.
-
-%TODO: how HQ solves the challenges?
+This chapter first introduces the general meta-scheduling design for mapping tasks to
+allocations. Then it describes the architecture of \hyperqueue{}, which implements
+the proposed design, and presents how its features alleviate the challenges described
+in~\Autoref{ch:sota}. Finally, it provides a performance analysis of \hyperqueue{},
+evaluates it on several use-cases and compares its features with other state-of-the-art
+meta-scheduling task runtimes.
 
 We have described the design and key ideas of \hyperqueue{} in
-\emph{HyperQueue: efficient and ergonomic task graphs on HPC clusters}~\cite{hyperqueue}. The architecture of \hyperqueue{} and
-various other descriptions presented in this chapter were adapted from this publication.
+\emph{HyperQueue: efficient and ergonomic task graphs on HPC clusters}~\cite{hyperqueue}. The
+architecture of \hyperqueue{} descriptions presented in this chapter was adapted from this
+publication.
 
 \workshare{I have collaborated on this work with Ada Böhm; we have both contributed to it equally. I am the sole author of the design and implementation of
 the automatic allocator component, and I have also contributed to the design and implementation of most remaining parts of
@@ -281,7 +281,7 @@ allocations themselves (in that case it would still communicate with workers run
 allocations). However, this would complicate the deployment process and it might require additional
 resiliency features to be implemented in the task runtime.
 
-To evaluate does the proposed approach works in practice, what its performance and usage
+To evaluate the proposed approach works in practice, what its performance and usage
 implications are and how it compares to existing meta-schedulers, we have implemented this design
 in a task runtime called \hyperqueue{}, which will be described in the rest of this
 chapter.
@@ -348,8 +348,8 @@ previous section.
 
 The server itself does not execute any tasks, and it consumes a relatively modest amount of
 resources, and therefore it is not computationally
-demanding.~\Autoref{sec:hq-exp-server-cpu-usage} evaluates how
-many \gls{cpu} resources does the server consume in extreme scenarios.
+demanding.~\Autoref{sec:hq-exp-server-cpu-consumption} evaluates how
+many \gls{cpu} resources the server consumes in extreme scenarios.
 
 Apart from basic responsibilities related to worker management and task scheduling, the server also
 provides additional functionality. For example, it can submit allocations fully automatically on
@@ -1038,7 +1038,7 @@ the configured \emph{backlog} value, or until the allocation manager applies bac
 allocations that are ``in-flight'' (queued or running), just the queued ones. This allows it to
 potentially create a large number of allocations and thus make use of all available resources of
 the cluster, if the allocation manager allows it. Users can use other configuration parameters
-(such as the total amount of workers) to limit the amount of submitted resources.
+(such as the total number of workers) to limit the amount of submitted resources.
 \Autoalloc{} also contains an internal rate limiter that makes sure that it does not
 submit allocations too often and that it pauses the allocation process if the allocations start
 failing too often.
@@ -1216,8 +1216,8 @@ the smallest duration of tasks that can be used without the overhead becoming to
 We have benchmarked the \emph{simple workflow} in two sizes ($10$ and
 $50$ thousand tasks), with three different worker counts ($1$,
 $2$ and $4$ workers) and four different task durations
-($1ms$, $10ms$, $100ms$ and
-$250ms$). The \emph{ideal duration} for each task graph was estimated by taking
+($1$ ms, $10$ ms, $100$ ms and
+$250$ ms). The \emph{ideal duration} for each task graph was estimated by taking
 the total time to execute all the tasks serially (task count times task duration), and divided by
 the total number of cores available (worker count times $128$). This estimates a
 perfect scenario without any overhead, where all tasks are perfectly parallelized across all
@@ -1238,7 +1238,7 @@ duration. The ideal duration is marked with a red horizontal dotted line. For ex
 $1.05$ specifies that the \hyperqueue{} execution was
 $5\%$ slower than the theoretically ideal duration.
 
-We can see that for tasks that last for $100ms$ or more, the overhead of
+We can see that for tasks that last for $100$ ms or more, the overhead of
 \hyperqueue{} is within $5\%$ of the ideal makespan, and with the larger
 task graph that contains $50$ thousand tasks, the overhead stays within
 $3\%$. The overhead increases slightly with an added number of workers, which is
@@ -1246,13 +1246,13 @@ expected; the scheduler needs to perform more work and the server also communica
 workers over the network.
 
 The situation becomes more interesting in the case where the task duration is only
-$1ms$. Here the overhead of \hyperqueue{} seemingly becomes very large.
+$1$ ms. Here the overhead of \hyperqueue{} seemingly becomes very large.
 We have examined this situation in detail and found out that the issue is caused mostly by slow
 command execution performance on Karolina. Our calculation of the theoretically ideal makespan
-assumes that the executed command will last for exactly $1ms$, but from our
+assumes that the executed command will last for exactly $1$ ms, but from our
 experiments, even running a completely empty process on Karolina takes \emph{at least}
-$500\mu{}s$, and executing a program that is supposed to sleep for
-$1ms$ can take several milliseconds. Because the overhead of actually executing
+$500$ \mu{}s, and executing a program that is supposed to sleep for
+$1$ ms can take several milliseconds. Because the overhead of actually executing
 the command is so large, it skews the total overhead of \hyperqueue{}, as it is not able
 to reach that theoretically ideal makespan, since the execution of commands takes more time than
 expected. Note that this would be an issue for any task runtime that executes a command in each
@@ -1329,8 +1329,8 @@ computational resources required to execute tens of worker nodes.
 We have designed two separate scenarios for this experiment. In the first one, we have selected a
 fixed target makespan, so that the \emph{simple workflow} would be executed in approx.\
 $5$ minutes ($300$ seconds) on a single worker, and benchmarked
-three task graphs with increasing task counts, to examine how does the scalability of
-\hyperqueue{} change based on the amount of tasks in the task graph when the total
+three task graphs with increasing task counts, to examine how the scalability of
+\hyperqueue{} changes based on the number of tasks in the task graph when the total
 computational workload stays the same. The task duration of each task was scaled accordingly for
 each graph, so that the total makespan on a single worker would be $5$ minutes.
 The benchmarked worker counts were $1$, $2$,
@@ -1340,7 +1340,7 @@ $64$.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\textwidth]{imgs/hq/charts/scalability-fixed-makespan}
-	\caption{Strong scalability of \hyperqueue{} with a fixed target makespan ($300s$)}
+	\caption{Strong scalability of \hyperqueue{} with a fixed target makespan ($300$ s)}
 	\label{fig:hq-scalability-fixed-makespan}
 \end{figure}
 
@@ -1356,22 +1356,22 @@ that lasted $100$ms, it provided a $54.4$x speedup with
 $64$ workers.
 
 In the second scenario, we fixed the task duration of each task to $1$ second,
-and then varied the task count. This allowed us to examine how does the scalability of
-\hyperqueue{} change with an increasing workload.
+and then varied the task count. This allowed us to examine how the scalability of
+\hyperqueue{} changes with an increasing workload.
 
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\textwidth]{imgs/hq/charts/scalability-fixed-task-duration}
-	\caption{Strong scalability of \hyperqueue{} with a fixed task duration ($1s$)}
+	\caption{Strong scalability of \hyperqueue{} with a fixed task duration ($1$ s)}
 	\label{fig:hq-scalability-fixed-task-duration}
 \end{figure}
 
 We can observe the results in~\Autoref{fig:hq-scalability-fixed-task-duration}. We can see that the scalability improves
-with the amount of tasks; with $100$ thousand tasks, \hyperqueue{} is
+with the number of tasks; with $100$ thousand tasks, \hyperqueue{} is
 able to provide a $59$x speedup with $64$ workers. On the other
 hand, with only $10000$ tasks, the speedup in this case reaches only
 $38.8$x, because there are not enough tasks to saturate all workers. With
-$64$ workers that each have $128$ cores, the total amount of
+$64$ workers that each have $128$ cores, the total number of
 cores managed by \hq{} is $8192$. Therefore, in this small task
 graph, each worker barely gets a single task to compute.
 
@@ -1404,7 +1404,7 @@ documentation~\cite{dask-thread-recommendation}.
 	\centering
 	\includegraphics[width=\textwidth]{imgs/hq/charts/dask-vs-hq-sleep}
 	\caption{Scalability of \hyperqueue{} vs \dask{} with a fixed target makespan
-	($30s$)}
+	($30$ s)}
 	\label{fig:hq-dask-sleep}
 \end{figure}
 
@@ -1414,7 +1414,7 @@ makespan of $30$ seconds on a single node). The horizontal axis shows the amount
 of used nodes and the vertical axis displays the makespan. Note that we are using the term
 \emph{node count} instead of \emph{worker count} here, because each
 \dask{} process spawned per node is technically a separate worker. We can see that
-the in the case of \dask{}, the performance depends a lot on the amount of tasks in
+the in the case of \dask{}, the performance depends a lot on the number of tasks in
 the task graph, and also on the task duration. With only $1000$ tasks and task
 duration in the range of seconds, \dask{} is able to scale relatively well in all
 three configurations, although it is still slightly slower than \hyperqueue{}. However,
@@ -1449,7 +1449,7 @@ not block other Python threads of the worker, which can thus perform other work 
 
 We have further examined the baseline overhead of \dask{} by executing an empty
 task (an empty Python function), which emulates the \emph{zero worker} mode of
-\hyperqueue{}, as it shows how does the task runtime scale with the fastest possible task
+\hyperqueue{}, as it shows how the task runtime scales with the fastest possible task
 execution. We have compared this empty task execution with running the fastest possible task in
 \hyperqueue{} (by spawning a process that immediately exits) and also with the \emph{zero worker} mode of \hyperqueue{}.
 
@@ -1559,7 +1559,7 @@ thus also amplify potential differences in communication overhead caused by the 
 We can observe the results of the experiment in~\Autoref{fig:hq-encryption-overhead}. The horizontal axis shows
 the number of tasks in the benchmarked task graph, and the vertical axis shows the
 \emph{makespan}. In the \emph{zero worker} mode (displayed on the left), it is clear
-that encrypting the communication does in fact produce a measurable overhead. In the largest
+that encrypting the communication in fact produces a measurable overhead. In the largest
 measured case with $100$ thousand tasks, the makespan is approximately twice
 longer with encryption enabled. However, as soon as the tasks do any actual work (albeit it being
 the simplest work possible), the encryption overhead is no longer noticeable and it does not affect
@@ -1576,7 +1576,7 @@ encryption at runtime.
 \label{sec:hq-exp-output-streaming}
 In this experiment we evaluate the effect of the \emph{output streaming} mode, which can be used to
 stream the outputs of \emph{stdout} and/or \emph{stderr} streams from
-individual tasks to the \hyperqueue{} server, to avoid creating a large amount of files
+individual tasks to the \hyperqueue{} server, to avoid creating a large number of files
 on the filesystem. We have benchmarked two task graphs without dependencies, with
 $10$ and $50$ thousand tasks, where each task generates a a
 fixed amount of data ($10$ and $100$ KiB per task). Each task
@@ -1633,7 +1633,7 @@ filesystem, it seems to be particularly helpful on slower filesystems. One inter
 that output streaming is generally faster on the PROJECT filesystem than on the SCRATCH filesystem
 (even though the PROJECT filesystem itself should be much slower). Our conjecture is that this
 might be caused by the network topology of the cluster. The SCRATCH filesystem uses the
-Infiniband~\cite{infiniband} network connection, which is also used for network communication
+InfiniBand~\cite{infiniband} network connection, which is also used for network communication
 between the server and the workers; therefore, performing file \gls{io} on scratch
 while also sending many network packets might cause contention.
 
@@ -1655,8 +1655,8 @@ while also sending many network packets might cause contention.
 
 Using output streaming has one additional advantage; it can reduce the total amount of consumed
 disk space, because it creates only a single file on disk. On most filesystems, every file occupies
-at least a single disk block (which typically consumes several $KiB$ of space),
-therefore creating a large amount of files also increases disk usage in
+at least a single disk block (which typically consumes several KiB of space),
+therefore creating a large number of files also increases disk usage in
 general.~\Autoref{tab:hq-io-streaming-size} shows the total size of the output of all tasks of the benchmarked
 task graphs on disk. The \emph{Size (stream)} column shows the final size of the sequential log
 file (in this case, output streaming was used), the \emph{Size (stdout)} column displays the

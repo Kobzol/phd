@@ -195,7 +195,7 @@ network utilization or interference~\cite{tang2010list,yao2013task,wang2018list,
 the latency and bandwidth of actual computer networks is affected (among other things) by other
 communication happening concurrently on the same network. Moreover, a real worker implementation
 would download more than a single data object simultaneously, which further affects the transfer
-durations, because the worker's bandwidth will be shared by multiple network tranfers. We will use
+durations, because the worker's bandwidth will be shared by multiple network transfers. We will use
 the term \emph{communication model} and \emph{network model} interchangeably in this chapter.
 
 We provide a more realistic network model that simulates full-duplex communication between workers,
@@ -389,12 +389,12 @@ often mention assigning the task to a worker that allows the earliest start time
 that is surely a reasonable heuristic, it is not clear how exactly such a worker should be found,
 because the exact earliest start time often cannot be determined precisely in advance, since its
 calculation might encompass network transfers whose duration is uncertain by nature. This seemingly
-simple implementation detail is crucial for impementing the scheduler, and it should be included in
+simple implementation detail is crucial for implementing the scheduler, and it should be included in
 the description of all scheduling algorithms.
 
 \estee{} implementations of these schedulers use a simple estimation of the earliest
 start time, which is based on the currently executing and already scheduled tasks of a worker and
-an estimated network transfer cost based on uncontended network bandwidth (the
+an estimated network transfer cost based on uncongested network bandwidth (the
 \emph{simple} network model is used for the scheduler's estimation of the network
 transfer cost).
 
@@ -497,7 +497,7 @@ environment, input task graph datasets, all benchmark configurations, results an
 also freely available as reproducible artifacts~\cite{estee_results} for further examination.
 
 The benchmarks were executed on the clusters of the IT4Innovations supercomputing
-centre~\cite{it4i}. The actual characteristics of the cluster hardware is not
+center~\cite{it4i}. The actual characteristics of the cluster hardware is not
 important, because all benchmarks were executed using the \estee{} simulator, so the
 benchmark results do not depend on the used hardware. Each benchmark that was non-deterministic in
 any way (e.g.\ because it used a pseudo-random number generator) was executed twenty times. Unless
@@ -739,8 +739,8 @@ task graphs\footnote{Extended validation results can be found in~\cite{estee}.}.
 makespan of the \emph{blevel} scheduler within the same environment (either
 \estee{} or \dask{}). Note that the relative ratios were centered
 around zero by subtracting $1$ from them, to focus on the relative differences.
-For example, if a task graph took $100s$ to execute in \dask{} with
-the \emph{blevel} scheduler, but $110s$ with the \emph{ws}
+For example, if a task graph took $100$ s to execute in \dask{} with
+the \emph{blevel} scheduler, but $110$ s with the \emph{ws}
 scheduler, the ratio of the \emph{ws} scheduler would be $0.1$. If
 the simulation was perfect, the two columns for each scheduler would have the same height.
 

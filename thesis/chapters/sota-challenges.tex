@@ -7,14 +7,12 @@ discussed in the previous chapter. These runtimes are quite popular, and they ar
 computing all kinds of scientific workflows on \gls{hpc}
 clusters~\cite{hpc_tasks, hpc_tasks_2, hpc_tasks_3, pegasus}.
 
-% TODO: remove AiiDa/NextFlow/StreamFlow?
 Examples of such task runtimes include e.g.\ \dask{}~\cite{dask},
 Parsl~\cite{parsl}, Ray~\cite{ray},
 PyCOMPSs~\cite{pycompss}, HyperLoom~\cite{hyperloom},
 Pydra~\cite{pydra}, Snakemake~\cite{snakemake},
 SciLuigi~\cite{sciluigi}, Merlin~\cite{merlin},
-Autosubmit~\cite{autosubmit}, NextFlow~\cite{nextflow},
-StreamFlow~\cite{streamflow}, AiiDA~\cite{aiida} or
+Autosubmit~\cite{autosubmit} or
 FireWorks~\cite{fireworks}. Each task runtime defines its own instance of a task-based
 programming model, and has a different set of trade-offs in areas such as performance and
 scalability, fault tolerance, ease-of-use, ease-of-deployment and others.
@@ -30,7 +28,7 @@ This chapter provides a general overview of the most important aspects of task g
 supercomputers, and in particular of the challenges associated with it. These challenges can limit
 the achievable hardware utilization and also worsen the developer experience of task graph authors.
 Most of the challenges stem from the sheer scale of \gls{hpc} workloads, and
-primarily from the complexity and idiosyncracies of supercomputers, which have been historically
+primarily from the complexity and idiosyncrasies of supercomputers, which have been historically
 designed for different kinds of programming models. These challenges are also further exacerbated
 when using off-the-shelf tools that were not designed for \gls{hpc} use-cases.
 
@@ -140,7 +138,7 @@ possible to execute all such task graphs inside a single allocation.
 Even when a task graph can be reasonably executed within a single allocation, this approach might
 lead to underutilization and waste of resources. Consider a typical data analysis or a machine
 learning workflow that works in several stages. First, it loads a dataset from disk and
-pre-processeses it, then it trains a machine learning model, and finally it performs some
+pre-processes it, then it trains a machine learning model, and finally it performs some
 post-processing step, which e.g.\ analyzes the resulting model. The pre-processing and
 post-processing steps are usually not very resource intensive and run on \glspl{cpu}
 only, while the training step typically consumes a lot of resources and is usually executed on a
@@ -532,7 +530,7 @@ in the context of \gls{hpc}-scale task graphs.
 	\item[Runtime overhead] A typical architecture of a task runtime consists of a centralized component that handles task
 		assignments, and a set of connected workers. As we have shown in~\cite{rsds}, task
 		runtimes with this architecture should be mindful of their task execution and communication
-		overhead. For example, even with an overhead of just $1ms$ per task, executing
+		overhead. For example, even with an overhead of just $1$ ms per task, executing
 		a task graph with a million tasks would result in total accumulated overhead of more than fifteen
 		minutes! Our results indicate that increasing the performance of the central scheduling and
 		management component of a task runtime can have a large positive effect on the overall time it
@@ -559,7 +557,7 @@ performed in iterations (called epochs) that continue executing while the predic
 model keeps decreasing. Another example could be a molecular dynamics simulation that is repeated
 until a desired accuracy (or other property) has been reached.
 
-One approach to model such iterative computations would be to run the whole iterative process inide
+One approach to model such iterative computations would be to run the whole iterative process inside
 a single task. While this is simple to implement, it might not be very practical, since such
 iterative processes can take a long time to execute, and performing them in a single task would
 mean that we could not leverage desirable properties offered by the task graph abstraction, for
