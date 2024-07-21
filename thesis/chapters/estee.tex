@@ -469,16 +469,16 @@ our benchmarks.
 	\item[Schedulers] We have benchmarked all schedulers described in~\Autoref{sec:estee-simulator}. Schedulers that use the
 		greedy transfer heuristic are labeled with a \emph{-gt} suffix in benchmark results.
 	\item[Scheduler parameters] To evaluate the effect of minimal scheduling delay, we have used a baseline value of zero, where
-		the scheduler is invoked immediately after any task status update, and then a delay of 0.1, 0.4,
-		1.6 and 6.4 seconds. In the cases where \gls{msd} is non-zero, we have also added a 50
+		the scheduler is invoked immediately after any task status update, and then a delay of $0.1$, $0.4$,
+	$1.6$ and $6.4$ seconds. In the cases where \gls{msd} is non-zero, we have also added a $50$
 		milliseconds delay before sending the scheduler decision to workers, to simulate the time taken by
 		the scheduler to produce the schedule. For experiments that do not focus on \gls{msd},
-		we always use an \gls{msd} of 0.1 seconds and the 50 milliseconds computation delay.
+		we always use an \gls{msd} of $0.1$ seconds and the $50$ milliseconds computation delay.
 		To evaluate information modes, we have used the \emph{exact}, \emph{user} and
 		\emph{mean} imodes. For experiments that do not focus on imodes, we always use the
 		\emph{exact} mode.
 	\item[Network models] The simple (labeled \emph{simple}) and max-min (labeled \emph{max-min}) network
-		models were used, with bandwidth speeds ranging from 32 MiB/s to 8 GiB/s. For experiments that do
+		models were used, with bandwidth speeds ranging from \SI{32}{\mebi\byte}/s to \SI{8}{\gibi\byte}/s. For experiments that do
 		not focus on the network model (e.g.\ when imodes are compared), we always use the
 		\emph{max-min} network model.
 	\item[Clusters] We have used the following five cluster (worker) configurations (where $w \times c$ means
@@ -739,8 +739,8 @@ task graphs\footnote{Extended validation results can be found in~\cite{estee}.}.
 makespan of the \emph{blevel} scheduler within the same environment (either
 \estee{} or \dask{}). Note that the relative ratios were centered
 around zero by subtracting $1$ from them, to focus on the relative differences.
-For example, if a task graph took $100$ s to execute in \dask{} with
-the \emph{blevel} scheduler, but $110$ s with the \emph{ws}
+For example, if a task graph took \SI{100}{\second} to execute in \dask{} with
+the \emph{blevel} scheduler, but \SI{110}{\second} with the \emph{ws}
 scheduler, the ratio of the \emph{ws} scheduler would be $0.1$. If
 the simulation was perfect, the two columns for each scheduler would have the same height.
 

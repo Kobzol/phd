@@ -99,7 +99,7 @@
         merge\_triplets  & e & 148 & 111   & 10.77  & 2   & Merge of task
         triplets (Fig.~\ref{fig:tg-merge-triplets})                                      \\
         merge\_sm-big    & e & 240 & 160   & 7.74   & 2   & Merge of two
-        results (0.5 MiB and 100 MiB data objects) (Fig.~\ref{fig:tg-v})                 \\
+        results (\SI{0.5}{\mebi\byte} and \SI{100}{\mebi\byte} data objects) (Fig.~\ref{fig:tg-v})                 \\
         fork1            & e & 300 & 100   & 9.77   & 2   & Tasks with a pair of
         consumers each consuming the same output (Fig.~\ref{fig:tg-fork})                \\
         fork2            & e & 300 & 200   & 19.53  & 2   & Tasks with a pair of
@@ -109,7 +109,7 @@
         duration\_stairs & e & 380 & 0     & 0.00   & 1   & Independent
         tasks; task durations range from 1 to 190 s (Fig.~\ref{fig:tg-plain})            \\
         size\_stairs     & e & 191 & 190   & 17.53  & 2   & 1 producer 190
-        outputs / 190 consumers; sizes range from 1 to 190 MiB                           \\
+        outputs / 190 consumers; sizes range from 1 to \SI{190}{\mebi\byte}                           \\
         splitters        & e & 255 & 255   & 32.25  & 8   & Binary tree of
         splitting tasks (Fig.~\ref{fig:tg-splitters})                                    \\
         conflux          & e & 255 & 255   & 31.88  & 8   & Merging task pairs
@@ -119,7 +119,7 @@
         \\
         fern             & e & 401 & 401   & 11.11  & 201 & Long task sequence with
         side tasks (Fig.~\ref{fig:tg-fern})                                              \\ \hline
-        gridcat          & i & 401 & 401   & 115.71 & 4   & Merge of pairs of 300 MiB
+        gridcat          & i & 401 & 401   & 115.71 & 4   & Merge of pairs of \SI{300}{\mebi\byte}
         files                                                                            \\
         crossv           & i & 94  & 90    & 8.52   & 5   & Cross validation             \\
         crossvx          & i & 200 & 200   & 32.66  & 5   & Several instances of cross

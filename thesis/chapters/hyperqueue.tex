@@ -428,7 +428,8 @@ $ hq submit ./my-program
 Even though it is often overlooked, deployment of software on supercomputers can be challenging, as
 was described in~\Autoref{challenge:deployment}. Since \hyperqueue{} aims to provide seamless
 support for \gls{hpc} use-cases, it was also designed to be trivial to deploy. It is
-distributed as a single, relatively small (approx. 15 MiB), statically linked executable called
+distributed as a single, relatively small (approximately \SI{15}{\mebi\byte}), statically linked
+executable called
 \texttt{hq}, which implements all the provided functionality (server, worker and the
 whole \gls{cli}). It does not depend on any external services or dynamic libraries,
 apart from the ubiquitous \texttt{C} standard library, and it runs fully in userspace
@@ -1216,8 +1217,8 @@ the smallest duration of tasks that can be used without the overhead becoming to
 We have benchmarked the \emph{simple workflow} in two sizes ($10$ and
 $50$ thousand tasks), with three different worker counts ($1$,
 $2$ and $4$ workers) and four different task durations
-($1$ ms, $10$ ms, $100$ ms and
-$250$ ms). The \emph{ideal duration} for each task graph was estimated by taking
+(\SI{1}{\milli\second}, \SI{10}{\milli\second}, \SI{100}{\milli\second} and
+\SI{250}{\milli\second}). The \emph{ideal duration} for each task graph was estimated by taking
 the total time to execute all the tasks serially (task count times task duration), and divided by
 the total number of cores available (worker count times $128$). This estimates a
 perfect scenario without any overhead, where all tasks are perfectly parallelized across all
@@ -1238,7 +1239,7 @@ duration. The ideal duration is marked with a red horizontal dotted line. For ex
 $1.05$ specifies that the \hyperqueue{} execution was
 $5\%$ slower than the theoretically ideal duration.
 
-We can see that for tasks that last for $100$ ms or more, the overhead of
+We can see that for tasks that last for \SI{100}{\milli\second} or more, the overhead of
 \hyperqueue{} is within $5\%$ of the ideal makespan, and with the larger
 task graph that contains $50$ thousand tasks, the overhead stays within
 $3\%$. The overhead increases slightly with an added number of workers, which is
@@ -1246,13 +1247,13 @@ expected; the scheduler needs to perform more work and the server also communica
 workers over the network.
 
 The situation becomes more interesting in the case where the task duration is only
-$1$ ms. Here the overhead of \hyperqueue{} seemingly becomes very large.
+\SI{1}{\milli\second}. Here the overhead of \hyperqueue{} seemingly becomes very large.
 We have examined this situation in detail and found out that the issue is caused mostly by slow
 command execution performance on Karolina. Our calculation of the theoretically ideal makespan
-assumes that the executed command will last for exactly $1$ ms, but from our
+assumes that the executed command will last for exactly \SI{1}{\milli\second}, but from our
 experiments, even running a completely empty process on Karolina takes \emph{at least}
-$500$ \mu{}s, and executing a program that is supposed to sleep for
-$1$ ms can take several milliseconds. Because the overhead of actually executing
+\SI{500}{\micro\second}, and executing a program that is supposed to sleep for
+\SI{1}{\milli\second} can take several milliseconds. Because the overhead of actually executing
 the command is so large, it skews the total overhead of \hyperqueue{}, as it is not able
 to reach that theoretically ideal makespan, since the execution of commands takes more time than
 expected. Note that this would be an issue for any task runtime that executes a command in each
@@ -1271,11 +1272,12 @@ but on the actual performance of command execution on Karolina. We have implemen
 program that executes the same tasks (\texttt{sleep} processes) as
 \hyperqueue{}, in parallel on all $128$ available cores. This provides a
 more reasonable baseline that takes into account the overhead of command execution on Karolina. The
-results of this experiments can be seen in~\Autoref{fig:hq-overhead-vs-manual}. The baseline is again marked
-with a horizontal red line. We have performed this experiment only with a single worker, because
+results of this experiments can be seen in~\Autoref{fig:hq-overhead-vs-manual}. The baseline is marked
+with a horizontal red line; it represents the fastest measured time to execute the given number
+of processes. We have performed this experiment only with a single worker, because
 our baseline program did not implement multi-node distribution. Based on these results, we can see
-that for the \emph{simple workflow}, the actual overhead of \hyperqueue{} (when compared to manually running the commands without a task runtime) stays within
-$10\%$.
+that for the \emph{simple workflow}, the actual overhead of \hyperqueue{} (when compared to manually
+running the commands without a task runtime) stays within $10\%$.
 
 \subsection{Task throughput}
 \label{sec:hq-exp-task-throughput}
@@ -1311,7 +1313,7 @@ four workers; the overhead of network communication and scheduling starts to dom
 
 The absolute numbers of the achieved throughput demonstrate that \hyperqueue{} has very
 little baseline overhead, and can in theory execute hundreds of thousands of tasks per second. The
-tasks would have to be shorter than approx. $5\mu{}s$ to fully saturate the throughput
+tasks would have to be shorter than approximately \SI{5}{\micro\second} to fully saturate the throughput
 achievable by \hyperqueue{}. Such a task duration is uncommon for scientific workflows
 (indeed, on Karolina even starting a new process takes a hundred times longer); it is more common
 for task-parallel programming models that have been described in~\Autoref{sec:task-granularity}, which are
@@ -1327,7 +1329,7 @@ benchmark configuration in this experiment was measured only once because of the
 computational resources required to execute tens of worker nodes.
 
 We have designed two separate scenarios for this experiment. In the first one, we have selected a
-fixed target makespan, so that the \emph{simple workflow} would be executed in approx.\
+fixed target makespan, so that the \emph{simple workflow} would be executed in approximately\
 $5$ minutes ($300$ seconds) on a single worker, and benchmarked
 three task graphs with increasing task counts, to examine how the scalability of
 \hyperqueue{} changes based on the number of tasks in the task graph when the total
@@ -1340,7 +1342,7 @@ $64$.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\textwidth]{imgs/hq/charts/scalability-fixed-makespan}
-	\caption{Strong scalability of \hyperqueue{} with a fixed target makespan ($300$ s)}
+	\caption{Strong scalability of \hyperqueue{} with a fixed target makespan (\SI{300}{\second})}
 	\label{fig:hq-scalability-fixed-makespan}
 \end{figure}
 
@@ -1352,7 +1354,7 @@ durations, \hyperqueue{} was able to scale reasonably up to $64$
 workers, and it was able to compute the whole task graph in approximately $5$
 seconds. In the best case, with tasks that took $2.5$s co execute, it provided a
 $59.2$x speedup with $64$ workers. In the worst case, with tasks
-that lasted $100$ms, it provided a $54.4$x speedup with
+that lasted \SI{100}{\milli\second}, it provided a $54.4$x speedup with
 $64$ workers.
 
 In the second scenario, we fixed the task duration of each task to $1$ second,
@@ -1362,7 +1364,7 @@ and then varied the task count. This allowed us to examine how the scalability o
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\textwidth]{imgs/hq/charts/scalability-fixed-task-duration}
-	\caption{Strong scalability of \hyperqueue{} with a fixed task duration ($1$ s)}
+	\caption{Strong scalability of \hyperqueue{} with a fixed task duration (\SI{1}{\second})}
 	\label{fig:hq-scalability-fixed-task-duration}
 \end{figure}
 
@@ -1388,7 +1390,7 @@ dashboard for improved performance. All measurements in this experiment were per
 to reduce the required computational resources.
 
 We have evaluated the scalability of both runtimes on the \emph{simple workflow} with a target
-makespan set to $30$s on a single worker, with an increasing number of workers
+makespan set to \SI{30}{\second} on a single worker, with an increasing number of workers
 and a varying number of tasks. In this scenario, \dask{} was benchmarked in three
 separate worker configurations, with $1$ process per node and
 $128$ threads per process ($1p/128t$), with $8$
@@ -1404,7 +1406,7 @@ documentation~\cite{dask-thread-recommendation}.
 	\centering
 	\includegraphics[width=\textwidth]{imgs/hq/charts/dask-vs-hq-sleep}
 	\caption{Scalability of \hyperqueue{} vs \dask{} with a fixed target makespan
-	($30$ s)}
+	(\SI{30}{\second})}
 	\label{fig:hq-dask-sleep}
 \end{figure}
 
@@ -1504,9 +1506,9 @@ scheduled by the server. In the worst case, the server has consumed less than fi
 $200$ thousand tasks within this short period, which is an extreme stress test
 that far exceeds the rate of scheduled tasks in most scientific workflows. Over all the benchmarked
 task counts, the average \gls{cpu} consumption of the server per second and per
-$1000$ tasks was approximately $0.0003$~s. In other words, for
+$1000$ tasks was approximately \SI{0.0003}{\second}. In other words, for
 every thousand tasks in the task graph, the server consumed approximately
-$0.3$~ms \gls{cpu} time every second.
+\SI{0.3}{\milli\second} \gls{cpu} time every second.
 
 \begin{figure}[h]
 	\centering
@@ -1524,8 +1526,8 @@ time consumed by the server over the one-minute period. In this case, the consum
 does not increase by a large amount with more added workers.
 
 In terms of memory consumption, in the largest evaluated case with a task graph containing
-$200k$ tasks, the memory consumption of the server (measured through
-\gls{rss}) was approximately $120$ MiB, which shows that the server
+$200$k tasks, the memory consumption of the server (measured through
+\gls{rss}) was approximately \SI{120}{\mebi\byte}, which shows that the server
 also does not consume large amounts of memory.
 
 The amount of used resources will of course vary based on the executed workflow. However, this
@@ -1579,10 +1581,10 @@ stream the outputs of \emph{stdout} and/or \emph{stderr} streams from
 individual tasks to the \hyperqueue{} server, to avoid creating a large number of files
 on the filesystem. We have benchmarked two task graphs without dependencies, with
 $10$ and $50$ thousand tasks, where each task generates a a
-fixed amount of data ($10$ and $100$ KiB per task). Each task
+fixed amount of data ($10$ and \SI{100}{\kibi\byte} per task). Each task
 simply outputs the corresponding amount of data to its standard output (\emph{stdout}).
 The standard error output is disabled and no output is printed to it. In the largest configuration,
-the task graph produces approx. $5$ GiB of data in total.
+the task graph produces approximately \SI{5}{\gibi\byte} of data in total.
 
 With output streaming enabled, each task output is streamed to the server, which stores all data
 sequentially into a single log file. Without output streaming, each task simply creates a single
@@ -1590,8 +1592,8 @@ file on disk and writes its \emph{stdout} output to it. The experiment was perfo
 two different filesystem partitions of the Karolina cluster. The first partition, called SCRATCH,
 uses the Lustre networked filesystem, which is designed for parallel high intensity
 \gls{io} workloads~\cite{karolina_scratch}. It is a representative of a
-high-performance filesystem, which can in theory reach up to 700 GiB/s write throughput. The second
-partition, called PROJECT, uses \gls{gpfs}, which is a much slower filesystem
+high-performance filesystem, which can in theory reach up to \SI{700}{\gibi\byte}/s write
+throughput. The second partition, called PROJECT, uses \gls{gpfs}, which is a much slower filesystem
 implementation that focuses on providing high availability and redundancy~\cite{karolina_project}.
 
 \begin{figure}[h]
@@ -1611,8 +1613,8 @@ will be described later below.
 
 The results differ significantly based on the amount of output produced by each task, and also
 based on the used filesystem. On the SCRATCH Filesystem, output streaming is able to reduce the
-makespan approximately by half, in the case where each task outputs $10$ KiB of
-data. However, when task output is larger ($100$ KiB), the situation reverses,
+makespan approximately by half, in the case where each task outputs \SI{10}{\kibi\byte} of
+data. However, when task output is larger (\SI{100}{\kibi\byte}), the situation reverses,
 and output streaming becomes slower. This is caused by the fact that the sequential writing into
 the log file by the server becomes a bottleneck, as it cannot be easily parallelized by the
 filesystem (unlike e.g.\ writing to many files in parallel). We have confirmed this by benchmarking
@@ -1663,9 +1665,9 @@ file (in this case, output streaming was used), the \emph{Size (stdout)} column 
 total size of a directory containing all files with outputs of individual tasks (in this case,
 output streaming was not used) and the \emph{Ratio} column shows how much larger was the
 output in the case where streaming was not used. In the case where each task has outputted
-$10$ KiB of data, writing the output to individual files on disk resulted in
+\SI{10}{\kibi\byte} of data, writing the output to individual files on disk resulted in
 around $23\%$ higher disk usage. In the second configuration, where each task has
-outputted $100$ KiB of data, this difference was reduced to
+outputted \SI{100}{\kibi\byte} of data, this difference was reduced to
 $3\%$,because the disk space overhead of the files became dwarfed by the size of
 their content.
 

@@ -344,7 +344,7 @@ leverage these modern \gls{hpc} hardware features, this complexity is also
 propagated to tasks and their resource requirements.
 
 Tasks might require a combination of several requirements, for example two
-\glspl{gpu}, sixteen cores and 32 GiB of main memory. They can also be designed in
+\glspl{gpu}, $16$ cores and \SI{32}{\gibi\byte} of main memory. They can also be designed in
 a way that allows them to leverage an open-ended range of resources, e.g.\ a task might require at
 least four cores, but if more are available, it could use as many as possible. And some tasks might
 even support several variants of requirements, for example a task might either use four cores and a
@@ -530,7 +530,7 @@ in the context of \gls{hpc}-scale task graphs.
 	\item[Runtime overhead] A typical architecture of a task runtime consists of a centralized component that handles task
 		assignments, and a set of connected workers. As we have shown in~\cite{rsds}, task
 		runtimes with this architecture should be mindful of their task execution and communication
-		overhead. For example, even with an overhead of just $1$ ms per task, executing
+		overhead. For example, even with an overhead of just \SI{1}{\milli\second} per task, executing
 		a task graph with a million tasks would result in total accumulated overhead of more than fifteen
 		minutes! Our results indicate that increasing the performance of the central scheduling and
 		management component of a task runtime can have a large positive effect on the overall time it
