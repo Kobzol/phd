@@ -53,7 +53,7 @@ def format_entry(analysis: CitationAnalysis) -> str:
                 raise Exception(f"Journal paper without SJR or IF: {analysis}")
         else:
             venue = "conference proceedings"
-        metadata += f"Type: {venue}\\\\"
+        metadata += f"Venue: {venue}\\\\"
 
     # Citations
     total_citations = len(analysis.own) + len(analysis.nonown)
@@ -61,11 +61,11 @@ def format_entry(analysis: CitationAnalysis) -> str:
     if total_citations == 0:
         self_citation_text = ""
     elif self_citations == 0:
-        self_citation_text = " (no self citations)"
+        self_citation_text = " (no self-citations)"
     elif self_citations == 1:
-        self_citation_text = " (1 self citation)"
+        self_citation_text = " (1 self-citation)"
     else:
-        self_citation_text = f" ({self_citations} self citations)"
+        self_citation_text = f" ({self_citations} self-citations)"
     metadata += f"""Total citations: {total_citations}{self_citation_text}\\\\"""
 
     # Index
@@ -223,12 +223,11 @@ if __name__ == "__main__":
         f.write(
             f"""All citation data presented below is actual as of {date_formatted}, unless otherwise
             specified. Citation data was taken from {resolver.name()}\\footnoteurl{{{resolver.url()}}}.
-Self citation is defined as a citation by a publication where at least a single author is also among
-the authors of the cited paper (in other words, there is a non-empty overlap between the authors of the citing and the cited paper).
+Self-citation is defined as a citation with a non-empty intersection between the authors of the citing and the cited paper.
 SJR (Scientific Journal Rankings) ranking was taken from Scimago Journal\\footnoteurl{{https://www.scimagojr.com}},
 IF (Impact Factor) ranking was taken from Oxford Academic\\footnoteurl{{https://academic.oup.com/bioinformatics}}.
 The h-index of the author of this thesis according to the Scopus database is \\texttt{{{h_index}}},
-with \\texttt{{{total_nonown_citations}}} total citations (both excluding self citations).
+with \\texttt{{{total_nonown_citations}}} total citations (both excluding self-citations).
 
 Note that Ada Böhm was named Stanislav Böhm in older publications.
 """)
