@@ -743,6 +743,16 @@ and Ukkonen, Esko",
     location = {Portland, Oregon},
     series = {MTAGS '09}
 }
+@online{salomon,
+    title = {Salomon supercomputer},
+    url = {https://docs.it4i.cz/salomon/introduction},
+    urldate = {2024-07-21},
+}
+@online{barbora,
+    title = {Barbora supercomputer},
+    url = {https://docs.it4i.cz/barbora/introduction},
+    urldate = {2024-07-21},
+}
 @online{karolina,
     title = {Karolina supercomputer},
     url = {https://docs.it4i.cz/karolina/introduction/},
@@ -805,11 +815,6 @@ and Ukkonen, Esko",
 %    URL = {https://doi.org/10.1021/acs.jcim.8b00545},
 %    eprint = {https://doi.org/10.1021/acs.jcim.8b00545}
 }
-@online{ps-workflow,
-    title = {LIGATE Pose Selector Workflow},
-    url = {https://github.com/LigateProject/Pose-Selector-workflow},
-    urldate = {2024-07-19},
-}
 @article{smiles,
     author = {Weininger, David},
     title = {SMILES, a chemical language and information system. 1. Introduction to methodology and encoding rules},
@@ -836,6 +841,48 @@ and Ukkonen, Esko",
     number={},
     pages={616-632},
     doi={10.1109/9780470544839.ch42}
+}
+@InProceedings{pandas,
+    author    = { {W}es {M}c{K}inney },
+    title     = { {D}ata {S}tructures for {S}tatistical {C}omputing in {P}ython },
+    booktitle = { {P}roceedings of the 9th {P}ython in {S}cience {C}onference },
+    pages     = { 56 - 61 },
+    year      = { 2010 },
+    editor    = { {S}t\'efan van der {W}alt and {J}arrod {M}illman },
+    doi       = { 10.25080/Majora-92bf1922-00a }
+}
+@Article{numpy,
+    title         = {Array programming with {NumPy}},
+    author        = {Charles R. Harris and K. Jarrod Millman and St{\'{e}}fan J.
+                 van der Walt and Ralf Gommers and Pauli Virtanen and David
+                 Cournapeau and Eric Wieser and Julian Taylor and Sebastian
+                 Berg and Nathaniel J. Smith and Robert Kern and Matti Picus
+                 and Stephan Hoyer and Marten H. van Kerkwijk and Matthew
+                 Brett and Allan Haldane and Jaime Fern{\'{a}}ndez del
+                 R{\'{i}}o and Mark Wiebe and Pearu Peterson and Pierre
+                 G{\'{e}}rard-Marchant and Kevin Sheppard and Tyler Reddy and
+                 Warren Weckesser and Hameer Abbasi and Christoph Gohlke and
+                 Travis E. Oliphant},
+    year          = {2020},
+    month         = sep,
+    journal       = {Nature},
+    volume        = {585},
+    number        = {7825},
+    pages         = {357--362},
+    doi           = {10.1038/s41586-020-2649-2},
+    publisher     = {Springer Science and Business Media {LLC}},
+%    url           = {https://doi.org/10.1038/s41586-020-2649-2}
+}
+@article{scikit-learn,
+    title={Scikit-learn: Machine Learning in {P}ython},
+    author={Pedregosa, F. and Varoquaux, G. and Gramfort, A. and Michel, V.
+          and Thirion, B. and Grisel, O. and Blondel, M. and Prettenhofer, P.
+          and Weiss, R. and Dubourg, V. and Vanderplas, J. and Passos, A. and
+          Cournapeau, D. and Brucher, M. and Perrot, M. and Duchesnay, E.},
+    journal={Journal of Machine Learning Research},
+    volume={12},
+    pages={2825--2830},
+    year={2011}
 }
 
 % Allocation managers
@@ -1672,6 +1719,39 @@ and van der Spoel, David",
     howpublished = {Bull. Amer. Meteor. Soc., 77, 437-470},
     year = {1996}
 }
+@dataset{ps_dataset_1,
+    author       = {Wingbermühle, Sebastian and
+                  Shugaeva, Tatiana and
+                  Lindahl, Erik and
+                  Lunghini, Filippo and
+                  Biswas, Akash Deep and
+                  Talarico, Carmine},
+    title        = {{Pose Selector Workflow - Structure Input Files for
+    Machine Learning (Set 2)}},
+    month        = jun,
+    year         = 2024,
+    publisher    = {Zenodo},
+    version      = {1.0},
+    doi          = {10.5281/zenodo.11397486},
+%    url          = {https://doi.org/10.5281/zenodo.11397486}
+}
+@dataset{ps_dataset_2,
+    author       = {Wingbermühle, Sebastian and
+                  Shugaeva, Tatiana and
+                  Lindahl, Erik and
+                  Lunghini, Filippo and
+                  Biswas, Akash Deep and
+                  Talarico, Carmine},
+    title        = {{Pose Selector Workflow - Docking Poses, Absolute
+    Binding Free Energy Estimates and Structure Input
+                   Files for Machine Learning}},
+    month        = jun,
+    year         = 2024,
+    publisher    = {Zenodo},
+    version      = {1.0},
+    doi          = {10.5281/zenodo.11397017},
+%    url          = {https://doi.org/10.5281/zenodo.11397017}
+}
 
 % PhD tools
 @misc{estee_github,
@@ -1741,12 +1821,32 @@ and van der Spoel, David",
     year = "2008"
 }
 @article{cern-hq,
-    author        = "Svatos, Michal and Chudoba, Jiri and Vokac, Petr",
+    author        = "Svatoš, Michal and Chudoba, Jiří and Vokáč, Petr",
     collaboration = "ATLAS",
     title         = "{ARC-CE+HyperQueue based submission system of ATLAS jobs
                        for the Karolina HPC}",
     year          = "2022",
     url           = "https://cds.cern.ch/record/2837871",
+}
+@article{atlas-it4i-1,
+    author = {Svatoš, Michal and Chudoba, Jiří and Vokáč, Petr},
+    year = {2019},
+    month = {01},
+    pages = {03005},
+    title = {ATLAS utilisation of the Czech national HPC center},
+    volume = {214},
+    journal = {EPJ Web of Conferences},
+    doi = {10.1051/epjconf/201921403005}
+}
+@article{atlas-it4i-2,
+    author = {Svatoš, Michal and Chudoba, Jiří and Vokáč, Petr},
+    year = {2020},
+    month = {01},
+    pages = {09010},
+    title = {Improvements in utilisation of the Czech national HPC center},
+    volume = {245},
+    journal = {EPJ Web of Conferences},
+    doi = {10.1051/epjconf/202024509010}
 }
 @online{streamflow-hq,
     title = {StreamFlow HyperQueue integration},
@@ -1802,7 +1902,6 @@ and van der Spoel, David",
     location = {Virtual Event, Italy},
     series = {CF '21}
 }
-
 @online{exa4mind,
     title = {Extreme Analytics for Mining Data spaces},
     year = {2023},
@@ -1847,4 +1946,22 @@ and Ikeda, Makoto",
     pages="280--293",
 %    abstract="The HPC-as-a-Service concept is to provide users with simple and intuitive access to a supercomputing infrastructure without the need to buy and manage their own physical servers or data centers. This article presents the commonly used services and implementations of this concept and introduces our own in-house application framework called High-End Application Execution Middleware (HEAppE Middleware). HEAppE's universally designed software architecture enables unified access to different HPC systems through simple object-oriented web-based APIs, thus providing HPC capabilities to users without the necessity to manage the running jobs forms the command-line interface of the HPC scheduler directly on the cluster. This article also contains the list of several pilot use-cases from a number of thematic domains where the HEAppE Platform was successfully used. Two of those pilots, focusing on satellite image analysis and bioimage informatics, are presented in more detail.",
     isbn="978-3-030-22354-0"
+}
+@misc{ps-workflow,
+    author = {Sebastian Wingbermühle},
+    title = {LIGATE Pose Selector Workflow},
+    year = {2024},
+    publisher = {GitHub},
+    journal = {GitHub repository},
+    howpublished = {\url{https://github.com/LigateProject/Pose-Selector-workflow}},
+    commit = {5b717af244280b755207df3d0fec4147324e057b}
+}
+@misc{cadd-workflow,
+    author = {Jakub Beránek and Sebastian Wingbermühle and Davide Gadioli},
+    title = {LIGATE CADD and Virtual Screening Workflow},
+    year = {2024},
+    publisher = {GitHub},
+    journal = {GitHub repository},
+    howpublished = {\url{https://github.com/LigateProject/Computer-Aided-Drug-Design-workflow-HyperQueue}},
+    commit = {7051916db3affb2eb8b0e5cf9a932cea24cc0ead}
 }
