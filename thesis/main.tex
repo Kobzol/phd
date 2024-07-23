@@ -1,13 +1,15 @@
 \documentclass[english,phd]{diploma}
 
 % Packages
-\usepackage[autostyle=true]{csquotes} % enhanced support for quotation marks, support for biblatex package
+% enhanced support for quotation marks, support for biblatex package
+\usepackage[autostyle=true]{csquotes}
 \usepackage[
     backend=biber,
+    giveninits=true, % abbreviate author's first names in bibliography
     style=numeric,
     alldates=iso,
-    maxnames=999,
-    maxbibnames=3,
+    maxnames=999,    % for my own publications
+    maxbibnames=3,   % for bibliography
     defernumbers=true,
     urldate=short,
     sorting=none
@@ -41,6 +43,7 @@
 % SI units (\micro\second, \mebi\byte)
 \usepackage[binary-units]{siunitx}
 
+%https://tex.stackexchange.com/questions/70875/how-to-render-individual-acronyms-in-lower-case-when-used-inline-but-mixed-case
 % Abbreviations (\gls, \glspl, \acrfull, \acrshort, \acrlong)
 \usepackage[
     acronym,        % enable acronyms
@@ -89,6 +92,10 @@
 }
 
 \renewcommand\lstlistlistingname{List of Source Code Listings}
+
+% 19 pages own publications + references
+% 18 pages (compress metadata and remove \newpage)
+% 15 pages (abbreviate first names of authors, \small bibliography font)
 
 % Metadata
 \ThesisAuthor{Ing. Jakub Beránek}
@@ -199,17 +206,18 @@ European High-Performance Computing Joint Undertaking (JU) under grant agreement
 %\label{ch:conclusion-czech}
 %\input{chapters/conclusion-czech}
 
-\chapter*{List of own publication activities and other outcomes}
-\label{ch:listofstudentsownpublicationactivitiesandotheroutcomes}
-\addcontentsline{toc}{chapter}{\nameref{ch:listofstudentsownpublicationactivitiesandotheroutcomes}}
+\chapter*{List of own publication activities}
+\label{ch:listofstudentsownpublicationactivities}
+\addcontentsline{toc}{chapter}{\nameref{ch:listofstudentsownpublicationactivities}}
 
 \input{chapters/publications-generated}
 
-\chapter*{List of projects}
-\label{ch:listofprojects}~\addcontentsline{toc}{chapter}{\nameref{ch:listofprojects}}
-\input{chapters/projects}
+%\chapter*{List of projects}
+%\label{ch:listofprojects}~\addcontentsline{toc}{chapter}{\nameref{ch:listofprojects}}
+%\input{chapters/projects}
 
 % Bibliography
+\renewcommand*{\bibfont}{\small}
 \printbibliography[heading=bibintoc, title={Bibliography}]
 
 \appendix

@@ -39,7 +39,21 @@ class CitationAnalysis:
 
 
 def format_entry(analysis: CitationAnalysis) -> str:
-    metadata = f"\\vspace{{2mm}}\\\\Status: {analysis.paper.status} ({analysis.year})\\\\"
+    metadata = "\\par{}"
+    # metadata += f"Status: {analysis.paper.status} ({analysis.year})\\\\"
+
+    # Citations
+    total_citations = len(analysis.own) + len(analysis.nonown)
+    self_citations = len(analysis.own)
+    if total_citations == 0:
+        self_citation_text = ""
+    elif self_citations == 0:
+        self_citation_text = " (no self-citations)"
+    elif self_citations == 1:
+        self_citation_text = " (1 self-citation)"
+    else:
+        self_citation_text = f" ({self_citations} self-citations)"
+    metadata += f"""Total citations: {total_citations}{self_citation_text}"""
 
     # Venue
     if analysis.journal is not None:
@@ -53,24 +67,11 @@ def format_entry(analysis: CitationAnalysis) -> str:
                 raise Exception(f"Journal paper without SJR or IF: {analysis}")
         else:
             venue = "conference proceedings"
-        metadata += f"Venue: {venue}\\\\"
-
-    # Citations
-    total_citations = len(analysis.own) + len(analysis.nonown)
-    self_citations = len(analysis.own)
-    if total_citations == 0:
-        self_citation_text = ""
-    elif self_citations == 0:
-        self_citation_text = " (no self-citations)"
-    elif self_citations == 1:
-        self_citation_text = " (1 self-citation)"
-    else:
-        self_citation_text = f" ({self_citations} self-citations)"
-    metadata += f"""Total citations: {total_citations}{self_citation_text}\\\\"""
+        metadata += f", venue: {venue}"
 
     # Index
-    if analysis.paper.index is not None:
-        metadata += f"Index: {analysis.paper.index}"
+    # if analysis.paper.index is not None:
+    #     metadata += f"Index: {analysis.paper.index}"
 
     return f"\t\t\\item\\fullcite{{{analysis.paper.bibname}}}{metadata}\n"
 
@@ -235,18 +236,17 @@ Note that Ada Böhm was named Stanislav Böhm in older publications.
         f.write("""
 \\begin{refsection}
 \\section*{Publications Related to Thesis}
-    \\begin{itemize}
+\t\\begin{itemize}
 """)
         for item in related:
             f.write(format_entry(item))
-        f.write("\\end{itemize}\n")
+        f.write("\t\\end{itemize}\n")
 
         f.write("""
-\\newpage
 \\section*{Publications Not Related to Thesis}
-    \\begin{itemize}
+\t\\begin{itemize}
 """)
         for item in nonrelated:
             f.write(format_entry(item))
-        f.write("\\end{itemize}\n")
+        f.write("\t\\end{itemize}\n")
         f.write("\\end{refsection}\n")
