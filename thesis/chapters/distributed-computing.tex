@@ -20,10 +20,9 @@ There are many different programming models and tools for creating distributed a
 can be challenging to understand how they relate to one another. It is especially difficult to
 navigate the area of \emph{task-based programming}, which is the main focus of this thesis, because common
 umbrella terms like \emph{task}, \emph{task graph}, \emph{\gls{dag}},
-\emph{workflow} or \emph{pipeline} are used very liberally, and can
-represent vastly different concepts. It is thus possible to encounter two programming models or
-tools that both claim to use ``task-based programming'', even though they might have very little in
-common.
+\emph{workflow} or \emph{pipeline} are used very liberally, and can represent vastly
+different concepts. It is thus possible to encounter two programming models or tools that both
+claim to use ``task-based programming'', even though they might have very little in common.
 
 This thesis is focused on a particular subset of task-based programming models and their
 interaction with \gls{hpc} clusters. The goal of this chapter is thus to specify this
@@ -47,9 +46,9 @@ popular today~\cite{mpiusagestudy1,mpiusagestudy2,mpiusagestudy3}. Below are a f
 \begin{description}[wide=0pt]
 	\item[Message passing] has historically been the most popular method for implementing \gls{hpc} software. In
 		this model, a distributed computation is performed by a set of processes with separate memory
-		address spaces that run on independent computing nodes. The processes cooperate together to
-		solve complex problems by exchanging network messages (hence the term \emph{message passing}).
-		Message passing applications are commonly implemented using the
+		address spaces that run on independent computing nodes. The processes cooperate together to solve
+		complex problems by exchanging network messages (hence the term \emph{message passing}). Message
+		passing applications are commonly implemented using the
 		\gls{spmd}~\cite{spmd} programming model, where the implementation logic of
 		all the processes participating in the computation is embedded within a single program.
 
@@ -154,9 +153,9 @@ or \gls{gpu} hardware micro-architecture~\cite{intel_developer_manual} and the m
 of the used programming language~\cite{cpp11_standard}.
 
 Even though explicitly parallelized programs can be incredibly efficient, implementing correct
-applications using them is notoriously difficult. Multi-threaded and distributed programs are highly
-concurrent, which makes it easy to introduce various programming errors, such as deadlocks, race
-conditions or data races. Especially for distributed programs, debugging such issues can be
+applications using them is notoriously difficult. Multi-threaded and distributed programs are
+highly concurrent, which makes it easy to introduce various programming errors, such as deadlocks,
+race conditions or data races. Especially for distributed programs, debugging such issues can be
 incredibly challenging. Furthermore, programs that leverage explicitly parallel programming models
 are typically implemented in languages such as \texttt{C} or \texttt{C++},
 which are infamous for making it difficult to write correct, memory-safe programs without memory
@@ -218,16 +217,16 @@ will categorize these models based on several properties, and describe represent
 implement this paradigm.
 
 \section{Computational workflows}
-In recent years, it has become very popular to define scientific computations running on distributed
-and \gls{hpc} clusters using \emph{task-based programming models}~\cite{pegasus,workflows1,workflows_at_scale}. These
-models allow their users to describe the high-level structure of their computations using
-\emph{computational workflows} (also called \emph{pipelines} or \emph{task graphs}\footnote{These three terms will be used interchangeably in this thesis.}). A computational workflow is a \gls{dag} of
-\emph{tasks}, atomic and independent computational blocks with separate inputs and
-outputs that can depend on one another, which can be executed in a self-contained way. Such
-workflows can naturally express diverse scientific experiments, which typically need to execute and
-compose many independent steps with dependencies between themselves (for example data
-preprocessing, postprocessing and analysis computations, various simulations, etc.). They are also
-very flexible and easy to use, which is what makes them popular.
+In recent years, it has become very popular to define scientific computations running on
+distributed and \gls{hpc} clusters using
+\emph{task-based programming models}~\cite{pegasus,workflows1,workflows_at_scale}. These models allow their users to describe the
+high-level structure of their computations using \emph{computational workflows} (also called \emph{pipelines} or \emph{task graphs}\footnote{These three terms will be used interchangeably in this thesis.}). A computational workflow
+is a \gls{dag} of \emph{tasks}, atomic and independent computational
+blocks with separate inputs and outputs that can depend on one another, which can be executed in a
+self-contained way. Such workflows can naturally express diverse scientific experiments, which
+typically need to execute and compose many independent steps with dependencies between themselves
+(for example data preprocessing, postprocessing and analysis computations, various simulations,
+etc.). They are also very flexible and easy to use, which is what makes them popular.
 
 Since task-based programming models are implicitly parallel, their users do not have to
 imperatively specify how their computation should be parallelized, or when and how data should be
@@ -249,8 +248,8 @@ often achieve internal parallelism using shared memory multiprocessing, for exam
 \gls{openmp} framework.
 
 Since task-based programming models are quite popular, there are hundreds of different tools and
-technologies that leverage them. It can be challenging to understand how these tools relate to
-one another, because umbrella terms like \emph{task}, \emph{task graph},
+technologies that leverage them. It can be challenging to understand how these tools relate to one
+another, because umbrella terms like \emph{task}, \emph{task graph},
 \emph{\gls{dag}}, \emph{workflow} or \emph{pipeline} can represent vastly
 different concepts in different contexts. For example, the term task is used for many unrelated
 concepts in computer science, from an execution context in the Linux kernel, through a block of
@@ -259,8 +258,8 @@ part of a complex distributed computational workflow. It is thus possible to enc
 programming models or tools that both claim to use ``task-based programming'', even though they
 might have very little in common. The rest of this section will thus categorize existing
 state-of-the-art tools that use task-based programming models based on several properties, to put
-them into a broader context; it will also gradually specify which niches of this diverse area
-are most relevant for the topic of this thesis.
+them into a broader context; it will also gradually specify which niches of this diverse area are
+most relevant for the topic of this thesis.
 
 \subsection{Batch vs stream processing}
 One of the most distinguishing properties that divides distributed task processing tools into two
@@ -268,10 +267,10 @@ broad categories is the approach used to trigger the execution of the workflow.
 \emph{Stream processing} tools are designed to execute continuously, and react to external events
 that can arrive asynchronously and at irregular intervals, while typically focusing on low latency.
 A streaming computational workflow is executed every time a specific event arrives. The workflow
-can then analyze the event, and generate some output, which is then e.g.\ persisted in a
-database or sent to another stream processing system. As an example, a web application can stream
-its logs, which are being generated dynamically as users visit the website, to a stream processing
-tool, which then analyzes the logs and extracts information out of them in real-time. Popular
+can then analyze the event, and generate some output, which is then e.g.\ persisted in a database
+or sent to another stream processing system. As an example, a web application can stream its logs,
+which are being generated dynamically as users visit the website, to a stream processing tool,
+which then analyzes the logs and extracts information out of them in real-time. Popular
 representatives of stream processing are for example Apache Flink~\cite{flink} or Apache
 Kafka~\cite{kafka}. Streaming-based tools can also be implemented using the
 \emph{dataflow} programming model~\cite{dataflow,timely_dataflow}.
@@ -288,28 +287,28 @@ SciLuigi~\cite{sciluigi}.
 
 Streaming processing is common in the area of cloud computing, and is useful especially for
 analyzing data that is being generated in real-time. However, it is not very common in the world of
-supercomputing, because \gls{hpc} hardware resources are typically ephemeral,
-and are not designed to be available for a single user at all times, which limits their
-usefulness for handling real-time events that occur at unpredictable times. On the other hand,
-batch processing workflows are a better fit for \gls{hpc} clusters, since their
-execution time is bounded by the size of their input, which is often known in advance, and thus
-they can be more easily mapped to ephemeral, time-limited allocations of \gls{hpc}
-hardware resources. Therefore, this thesis focuses exclusively on batch processing.
+supercomputing, because \gls{hpc} hardware resources are typically ephemeral, and are
+not designed to be available for a single user at all times, which limits their usefulness for
+handling real-time events that occur at unpredictable times. On the other hand, batch processing
+workflows are a better fit for \gls{hpc} clusters, since their execution time is
+bounded by the size of their input, which is often known in advance, and thus they can be more
+easily mapped to ephemeral, time-limited allocations of \gls{hpc} hardware resources.
+Therefore, this thesis focuses exclusively on batch processing.
 
 \subsection{Task graph generality}
-Even though most workflow processing tools are designed to execute a
-\gls{dag} of tasks, not all of them support arbitrary task graphs. Some tools use
-programming models designed for specialized use-cases, which allows them to offer very high-level
-and easy-to-use \glspl{dsl} and \glspl{api} that are designed to perform a
-specific set of things well, but that do not allow expressing fully general task graphs.
+Even though most workflow processing tools are designed to execute a \gls{dag} of
+tasks, not all of them support arbitrary task graphs. Some tools use programming models designed
+for specialized use-cases, which allows them to offer very high-level and easy-to-use
+\glspl{dsl} and \glspl{api} that are designed to perform a specific set of
+things well, but that do not allow expressing fully general task graphs.
 
 An example of such a constrained approach is the Bulk synchronous parallel~\cite{bulkparallel1}
 model, which models a distributed computation with a series of steps that are executed in order.
 Within each step, a specific computation is performed in parallel, potentially on multiple
-distributed nodes. At the end of each step, the nodes can exchange data among themselves, and
-they are synchronized with a global barrier, to ensure that there are no cyclic communication
-patterns in the computation. Even though this model does not use fully arbitrary computational
-graphs, it is still possible to express many algorithms with it~\cite{bulkparallel2}.
+distributed nodes. At the end of each step, the nodes can exchange data among themselves, and they
+are synchronized with a global barrier, to ensure that there are no cyclic communication patterns
+in the computation. Even though this model does not use fully arbitrary computational graphs, it is
+still possible to express many algorithms with it~\cite{bulkparallel2}.
 
 A popular instance of this model that has gained a lot of popularity in the area of distributed
 computing is MapReduce~\cite{mapreduce}. Its goal is to allow parallel processing of large
@@ -321,8 +320,8 @@ operations, which correspond to individual bulk synchronous parallel steps:
 	      operation performs data transformation and filtering, associates some form of a
 	      \emph{key} to each data item and produces a key-value tuple.
 	\item A \emph{shuffle} operation (implemented by a MapReduce framework) redistributes the tuples
-	      among a set of distributed nodes, based on the key of each tuple, so that tuples with the same
-	      key will end up at the same node.
+	      among a set of distributed nodes, based on the key of each tuple, so that tuples with the same key
+	      will end up at the same node.
 	\item A \emph{reduce} operation (provided by the user) is performed on each node. The reduction
 	      typically performs some aggregation operation (such as sum) on batches of tuples, where each batch
 	      contains tuples with the same key.
@@ -422,8 +421,8 @@ While MapReduce, DataFrame processing or other similar models are useful for com
 a predictable structure, they are not always general enough to express complex
 \gls{hpc} scientific workflows. We will thus further only consider tools and models
 that allow executing arbitrary task graphs. Note that while DataFrame processing is often used
-inside scientific workflows, it typically represents only a certain part of the workflow (e.g.\
-a single task or a set of tasks), and it is not used to define the structure of the whole workflow.
+inside scientific workflows, it typically represents only a certain part of the workflow (e.g.\ a
+single task or a set of tasks), and it is not used to define the structure of the whole workflow.
 
 \subsection{Task granularity}
 \label{sec:task-granularity}

@@ -28,8 +28,8 @@ implementation can improve the scalability and end-to-end performance of \dask{}
 workflows by several times, even though it uses a simpler scheduling algorithm.
 
 \Autoref{ch:hyperqueue} has combined the gained performance insights with a focus on
-the ergonomic aspects of designing and executing task graphs on supercomputers. It has introduced
-a general meta-scheduling approach designed primarily to avoid complications caused by the need to
+the ergonomic aspects of designing and executing task graphs on supercomputers. It has introduced a
+general meta-scheduling approach designed primarily to avoid complications caused by the need to
 interact with \gls{hpc} allocation managers and also to support the complex shape
 of modern heterogeneous clusters. This approach has been implemented in \hyperqueue{},
 an \gls{hpc}-optimized task runtime that was designed to make it simple to execute
@@ -49,8 +49,8 @@ further improve its ability to provide ergonomic and efficient task graph execut
 	\item[Interaction with allocation manager] The used meta-scheduling approach removes the need for the workflow author to think about mapping
 		tasks to allocations or dealing with various allocation limits. And thanks to the automatic
 		allocator, users do not even need to submit any allocations by themselves. The automatic allocator
-		could be extended with task duration and/or allocation start time predictions in the future,
-		to improve its decisions on when to actually submit allocations.
+		could be extended with task duration and/or allocation start time predictions in the future, to
+		improve its decisions on when to actually submit allocations.
 	\item[Cluster heterogeneity] \hyperqueue{} provides comprehensive support for heterogeneous
 		clusters by enabling tasks to specify arbitrary resource requirements, and by matching these
 		requirements with resources provided by workers. In addition to basic resources, support for
@@ -61,18 +61,18 @@ further improve its ability to provide ergonomic and efficient task graph execut
 		heterogeneous clusters.
 	\item[Data transfers] \hyperqueue{} does not currently support direct data transfers
 		between tasks, i.e.\ enabling tasks to pass their outputs as inputs to dependent tasks through
-		network communication. This limits its applicability (or at least its ergonomics) in scenarios
-		that need to exchange large amounts of outputs between tasks. Implementing data transfers would
-		expand the set of workflows that can be naturally executed with it, and it could also improve
-		performance by avoiding filesystem \gls{io}.
+		network communication. This limits its applicability (or at least its ergonomics) in scenarios that
+		need to exchange large amounts of outputs between tasks. Implementing data transfers would expand
+		the set of workflows that can be naturally executed with it, and it could also improve performance
+		by avoiding filesystem \gls{io}.
 
 		For use-cases that are limited by \gls{io} bandwidth due to creating too many
 		standard (error) output files on distributed filesystems, \hyperqueue{} offers
 		\emph{output streaming}, which is able to avoid filesystem limitations by streaming task output
 		to the server and storing it in a single file.
 	\item[Fault tolerance] \hyperqueue{} offers fault tolerance by default; tasks that do not
-		finish computing successfully due to reasons outside their control are automatically rescheduled
-		to a different worker, without requiring any manual user intervention. Workers are designed to be
+		finish computing successfully due to reasons outside their control are automatically rescheduled to
+		a different worker, without requiring any manual user intervention. Workers are designed to be
 		ephemeral; because they are usually executed in relatively short-running allocations, their
 		failures are thus handled gracefully. The server itself is also fault-tolerant and can reload its
 		task database after being restarted.
@@ -134,34 +134,35 @@ centers. It has been proposed as one of the designated ways for executing
 LUMI~\cite{it4i-lumi}, IT4Innovations~\cite{it4i-hq} or
 CINECA~\cite{cineca}.
 
-In addition to being used directly by \gls{hpc} users and scientists, \hyperqueue{} can also
-be integrated as a general task execution system into other tools, thanks to its sophisticated
-resource management and task scheduling capabilities. It facilitates this use-case by offering a
-machine-readable \gls{json} output mode for its \gls{cli}, which
-makes it easier for other tools to use \hyperqueue{} programmatically. This has been
-leveraged by several workflow management systems that have integrated \hyperqueue{} as
-one of their task execution backends, such as Aiida~\cite{aiida-hq},
-NextFlow~\cite{nextflow-hq}, UM-Bridge~\cite{umbridge},
-StreamFlow~\cite{streamflow-hq}, ERT~\cite{ert} or
-HEAppE~\cite{heappe}.
+In addition to being used directly by \gls{hpc} users and scientists,
+\hyperqueue{} can also be integrated as a general task execution system into other
+tools, thanks to its sophisticated resource management and task scheduling capabilities. It
+facilitates this use-case by offering a machine-readable \gls{json} output mode for
+its \gls{cli}, which makes it easier for other tools to use
+\hyperqueue{} programmatically. This has been leveraged by several workflow management
+systems that have integrated \hyperqueue{} as one of their task execution backends,
+such as Aiida~\cite{aiida-hq}, NextFlow~\cite{nextflow-hq},
+UM-Bridge~\cite{umbridge}, StreamFlow~\cite{streamflow-hq},
+ERT~\cite{ert} or HEAppE~\cite{heappe}.
 
 % https://www.epj-conferences.org/articles/epjconf/pdf/2020/21/epjconf_chep2020_09010.pdf
 \hyperqueue{} is also used in various research projects. As an example,
 scientists from the Czech Academy of Sciences use it to execute tasks that analyze data from the
 ATLAS~\cite{atlas} experiment performed at CERN. In this case, it was able to improve
-hardware utilization by 30\%~\cite{cern-hq} on the IT4Innovations Karolina~\cite{karolina} and
-Barbora~\cite{barbora} supercomputers. \hyperqueue{} has also been used to execute workflows in several projects
-funded by the European Union, such as EVEREST~\cite{everest},
-ACROSS~\cite{across}, Exa4Mind~\cite{exa4mind} and
-MaX~\cite{max}. It was especially crucial for the LIGATE~\cite{ligate}
-project, where it was used to implement several \gls{md} workflows that were
-executed using hundreds of thousands of \gls{cpu} and \gls{gpu}
-hours on the most powerful European supercomputers.
+hardware utilization by 30\%~\cite{cern-hq} on the IT4Innovations
+Karolina~\cite{karolina} and Barbora~\cite{barbora} supercomputers.
+\hyperqueue{} has also been used to execute workflows in several projects funded by
+the European Union, such as EVEREST~\cite{everest}, ACROSS~\cite{across},
+Exa4Mind~\cite{exa4mind} and MaX~\cite{max}. It was especially crucial
+for the LIGATE~\cite{ligate} project, where it was used to implement several
+\gls{md} workflows that were executed using hundreds of thousands of
+\gls{cpu} and \gls{gpu} hours on the most powerful European
+supercomputers.
 
 Given the use-cases mentioned above, I believe that the practical applicability of the proposed
 task graph execution design has been demonstrated, and that this thesis has thus achieved the goals
 that it originally set out to. I am confident that \hyperqueue{} provides a tangible
-benefit in terms of ergonomic and efficient execution of task graphs on supercomputers, and that
-it resolves many of the challenges that have been described extensively in this thesis, through its
+benefit in terms of ergonomic and efficient execution of task graphs on supercomputers, and that it
+resolves many of the challenges that have been described extensively in this thesis through its
 \gls{hpc}-driven design. I hope that \hyperqueue{} will eventually
 see even more widespread usage in the \gls{hpc} community.
