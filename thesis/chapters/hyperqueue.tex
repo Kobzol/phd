@@ -1266,21 +1266,41 @@ a higher priority can run at the same time.
 Originally, \gls{arcce} was submitting simulation computations directly as
 \gls{pbs} allocations\footnote{Note that the IT4Innovations clusters originally used \gls{pbs} as their allocation
 manager; they have switched to Slurm in 2023.}. While this approach worked, it also ran
-into some of the challenges presented in~\Autoref{challenge:allocation-manager}. The submission system was hitting
-the limits of the maximum allowed number of allocations that could be submitted by a single user
-and it also encountered problems caused by communicating with the allocation manager too
-frequently~\cite{atlas-it4i-2}. We have also noticed the latter issue during the implementation
-of the \hyperqueue{} automatic allocator described in~\Autoref{hq:automatic-allocation}.
+into some of the challenges presented in~\Autoref{challenge:allocation-manager}; notably the
+submission system was hitting the limits of the maximum allowed number of allocations that could be
+submitted by a single user. Furthermore, it encountered problems caused by communicating
+with the allocation manager too frequently~\cite{atlas-it4i-2}, which we have also noticed
+during the implementation of the \hyperqueue{} automatic allocator,
+described in~\Autoref{hq:automatic-allocation}. In order to resolve issues with allocation manager communication and to improve hardware
+utilization, the users of \gls{arcce} have switched to using \hyperqueue{}. This has provided two
+primary benefits.
 
-The users of \gls{arcce} have switched to using \hyperqueue{} instead of
-submitting allocations directly, in order to resolve these issues~\cite{cern-hq}. Using
-\hyperqueue{} resulted in the improvement of the average \gls{cpu}
+The first benefit is that computation submission becomes much easier for \gls{arcce}. It simply
+submits its computations into a \hyperqueue{} running on the login node of Karolina, without
+having to deal with Slurm allocation count or communication frequency limits. It also configures
+the automatic allocator to submit allocations into several Slurm queues, and the rest is handled
+fully automatically by \hyperqueue{}.
+
+The second advantage of using \hyperqueue{} is improved utilization of nodes.
+Previously, the computations were performed on the Salomon supercomputer~\cite{salomon}, which had $24$ \gls{cpu}
+cores per node. This was a reasonable amount of cores for computing a single simulation per each
+node. However, once Salomon has been decommissioned, \gls{arcce} started
+submitting computations to Karolina~\cite{karolina}, which has $128$ cores per node. This resulted in a
+decrease of \gls{cpu} utilization, because each simulation spends a non-trivial amount of time
+performing either serial computation or \gls{io}, during which only a few cores were utilized.
+And with so many cores available on the node, this resulted in lower hardware utilization, as
+many cores remained idle. A simple method of improving utilization is to split the computation
+into smaller parts that each use a smaller number of cores. However, on the Karolina \gls{cpu}
+partition it is not possible to ask for less than a whole node using Slurm directly. This is
+where \hyperqueue{} came in; once \gls{arcce} switched to it, the computations were configured for
+$32$ cores, and \hyperqueue{} then took care of packing four such computations to each allocated
+Karolina node. This change resulted in an improvement of the average \gls{cpu}
 utilization of the submitted computations on Karolina from $70\%$ to
-$90\%$. %TODO: finish
+$90\%$~\cite{cern-hq}.
 
 This use-case shows that \hyperqueue{} can also be used programmatically by automated
-tools rather than manually by cluster users. It provides a machine-readable \gls{json}
-output mode for its \gls{cli} commands, which facilitates this kind of usage.
+tools, rather than manually by cluster users. It provides a machine-readable \gls{json}
+output mode for its \gls{cli} commands that facilitates this kind of usage.
 
 \section{Evaluation}
 \label{hq:evaluation}
