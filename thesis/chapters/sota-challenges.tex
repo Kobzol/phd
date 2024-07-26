@@ -19,24 +19,25 @@ others.
 
 The goal of this thesis is to design approaches for seamless and performant execution of task
 graphs on supercomputers, and for that it is first necessary to understand what are the challenges
-that users are facing in this area, and how do existing task runtimes deal with them.
-\Autoref{ch:rsds} will describe and analyze \dask{}, a state-of-the-art
-task runtime, in detail, and~\Autoref{hq:related-work} will then provide a more general comparison
-of selected task runtimes with the proposed \hyperqueue{} tool.
-
-This chapter provides a general overview of the most important aspects of task graph execution on
-supercomputers, and in particular of the challenges associated with it. These challenges can limit
-the achievable hardware utilization and also worsen the developer experience of task graph authors.
-Most of the challenges stem from the sheer scale of \gls{hpc} workloads, and
-primarily from the complexity and idiosyncrasies of supercomputers, which have been historically
-designed for different kinds of programming models. These challenges are also further exacerbated
-when using off-the-shelf tools that were not designed for \gls{hpc} use-cases.
+that users are facing in this area, and how do existing task runtimes deal with them. This chapter
+provides a general overview of the most important aspects of task graph execution on supercomputers
+and in particular of the challenges associated with it. These challenges can limit the achievable
+hardware utilization and also worsen the developer experience of task graph authors. Most of the
+challenges stem from the sheer scale of \gls{hpc} workloads, and primarily from
+the complexity and idiosyncrasies of supercomputers, which have been historically designed for
+different kinds of programming models. These challenges can also be further exacerbated when using
+off-the-shelf tools that were not designed for \gls{hpc} use-cases.
 
 Some of the described challenges are more related to scalability, performance and hardware
 utilization, while some of them affect the ergonomics and developer experience of designing and
 executing task graphs. In addition to enumerating both existing and potential problems, this
 chapter also mentions how some existing tools deal with them, and what could be some desired
 properties of an ideal task runtime that would be able to alleviate the described challenges.
+
+Following the general overview presented in this chapter,~\Autoref{ch:rsds} will later
+describe and analyze \dask{}, a state-of-the-art task runtime, in detail,
+and~\Autoref{hq:related-work} will then provide a comparison of selected task runtimes with the
+proposed \hyperqueue{} tool.
 
 %I have personally encountered most of these challenges during several years of working with
 %various \gls{hpc} use-cases
@@ -286,11 +287,11 @@ level above the allocation manager, instead of always running only within the co
 allocation. Thanks to this property, they are able to represent task graphs that span multiple
 allocations. We will use the term \emph{meta-schedulers} for these task runtimes.
 
-An example of such a tool is \snakemake~\cite{snakemake}, which allows users to define
-complex task graphs that be executed in multiple allocations. It is also able to partition the task
-graph into \emph{groups}, where all tasks of a single group are always executed inside
-the same allocation. However, this partitioning has to be specified explicitly by the author of the
-workflow, which can be laborious.
+Example of such tools are e.g.\ \snakemake~\cite{snakemake} or
+Pegasus~\cite{pegasus}, which allow users to define complex task graphs that be
+executed in multiple allocations. They are also able to partition the task graph into groups, where
+all tasks of a single group are always executed inside the same allocation. However, this
+partitioning has to be specified explicitly by the author of the workflow, which can be laborious.
 
 While automating the partitioning process is useful, a \emph{static} division of
 subgraphs into allocations (be it performed manually or in an automated fashion) that has to be
@@ -310,10 +311,12 @@ seen that adding support for executing fine-grained task graphs to allocation ma
 not realistic, since they have too many other responsibilities. However, a promising approach is to
 leverage meta-scheduling, i.e.\ schedule tasks on top of the allocation manager, to enable flexible
 load balancing across different allocations without forcing users to devise the task to allocation
-mapping themselves.
+mapping themselves. Such a fully dynamic meta-scheduling is offered e.g.\ by
+Dask~\cite{dask-jobqueue} or Merlin~\cite{merlin}.
 
 \Autoref{ch:hyperqueue} will further explore this approach by introducing a design for a fully
-dynamic mapping of tasks to allocations that can overcome the challenges mentioned in this section.
+dynamic mapping of tasks to allocations that can overcome the challenges mentioned in this section,
+and compare it to existing approaches.
 
 \section{Cluster heterogeneity}
 Even though task graphs are designed to be portable and ideally should not depend on any specific
@@ -362,9 +365,7 @@ of cores and the amount of memory), which is not enough to describe complex reso
 heterogeneous clusters. Other runtimes, such as \dask{} or
 \snakemake{}, support arbitrary resources, although they do not allow expressing
 more complex patterns, such as the mentioned case where a task could define multiple resource
-requirement configurations. Supporting multiple nodes for a single task is not supported by most
-runtimes at all, because their programming model often assumes that each task executes on a single
-node only.
+requirement configurations.
 
 To support the mentioned scenarios, task runtimes should ideally allow users to specify arbitrarily
 fine-grained and abstract resource requirements for each task, with support for multiple
@@ -427,6 +428,9 @@ they should be able to restart previously interrupted tasks on newly arrived wor
 in \gls{hpc} scenarios, worker instability and frequent disconnects should be
 considered the normal mode of operation, rather than just a rare edge case.
 
+Because of its importance, fault-tolerant task execution is generally well-supported in most
+existing task runtimes.
+
 \section{Multi-node tasks}
 Many existing \gls{hpc} applications are designed to be executed on multiple
 (potentially hundreds or even thousands) nodes in parallel, using e.g.\ \gls{mpi}
@@ -468,14 +472,18 @@ runtime:
 		immediately).
 \end{description}
 
-Most existing task runtimes only consider single-node tasks and do not provide built-in support for
-multi-node tasks, which forces users to use various workarounds, for example by emulating a
-multi-node task with a single-node task that uses multi-node resources that are not managed by the
-task runtime itself. To enable common \gls{hpc} use-cases, task runtimes should
-be able to provide first-class support for multi-node tasks and allow them to be combined with
-single-node tasks in a seamless manner. Advanced multi-node task support could be provided e.g.\ by
-offering some kind of built-in integration with \gls{mpi} or similar common
-\gls{hpc} technologies.
+Most existing task runtimes only consider single-node tasks in their programming model and do not
+provide built-in support for multi-node tasks, which forces users to use various workarounds, for
+example by emulating a multi-node task with a single-node task that uses multi-node resources that
+are not managed by the task runtime itself. One notable exception is the
+PyCOMPSs~\cite{pycompss} task runtime, which allows decorating Python functions that
+represent tasks with an annotation that specifies how many nodes does that task require.
+
+To enable common \gls{hpc} use-cases, task runtimes should be able to provide
+first-class support for multi-node tasks and allow them to be combined with single-node tasks in a
+seamless manner. Advanced multi-node task support could be provided e.g.\ by offering some kind of
+built-in integration with \gls{mpi} or similar common \gls{hpc}
+technologies.
 
 \section{Scalability}
 The massive scale of \gls{hpc} hardware (node count, core count, network
@@ -518,7 +526,7 @@ in the context of \gls{hpc}-scale task graphs.
 		reduce the latency of management messages between the scheduler and workers or to increase the
 		bandwidth of large data exchanges among workers, by moving these operations directly onto the
 		network card. This line of research is not pursued in this thesis, although it could serve as an
-		interesting idea to be explored.
+		interesting idea to be explored in a future work.
 	\item[Scheduling] Task scheduling is one of the most important responsibilities of a task runtime, and with large
 		task graphs, it can become a serious performance bottleneck. Existing task runtime, such as
 		\dask{}, can have problems with keeping up with the scale of
@@ -602,7 +610,7 @@ tasks that can directly execute Python code in the process of a \dask{} worker.
 However, if the executed code requires a different version of a Python interpreter or Python
 packages than \dask{} itself, this can lead to runtime errors or subtle
 behavior changes\footnote{It is not straightforward to use multiple versions of the same Python package dependency in a
-single Python virtual environment. Conflicting versions thus simply override each other.}.
+single Python virtual environment, because conflicting versions simply override each other.}.
 
 Since it is probable that users of \gls{hpc} clusters will already have enough
 issues with installing the software executed by their workflows, the task runtime itself should
