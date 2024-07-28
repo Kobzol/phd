@@ -1,4 +1,4 @@
-All citation data presented below is actual as of 23. 7. 2024, unless otherwise
+All citation data presented below is actual as of 28. 7. 2024, unless otherwise
             specified. Citation data was taken from Scopus\footnoteurl{https://www.scopus.com}.
 Self-citation is defined as a citation with a non-empty intersection between the authors of the citing and the cited paper.
 SJR (Scientific Journal Rankings) ranking was taken from Scimago Journal\footnoteurl{https://www.scimagojr.com},
@@ -9,12 +9,22 @@ with \texttt{79} total citations (both excluding self-citations).
 Note that Ada Böhm was named Stanislav Böhm in older publications.
 
 \begin{refsection}
+\renewcommand*{\mkbibnamegiven}[1]{%
+	\ifitemannotation{highlight}
+	{\textbf{#1}}
+	{#1}}
+
+\renewcommand*{\mkbibnamefamily}[1]{%
+	\ifitemannotation{highlight}
+	{\textbf{#1}}
+	{#1}}
+
 \section*{Publications Related to Thesis}
 	\begin{itemize}
 		\item\fullcite{hyperqueue}\par{}Total citations: 0, venue: journal (SJR 0.544)
 		\item\fullcite{rsds}\par{}Total citations: 7 (2 self-citations), venue: conference proceedings
 		\item\fullcite{estee}\par{}Total citations: 1 (no self-citations), venue: journal (SJR 0.684)
-		\item\fullcite{ligate}\par{}Total citations: 3 (3 self-citations), venue: conference proceedings
+		\item\fullcite{ligate}\par{}Total citations: 4 (4 self-citations), venue: conference proceedings
 	\end{itemize}
 
 \section*{Publications Not Related to Thesis}

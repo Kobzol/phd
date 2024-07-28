@@ -218,6 +218,7 @@ if __name__ == "__main__":
     related = [analysis for analysis in analysed if analysis.paper.related]
     nonrelated = [analysis for analysis in analysed if not analysis.paper.related]
 
+    # Inspiration taken from https://tex.stackexchange.com/a/304968/95679
     now = datetime.datetime.now()
     date_formatted = now.strftime("%-d. %-m. %Y")
     with open("chapters/publications-generated.tex", "w") as f:
@@ -233,11 +234,22 @@ with \\texttt{{{total_nonown_citations}}} total citations (both excluding self-c
 Note that Ada Böhm was named Stanislav Böhm in older publications.
 """)
 
-        f.write("""
-\\begin{refsection}
-\\section*{Publications Related to Thesis}
-\t\\begin{itemize}
+        f.write(r"""
+\begin{refsection}
+\renewcommand*{\mkbibnamegiven}[1]{%
+	\ifitemannotation{highlight}
+	{\textbf{#1}}
+	{#1}}
+
+\renewcommand*{\mkbibnamefamily}[1]{%
+	\ifitemannotation{highlight}
+	{\textbf{#1}}
+	{#1}}
+
+\section*{Publications Related to Thesis}
 """)
+
+        f.write("\t\\begin{itemize}\n")
         for item in related:
             f.write(format_entry(item))
         f.write("\t\\end{itemize}\n")
