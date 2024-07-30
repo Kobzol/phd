@@ -137,7 +137,7 @@ of many disjoint components (smaller task subgraphs). In this case, it will agai
 possible to execute all such task graphs inside a single allocation.
 
 Even when a task graph can be reasonably executed within a single allocation, this approach might
-lead to underutilization and resource waste. Consider a typical data analysis or a machine learning
+lead to underutilization and resource waste~\cite{ehpc}. Consider a typical data analysis or a machine learning
 workflow that works in several stages. First, it loads a dataset from disk and pre-processes it,
 then it trains a machine-learning model, and finally it performs some post-processing step, which
 e.g.\ analyzes the resulting model. The pre-processing and post-processing steps are usually not
@@ -180,7 +180,7 @@ into the allocation manager.
 
 However, in practice, this approach is mostly infeasible, at least with the currently popular
 allocation managers (\gls{pbs} and Slurm), because they introduce a non-trivial
-amount of overhead per each allocation. In an ideal scenario, Slurm is able to launch a few hundred
+amount of overhead per each allocation~\cite{falkon}. In an ideal scenario, Slurm is able to launch a few hundred
 allocations per second~\cite{slurm-throughput}. However, more realistically, users on a crowded
 cluster might experience at least a few hundred milliseconds overhead per allocation, if not more,
 which is order(s) of magnitude more than the overhead of a typical task
@@ -562,7 +562,7 @@ that they perform some computation repeatedly, until some condition (which is of
 dynamically) is satisfied. For example, the training of a machine-learning model is typically
 performed in iterations (called epochs) that continue executing while the prediction error of the
 model keeps decreasing. Another example could be a molecular dynamics simulation that is repeated
-until a desired accuracy (or other property) has been reached.
+until a desired level of accuracy has been reached.
 
 One approach to model such iterative computations would be to run the whole iterative process
 inside a single task. While this is simple to implement, it might not be very practical, since such
@@ -573,7 +573,7 @@ typically opaque to the task runtime, if the task fails, it would then need to b
 scratch.
 
 A better approach might be to model each iteration as a separate task. In such case, the task
-runtime might be able to restart the computation from the last iteration, if a failure occurs.
+runtime is able to restart the computation from the last iteration if a failure occurs.
 However, this approach can be problematic if the number of iterations is not known in advance,
 since some task runtimes expect that the structure of the task graph will be immutable once the
 graph has been submitted for execution.
@@ -582,7 +582,9 @@ To support iterative computation, task runtimes should allow their users to stop
 task graph (or its subgraph) once a specific condition is met, and also to add new tasks to the
 task graph in a dynamic fashion, if it is discovered during its execution that more iterations are
 needed. \dask{} and \ray{} are examples of task runtimes
-that allow adding tasks to an existing task graph dynamically.
+that allow adding tasks to an existing task graph dynamically. Alternatively,~\cite{l-dag} suggests
+an approach for transforming iterative workflows into workflows without loops, to support this use-case
+on a wider range of task runtimes.
 
 \section{Deployment}
 \label{challenge:deployment}

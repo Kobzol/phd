@@ -386,6 +386,10 @@ simplest of workflows.~\Autoref{lst:hq-cli-commands} shows three basic commands 
 worker, and then execute a single task through it. More examples will be shown later throughout
 this chapter.
 
+For simple existing workflows defined using Bash scripts, it is enough to replace uses of the
+\texttt{sbatch} command with \texttt{hq submit} to let \hyperqueue{} manage the execution
+instead of Slurm.
+
 \begin{listing}[h]
 	\begin{minted}[fontsize=\small, tabsize=4]{bash}
 # Start a HQ server
@@ -1036,13 +1040,25 @@ workers can execute them (either because there are no workers or all of them are
 it will start submitting allocations to the allocation manager. It will submit allocations up until
 the configured \emph{backlog} value, or until the allocation manager applies backpressure
 (whichever comes sooner). Note that \autoalloc{} does not limit the total number of
-allocations that are ``in-flight'' (queued or running), just the queued ones. This allows it to
-potentially create a large number of allocations and thus make use of all available resources of
+allocations that are ``in-flight'' (queued or running) by default, just the queued ones. This
+allows it to potentially create a large number of allocations and thus make use of all available resources of
 the cluster, if the allocation manager allows it. Users can use other configuration parameters
 (such as the total number of workers) to limit the amount of submitted resources.
 \Autoalloc{} also contains an internal rate limiter that makes sure that it does not
 submit allocations too often and that it pauses the allocation process if the allocations start
 failing too often.
+
+\hyperqueue{} communicates with \gls{pbs} or Slurm using standard
+commands, such as \texttt{qsub} or \texttt{sbatch}, as they do not provide a complete
+machine-readable \gls{api}. This means that in order to use automatic allocation, the server has to
+be executed on a node that has access to these commands and can communicate with the manager. If
+this is not possible, a proxy service could be used to forward communication between the node
+with the server and a node where the manager is deployed. \hyperqueue{} implements communication
+with each manager in a custom way. While there have been some attempts to create a unified
+interface~\cite{psij,workflow-alloc-manager-comm} for submitting allocations to different
+allocation managers, they have not seen wide adoption so far. Furthermore, adopting these
+approaches would require \hq{} to introduce a dependency on Python or an external \gls{http}
+service, which would make it more difficult to deploy.
 
 It is crucial for \autoalloc{} to maintain an updated state of its created allocations,
 so that it can report their state to the user, and also so that it knows if it can submit new
@@ -1492,10 +1508,11 @@ the vertical axis shows the measured makespan; in the bottom row, the vertical a
 against the measured makespan on a single worker. We can see that for all three measured task
 durations, \hyperqueue{} was able to scale reasonably up to $64$
 workers, and it was able to compute the whole task graph in approximately $5$
-seconds. In the best case, with tasks that took $2.5$s co execute, it provided a
+seconds. In the best case, with tasks that took \SI{2.5}{\second} to execute, it provided a
 $59.2$x speedup with $64$ workers. In the worst case, with tasks
 that lasted \SI{100}{\milli\second}, it provided a $54.4$x speedup with
-$64$ workers.
+$64$ workers. With task duration \SI{0.1}{\second} and $64$ workers, \hyperqueue{} was able to
+dispatch almost $70$ thousand tasks per second.
 
 In the second scenario, we fixed the task duration of each task to $1$ second,
 and then varied the task count. This allowed us to examine how the scalability of
@@ -1950,6 +1967,387 @@ it might be necessary to tune the number of tasks for some workflows in order to
 optimal performance.
 
 %TODO: GPU benchmark (with pre-expanded ligands?)
+
+\section{Related work}
+\label{hq:related-work}
+\Autoref{ch:sota} has described several existing task runtimes, and how they are able to cope
+with the mentioned challenges that affect task graph execution on \gls{hpc} clusters.
+This section discusses previous work related to the described meta-scheduling approach and compares
+selected task runtimes with \hyperqueue{}.
+
+Existing approaches of reconciling workflows with \gls{hpc} allocations can be
+divided into several categories. Some works examine what it would take to make existing allocation
+managers more workflow friendly. In~\cite{slurm-workflow}, a modification to the Slurm allocation
+manager is proposed, which makes it workflow-aware and adds support for fine-grained resource
+management to it. This approach splits tasks of a workflow submitted within a single allocation
+into a larger number of allocations, and assigns them corresponding priorities and resources, based
+on their requirements. While this improves certain scheduling aspects of Slurm, it still creates a
+separate allocation for each task, which does not remove the overhead associated with allocations.
+This method also assumes prior knowledge of the workflow structure; therefore, it is not possible
+to easily dynamically add tasks or computational resources while the workflow is being executed.
+
+Another approach is to design a new kind of an allocation manager designed with tasks and workflows
+in mind. An example of this is the Flux~\cite{flux} \gls{hpc} scheduler,
+which serves as a re-imagination of a modern allocation manager. It treats the whole cluster
+as a unified pool of resources and allows submitting computations that make use of these resources
+with high granularity, down to the level of individual cores. Flux also provides dynamic
+management of non-computational resources such as storage and power, and even takes them into
+account during scheduling, for example by avoiding \gls{io} intensive computations when not
+enough \gls{io} bandwidth is currently available. Furthermore, it enables defining generic
+resources, unlike traditional allocation managers that can only manage a small set of known
+resources, such as \gls{cpu} cores or memory. Providing this kind of flexibility and granularity
+puts a lot of pressure on the system. Flux manages it by using a distributed and hierarchical
+scheduling design, where each allocation can act as a separate Flux instance that can then recursively
+subdivide its resources into additional nested allocations, and even dynamically ask for
+reducing or increasing its set of resources.
+
+While modifying allocation managers to remove some of their workflow handling issues or creating
+new allocation managers are viable approaches, it should be noted that Slurm and
+\gls{pbs} are currently dominating the most powerful
+supercomputers~\cite{slurm-schedmd}, and that replacing (or even heavily modifying) the
+allocation manager of an \gls{hpc} cluster is a very difficult process, which
+requires a lot of implementation work, configuration tuning, documentation rewriting and also
+retraining the cluster administrators, and more importantly its users. Furthermore, using the
+allocation manager directly as a task runtime has a disadvantage; as it is then no longer easily
+possible to run the workflows on personal computers or \gls{ci} servers,
+which limits the ability to prototype and test them. \hyperqueue{} provides a more pragmatic approach,
+which facilitates local prototyping and is able to work both alongside existing and any future allocation
+managers.
+
+Falkon~\cite{falkon} is a framework for scaling the execution of a large number of tasks on
+distributed nodes. It focuses on efficient execution of many tasks per second and it also
+contains an automatic allocation system for provisioning new computing nodes dynamically.
+However, it is not designed primarily for \gls{hpc}, which introduces certain
+trade-offs required to allow communication across different \gls{tcpip} networks,
+such as using a pull based method for distributing work. Under this scheme, workers ask the
+scheduler for work, rather than being assigned work by the scheduler directly; this induces
+additional network communication and increases \gls{cpu} usage of the scheduler.
+Falkon also does not consider task graph dependencies and complex non-\gls{cpu} resource
+management.
+
+E-HPC~\cite{ehpc} tackles the issue of monolithic allocations that waste resources by asking for
+a union of resources required for the workflow. It does that by splitting
+individual stages of workflows into separate allocations that contain the ideal amount of
+resources for that stage. It also allows these stages to dynamically modify their resource
+requirements through the use of checkpointing. When a stage asks for a different set of resources,
+it is checkpointed, moved to a different allocation and then restarted.
+While this approach does alleviate some problems with resource waste, it is relatively
+inflexible; workflows have to be manually separated into individual stages with coarse-grained
+resource requirements, and these stages are still submitted as individual allocations, rather
+than being load balanced across different allocations.
+
+% Multi-level scheduling - Ray, Flux?
+
+Another approach for making it easier and more ergonomic to use \gls{hpc} clusters is taken by
+tools and frameworks such as cumulus~\cite{cumulus}, Open OnDemand~\cite{openondemand}, HEAppE~\cite{heappe} or
+Lexis~\cite{lexis}. These aim to simplify usage of clusters by providing high-level web
+interfaces for managing computations. They focus on user authorization and authentication, data
+management, provisioning of resources across different clusters and also partially on
+(coarse-grained) workflow execution. This approach can make it easier for users that do not have
+experience with the Linux operating system or interacting with the terminal to leverage \gls{hpc}
+resources. It is mostly orthogonal to the feature set offered by meta-scheduling task runtimes,
+such as \hyperqueue{}, although these two approaches can be combined. For example, the HEAppE
+middleware provides support for integration with \hyperqueue{}~\cite{heappe_hq}.
+
+%A more pragmatic approach is to leverage meta-scheduling on top of existing allocation managers,
+%which can be performed fully in user-space and without requiring changes to the management
+%software of a given cluster. This approach has been successfully leveraged by various tools.
+
+\subsection{Comparison of meta-scheduling task runtimes}
+There are hundreds of tools that are designed for executing some kind of a
+task graph, whose features partially overlap with \hyperqueue{}, and it is infeasible to
+mention all of them here. Instead, we will focus on a smaller subset of task runtimes that leverage
+meta-scheduling on top of allocation managers, and can therefore be more directly compared with
+\hyperqueue{}. Several representatives of these tools will be discussed in this
+section.
+
+- tools that run in user space
+
+\Autoref{tab:hq-tools-comparison} provides a high-level comparison of these tools.
+
+% TODO: table
+% TODO: merge tasks into categories
+% Dask + Parsl + funcx/Globus
+
+% It should be noted that task runtimes have different features
+
+\subsection*{GNU parallel}
+% architecture: centralized
+% encryption: yes
+% interfaces: CLI
+% meta-scheduling: no
+% autoalloc: no
+% deps: no
+% data transfer between tasks: no
+% stdout/stderr streaming: yes
+% resources: no
+% multi-node: no
+% dynamic task graphs: no
+% Python: no
+% external services: no
+% language: Perl
+
+- basic functionality of HQ
+
+% https://docs.nersc.gov/jobs/workflow/gnuparallel/
+
+\subsection*{Dask}
+% architecture: centralized
+% encryption: yes
+% interfaces: Python
+% meta-scheduling: automatic (with Dask-Jobqueue)
+% autoalloc: yes (with Dask-Jobqueue)
+% deps: explicit
+% data transfer between tasks: yes
+% stdout/stderr streaming: yes
+% resources: basic, arbitrary
+% multi-node: no
+% dynamic task graphs: yes
+% Python: yes
+% external services: no
+% language: Python
+
+\dask{} was already extensively decribed in~\Autoref{sec:rsds-dask}. It is a distributed task
+runtime written in Python, which allows parallelizing and distributing Python code in an easy
+way. \dask{} offers a low-level \gls{api} for building task graphs explicitly from Python
+function calls, however one of its most powerful features is the ability to parallelize
+numpy/pandas code.
+
+- only one autoalloc queue
+- already described in RSDS chapter
+- especially useful for numpy/pandas parallelization
+
+\subsection*{SnakeMake}
+% architecture: centralized
+% encryption: no
+% interfaces: Python, workflow files
+% meta-scheduling: manual partitioning
+% autoalloc: yes
+% deps: filesystem
+% data transfer between tasks: no
+% stdout/stderr streaming: no
+% resources: basic, arbitrary
+% multi-node: kind-of?
+% dynamic task graphs: no
+% Python: yes
+% external services: no
+% language: Python
+
+- lot of additional functionality
+- useful for bash workflows
+- cluster mode explicitly discouraged (https://docs.nersc.gov/jobs/workflow/snakemake/)
+
+\subsection*{Ray}
+% architecture: distributed
+% encryption: yes
+% interfaces: Python
+% meta-scheduling: no
+% autoalloc: no
+% deps: explicit
+% data transfer between tasks: yes
+% stdout/stderr streaming: no
+% resources: basic, arbitrary
+% multi-node: no
+% dynamic task graphs: yes
+% Python: yes
+% external services: yes
+% language: C++/Python
+
+- distributed scheduling
+- useful for ML
+- tasks are low level
+
+\subsection*{Parsl}
+% architecture: Centralized
+% encryption: yes
+% interfaces: Python
+% meta-scheduling: yes
+% autoalloc: yes
+% deps: explicit
+% data transfer between tasks: yes
+% stdout/stderr streaming: no
+% resources: basic
+% multi-node: yes
+% dynamic task graphs: yes
+% Python: yes
+% external services: no
+% language: Python
+
+- very Python centric
+- executors have to be fine-tuned per workflow
+- only basic resource support
+- `WorkQueueExecutor` most similar to HyperQueue
+
+\subsection*{Pegasus}
+% architecture: centralized
+% encryption: yes
+% interfaces: workflow, Python
+% meta-scheduling: manual
+% autoalloc: yes?
+% deps: yes
+% data transfer between tasks: no
+% stdout/stderr streaming: yes
+% resources: basic
+% multi-node: no (https://htcondor.readthedocs.io/en/latest/users-manual/quick-start-guide.html)
+% dynamic task graphs: no
+% Python: no, Java
+% external services: yes (HTCondor)
+% language: Python, Java
+
+- hard-coded clustering
+- level-based clustering
+- bin-packing clustering
+- data movement
+- multiple backends (cloud, HPC, local, ...)
+- HTCondor
+- https://dl.acm.org/doi/pdf/10.1145/1341811.1341822
+
+\subsection*{SciLuigi}
+% architecture:
+% interfaces:
+% meta-scheduling:
+% autoalloc:
+% deps:
+% data transfer between tasks:
+% stdout/stderr streaming:
+% resources:
+% multi-node:
+% dynamic task graphs:
+% Python:
+% external services:
+% language:
+
+\subsection*{Balsam}
+% https://arxiv.org/abs/1909.08704
+% https://balsam.readthedocs.io/en/latest/
+% architecture:
+% interfaces:
+% meta-scheduling:
+% autoalloc:
+% deps:
+% data transfer between tasks:
+% stdout/stderr streaming:
+% resources:
+% multi-node:
+% dynamic task graphs:
+% Python:
+% external services:
+% language:
+
+\subsection*{HyperShell}
+% architecture:
+% interfaces:
+% meta-scheduling:
+% autoalloc:
+% deps:
+% data transfer between tasks:
+% stdout/stderr streaming:
+% resources:
+% multi-node:
+% dynamic task graphs:
+% Python:
+% external services:
+% language:
+
+\subsection*{FireWorks}
+%TODO: FireWorks https://onlinelibrary.wiley.com/doi/10.1002/cpe.3505
+%https://docs.nersc.gov/jobs/workflow/fireworks/
+
+% architecture:
+% interfaces:
+% meta-scheduling:
+% autoalloc:
+% deps:
+% data transfer between tasks:
+% stdout/stderr streaming:
+% resources:
+% multi-node:
+% dynamic task graphs:
+% Python:
+% external services:
+% language:
+
+\subsection*{AutoSubmit}
+% architecture:
+% interfaces:
+% meta-scheduling:
+% autoalloc:
+% deps:
+% data transfer between tasks:
+% stdout/stderr streaming:
+% resources:
+% multi-node:
+% dynamic task graphs:
+% Python:
+% external services:
+% language:
+
+\subsection*{PyCOMPSs}
+% architecture:
+% interfaces:
+% meta-scheduling:
+% autoalloc:
+% deps:
+% data transfer between tasks:
+% stdout/stderr streaming:
+% resources:
+% multi-node:
+% dynamic task graphs:
+% Python:
+% external services:
+% language:
+
+\subsection*{Merlin}
+Merlin~\cite{merlin} is a ...  - similar idea to% https://merlin.readthedocs.io/en/latest/tutorial/1_introduction/?h=many#how-can-merlin-run-so-many-simulations
+HyperQueue - wraps Maestro and Celery - workflows defined in files - does not have autoallocation -
+encrypts with per-user key, same as HQ - more high-level - resources: only CPUs and nodes, can be
+simulated with different Celery queues - dependencies: Python, Redis
+
+% architecture:
+% interfaces:
+% meta-scheduling:
+% autoalloc:
+% deps:
+% data transfer between tasks:
+% stdout/stderr streaming:
+% resources:
+% multi-node:
+% dynamic task graphs:
+% Python:
+% external services:
+% language:
+
+\subsection*{gwf}
+% https://github.com/gwforg/gwf
+%- dependencies through files
+%- basic resources
+%- fault-tolerance partially manual
+%- task per Slurm allocation
+
+% Ignored
+% - dagger (https://github.com/trustyou/dagger) - obsolete
+% - DeepDIVA/Gale (https://github.com/v7labs/Gale) - too niche, ML focused
+% - signac (https://github.com/glotzerlab/signac) - focuses on managing datasets
+% - noWorkflow (https://github.com/gems-uff/noworkflow) - focuses on extracting provenance from
+% Python scripts
+% - Reshi (https://arxiv.org/pdf/2208.07905) - recommends task to node scheduling (for Slurm?)
+% - Design Principles of Dynamic Resource Management for High-Performance Parallel Programming
+% Models (https://arxiv.org/pdf/2403.17107) - general principles for allocations, focuses on MPI
+% - QueueDO (https://bitbucket.org/berkeleylab/qdo/src/master/) - very simple version of HQ
+% - Swift (Swift: Fast, Reliable, Loosely Coupled Parallel Computation) - wtf is this?
+% - Mercury (https://www.usenix.org/system/files/conference/atc15/atc15-paper-karanasos.pdf) -
+% decentralized scheduling
+% - Falkon (https://dl.acm.org/doi/pdf/10.1145/1362622.1362680) - something like HQ
+% - Askalon (ASKALON: A Development and Grid Computing Environment for Scientific Workflows) -
+% old, IDE for workflows?
+% - VGrADS: Enabling e-Science Workflows on Grids and Clouds with Fault Tolerance - abstraction
+% over cloud and HPC
+% - Hawk: Hybrid Datacenter Scheduling - data centers, hybrid centralized/distributed scheduling
+% - Tarema (https://arxiv.org/pdf/2111.05167) - Kubernetes, profiles HW to cluster nodes with
+% similar performance
+% - Tigres (https://ieeexplore.ieee.org/document/7515681), RADICAL (https://arxiv.org/pdf/1609
+% .03484) - templates for building workflows
+% - pydra (https://github.com/nipype/pydra) - too niche, has some iteration support, not different enough from Dask
 
 \section*{Summary}
 This chapter has presented a meta-scheduling design for executing task graphs on

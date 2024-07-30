@@ -990,6 +990,38 @@ and Grondona, Mark",
 %    keywords={Task analysis;Runtime;Cloud computing;Machine learning;Monitoring;Computational modeling;Hardware;task runtime prediction;online incremental learning;scientific workflow},
     doi={10.1109/UCC.2018.00018}
 }
+@INPROCEEDINGS {psij,
+    author = {M. Hategan-Marandiuc and A. Merzky and N. Collier and K. Maheshwari and J. Ozik and M. Turilli and A. Wilke and J. M. Wozniak and K. Chard and I. Foster and R. da Silva and S. Jha and D. Laney},
+    booktitle = {2023 IEEE 19th International Conference on e-Science (e-Science)},
+    title = {PSI/J: A Portable Interface for Submitting, Monitoring, and Managing Jobs},
+    year = {2023},
+    volume = {},
+    issn = {},
+    pages = {1-10},
+%    abstract = {It is generally desirable for high-performance computing (HPC) applications to be portable between HPC systems, for example to make use of more performant hardware, make effective use of allocations, and to co-locate compute jobs with large datasets. Unfortunately, moving scientific applications between HPC systems is challenging for various reasons, most notably that HPC systems have different HPC schedulers. We introduce PSI/J, a job management abstraction API intended to simplify the construction of software components and applications that are portable over various HPC scheduler implementations. We argue that such a system is both necessary and that no viable alternative currently exists. We analyze similar notable APIs and attempt to determine the factors that influenced their evolution and adoption by the HPC community. We base the design of PSI/J on that analysis. We describe how PSI/J has been integrated in three workflow systems and one application, and also show via experiments that PSI/J imposes minimal overhead.},
+%    keywords = {high performance computing;software;hardware;resource management;monitoring},
+    doi = {10.1109/e-Science58273.2023.10254912},
+%    url = {https://doi.ieeecomputersociety.org/10.1109/e-Science58273.2023.10254912},
+    publisher = {IEEE Computer Society},
+    address = {Los Alamitos, CA, USA},
+    month = {oct}
+}
+@INPROCEEDINGS{workflow-alloc-manager-comm,
+    author = {F. Lehmann and J. Bader and F. Tschirpke and L. Thamsen and U. Leser},
+    booktitle = {2023 IEEE/ACM 23rd International Symposium on Cluster, Cloud and Internet Computing (CCGrid)},
+    title = {How Workflow Engines Should Talk to Resource Managers: A Proposal for a Common Workflow Scheduling Interface},
+    year = {2023},
+    volume = {},
+    issn = {},
+    pages = {166-179},
+%    abstract = {Scientific workflow management systems (SWMSs) and resource managers together ensure that tasks are scheduled on provisioned resources so that all dependencies are obeyed, and some optimization goal, such as makespan minimization, is achieved. In practice, however, there is no clear separation of scheduling responsibilities between an SWMS and a resource manager because there exists no agreed-upon separation of concerns between their different components. This has two consequences. First, the lack of a standardized API to exchange scheduling information between SWMSs and resource managers hinders portability. It incurs costly adaptations when a component should be replaced by a different one (e.g., an SWMS with another SWMS on the same resource manager). Second, due to overlapping functionalities, current installations often actually have two schedulers, both making partial scheduling decisions under incomplete information, leading to suboptimal workflow scheduling. In this paper, we propose a simple REST interface between SWMSs and resource managers, which allows any SWMS to pass dynamic workflow information to a resource manager, enabling maximally informed scheduling decisions. We provide an implementation of this API as an example, using Nextflow as an SWMS and Kubernetes as a resource manager. Our experiments with nine real-world workflows show that this strategy reduces makespan by up to 25.1% and 10.8% on average compared to the standard Nextflow/Kubernetes configuration. Furthermore, a more widespread implementation of this API would enable leaner code bases, a simpler exchange of components of workflow systems, and a unified place to implement new scheduling algorithms.},
+%    keywords = {runtime;scheduling algorithms;prototypes;dynamic scheduling;minimization;proposals;task analysis},
+    doi = {10.1109/CCGrid57682.2023.00025},
+%    url = {https://doi.ieeecomputersociety.org/10.1109/CCGrid57682.2023.00025},
+    publisher = {IEEE Computer Society},
+    address = {Los Alamitos, CA, USA},
+    month = {may}
+}
 
 % Scheduling
 @article{Ullman1975,
@@ -1258,6 +1290,11 @@ and Rodrigo, Gonzalo P.",
     title = {Dask Best Practices - Processes and Threads},
     url = {https://docs.dask.org/en/stable/best-practices.html#processes-and-threads},
     urldate = {2024-07-18}
+}
+@online{dask-jobqueue,
+    title = {Dask Jobqueue},
+    url = {https://jobqueue.dask.org/en/latest/index.html},
+    urldate = {2024-07-24},
 }
 @article{snakemake,
     author = {Köster, Johannes and Rahmann, Sven},
@@ -1689,6 +1726,114 @@ and van der Spoel, David",
     url = {https://argoproj.github.io/workflows/},
     urldate = {2024-06-12},
 }
+@inproceedings{falkon,
+    author = {Raicu, Ioan and Zhao, Yong and Dumitrescu, Catalin and Foster, Ian and Wilde, Mike},
+    title = {Falkon: a Fast and Light-weight tasK executiON framework},
+    year = {2007},
+    isbn = {9781595937643},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+%    url = {https://doi.org/10.1145/1362622.1362680},
+    doi = {10.1145/1362622.1362680},
+%    abstract = {To enable the rapid execution of many tasks on compute clusters, we have developed Falkon, a Fast and Light-weight tasK executiON framework. Falkon integrates (1) multi-level scheduling to separate resource acquisition (via, e.g., requests to batch schedulers) from task dispatch, and (2) a streamlined dispatcher. Falkon's integration of multi-level scheduling and streamlined dispatchers delivers performance not provided by any other system. We describe Falkon architecture and implementation, and present performance results for both microbenchmarks and applications. Microbenchmarks show that Falkon throughput (487 tasks/sec) and scalability (to 54,000 executors and 2,000,000 tasks processed in just 112 minutes) are one to two orders of magnitude better than other systems used in production Grids. Large-scale astronomy and medical applications executed under Falkon by the Swift parallel programming system achieve up to 90\% reduction in end-to-end run time, relative to versions that execute tasks via separate scheduler submissions.},
+    booktitle = {Proceedings of the 2007 ACM/IEEE Conference on Supercomputing},
+    articleno = {43},
+    numpages = {12},
+%    keywords = {dynamic resource provisioning, grid computing, parallel programming, scheduling},
+    location = {Reno, Nevada},
+    series = {SC '07}
+}
+@inproceedings{ehpc,
+    author = {Fox, William and Ghoshal, Devarshi and Souza, Abel and Rodrigo, Gonzalo P. and Ramakrishnan, Lavanya},
+    title = {E-HPC: a library for elastic resource management in HPC environments},
+    year = {2017},
+    isbn = {9781450351294},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+%    url = {https://doi.org/10.1145/3150994.3150996},
+    doi = {10.1145/3150994.3150996},
+%    abstract = {Next-generation data-intensive scientific workflows need to support streaming and real-time applications with dynamic resource needs on high performance computing (HPC) platforms. The static resource allocation model on current HPC systems that was designed for monolithic MPI applications is insufficient to support the elastic resource needs of current and future workflows. In this paper, we discuss the design, implementation and evaluation of Elastic-HPC (E-HPC), an elastic framework for managing resources for scientific workflows on current HPC systems. E-HPC considers a resource slot for a workflow as an elastic window that might map to different physical resources over the duration of a workflow. Our framework uses checkpoint-restart as the underlying mechanism to migrate workflow execution across the dynamic window of resources. E-HPC provides the foundation necessary to enable dynamic resource allocation of HPC resources that are needed for streaming and real-time workflows. E-HPC has negligible overhead beyond the cost of checkpointing. Additionally, E-HPC results in decreased turnaround time of workflows compared to traditional model of resource allocation for workflows, where resources are allocated per stage of the workflow. Our evaluation shows that E-HPC improves core hour utilization for common workflow resource use patterns and provides an effective framework for elastic expansion of resources for applications with dynamic resource needs.},
+    booktitle = {Proceedings of the 12th Workshop on Workflows in Support of Large-Scale Science},
+    articleno = {1},
+    numpages = {11},
+%    keywords = {HPC systems, elastic resource management, scientific workflows},
+    location = {Denver, Colorado},
+    series = {WORKS '17}
+}
+@INPROCEEDINGS{l-dag,
+    author={You, Xin and Yang, Hailong and Luan, Zhongzhi and Qian, Depei},
+    booktitle={2019 IEEE Intl Conf on Dependable, Autonomic and Secure Computing, Intl Conf on Pervasive Intelligence and Computing, Intl Conf on Cloud and Big Data Computing, Intl Conf on Cyber Science and Technology Congress (DASC/PiCom/CBDCom/CyberSciTech)},
+    title={L-DAG: Enabling Loopy Workflow in Scientific Application with Automatic DAG Transformation},
+    year={2019},
+    volume={},
+    number={},
+    pages={946-953},
+%    keywords={Task analysis;Transforms;XML;Engines;Tools;Computational modeling;Atmospheric modeling;Loopy workflow, DAG, Automatic transformation, Scientific application, HTCondor},
+    doi={10.1109/DASC/PiCom/CBDCom/CyberSciTech.2019.00174}
+}
+@software{parallel,
+    author       = {Tange, Ole},
+    title        = {GNU Parallel 20230722 ('Приго́жин')},
+    month        = Jul,
+    year         = 2023,
+    note         = {{GNU Parallel is a general parallelizer to run
+                       multiple serial command line programs in parallel
+                       without changing them.}},
+    publisher    = {Zenodo},
+    doi          = {10.5281/zenodo.8175685},
+%    url          = {https://doi.org/10.5281/zenodo.8175685}
+}
+
+% Web interfaces for accessing clusters
+@INPROCEEDINGS{cumulus,
+    author={Harris, Chris and O'Leary, Patrick and Grauer, Michael and Chaudhary, Aashish and Kotfila, Chris and O'Bara, Robert},
+    booktitle={2016 6th Workshop on Python for High-Performance and Scientific Computing (PyHPC)},
+    title={Dynamic Provisioning and Execution of HPC Workflows Using Python},
+    year={2016},
+    volume={},
+    number={},
+    pages={1-8},
+%    keywords={Structural beams;Electronic mail;Cloud computing;Dynamic scheduling;Complexity theory;Open source software},
+    doi={10.1109/PyHPC.2016.005}
+}
+@article{openondemand,
+    title = {Open OnDemand: A web-based client portal for HPC centers},
+    author = {Dave Hudak and Doug Johnson and Alan Chalker and Jeremy Nicklas and Eric Franz and Trey Dockendorf and Brian L. McMichael},
+    doi = {10.21105/joss.00622},
+%    url = {https://doi.org/10.21105/joss.00622},
+    year = {2018},
+    publisher = {The Open Journal},
+    volume = {3},
+    number = {25},
+    pages = {622},
+    journal = {Journal of Open Source Software}
+}
+@InProceedings{heappe,
+    author="Svatoň, Václav
+and Martinovič, Jan
+and Křenek, Jan
+and Esch, Thomas
+and Tomančák, Pavel",
+    editor="Barolli, Leonard
+and Hussain, Farookh Khadeer
+and Ikeda, Makoto",
+    title="HPC-as-a-Service via HEAppE Platform",
+    booktitle="Complex, Intelligent, and Software Intensive Systems",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="280--293",
+    %    abstract="The HPC-as-a-Service concept is to provide users with simple and intuitive access to a supercomputing infrastructure without the need to buy and manage their own physical servers or data centers. This article presents the commonly used services and implementations of this concept and introduces our own in-house application framework called High-End Application Execution Middleware (HEAppE Middleware). HEAppE's universally designed software architecture enables unified access to different HPC systems through simple object-oriented web-based APIs, thus providing HPC capabilities to users without the necessity to manage the running jobs forms the command-line interface of the HPC scheduler directly on the cluster. This article also contains the list of several pilot use-cases from a number of thematic domains where the HEAppE Platform was successfully used. Two of those pilots, focusing on satellite image analysis and bioimage informatics, are presented in more detail.",
+    isbn="978-3-030-22354-0"
+}
+@inproceedings{lexis,
+    title={HPC, cloud and big-data convergent architectures: The lexis approach},
+    author={Scionti, Alberto and Martinovič, Jan and Terzo, Olivier and Walter, Etienne and Levrier, Marc and Hachinger, Stephan and Magarielli, Donato and Goubier, Thierry and Louise, Stephane and Parodi, Antonio and others},
+    booktitle={Complex, Intelligent, and Software Intensive Systems: Proceedings of the 13th International Conference on Complex, Intelligent, and Software Intensive Systems (CISIS-2019)},
+    pages={200--212},
+    year={2020},
+    organization={Springer}
+}
 
 % Datasets
 @dataset{estee_graphs,
@@ -1934,24 +2079,6 @@ and van der Spoel, David",
     url = {https://docs.csc.fi/computing/running/throughput/},
     urldate = {2024-07-24},
 }
-@InProceedings{heappe,
-    author="Svaton, Vaclav
-and Martinovic, Jan
-and Krenek, Jan
-and Esch, Thomas
-and Tomancak, Pavel",
-    editor="Barolli, Leonard
-and Hussain, Farookh Khadeer
-and Ikeda, Makoto",
-    title="HPC-as-a-Service via HEAppE Platform",
-    booktitle="Complex, Intelligent, and Software Intensive Systems",
-    year="2020",
-    publisher="Springer International Publishing",
-    address="Cham",
-    pages="280--293",
-%    abstract="The HPC-as-a-Service concept is to provide users with simple and intuitive access to a supercomputing infrastructure without the need to buy and manage their own physical servers or data centers. This article presents the commonly used services and implementations of this concept and introduces our own in-house application framework called High-End Application Execution Middleware (HEAppE Middleware). HEAppE's universally designed software architecture enables unified access to different HPC systems through simple object-oriented web-based APIs, thus providing HPC capabilities to users without the necessity to manage the running jobs forms the command-line interface of the HPC scheduler directly on the cluster. This article also contains the list of several pilot use-cases from a number of thematic domains where the HEAppE Platform was successfully used. Two of those pilots, focusing on satellite image analysis and bioimage informatics, are presented in more detail.",
-    isbn="978-3-030-22354-0"
-}
 @misc{ps-workflow,
     author = {Sebastian Wingbermühle},
     title = {LIGATE Pose Selector Workflow},
@@ -1969,4 +2096,9 @@ and Ikeda, Makoto",
     journal = {GitHub repository},
     howpublished = {\url{https://github.com/LigateProject/Computer-Aided-Drug-Design-workflow-HyperQueue}},
     commit = {7051916db3affb2eb8b0e5cf9a932cea24cc0ead}
+}
+@online{heappe_hq,
+    title = {HEAppE HyperQueue integration},
+    url = {https://heappe.it4i.cz/docs/4-2-0/pages/hyperqueue.html},
+    urldate = {2024-07-29},
 }
