@@ -2942,10 +2942,19 @@ section.
 	& % dynamic task graphs
 	\rot{No Python needed} & \rot{No runtime services needed} & \rot{Implemented in} \\ % deployment
 	\midrule
-	\textsc{GNU Parallel}~\cite{parallel} & C & \yes & \no & \no & \no & \no & \no & \no &
+	\textsc{GNU Parallel}~\cite{parallel} & C & \yes & \no & \no & \no & \no & \no & \no & \\
+	\textsc{HyperShell}~\cite{hypershell}\\
 	\dask{}~\cite{dask} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
-	\hyperqueue{}~\cite{hyperqueue} & C & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & Rust\\
+	\ray{}~\cite{ray} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
+	\textsc{Parsl}~\cite{parsl} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
+	\textsc{PyCOMPSs}~\cite{pycompss} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
+	\textsc{Pegasus}~\cite{pegasus} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
+	\textsc{Balsam}~\cite{balsam} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
+	\textsc{AutoSubmit}~\cite{autosubmit} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
+	\textsc{FireWorks}~\cite{fireworks} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
+	\textsc{Merlin}~\cite{merlin} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
 	\snakemake{}~\cite{snakemake} & C & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & Python\\
+	\hyperqueue{}~\cite{hyperqueue} & C & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & Rust\\
 	\bottomrule
 	\label{tab:hq-tools-comparison}
 \end{tabular}
