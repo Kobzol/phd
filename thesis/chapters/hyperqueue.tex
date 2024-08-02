@@ -2898,9 +2898,11 @@ section.
 
 % Inspiration taken from https://tex.stackexchange.com/a/377651/95679
 \begin{table}[h]
+%	\aboverulesep=0ex
+%	\belowrulesep=0ex
 	\footnotesize
 	\newcommand*\rot[1]{\footnotesize\hbox to1em{\hss\rotatebox[origin=br]{-90}{#1}}}
-	\newcommand*\rotheading[1]{\footnotesize\hbox to1em{\hss\rotatebox[origin=br]{-90}{#1}}}
+	\newcommand*\rotheading[1]{\footnotesize\hbox to1em{\hss\rotatebox[origin=br]{-45}{#1}}}
 	\newcommand*\feature[1]{\ifcase#1 -\or\LEFTcircle\or\CIRCLE\fi}
 	\newcommand*\f[3]{\feature#1&\feature#2&\feature#3}
 	\makeatletter
@@ -2909,65 +2911,101 @@ section.
 	}
 	% Features
 	\newcommand*\yes{\faThumbsOUp}
-	\newcommand*\no{\faThumbsODown}
+%	\newcommand*\no{\faThumbsODown}
+	\newcommand*\no{-}
+	\newcommand*\partially{\faThumbsOUp}
+	% CLI for submitting tasks
 	\newcommand*\cli{C}
-	\newcommand*\pythonapi{P}
+	% Workflow files for submitting tasks
 	\newcommand*\workflowfile{W}
+	% Python API for submitting tasks
+	\newcommand*\pythonapi{P}
+	% Manual task graph partitioning
+	\newcommand*\manualmap{M}
+	% Automatic task graph partitioning
+	\newcommand*\automaticmap{A}
+	% Requires Python
+	\newcommand*\python{Python}
 	\makeatother
 	\newcolumntype{A}{c@{}c}
 	\newcolumntype{B}{c@{}c@{}c}
+	\newcolumntype{C}{c@{}c@{}c@{}c}
+	\newcolumntype{D}{c@{}c@{}c@{}c@{}c}
 %    \newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
 	\begin{threeparttable}
-	%TODO: fix layout
-	% 18 columns
-	\begin{tabular}{@{}l|c|B|c|B|A|B|c|Ar}
-	\toprule
-	Task runtime &
-	\rotheading{Architecture} &
+	\begin{tabular}{|l|B|A|A|D|A|l|}
+	\multicolumn{1}{c}{Task runtime} &
 	\multicolumn{3}{c}{\rotheading{Task interfaces}} &
-	\rotheading{Task dependencies} &
-	\multicolumn{3}{c}{\rotheading{Meta-scheduling}} &
+	\multicolumn{2}{c}{\rotheading{Task dependencies}} &
+	\multicolumn{2}{c}{\rotheading{Meta-scheduling}} &
+	\multicolumn{5}{c}{\rotheading{Resources}} &
 	\multicolumn{2}{c}{\rotheading{Data transfers}} &
-	\multicolumn{3}{c}{\rotheading{Resources}} &
-	\rotheading{Iteration} &
-	\multicolumn{3}{c}{\rotheading{Deployment}}\\
+	\multicolumn{1}{c}{Deployment}\\
 	\midrule
 	& % tool
-	& % architecture (master/worker vs distributed?)
-	\centering \rot{CLI} & \rot{Python API} & \rot{Workflow file} & % interfaces
-	Task dependencies & % dependencies
-	\centering \rot{Static} & \rot{Dynamic} & \rot{Automatic allocation} & % meta-scheduling
-	\rot{Data transfer between tasks} & \rot{Streaming of stdout/stderr} & % data transfers
-	\rot{Basic (CPU/memory)} & \rot{Generic} & \rot{Multi-node tasks} & %resources
-	& % dynamic task graphs
-	\rot{No Python needed} & \rot{No runtime services needed} & \rot{Implemented in} \\ % deployment
+	\centering \rot{CLI} & \rot{Workflow file} & \rot{Python API} & % interfaces
+	\centering \rot{Explicit} & \rot{Inferred from files} & % dependencies
+	\centering \rot{Graph partitioning} &
+	\rot{Automatic allocation} & % meta-scheduling
+	\rot{Basic (CPU/GPU)} & \rot{Generic resources} & \rot{Resource pools} &
+	\rot{Multi-node tasks} & \rot{Generic workers} & %resources
+	\rot{Directly between tasks} & \rot{Output streaming} & % data transfers
+	Runtime dependencies \\ % deployment
 	\midrule
-	\textsc{GNU Parallel}~\cite{parallel} & C & \yes & \no & \no & \no & \no & \no & \no & \\
-	\textsc{HyperShell}~\cite{hypershell}\\
-	\dask{}~\cite{dask} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
-	\ray{}~\cite{ray} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
-	\textsc{Parsl}~\cite{parsl} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
-	\textsc{PyCOMPSs}~\cite{pycompss} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
-	\textsc{Pegasus}~\cite{pegasus} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
-	\textsc{Balsam}~\cite{balsam} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
-	\textsc{AutoSubmit}~\cite{autosubmit} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
-	\textsc{FireWorks}~\cite{fireworks} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
-	\textsc{Merlin}~\cite{merlin} & C & \no & \no & \no & \no & \no & \no & \no\textsuperscript{\dag{}} & \no & \no & \no & \no & \no & \no & \no & \no & Python \\
-	\snakemake{}~\cite{snakemake} & C & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & Python\\
-	\hyperqueue{}~\cite{hyperqueue} & C & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & Rust\\
+	\textsc{GNU Parallel} \hfill\cite{parallel} & \yes & \no & \no & \no & \no & \no & \no & \no &
+	\no & \no & \no & \no & \no & \yes & \\
+%	\midrule
+	\textsc{HyperShell}\hfill\cite{hypershell} & \yes & \no & \yes & \no & \no & \manualmap & \yes & \no & \no & \no & \no & \no & \no & \yes & \python \\
+%	\midrule
+	\dask{}\hfill\cite{dask} & \no & \no & \yes{} & \yes{} & \no & \automaticmap\textsuperscript{
+		\dag} & \yes\textsuperscript{\dag} & \yes & \yes & \no & \no & \yes & \yes & \yes & \python \\
+%	\midrule
+	\ray{}\hfill\cite{ray} & \no & \no & \yes & \yes & \no & \no & \no & \yes & \yes & \no & \no & \yes & \yes & \partially\textsuperscript{*} & \python \\
+%	\midrule
+	\textsc{Parsl}\hfill\cite{parsl} & \no & \no & \yes & \yes & \no & \automaticmap & \yes & \yes & \no & \no & \yes & \no & \yes & \no & \python \\
+%	\midrule
+	\textsc{PyCOMPSs}\hfill\cite{pycompss} & \yes & \no & \yes & \yes & \no & ? & ? & \yes & \no & \no & \yes & ? & \yes & \yes & \python, Java \\
+%	\midrule
+	\textsc{Pegasus}\hfill\cite{pegasus} & \no & \yes & \yes & \yes & \yes & \manualmap &
+	? & \yes & \no & \no & \no & ? & \no & \yes & \python, Java, HTCondor~\cite{htcondor} \\
+%	\midrule
+	\textsc{Balsam}\hfill\cite{balsam} & \no & \no & \yes & \yes & \no & \automaticmap & \yes & \yes & \no & \no & \yes & ? & \yes & \no & \python, PostgreSQL \\
+%	\midrule
+	\textsc{AutoSubmit}\hfill\cite{autosubmit} & \no & \yes & \no & \yes & \no & \manualmap &
+	\yes & \yes & \no & \no & \yes & ? & \no & \no & \python \\
+%	\midrule
+	\textsc{FireWorks}\hfill\cite{fireworks} & \no & \yes & \yes & \yes & \no & \automaticmap & \yes & ? & \no & \no & \no & ? & \no & \no & \python, MongoDB \\
+%	\midrule
+	\textsc{Merlin}\hfill\cite{merlin} & \no & \yes & \no & \yes & \no & \automaticmap & \no & \yes & \no & \no & \yes & \no & \no & \no & \python, RabbitMQ/Redis \\
+%	\midrule
+	\snakemake{}\hfill\cite{snakemake} & \no & \yes & \yes & \no & \yes & \manualmap & \yes\textsuperscript{\dag} & \yes & \yes & \no & \yes & ? & \no & \no & \python \\[2mm]
+%	\midrule
+	\hyperqueue{}\hfill\cite{hyperqueue} & \yes & \yes & \yes & \yes & \no & \automaticmap & \yes & \yes & \yes & \yes & \yes & \yes & \no & \yes & \\
 	\bottomrule
-	\label{tab:hq-tools-comparison}
 \end{tabular}
 \begin{tablenotes}
-	\item \hfil$\feature2=\text{provides property}$; $\feature1=\text{partially provides property}$;
-	$\text{\feature0}=\text{does not provide property}$;
-	\item \hfil\textsuperscript{\dag}with Dask-Jobqueue~\cite{dask-jobqueue} plugin;
-	\textsuperscript{*}end-user tool available
+	\centering
+	\item \yes{} supported; \no{} not supported;
+	\item \automaticmap{}: automatic; \manualmap{}: manual;
+	\item \textsuperscript{\dag}with an external plugin; \textsuperscript{*}output goes through
+	files
 \end{tablenotes}
 \caption{Comparison of meta-scheduling task runtimes}
 %\label{tab:hq-tools-comparison}
 \end{threeparttable}
 \end{table}
+
+%TODO: move generic workers to meta-scheduling part?
+
+% tasks unrelated to allocations
+% map tasks to allocations
+% tasks pinned to a specific queue
+% task graph partitioning
+% load-balancing
+% generic workers - Parsl no, Merlin no
+% auto-allocation
+
+% fault-tolerance - automatic, manual
 
 % TODO: merge tasks into categories
 % Dask + Parsl + funcx/Globus
@@ -3023,7 +3061,7 @@ numpy/pandas code.
 % encryption: no
 % interfaces: Python, workflow files
 % meta-scheduling: manual partitioning
-% autoalloc: yes
+% autoalloc: yes (https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html)
 % deps: filesystem
 % data transfer between tasks: no
 % stdout/stderr streaming: no
@@ -3057,6 +3095,7 @@ numpy/pandas code.
 - distributed scheduling
 - useful for ML
 - tasks are low level
+- has autoscaling, but not for Slurm
 
 \subsection*{Parsl}
 % architecture: Centralized
@@ -3144,7 +3183,7 @@ numpy/pandas code.
 % architecture: centralized
 % encryption: yes
 % interfaces: workflow file
-% meta-scheduling: manual
+% meta-scheduling: manual (https://autosubmit.readthedocs.io/en/master/userguide/wrappers/index.html)
 % autoalloc: yes
 % deps: explicit
 % data transfer between tasks: no
@@ -3221,13 +3260,6 @@ HyperQueue
 % external services: Redis
 % language: Python
 
-\subsection*{gwf}
-% https://github.com/gwforg/gwf
-%- dependencies through files
-%- basic resources
-%- fault-tolerance partially manual
-%- task per Slurm allocation
-
 % Ignored
 % - dagger (https://github.com/trustyou/dagger) - obsolete
 % - DeepDIVA/Gale (https://github.com/v7labs/Gale) - too niche, ML focused
@@ -3253,6 +3285,8 @@ HyperQueue
 % .03484) - templates for building workflows
 % - pydra (https://github.com/nipype/pydra) - too niche, has some iteration support, not different enough from Dask
 % - SciLuigi - not documented enough
+% - gwf (https://github.com/gwforg/gwf) - too niche, dependencies through files, basic resources,
+% fault-tolerance partially manual, task per Slurm allocation
 
 \section*{Summary}
 This chapter has presented a meta-scheduling design for executing task graphs on
