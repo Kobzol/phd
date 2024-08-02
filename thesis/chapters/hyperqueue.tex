@@ -2897,6 +2897,8 @@ section.
 % https://stackoverflow.com/questions/1357798/how-to-center-cell-contents-of-a-latex-table-whose-columns-have-fixed-widths
 
 % Inspiration taken from https://tex.stackexchange.com/a/377651/95679
+
+%! suppress = MissingLabel
 \begin{table}[h]
 %	\aboverulesep=0ex
 %	\belowrulesep=0ex
@@ -2924,6 +2926,10 @@ section.
 	\newcommand*\manualmap{M}
 	% Automatic task graph partitioning
 	\newcommand*\automaticmap{A}
+	% Automatic fault tolerance
+	\newcommand*\automaticft{A}
+	% Manual fault tolerance
+	\newcommand*\manualft{M}
 	% Requires Python
 	\newcommand*\python{Python}
 	\makeatother
@@ -2933,11 +2939,11 @@ section.
 	\newcolumntype{D}{c@{}c@{}c@{}c@{}c}
 %    \newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
 	\begin{threeparttable}
-	\begin{tabular}{|l|B|A|A|D|A|l|}
+	\begin{tabular}{|l|B|A|B|D|A|l|}
 	\multicolumn{1}{c}{Task runtime} &
 	\multicolumn{3}{c}{\rotheading{Task interfaces}} &
 	\multicolumn{2}{c}{\rotheading{Task dependencies}} &
-	\multicolumn{2}{c}{\rotheading{Meta-scheduling}} &
+	\multicolumn{3}{c}{\rotheading{Meta-scheduling}} &
 	\multicolumn{5}{c}{\rotheading{Resources}} &
 	\multicolumn{2}{c}{\rotheading{Data transfers}} &
 	\multicolumn{1}{c}{Deployment}\\
@@ -2945,42 +2951,42 @@ section.
 	& % tool
 	\centering \rot{CLI} & \rot{Workflow file} & \rot{Python API} & % interfaces
 	\centering \rot{Explicit} & \rot{Inferred from files} & % dependencies
-	\centering \rot{Graph partitioning} &
+	\centering \rot{Graph partitioning} & \rot{Fault-tolerance} &
 	\rot{Automatic allocation} & % meta-scheduling
 	\rot{Basic (CPU/GPU)} & \rot{Generic resources} & \rot{Resource pools} &
 	\rot{Multi-node tasks} & \rot{Generic workers} & %resources
 	\rot{Directly between tasks} & \rot{Output streaming} & % data transfers
 	Runtime dependencies \\ % deployment
 	\midrule
-	\textsc{GNU Parallel} \hfill\cite{parallel} & \yes & \no & \no & \no & \no & \no & \no & \no &
-	\no & \no & \no & \no & \no & \yes & \\
+	\textsc{GNU Parallel} \hfill\cite{parallel} & \yes & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \yes & \\
 %	\midrule
-	\textsc{HyperShell}\hfill\cite{hypershell} & \yes & \no & \yes & \no & \no & \manualmap & \yes & \no & \no & \no & \no & \no & \no & \yes & \python \\
+	\textsc{HyperShell}\hfill\cite{hypershell} & \yes & \no & \yes & \no & \no & \manualmap & \automaticft & \yes & \no & \no & \no & \no & \no & \no & \yes & \python \\
 %	\midrule
-	\dask{}\hfill\cite{dask} & \no & \no & \yes{} & \yes{} & \no & \automaticmap\textsuperscript{
-		\dag} & \yes\textsuperscript{\dag} & \yes & \yes & \no & \no & \yes & \yes & \yes & \python \\
+	\dask{}\hfill\cite{dask} & \no & \no & \yes{} & \yes{} & \no &
+	\automaticmap\textsuperscript{\dag} & \automaticft & \yes\textsuperscript{\dag} & \yes & \yes & \no & \no & \yes & \yes & \yes & \python \\
 %	\midrule
-	\ray{}\hfill\cite{ray} & \no & \no & \yes & \yes & \no & \no & \no & \yes & \yes & \no & \no & \yes & \yes & \partially\textsuperscript{*} & \python \\
+	\ray{}\hfill\cite{ray} & \no & \no & \yes & \yes & \no & \automaticmap & \automaticft & \no & \yes & \yes & \no & \no & \yes & \yes & \partially\textsuperscript{*} & \python \\
 %	\midrule
-	\textsc{Parsl}\hfill\cite{parsl} & \no & \no & \yes & \yes & \no & \automaticmap & \yes & \yes & \no & \no & \yes & \no & \yes & \no & \python \\
+	\textsc{Parsl}\hfill\cite{parsl} & \no & \no & \yes & \yes & \no & \automaticmap & \automaticft & \yes & \yes & \no & \no & \yes & \no & \yes & \no & \python \\
 %	\midrule
-	\textsc{PyCOMPSs}\hfill\cite{pycompss} & \yes & \no & \yes & \yes & \no & ? & ? & \yes & \no & \no & \yes & ? & \yes & \yes & \python, Java \\
+	\textsc{PyCOMPSs}\hfill\cite{pycompss} & \yes & \no & \yes & \yes & \no & ? & \automaticft &
+	? & \yes & \no & \no & \yes & ? & \yes & \yes & \python, Java \\
 %	\midrule
-	\textsc{Pegasus}\hfill\cite{pegasus} & \no & \yes & \yes & \yes & \yes & \manualmap &
+	\textsc{Pegasus}\hfill\cite{pegasus} & \no & \yes & \yes & \yes & \yes & \manualmap & \automaticft &
 	? & \yes & \no & \no & \no & ? & \no & \yes & \python, Java, HTCondor~\cite{htcondor} \\
 %	\midrule
-	\textsc{Balsam}\hfill\cite{balsam} & \no & \no & \yes & \yes & \no & \automaticmap & \yes & \yes & \no & \no & \yes & ? & \yes & \no & \python, PostgreSQL \\
+	\textsc{Balsam}\hfill\cite{balsam} & \no & \no & \yes & \yes & \no & \automaticmap & \automaticft & \yes & \yes & \no & \no & \yes & ? & \yes & \no & \python, PostgreSQL \\
 %	\midrule
-	\textsc{AutoSubmit}\hfill\cite{autosubmit} & \no & \yes & \no & \yes & \no & \manualmap &
+	\textsc{AutoSubmit}\hfill\cite{autosubmit} & \no & \yes & \no & \yes & \no & \manualmap & \automaticft &
 	\yes & \yes & \no & \no & \yes & ? & \no & \no & \python \\
 %	\midrule
-	\textsc{FireWorks}\hfill\cite{fireworks} & \no & \yes & \yes & \yes & \no & \automaticmap & \yes & ? & \no & \no & \no & ? & \no & \no & \python, MongoDB \\
+	\textsc{FireWorks}\hfill\cite{fireworks} & \no & \yes & \yes & \yes & \no & \automaticmap & \manualft & \yes & ? & \no & \no & \no & ? & \no & \no & \python, MongoDB \\
 %	\midrule
-	\textsc{Merlin}\hfill\cite{merlin} & \no & \yes & \no & \yes & \no & \automaticmap & \no & \yes & \no & \no & \yes & \no & \no & \no & \python, RabbitMQ/Redis \\
+	\textsc{Merlin}\hfill\cite{merlin} & \no & \yes & \no & \yes & \no & \automaticmap & \manualft & \no & \yes & \no & \no & \yes & \no & \no & \no & \python, RabbitMQ/Redis \\
 %	\midrule
-	\snakemake{}\hfill\cite{snakemake} & \no & \yes & \yes & \no & \yes & \manualmap & \yes\textsuperscript{\dag} & \yes & \yes & \no & \yes & ? & \no & \no & \python \\[2mm]
+	\snakemake{}\hfill\cite{snakemake} & \no & \yes & \yes & \no & \yes & \manualmap & \automaticft & \yes\textsuperscript{\dag} & \yes & \yes & \no & \yes & ? & \no & \no & \python \\[2mm]
 %	\midrule
-	\hyperqueue{}\hfill\cite{hyperqueue} & \yes & \yes & \yes & \yes & \no & \automaticmap & \yes & \yes & \yes & \yes & \yes & \yes & \no & \yes & \\
+	\hyperqueue{}\hfill\cite{hyperqueue} & \yes & \yes & \yes & \yes & \no & \automaticmap & \automaticft & \yes & \yes & \yes & \yes & \yes & \yes & \no & \yes & \\
 	\bottomrule
 \end{tabular}
 \begin{tablenotes}
