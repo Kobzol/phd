@@ -117,14 +117,32 @@
 
 \SubmissionYear{2024}
 
-\CzechAbstract{TODO: přeložit}
-\CzechKeywords{distribuované výpočty, výpočetní grafy, vysokovýkonnostní počítání}
+\CzechAbstract{Tato práce se zabývá spouštěním grafů úloh na vysoce výkonných systémech (superpočítačích),
+se zaměřením na efektivní využití výpočetních zdrojů a poskytnutí ergonomických rozhraní pro návrh
+a spouštění grafů úloh. Programování na základě úloh je oblíbeným způsobem pro definici vědeckých soustav
+výpočtů, které jsou určeny pro spouštění na distribuovaných systémech. Nicméně spouštění těchto úloh na superpočítačích
+přináší unikátní výzvy, například problémy s výkonem způsobené značným rozsahem úloh nebo problematickou interakci úloh
+se systémy pro správu alokací na superpočítačích, jako jsou například PBS (Portable Batch System) nebo Slurm. Tato práce
+zkoumá, jaké jsou hlavní problémy ovlivňující spouštění úloh v této oblasti a navrhuje různé přístupy,
+které by měly pomoci tyto problémy částečně či zcela vyřešit, a to jak v oblasti výkonu, tak i ergonomie vývoje.
+
+Tato práce poskytuje tři hlavní přínosy. Prvním z nich je prostředí pro simulaci spouštění grafů úloh,
+které umožňuje jednoduché experimentování a měření různých plánovacích algoritmů. Toto prostředí bylo
+použito pro provedení rozsáhlé studie kvality různých plánovačů úloh. Dále práce analyzuje
+výkonnostní charakteristiku moderního nástroje pro spouštění úloh \dask{}, a poskytuje alternativní
+implementaci \dask{} serveru, která výrazně zvyšuje jeho efektivitu v případech, které vyžadují vysoký výkon.
+Hlavním přínosem práce je metoda pro plánování úloh, která umožňuje jednoduché spouštění úloh na superpočítačích,
+které zároveň maximalizuje využití dostupných výpočetních zdrojů. Práce také poskytuje referenční implementaci
+využívající této metody v rámci nástroje \hyperqueue{}, který usnadňuje spouštění grafů úloh na heterogenních
+vysoce výkonných distribuovaných systémech. \hyperqueue{} je dostupné jako software s otevřeným zdrojovým kódem
+pod licencí MIT (Massachusetts Institute of Technology) na adrese \url{https://github.com/it4innovations/hyperqueue}.}
+\CzechKeywords{distribuované výpočty, výpočetní grafy, vysoce výkonné počítání}
 
 \EnglishAbstract{This thesis deals with the execution of task graphs on High-performance Computing
 (HPC) clusters (supercomputers), with a focus on efficient usage of hardware resources and ergonomic interfaces for
-task graph submission. Task graphs are a popular tool for executing scientific workflows on distributed
-clusters, but executing them on supercomputers introduces unique challenges, caused mainly by performance
-issues caused by the large scale of HPC workflows and also by cumbersome interactions with HPC allocation
+task graph submission. Task-based programming is a popular approach for defining scientific workflows that can be computed on distributed
+clusters. However, executing task graphs on supercomputers introduces unique challenges, such as performance
+issues caused by the large scale of HPC workflows or cumbersome interactions with HPC allocation
 managers like PBS (Portable Batch System) or Slurm. This work examines what are the main challenges
 in this area and how do they affect task graph execution, and it proposes various approaches for alleviating
 these challenges, both in terms of efficiency and developer ergonomics.
