@@ -1,1328 +1,1328 @@
-%The previous two chapters focused primarily on the performance aspects of task graph execution, by
-%examining various task scheduling algorithms and also bottlenecks that can limit the scalability of
-%existing task runtimes. Performance is naturally crucial for \gls{hpc}, yet it should
-%not be the only factor to focus on. \Autoref{ch:sota} discussed several other challenges
-%affecting \gls{hpc} task graphs, that are related to the second main focus of this
-%thesis, namely the \emph{ergonomics} of task graph execution.
-%
-%Execution ergonomics (in the context of task-based programming models) is a broad area that
-%encompasses several aspects, such as providing an easy way to define the structure of the task
-%graph, allowing its execution in an effortless manner (both on a local computer and a distributed
-%cluster), handling fault tolerance without the user's intervention, allowing users to express
-%complex resource requirements and many others. This thesis primarily focuses on analyzing and
-%resolving ergonomic challenges that form a barrier for executing task graphs on
-%\gls{hpc} clusters. As we will see in this chapter, ergonomics and performance do not
-%have to contradict each other; approaches that increase ergonomics can also help with improving
-%performance and hardware utilization.
-%
-%One approach to improve ergonomics could be to make incremental improvements that would mitigate
-%the mentioned issues in off-the-shelf task runtimes. However, as we will see later in this chapter,
-%ergonomic areas such as supporting heterogeneous tasks and clusters and resource requirements,
-%providing fault tolerance and dynamic load balancing and overcoming allocation manager limits are
-%all intertwined, and they affect each other in non-trivial ways. Therefore, this chapter introduces
-%a holistic meta-scheduling design that aims to tackle the most important challenges with a unified
-%solution, in order to enable effortless, efficient and fault-tolerant execution of task graphs on
-%heterogeneous \gls{hpc} clusters in the presence of allocation managers.
-%
-%This reference design has been implemented in \hyperqueue{}, an
-%\gls{hpc}-tailored task runtime that was designed to enable transparent, ergonomic
-%and efficient execution of task graphs on \gls{hpc} systems. \hyperqueue{}
-%is a spiritual successor of \rsds{}, and builds upon its server and task scheduler
-%implementation; however, it does not use the \dask{} interface. It is the
-%culmination of the research and work presented in this thesis, which was made possible thanks to
-%the experience gained from \estee{} and \rsds{}, and also from
-%interacting with many \gls{hpc} workflows and use-cases over the course of several
-%years.
-%
-%The work presented in this chapter makes the following contributions:
-%\begin{enumerate}
-%	\item We propose a meta-scheduling design that provides a unified way of scheduling and executing tasks
-%	      in the presence of allocation managers and allows load balancing across different allocations. It
-%	      disentangles the definition of tasks and the hardware that executes them, making it flexible and
-%	      easy to use.
-%	\item We describe an approach that enables a task runtime to automatically submit allocations on behalf
-%	      of the user in response to computational load, which further simplifies the execution of task
-%	      graphs on supercomputers.
-%	\item We provide a task scheduler with complex resource management that supports non-trivial features
-%	      that are not present in other state-of-the-art tools, such as fractional resources or resource
-%	      variants.
-%	\item We evaluate the performance and hardware utilization of the proposed design on several benchmarks
-%	      and use-cases.
-%\end{enumerate}
-%
-%This chapter first introduces the general meta-scheduling design for mapping tasks to allocations.
-%Then it describes the architecture of \hyperqueue{}, which implements the proposed
-%design, and presents how its features alleviate the challenges described
-%in~\Autoref{ch:sota}. Finally, it provides a performance analysis of \hyperqueue{},
-%evaluates it on several use-cases and compares its features with other state-of-the-art
-%meta-scheduling task runtimes.
-%
-%We have described the design and key ideas of \hyperqueue{} in
-%\emph{HyperQueue: efficient and ergonomic task graphs on HPC clusters}~\cite{hyperqueue}. The architecture of \hyperqueue{}
-%descriptions presented in this chapter was adapted from this publication.
-%
-%\workshare{I have collaborated on this work with Ada Böhm; we have both contributed to it equally. I am the
-%sole author of the design and implementation of the automatic allocator
-%component, and I have also significantly contributed to the design and implementation of most remaining parts
-%of \hyperqueue{}. I have designed and performed all the experiments described in this
-%chapter. While Ada and I are the primary contributors to \hyperqueue{}, it should be noted that several other people have contributed to it, as its development is a team effort. Source code contribution statistics for
-%\hyperqueue{} can be found on GitHub\footnoteurl{https://github.com/it4innovations/hyperqueue/graphs/contributors}.}
-%
-%\section{Interaction with allocation managers}
-%The primary challenge that affects the simplicity of task graph execution on
-%\gls{hpc} clusters is the presence of an allocation manager, as it forms a barrier;
-%on such clusters, it is not possible to compute anything at all without interacting with
-%allocations. In order for task graph execution to become truly ergonomic, there is no point in
-%tackling the rest of the (ergonomic) challenges until there is a straightforward way of executing
-%task graphs through an allocation manager.
-%
-%\Autoref{challenge:allocation-manager} has described several approaches that can be used to map tasks to
-%allocations, which is necessary to execute task graphs, as well as their various shortcomings. Due
-%to the limits imposed by allocation managers, it might be necessary to partition task graphs into
-%multiple subgraphs in order to fit them within an allocation, which can be challenging.
-%Furthermore, it can result in non-optimal usage of hardware resources, because tasks from
-%(sub)graphs submitted in separate allocations will only be load balanced within their own
-%allocation, and not across different allocations.
-%
-%It is important to understand what is uniquely challenging about the interaction with allocations.
-%The fact that the computation needs to go through a queue is not an issue by itself, as we are
-%dealing with batch processing anyway. Therefore, some form of a delay between submitting the task
-%graph and receiving the results is expected, even if we did not have to submit allocations at all.
-%
-%The main issue of allocations is that they strictly tie together two separate aspects;
-%\emph{what} the user wants to compute (the computation performed once the allocation
-%starts) and \emph{where} should the computation take place (specific hardware resources
-%and computational nodes reserved for the allocation). As was already described previously, both of
-%these things have to be specified together in an allocation. This is a very inflexible design, for
-%several reasons:
-%
-%\begin{itemize}
-%	\item The user needs to consider both aspects at the same time. Ultimately, the main thing that the user
-%	      cares about is what they want to compute. With allocations, they also need to think about specific
-%	      hardware resources that should be allocated for computing their task graph, which can be
-%	      challenging.
-%	\item Hardware resources are allocated for the whole duration of the allocation. This can result in
-%	      inefficient resource usage, especially for heterogeneous task graphs that consist of many types of
-%	      tasks that use different resources. In situations where not all resources can be used at the same
-%	      time, some of the resources can unnecessarily remain idle. For example, consider a task graph
-%	      executed inside an allocation that provides two computational nodes. Tasks will be load balanced
-%	      among these two nodes, but towards the end of the computation, there might be tasks that will take
-%	      a long time to finish. This might lead to a situation where only one of the nodes will be computing
-%	      the long tail of the remaining tasks, while the second node will be idle. Due to the fact that the
-%	      allocation cannot release the second node while the computation is still ongoing, the user
-%	      pointlessly pays the cost of both nodes until the task graph finishes computing, even though the
-%	      second node is not doing any useful work.
-%
-%	\item The amount of used resources has to be decided up front, new hardware resources cannot be added or
-%	      removed from existing allocations. This can cause inefficiencies, as described above, but it also
-%	      limits load balancing. If balancing only happens within (and not across) allocations, users cannot
-%	      easily provide new hardware resources during the computation, if they realize that it is
-%	      progressing too slowly.
-%	\item Granularity of the allocated resources might not match the granularity of tasks. Unless the
-%	      allocation manager supports very fine-grained allocations (e.g.\ on the level of individual
-%	      \gls{cpu} cores, rather than whole computational nodes), there can be a large gap
-%	      between the resources required by a task graph and the resources provided to an individual
-%	      allocation. This can again lead to resources sitting idle.
-%	\item Binding computation with specific hardware resources up front complicates handling task failures.
-%	      When the user submits thousands of tasks on a specific set of hardware resources, and some of these
-%	      tasks fail, the user might need to create a new allocation to recompute the failed tasks. This
-%	      requires once again figuring out a new set of hardware resources that should be requested, as the
-%	      original resources will probably not be a good fit for just a subset of the original computation. A
-%	      fault-tolerant design would ideally allow recomputing tasks on any compatible hardware resource
-%	      transparently, which is incompatible with forcing computations and resources to be defined
-%	      together. Furthermore, fault tolerance should be handled automatically, without the user's
-%	      intervention.
-%\end{itemize}
-%
-%It is interesting to note that some of these challenges uniquely affect task graphs, and in general
-%programming models that are different from the traditional ways of defining \gls{hpc}
-%computations. Consider a distributed application implemented using \gls{mpi}, which
-%has historically been the most common way of defining computations on supercomputers.
-%\gls{mpi} applications typically assume that they will run on a set of computational
-%nodes for a relatively long duration (hours or even days). This set of nodes (corresponding to
-%\gls{mpi} processes) usually does not change during the computation; it is not
-%trivial to add new processes, and if some of the processes crash, it typically leads to the whole
-%computation being aborted, as fault tolerance is not a default property of \gls{mpi}
-%applications~\cite{fault_tolerant_mpi}.
-%
-%These properties of \gls{mpi} applications are similar to the mentioned properties of
-%allocations; therefore, they fit together well, and using allocations to execute them is relatively
-%straightforward. In fact, it is clear that the allocation model itself was designed with
-%\gls{mpi}-like use-cases in mind. Therefore, it is not very surprising that the
-%concept of allocations is not a good match for programming models that are very different from
-%\gls{mpi}, such as task-based workflows.
-%
-%%Note that several of the problems associated with using allocations are directly relevant to
-%%various challenges from~\Autoref{ch:sota}. Factors such as heterogeneous resource
-%%requirements, fault tolerance or efficient hardware usage are affected by the usage of allocations.
-%%Because of that, resolving the problems with allocations should also go a long way towards
-%%alleviating other ergonomic challenges of task graph execution.
-%
-%\section{Meta-scheduling design}
-%This section describes a design for executing task graphs that aims to alleviate the mentioned
-%challenges by treating task-based programming models as first-class citizens, but still remaining
-%compatible with allocation managers to enable straightforward execution on \gls{hpc}
-%clusters. First, we will see a general overview of the design, then we will discuss its properties,
-%and the following sections will describe its concrete implementation within the
-%\hyperqueue{} task runtime.
-%
-%We have seen that the most problematic aspect of allocations is the requirement to define
-%computations and hardware resources together. The key idea of the proposed design is thus to
-%completely disentangle the definition of what the user wants to compute (tasks) from the hardware
-%resources where the computation should take place (computational nodes, \gls{cpu}
-%cores, etc.). By separating these two concerns, we enable users to focus on what they care about
-%the most (their task graphs), instead of having to think about mapping tasks to allocations and
-%graph partitioning.
-%
-%But how can we disentangle these two concepts when allocations require us to specify both? The
-%``trick'' lies in leveraging meta-scheduling on top of allocation managers, which allows us to
-%change what kind of computation is submitted in allocations and thus greatly simplify the
-%submission process. The proposed approach is built upon the following three principles.
-%
-%\begin{description}[wide=0pt]
-%	\item[Task runtime runs outside of allocations] Moving the task runtime outside of allocations and running it at some persistent location in the
-%		cluster (e.g.\ on a login node) enables users to submit tasks to it in a straightforward way and
-%		crucially also to define the task graph independently of allocations. This removes the need to
-%		decide which tasks should be computed on which hardware resources and in which allocations up
-%		front. It can also improve hardware utilization, because it gives the task runtime the ability to
-%		load balance tasks across all active allocations.
-%
-%		This is where the term \emph{meta-scheduling} comes in; the essence of the idea is to use a task
-%		runtime as a sort of high-level scheduler on top of an allocation manager. Instead of forcing users
-%		to think in terms of allocations, they can submit task graphs in the same way they would on a
-%		system that is not supervised by allocation managers, and let the task runtime automatically decide
-%		in which allocation a task should be executed.
-%
-%	\item[Allocations are uniform] Even if the task runtime runs outside an allocation, we still need to submit \emph{some}
-%		allocations to provide hardware resources that will actually execute tasks. However, instead of
-%		defining specific tasks that should be computed within an allocation, we can submit allocations
-%		that execute a generic computational provider (worker), which will connect to the task runtime
-%		instance running outside the allocation, and then execute tasks that are dynamically assigned to it
-%		by the runtime.
-%
-%		With this approach, allocations become trivial and completely uniform, because they all have the
-%		same structure; each allocation simply starts a (set of) computational provider(s). This makes it
-%		much easier for users to submit allocations. Instead of thinking about how to partition their task
-%		graphs, users simply decide how many computational resources they want to spend at any given
-%		moment, and start the corresponding number of allocations. Furthermore, this also allows the task
-%		runtime to submit allocations completely automatically based on the current computational load.
-%	\item[Pair tasks with workers using abstract resources] The principles described above separate the two core pillars of task graph execution; the
-%		definition of the task graph and the provisioning of hardware resources. However, we actually do
-%		need to have \emph{some} way of tying these two aspects together, because tasks might
-%		have various constraints on the environment in which they can be executed. We saw that submitting
-%		tasks directly as allocations, which explicitly ties tasks to a set of hardware resources, had many
-%		disadvantages. What we can do instead is to use a resource system that will allow us to pair tasks
-%		with workers in a more general and abstract way. Each task can describe a set of abstract resources
-%		that have to be available so that the task can be executed, and each worker will in turn provide a
-%		set of abstract resources that it provides. The task runtime will then dynamically assign tasks to
-%		workers by matching these resources together, while making sure that worker resources are not being
-%		oversubscribed.
-%
-%		As an example, a task can specify that it requires four \gls{cpu} cores and two
-%		\glspl{gpu}. If we provide the task runtime with a worker that has 128 cores and 8
-%		\glspl{gpu}, it could schedule up to four instances of this task on this worker at the
-%		same time.
-%
-%		This approach allows defining complex heterogeneous tasks while allowing users to provide workers
-%		independently of tasks, and without having to bind tasks to specific allocations.
-%\end{description}
-%
-%The proposed design enables straightforward execution of large heterogeneous task graphs with
-%complex dependencies, because it sidesteps the allocation manager by moving the task runtime
-%outside of allocations. This avoids the limits associated with executing tasks in allocations
-%directly, such as limited support for dependencies, limited scale of task graphs that can be
-%executed, and non-optimal load balancing and hardware utilization.
-%
-%This scheme can also alleviate additional challenges mentioned in~\Autoref{ch:sota}. For
-%example, it benefits fault tolerance, as tasks are no longer tied to specified allocations, because
-%they are stored in a persistent task runtime instance. When a task fails, the runtime can simply
-%recompute it, even in a different allocation than where it was originally started, in a way that is
-%fully transparent to the user. Furthermore, heterogeneous task graphs can be executed easily,
-%without having to consider allocation limits and the granularity of allocated hardware resources,
-%due to the usage of the abstract resource system. Even if the allocation manager always provides at
-%least a whole node in each allocation, multiple granular tasks (even from completely independent
-%task graphs) that require e.g.\ only a single core can be load balanced onto that same node. And
-%lastly, task scheduling becomes more flexible, because the task runtime can dynamically leverage
-%resources provided by multiple allocations at once. The last two mentioned aspects can help improve
-%hardware utilization in particular.
-%
-%Of course, this approach is not a panacea, and it also introduces certain trade-offs. For example,
-%running the task runtime on a login node might be problematic if the login nodes are severely
-%computationally constrained or if they are not even able to connect to compute nodes of the
-%\gls{hpc} cluster through the network. Performance and security aspects of this
-%deployment method also need to be considered. In theory, the runtime could also be executed
-%elsewhere, for example in a cloud partition of a cluster, or even in an ephemeral way inside
-%allocations themselves (in that case it would still communicate with workers running in different
-%allocations). However, this would complicate the deployment process and it might require additional
-%resiliency features to be implemented in the task runtime.
-%
-%To evaluate the proposed approach works in practice, what its performance and usage implications
-%are and how it compares to existing meta-schedulers, we have implemented this design in a task
-%runtime called \hyperqueue{}, which will be described in the rest of this chapter.
-%
-%\section{\hyperqueue{}}
-%\hyperqueue{} (\hq{}) is a distributed task runtime that aims to make task graph execution a
-%first-class concept on supercomputers. It does that by implementing the meta-scheduling design
-%described in the previous section, and providing functionality optimized for
-%\gls{hpc} use-cases. In terms of architecture and implementation, it is an evolution
-%of the \rsds{} task runtime described in~\Autoref{ch:rsds}; however, instead
-%of using the \dask{} components and \glspl{api}, it implements its own
-%task-based programming model. \hyperqueue{} is developed in the Rust programming language
-%and it is provided as an \mbox{MIT-licensed} open-source tool~\cite{hq_github}.
-%
-%This section describes the high-level design of \hyperqueue{}, its programming model and
-%the most important features. It also presents several use-cases where it has been successfully
-%leveraged, and evaluates its performance and other aspects in various experiments.
-%
-%Note that for simplicity, Slurm will be used as a default representative of an allocation manager
-%throughout this whole chapter, but it could be replaced by \gls{pbs} or any other
-%commonly used allocation manager without loss of generality.
-%
-%\subsection{Architecture}
-%\label{hq:architecture}
-%\hyperqueue{} uses a fairly standard distributed architecture. It consists of two main
-%components, a central management service called a \emph{server} and a component that
-%serves as a computational provider which executes tasks, called a \emph{worker}. Users
-%then interact with the server using a \emph{client} interface.~\Autoref{fig:hq-architecture}
-%displays a high-level view of the \hq{} architecture for a typical deployment on
-%an \gls{hpc} cluster with an allocation manager, where the server runs on a login
-%node and meta-schedules tasks to workers that run on computational nodes in various allocations.
-%The individual components are described in more detail below.
-%
+The previous two chapters focused primarily on the performance aspects of task graph execution, by
+examining various task scheduling algorithms and also bottlenecks that can limit the scalability of
+existing task runtimes. Performance is naturally crucial for \gls{hpc}, yet it should
+not be the only factor to focus on. \Autoref{ch:sota} discussed several other challenges
+affecting \gls{hpc} task graphs, that are related to the second main focus of this
+thesis, namely the \emph{ergonomics} of task graph execution.
+
+Execution ergonomics (in the context of task-based programming models) is a broad area that
+encompasses several aspects, such as providing an easy way to define the structure of the task
+graph, allowing its execution in an effortless manner (both on a local computer and a distributed
+cluster), handling fault tolerance without the user's intervention, allowing users to express
+complex resource requirements and many others. This thesis primarily focuses on analyzing and
+resolving ergonomic challenges that form a barrier for executing task graphs on
+\gls{hpc} clusters. As we will see in this chapter, ergonomics and performance do not
+have to contradict each other; approaches that increase ergonomics can also help with improving
+performance and hardware utilization.
+
+One approach to improve ergonomics could be to make incremental improvements that would mitigate
+the mentioned issues in off-the-shelf task runtimes. However, as we will see later in this chapter,
+ergonomic areas such as supporting heterogeneous tasks and clusters and resource requirements,
+providing fault tolerance and dynamic load balancing and overcoming allocation manager limits are
+all intertwined, and they affect each other in non-trivial ways. Therefore, this chapter introduces
+a holistic meta-scheduling design that aims to tackle the most important challenges with a unified
+solution, in order to enable effortless, efficient and fault-tolerant execution of task graphs on
+heterogeneous \gls{hpc} clusters in the presence of allocation managers.
+
+This reference design has been implemented in \hyperqueue{}, an
+\gls{hpc}-tailored task runtime that was designed to enable transparent, ergonomic
+and efficient execution of task graphs on \gls{hpc} systems. \hyperqueue{}
+is a spiritual successor of \rsds{}, and builds upon its server and task scheduler
+implementation; however, it does not use the \dask{} interface. It is the
+culmination of the research and work presented in this thesis, which was made possible thanks to
+the experience gained from \estee{} and \rsds{}, and also from
+interacting with many \gls{hpc} workflows and use-cases over the course of several
+years.
+
+The work presented in this chapter makes the following contributions:
+\begin{enumerate}
+	\item We propose a meta-scheduling design that provides a unified way of scheduling and executing tasks
+	      in the presence of allocation managers and allows load balancing across different allocations. It
+	      disentangles the definition of tasks and the hardware that executes them, making it flexible and
+	      easy to use.
+	\item We describe an approach that enables a task runtime to automatically submit allocations on behalf
+	      of the user in response to computational load, which further simplifies the execution of task
+	      graphs on supercomputers.
+	\item We provide a task scheduler with complex resource management that supports non-trivial features
+	      that are not present in other state-of-the-art tools, such as fractional resources or resource
+	      variants.
+	\item We evaluate the performance and hardware utilization of the proposed design on several benchmarks
+	      and use-cases.
+\end{enumerate}
+
+This chapter first introduces the general meta-scheduling design for mapping tasks to allocations.
+Then it describes the architecture of \hyperqueue{}, which implements the proposed
+design, and presents how its features alleviate the challenges described
+in~\Autoref{ch:sota}. Finally, it provides a performance analysis of \hyperqueue{},
+evaluates it on several use-cases and compares its features with other state-of-the-art
+meta-scheduling task runtimes.
+
+We have described the design and key ideas of \hyperqueue{} in
+\emph{HyperQueue: efficient and ergonomic task graphs on HPC clusters}~\cite{hyperqueue}. The architecture of \hyperqueue{}
+descriptions presented in this chapter was adapted from this publication.
+
+\workshare{I have collaborated on this work with Ada Böhm; we have both contributed to it equally. I am the
+sole author of the design and implementation of the automatic allocator
+component, and I have also significantly contributed to the design and implementation of most remaining parts
+of \hyperqueue{}. I have designed and performed all the experiments described in this
+chapter. While Ada and I are the primary contributors to \hyperqueue{}, it should be noted that several other people have contributed to it, as its development is a team effort. Source code contribution statistics for
+\hyperqueue{} can be found on GitHub\footnoteurl{https://github.com/it4innovations/hyperqueue/graphs/contributors}.}
+
+\section{Interaction with allocation managers}
+The primary challenge that affects the simplicity of task graph execution on
+\gls{hpc} clusters is the presence of an allocation manager, as it forms a barrier;
+on such clusters, it is not possible to compute anything at all without interacting with
+allocations. In order for task graph execution to become truly ergonomic, there is no point in
+tackling the rest of the (ergonomic) challenges until there is a straightforward way of executing
+task graphs through an allocation manager.
+
+\Autoref{challenge:allocation-manager} has described several approaches that can be used to map tasks to
+allocations, which is necessary to execute task graphs, as well as their various shortcomings. Due
+to the limits imposed by allocation managers, it might be necessary to partition task graphs into
+multiple subgraphs in order to fit them within an allocation, which can be challenging.
+Furthermore, it can result in non-optimal usage of hardware resources, because tasks from
+(sub)graphs submitted in separate allocations will only be load balanced within their own
+allocation, and not across different allocations.
+
+It is important to understand what is uniquely challenging about the interaction with allocations.
+The fact that the computation needs to go through a queue is not an issue by itself, as we are
+dealing with batch processing anyway. Therefore, some form of a delay between submitting the task
+graph and receiving the results is expected, even if we did not have to submit allocations at all.
+
+The main issue of allocations is that they strictly tie together two separate aspects;
+\emph{what} the user wants to compute (the computation performed once the allocation
+starts) and \emph{where} should the computation take place (specific hardware resources
+and computational nodes reserved for the allocation). As was already described previously, both of
+these things have to be specified together in an allocation. This is a very inflexible design, for
+several reasons:
+
+\begin{itemize}
+	\item The user needs to consider both aspects at the same time. Ultimately, the main thing that the user
+	      cares about is what they want to compute. With allocations, they also need to think about specific
+	      hardware resources that should be allocated for computing their task graph, which can be
+	      challenging.
+	\item Hardware resources are allocated for the whole duration of the allocation. This can result in
+	      inefficient resource usage, especially for heterogeneous task graphs that consist of many types of
+	      tasks that use different resources. In situations where not all resources can be used at the same
+	      time, some of the resources can unnecessarily remain idle. For example, consider a task graph
+	      executed inside an allocation that provides two computational nodes. Tasks will be load balanced
+	      among these two nodes, but towards the end of the computation, there might be tasks that will take
+	      a long time to finish. This might lead to a situation where only one of the nodes will be computing
+	      the long tail of the remaining tasks, while the second node will be idle. Due to the fact that the
+	      allocation cannot release the second node while the computation is still ongoing, the user
+	      pointlessly pays the cost of both nodes until the task graph finishes computing, even though the
+	      second node is not doing any useful work.
+
+	\item The amount of used resources has to be decided up front, new hardware resources cannot be added or
+	      removed from existing allocations. This can cause inefficiencies, as described above, but it also
+	      limits load balancing. If balancing only happens within (and not across) allocations, users cannot
+	      easily provide new hardware resources during the computation, if they realize that it is
+	      progressing too slowly.
+	\item Granularity of the allocated resources might not match the granularity of tasks. Unless the
+	      allocation manager supports very fine-grained allocations (e.g.\ on the level of individual
+	      \gls{cpu} cores, rather than whole computational nodes), there can be a large gap
+	      between the resources required by a task graph and the resources provided to an individual
+	      allocation. This can again lead to resources sitting idle.
+	\item Binding computation with specific hardware resources up front complicates handling task failures.
+	      When the user submits thousands of tasks on a specific set of hardware resources, and some of these
+	      tasks fail, the user might need to create a new allocation to recompute the failed tasks. This
+	      requires once again figuring out a new set of hardware resources that should be requested, as the
+	      original resources will probably not be a good fit for just a subset of the original computation. A
+	      fault-tolerant design would ideally allow recomputing tasks on any compatible hardware resource
+	      transparently, which is incompatible with forcing computations and resources to be defined
+	      together. Furthermore, fault tolerance should be handled automatically, without the user's
+	      intervention.
+\end{itemize}
+
+It is interesting to note that some of these challenges uniquely affect task graphs, and in general
+programming models that are different from the traditional ways of defining \gls{hpc}
+computations. Consider a distributed application implemented using \gls{mpi}, which
+has historically been the most common way of defining computations on supercomputers.
+\gls{mpi} applications typically assume that they will run on a set of computational
+nodes for a relatively long duration (hours or even days). This set of nodes (corresponding to
+\gls{mpi} processes) usually does not change during the computation; it is not
+trivial to add new processes, and if some of the processes crash, it typically leads to the whole
+computation being aborted, as fault tolerance is not a default property of \gls{mpi}
+applications~\cite{fault_tolerant_mpi}.
+
+These properties of \gls{mpi} applications are similar to the mentioned properties of
+allocations; therefore, they fit together well, and using allocations to execute them is relatively
+straightforward. In fact, it is clear that the allocation model itself was designed with
+\gls{mpi}-like use-cases in mind. Therefore, it is not very surprising that the
+concept of allocations is not a good match for programming models that are very different from
+\gls{mpi}, such as task-based workflows.
+
+%Note that several of the problems associated with using allocations are directly relevant to
+%various challenges from~\Autoref{ch:sota}. Factors such as heterogeneous resource
+%requirements, fault tolerance or efficient hardware usage are affected by the usage of allocations.
+%Because of that, resolving the problems with allocations should also go a long way towards
+%alleviating other ergonomic challenges of task graph execution.
+
+\section{Meta-scheduling design}
+This section describes a design for executing task graphs that aims to alleviate the mentioned
+challenges by treating task-based programming models as first-class citizens, but still remaining
+compatible with allocation managers to enable straightforward execution on \gls{hpc}
+clusters. First, we will see a general overview of the design, then we will discuss its properties,
+and the following sections will describe its concrete implementation within the
+\hyperqueue{} task runtime.
+
+We have seen that the most problematic aspect of allocations is the requirement to define
+computations and hardware resources together. The key idea of the proposed design is thus to
+completely disentangle the definition of what the user wants to compute (tasks) from the hardware
+resources where the computation should take place (computational nodes, \gls{cpu}
+cores, etc.). By separating these two concerns, we enable users to focus on what they care about
+the most (their task graphs), instead of having to think about mapping tasks to allocations and
+graph partitioning.
+
+But how can we disentangle these two concepts when allocations require us to specify both? The
+``trick'' lies in leveraging meta-scheduling on top of allocation managers, which allows us to
+change what kind of computation is submitted in allocations and thus greatly simplify the
+submission process. The proposed approach is built upon the following three principles.
+
+\begin{description}[wide=0pt]
+	\item[Task runtime runs outside of allocations] Moving the task runtime outside of allocations and running it at some persistent location in the
+		cluster (e.g.\ on a login node) enables users to submit tasks to it in a straightforward way and
+		crucially also to define the task graph independently of allocations. This removes the need to
+		decide which tasks should be computed on which hardware resources and in which allocations up
+		front. It can also improve hardware utilization, because it gives the task runtime the ability to
+		load balance tasks across all active allocations.
+
+		This is where the term \emph{meta-scheduling} comes in; the essence of the idea is to use a task
+		runtime as a sort of high-level scheduler on top of an allocation manager. Instead of forcing users
+		to think in terms of allocations, they can submit task graphs in the same way they would on a
+		system that is not supervised by allocation managers, and let the task runtime automatically decide
+		in which allocation a task should be executed.
+
+	\item[Allocations are uniform] Even if the task runtime runs outside an allocation, we still need to submit \emph{some}
+		allocations to provide hardware resources that will actually execute tasks. However, instead of
+		defining specific tasks that should be computed within an allocation, we can submit allocations
+		that execute a generic computational provider (worker), which will connect to the task runtime
+		instance running outside the allocation, and then execute tasks that are dynamically assigned to it
+		by the runtime.
+
+		With this approach, allocations become trivial and completely uniform, because they all have the
+		same structure; each allocation simply starts a (set of) computational provider(s). This makes it
+		much easier for users to submit allocations. Instead of thinking about how to partition their task
+		graphs, users simply decide how many computational resources they want to spend at any given
+		moment, and start the corresponding number of allocations. Furthermore, this also allows the task
+		runtime to submit allocations completely automatically based on the current computational load.
+	\item[Pair tasks with workers using abstract resources] The principles described above separate the two core pillars of task graph execution; the
+		definition of the task graph and the provisioning of hardware resources. However, we actually do
+		need to have \emph{some} way of tying these two aspects together, because tasks might
+		have various constraints on the environment in which they can be executed. We saw that submitting
+		tasks directly as allocations, which explicitly ties tasks to a set of hardware resources, had many
+		disadvantages. What we can do instead is to use a resource system that will allow us to pair tasks
+		with workers in a more general and abstract way. Each task can describe a set of abstract resources
+		that have to be available so that the task can be executed, and each worker will in turn provide a
+		set of abstract resources that it provides. The task runtime will then dynamically assign tasks to
+		workers by matching these resources together, while making sure that worker resources are not being
+		oversubscribed.
+
+		As an example, a task can specify that it requires four \gls{cpu} cores and two
+		\glspl{gpu}. If we provide the task runtime with a worker that has 128 cores and 8
+		\glspl{gpu}, it could schedule up to four instances of this task on this worker at the
+		same time.
+
+		This approach allows defining complex heterogeneous tasks while allowing users to provide workers
+		independently of tasks, and without having to bind tasks to specific allocations.
+\end{description}
+
+The proposed design enables straightforward execution of large heterogeneous task graphs with
+complex dependencies, because it sidesteps the allocation manager by moving the task runtime
+outside of allocations. This avoids the limits associated with executing tasks in allocations
+directly, such as limited support for dependencies, limited scale of task graphs that can be
+executed, and non-optimal load balancing and hardware utilization.
+
+This scheme can also alleviate additional challenges mentioned in~\Autoref{ch:sota}. For
+example, it benefits fault tolerance, as tasks are no longer tied to specified allocations, because
+they are stored in a persistent task runtime instance. When a task fails, the runtime can simply
+recompute it, even in a different allocation than where it was originally started, in a way that is
+fully transparent to the user. Furthermore, heterogeneous task graphs can be executed easily,
+without having to consider allocation limits and the granularity of allocated hardware resources,
+due to the usage of the abstract resource system. Even if the allocation manager always provides at
+least a whole node in each allocation, multiple granular tasks (even from completely independent
+task graphs) that require e.g.\ only a single core can be load balanced onto that same node. And
+lastly, task scheduling becomes more flexible, because the task runtime can dynamically leverage
+resources provided by multiple allocations at once. The last two mentioned aspects can help improve
+hardware utilization in particular.
+
+Of course, this approach is not a panacea, and it also introduces certain trade-offs. For example,
+running the task runtime on a login node might be problematic if the login nodes are severely
+computationally constrained or if they are not even able to connect to compute nodes of the
+\gls{hpc} cluster through the network. Performance and security aspects of this
+deployment method also need to be considered. In theory, the runtime could also be executed
+elsewhere, for example in a cloud partition of a cluster, or even in an ephemeral way inside
+allocations themselves (in that case it would still communicate with workers running in different
+allocations). However, this would complicate the deployment process and it might require additional
+resiliency features to be implemented in the task runtime.
+
+To evaluate the proposed approach works in practice, what its performance and usage implications
+are and how it compares to existing meta-schedulers, we have implemented this design in a task
+runtime called \hyperqueue{}, which will be described in the rest of this chapter.
+
+\section{\hyperqueue{}}
+\hyperqueue{} (\hq{}) is a distributed task runtime that aims to make task graph execution a
+first-class concept on supercomputers. It does that by implementing the meta-scheduling design
+described in the previous section, and providing functionality optimized for
+\gls{hpc} use-cases. In terms of architecture and implementation, it is an evolution
+of the \rsds{} task runtime described in~\Autoref{ch:rsds}; however, instead
+of using the \dask{} components and \glspl{api}, it implements its own
+task-based programming model. \hyperqueue{} is developed in the Rust programming language
+and it is provided as an \mbox{MIT-licensed} open-source tool~\cite{hq_github}.
+
+This section describes the high-level design of \hyperqueue{}, its programming model and
+the most important features. It also presents several use-cases where it has been successfully
+leveraged, and evaluates its performance and other aspects in various experiments.
+
+Note that for simplicity, Slurm will be used as a default representative of an allocation manager
+throughout this whole chapter, but it could be replaced by \gls{pbs} or any other
+commonly used allocation manager without loss of generality.
+
+\subsection{Architecture}
+\label{hq:architecture}
+\hyperqueue{} uses a fairly standard distributed architecture. It consists of two main
+components, a central management service called a \emph{server} and a component that
+serves as a computational provider which executes tasks, called a \emph{worker}. Users
+then interact with the server using a \emph{client} interface.~\Autoref{fig:hq-architecture}
+displays a high-level view of the \hq{} architecture for a typical deployment on
+an \gls{hpc} cluster with an allocation manager, where the server runs on a login
+node and meta-schedules tasks to workers that run on computational nodes in various allocations.
+The individual components are described in more detail below.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.9\textwidth]{imgs/hq/architecture}
+	\caption{Architecture of \hyperqueue{}.}
+	\label{fig:hq-architecture}
+\end{figure}
+
+\subsubsection*{Server}
+The \emph{server} is the most important part of \hyperqueue{}. Its main goal is
+to manage both the lifecycle of task graphs and of workers that provide computational resources. It
+keeps track of all tasks and workers, and allows users to query their state and also send commands
+to it through a client interface. The server contains a work-stealing task scheduler that is based
+on the \rsds{} scheduler implementation described in~\Autoref{sec:rsds-description}. The
+scheduler assigns individual tasks to workers based on task resource requirements and current
+computational load of workers, with the goal of maximizing hardware utilization of the connected
+workers.
+
+It is designed to be executed as a long-running background process, which should ideally be
+executed in a persistent location not managed by allocation managers (i.e.\ outside ephemeral
+allocations). Typically, it is executed on a login node of a cluster, but it can also run
+elsewhere, for example in a cloud partition. It should keep running until all tasks that the user
+wants to execute are finished, although it can also restore its state from disk, so the computation
+of a task graph can be interrupted and resumed at a later time, if needed.
+
+The fact that the server runs outside allocations allows it to load balance tasks across workers
+running in multiple allocations concurrently, and work around the various limits of allocation
+managers. This adheres to the first principle of the meta-scheduling design described in the
+previous section.
+
+The server itself does not execute any tasks, and it consumes a relatively modest amount of
+resources, and therefore it is not computationally demanding.~\Autoref{sec:hq-exp-server-cpu-consumption} evaluates how
+many \gls{cpu} resources the server consumes in extreme scenarios.
+
+Apart from basic responsibilities related to worker management and task scheduling, the server also
+provides additional functionality. For example, it can submit allocations fully automatically on
+behalf of the user. This feature will be described in detail in~\Autoref{hq:automatic-allocation}.
+
+\subsubsection*{Worker}
+The \emph{worker} component is a computational provider that executes tasks assigned to
+it by the server. A single worker typically manages all hardware resources (\gls{cpu}
+cores, \gls{gpu} or \gls{fpga} accelerators, memory, etc.) of a given
+computer, usually a single computational node of a supercomputer.
+
+The worker is able to automatically detect all relevant hardware resources that are available on
+the node where it is started and advertise them to the server. Therefore, in a typical case, users
+can simply start the worker on a given node with a single uniform command, and from that moment on
+the resources of that node will be used for task execution. This adheres to the second principle of
+the proposed meta-scheduling design, where computational providers should be generic (not tied to
+any specific task or a set of tasks), and it should be possible to start them using a uniform
+command, to make their deployment trivial.
+
+Each worker also participates in task and resource scheduling. The server makes high-level
+scheduling decisions, such as which tasks will be executed on a given worker, while the worker then
+performs micro decisions, such as in which order it will execute tasks assigned to it, or which
+specific resources will be assigned to a given task. Resource management will be described in more
+detail in~\Autoref{sec:hq-resource-management}.
+
+\hyperqueue{} workers were designed with fault tolerance in mind. On an
+\gls{hpc}
+cluster, workers will be typically executed inside allocations that only run for a limited amount
+of time, which implies that workers can disappear at any time during the computation of a task
+graph. Both the server and workers thus operate with the assumption that workers can be potentially
+short-lived; if a worker disconnects while it is executing a task, the task will be transparently
+reassigned to a different worker without user intervention. Worker management is thus dynamic and
+flexible; new workers can also be added at any time, after which they will immediately start
+contributing to the execution of the submitted task graphs. This property enables users of
+\hq{} to arbitrarily scale the computation of a task graph both up and down, even
+while it is being executed, by dynamically adding or removing workers as needed.
+
+While workers can be deployed manually by users, \hq{} can also automatically
+submit allocations to an allocation manager that start workers on computational nodes, based on
+current computational needs of submitted task graphs, as was already mentioned. This system, called
+\emph{automatic allocation}, will be described in more detail later in~\Autoref{hq:automatic-allocation}.
+
+\subsubsection*{Client interfaces}
+Users can use two main interfaces for deploying the \hyperqueue{} server and workers,
+submitting task graphs and managing and monitoring the computation. They can either use a
+\gls{cli}, which has been designed to feel familiar to users of Slurm in order to
+make it easier to migrate existing \gls{hpc} workflows to \hyperqueue{}, or
+a Python \gls{api}, which is useful for more complex use-cases that are challenging
+to express using the command line. These interfaces are relatively large, and their specific shape
+is not crucial for this thesis; the complete set of the supported \gls{cli} commands
+and their parameters and the Python \gls{api} is described in the
+\hyperqueue{} documentation~\cite{hq_docs}. In the rest of the text, we will
+show various examples of these interfaces (primarily of several \gls{cli} commands),
+to provide an idea of how ergonomic it is for users to interact with \hyperqueue{}.
+
+The \gls{cli} has been designed with the ``Simple things should be simple. Complex
+things should be possible.''\footnote{Originally coined by Alan Kay.} approach in mind. It allows submitting various
+kinds of workflows in an easy way, but also allows users to configure their execution extensively.
+This is in contrast to some other task runtimes, which require using Python code (e.g.\
+\dask{}) or workflow files (e.g.\ \snakemake{}) for executing even the
+simplest of workflows.~\Autoref{lst:hq-cli-commands} shows three basic commands that leverage the
+\texttt{hq} binary to deploy an instance of a \hyperqueue{} server and a
+worker, and then execute a single task through it. More examples will be shown later throughout
+this chapter.
+
+For simple existing workflows defined using Bash scripts, it is enough to replace uses of the
+\texttt{sbatch} command with \texttt{hq submit} to let \hyperqueue{} manage the execution
+instead of Slurm.
+
+\begin{listing}[h]
+	\begin{minted}[fontsize=\small, tabsize=4]{bash}
+# Start a HQ server
+$ hq server start &
+
+# Start a HQ worker
+$ hq worker start &
+
+# Submit a HQ job (task graph) with a single task
+$ hq submit ./my-program
+	\end{minted}
+	\caption{Examples of \hyperqueue{} \gls{cli} commands}
+	\label{lst:hq-cli-commands}
+\end{listing}
+
+\subsubsection*{Deployment}
+Even though it is often overlooked, deployment of software on supercomputers can be challenging, as
+was described in~\Autoref{challenge:deployment}. Since \hyperqueue{} aims to provide seamless
+support for \gls{hpc} use-cases, it was also designed to be trivial to deploy. It is
+distributed as a single, relatively small (approximately \SI{15}{\mebi\byte}), statically
+linked executable called \texttt{hq}, which implements all the provided functionality
+(server, worker and the whole \gls{cli}). It does not depend on any external services
+or dynamic libraries, apart from the ubiquitous \texttt{C} standard library, and it
+runs fully in userspace and does not require any elevated privileges. It also does not require any
+installation nor configuration steps.
+
+The \hyperqueue{} Python \gls{api} is then distributed as a Python package
+that is available on the standard Python Package Index~\cite{hq_pypi}. This package
+contains all the \hq{} logic inline; it is thus self-contained and it does not
+need the \texttt{hq} binary to function.
+
+Both clients and workers communicate with the server using the standard \gls{tcpip}
+protocol, which is ubiquitously available on most clusters. By default, all communication is
+encrypted, so that other users of the cluster cannot observe the data sent between the
+\hyperqueue{} components. This is performed out of an abundance of caution, because the
+server typically runs on a login node, which is shared by multiple users, rather than on
+computational nodes, which are usually isolated between users by the allocation manager. The
+performance overhead of encryption will be evaluated in~\Autoref{sec:hq-exp-encryption-overhead}.
+
+In order to connect the individual components using \gls{tcpip}, normally it would be
+required for users to specify network hostnames and ports. While this process is relatively simple,
+it still presents a minor ergonomic hurdle, because users would need to reconfigure their worker
+deployment scripts and client commands every time the server would start on a new
+\gls{tcpip} address. To make this easier, \hyperqueue{} removes the need to
+specify hostnames and ports by default, by exploiting a useful property of \gls{hpc}
+clusters, which commonly use a shared networked filesystem. When a server is created, it creates a
+configuration file in the user's home directory, which contains all information necessary for
+exchanging handshakes and connecting the components. When workers and clients discover the presence
+of this file (which can be accessed due to the filesystem being shared), they are able to connect
+to the server without the user having to specify any addresses. However, it is still possible to
+deploy multiple concurrent instances of \hyperqueue{} under the same account; users just
+need to provide separate directories for storing the configuration file.
+
+Thanks to these properties, it is trivial to deploy and use \hyperqueue{} on
+supercomputers, even without the involvement of the administrators of the target cluster. The
+deployment benefits extend also beyond \gls{hpc} clusters. Users can also trivially
+deploy \hyperqueue{} on their own personal computers. This enables them to prototype
+their \gls{hpc} workflows locally, which can accelerate their development process and
+is another step towards improving the ergonomics of using task graphs on supercomputers. This is in
+contrast with using allocation managers for submitting tasks directly, which makes local
+experimentation very difficult, as allocation managers are typically not straightforward to deploy
+on personal computers.
+
+\subsection{Programming model}
+\label{sec:hq-programming-model}
+The task-based programming model used by \hyperqueue{} builds upon the task model defined
+in~\Autoref{ch:taskgraphs}. It adds some additional \gls{hpc}-focused features on top
+of it, such as fine-grained resource management and support for multi-node tasks.
+
+The core element of the programming model is a \textbf{Task}, which has the following
+properties:
+\begin{itemize}
+	\item It is a unit of computation. A task can be executed by \hq{}, and its execution
+	      either succeeds or fails. In the current implementation, each task represents either the execution
+	      of a binary executable, or the invocation of a single Python function, although the specific
+	      details of the task execution are opaque to \hyperqueue{}.
+	\item It is a unit of scheduling. The \hq{} scheduler assigns each task to a worker (or
+	      to a set of workers in the case of multi-node tasks), and can move tasks between workers using
+	      work-stealing if their load is unbalanced.
+	\item It forms a failure boundary. When a worker crashes while executing a set of tasks,
+	      \hq{} can schedule them again on a different worker and restart their execution
+	      from scratch.
+	\item It is a unit of dependency management. Each task may depend on a set of other tasks, and in this
+	      way they may be composed in a computational \gls{dag} of tasks.
+	\item It is a unit of resource management. Each task has a set of attached resource requirements, which
+	      describe constraints on a computational environment where the task is allowed to be executed. The
+	      \hq{} scheduler then matches these requirements with resources provided by
+	      workers.
+\end{itemize}
+
+Each task has various properties, such as a path to the executed binary (or a Python function), a
+set of environment variables, working directory, and others. Each task also has a set of attached
+resource requirements, which will be described in more detail in~\Autoref{sec:hq-resource-management}.
+
+Tasks are composed into task graphs, which are called \textbf{Jobs} in the
+\hq{} terminology. Each task belongs to exactly one job, and jobs are completely
+independent, so there can be no dependencies between tasks belonging to different jobs. Jobs are
+units of monitoring and management, as they allow users to group many tasks together, observe their
+status or perform operations on all (or some) tasks of a job at once. There are two kinds of jobs,
+\emph{graph jobs} and \emph{task arrays}. Graph jobs correspond to arbitrary
+\glspl{dag}, where tasks may depend on one another. These can be only created using the
+Python \gls{api} or a \gls{toml} workflow file, since it would be very
+difficult for users to express dependencies using a command-line interface.
+
+Task arrays are a special case of graph jobs, which use a compressed representation of a
+potentially large task graph that has a regular shape. For example, a common use-case is to compute
+a task graph where each task runs the same computation, but on a different input. This can be
+achieved with a task array, which stores only a single instance of the task definition (what should
+be computed), but creates many copies of this task, each with a different input. This both reduces
+the memory usage of the server, since the task graph representation is stored in this compressed
+way, and also allows users to easily execute large task graphs using the \gls{cli}.
+
+Each task in the task array gets assigned a different \emph{task ID}, which uniquely
+identifies a specific task, which allows it to perform a computation on a different input. For
+example, if a user creates a task array with a thousand tasks, by default, the first will have ID
+$1$, the second one will have ID $2$, etc. The ID is passed to
+the task through an environment variable. Apart from assigning unique inputs to tasks through task
+IDs, \hq{} also supports passing a unique binary blob to each task (again through
+an environment variable) that can contain arbitrary data.~\Autoref{lst:hq-cli-task-arrays} shows an example
+of how users may submit task arrays through the \gls{cli}.
+
+\begin{listing}[h]
+	\begin{minted}[fontsize=\small, tabsize=4]{bash}
+# Task array with 10 tasks, each task gets a different ID
+$ hq submit --array=1-10 ./my-script.sh
+
+# Each task will receive a single line from the given file
+$ hq submit --each-line=inputs.txt ./my-script.sh
+
+# Each task will receive a single item from a JSON array stored in the given file
+$ hq submit --from-json=items.json ./my-script.sh
+	\end{minted}
+	\caption{Creating task arrays using the \hyperqueue{} \gls{cli}}
+	\label{lst:hq-cli-task-arrays}
+\end{listing}
+
+\subsubsection*{Task and job lifecycle}
+The server manages the state lifecycle of tasks and jobs and also reports them to the user, so that
+they can observe what is happening with their computation. At any given time, each task can be in a
+single \emph{state}:
+
+\begin{description}
+	\item[Waiting] After the user creates (\emph{submits}) a task, it starts in the \emph{waiting}
+		state, where it waits until it is scheduled to a worker that is able to fulfill its resource
+		requirements.
+	\item[Running] After a task is scheduled and starts executing on a worker, it moves on to the
+		\emph{running} state. If the worker that is executing the task stops or crashes, the task
+		will move back to the \emph{waiting} state, so that it can be rescheduled to a different
+		worker. This is labeled as a \emph{task restart}.
+	\item[Finished] When a task finishes successfully (a binary program exits with the exit code $0$
+		or a Python function returns without throwing an exception), it moves to the \emph{finished}
+		state.
+	\item[Failed] When a task fails (a binary program exits with a non-zero exit code or a Python function throws an
+		exception), it moves to the \emph{failed} state.
+	\item[Canceled] When a waiting or a running task is canceled by the user, it moves to the \emph{canceled}
+		state, and it is no longer considered for execution. Users can cancel tasks and jobs that are no
+		longer relevant and that should not continue executing.
+\end{description}
+
+\Autoref{fig:hq-task-state-diagram} displays a state diagram of the various task states and
+transitions that cause state changes. The \emph{finished}, \emph{failed} and
+\emph{canceled} states are terminal; once a task reaches that state, it cannot change its
+state anymore. Each job also has its associated state, which is derived from the state of its
+tasks.
+
+\begin{figure}[h]
+	\centering
+	\begin{tikzpicture}
+		\tikzstyle{every node}=[font=\footnotesize]
+		\tikzstyle{every state}=[fill={rgb:black,1;white,8},minimum size=1.5cm,font=\footnotesize]
+
+		\node[state,initial,initial text=Submitted]   	(waiting)  							{Waiting};
+		\node[state] 							   		(running) 	[right=2.5 of waiting]	{Running};
+		\node[state,accepting]           		   		(finished) 	[right=2 of running]	{Finished};
+		\node[state,accepting]                     		(failed) 	[above=1 of finished] 	{Failed};
+		\node[state,accepting]                     		(canceled)	[below=1 of finished]   {Canceled};
+
+		\path[->]
+		(waiting)   edge [bend left]	node [above] 			{Scheduled} 		(running)
+		(waiting)   edge [bend right]	node [below left]		{Canceled}			(canceled)
+		(running)	edge    			node [above] 			{Finished}			(finished)
+		(running) 	edge    			node [above left] 		{Failed} 			(failed)
+		(running)	edge    			node [left,xshift=-5]	{Canceled} 			(canceled)
+		(running)	edge [bend left]    node [below,xshift=8]	{Worker crashed}	(waiting);
+	\end{tikzpicture}
+	\caption{State diagram of \hyperqueue{} tasks}
+	\label{fig:hq-task-state-diagram}
+\end{figure}
+
+\subsubsection*{Iterative computation}
+Iterative computation, such as running a simulation until it converges or training a
+machine-learning model, can be expressed using the \hyperqueue{} Python
+\gls{api}. It provides facilities for executing a task graph, waiting until it
+finishes computing and then submitting a new task graph based on the computed results. While this
+is enough for describing basic scenarios that require dynamic iteration, it is not fully ergonomic,
+as it only provides dynamic submission of new computation on the granularity level of jobs (task
+graphs), not individual tasks.
+
+A more general solution would be to allow adding new tasks to already submitted
+\hyperqueue{} jobs, which would enable tasks themselves to submit new tasks into their
+own task graph. This would make it easier to express arbitrarily dynamic task graph structures,
+where the shape of the graph is not fully known before their computation starts. We plan to
+implement support for this feature as a future extension.
+
+\subsection{Task input and output}
+By default, each \hyperqueue{} task stores its \emph{standard output} (\emph{stdout}) and
+\emph{standard error output} (\emph{stderr}) streams to the filesystem. Users can override this to avoid storing these
+output streams, or to let \hq{} remove them if they are empty after the task has
+been finished, to reduce disk clutter. It is also possible to use various placeholders for
+configuring the paths of these streams. For example, the string \texttt{\%\{TASK\_ID\}} in a stream
+path will get resolved to the task ID of the task that produces the stream. This can be used to
+easily separate the output of different tasks of task arrays, for example.
+
+Since task graphs can be large, generating two files per task, especially on shared network
+filesystems that are commonly used on supercomputers, could cause performance bottlenecks or run
+into limitations caused by user disk quotas. To alleviate this problem, \hq{}
+supports an output management system called \emph{output streaming}. If it is enabled for a given
+job, then \emph{stdout} and \emph{stderr} of tasks is streamed over the network
+from workers to the server, instead of being stored into separate files. The server then stores all
+this data into a single file, and then offers several commands for manipulating and filtering task
+output data from this file. This helps to reduce the pressure put on the
+filesystem.~\Autoref{sec:hq-exp-output-streaming} will evaluate how this system helps with potential
+\gls{io} issues.~\Autoref{lst:hq-cli-log} shows several \hq{}
+commands that can be used to interact with output streaming.
+
+\begin{listing}[h]
+	\begin{minted}[fontsize=\small, tabsize=4]{bash}
+# Submit a job with output streaming enabled
+$ hq submit --log=log.bin --wait -- ./my-program
+
+# Print stdout of tasks 1 to 10 from the log
+$ hq log log.bin cat --task 1-10 stdout
+
+# Export the log into a JSON format
+$ hq log log.bin export
+	\end{minted}
+	\caption{\hyperqueue{} \gls{cli} commands for working with output streaming}
+	\label{lst:hq-cli-log}
+\end{listing}
+
+Note that \hyperqueue{} currently does not support data transfers between tasks, as it is
+primarily focused on executing tasks that execute black-box binaries which communicate through
+files on a file-system. Arbitrary binary data can be attached as an input for any task (through its
+\emph{standard input} stream), but task outputs are only used for specifying dependencies; no
+task outputs can actually be transferred between the workers. This is only relevant for the Python
+\gls{api}, because tasks submitted using the \gls{cli} cannot express
+data transfers. The \hq{} server is based on the \rsds{} server
+implementation, which supports data transfers between workers, so the transfer functionality itself
+is actually implemented in \hq{}. However, data transfers still need to be
+incorporated into the \hyperqueue{} programming model, and a user-facing (Python)
+interface for consuming outputs of tasks needs to be designed. It should be noted that this is
+merely a limitation of the current implementation, which we plan to lift in the future.
+
+\subsection{Resource management and scheduling}
+\label{sec:hq-resource-management}
+As has already been mentioned, the \hyperqueue{} scheduler is derived from the
+\rsds{} work-stealing scheduler that was described in~\Autoref{sec:rsds-description}. It
+assigns tasks to workers eagerly, to optimize the fast path where there are enough tasks to utilize
+the available workers. When some workers are under-utilized, the server uses work-stealing to steal
+tasks between workers to balance the computational load. Scheduling is performed on the level of
+tasks, regardless of which job they belong to. In fact, the scheduler does not even know anything
+about jobs.
+
+What makes the scheduler different from \rsds{} is its support for complex resource
+management. It takes into account various resource requirements requested by tasks, and also the
+state of currently available resources on each worker, and uses this information to drive its
+scheduling decisions. The most important responsibility of this resource management is to uphold
+the invariant that each task will be executed on a worker that is able to provide the corresponding
+amount of each resource requested by the task at the time of the task's execution. When a task is
+being scheduled, the scheduler looks for a worker that can satisfy the resource requirements of the
+task, based on the amount of resources provided by the worker in general, and also the amount of
+resources that the worker currently has available. When a task is scheduled onto a worker, the
+scheduler \emph{allocates} a specific subset of the worker's resources to that task, which
+will not be available for other tasks until the scheduled tasks finished executing.
+
+\hyperqueue{} resources are \emph{generic}, as users can define their own
+arbitrary resources for both tasks and workers, although \hq{} also recognizes
+several known resource names and provides specialized support for them. Resource management in
+\hyperqueue{} consists of two main elements, resource requirements specified by tasks and
+resource pools provided by workers.
+
+\subsubsection*{Worker resource pools}
+Worker resources are configured when a worker is started through so-called \emph{resource pools},
+named sets of resources. The values of the most common resource pools, like the
+\gls{cpu} cores and \gls{numa} sockets, the amount of
+\gls{ram} and the presence of \gls{gpu} accelerators, are detected
+automatically. On top of that, users can specify an arbitrary set of additional pools. There are
+two kinds of resource pools:
+
+\begin{description}
+	\item [Indexed pool] represents a set of resources where each individual resource is
+	      non-fungible and has a unique identity (represented either by an integer or a string). An example
+	      of such a resource pool could be a set of \gls{cpu} cores or \gls{gpu}
+	      devices. For example, if a worker has two NVIDIA \glspl{gpu}, that worker could provide
+	      an indexed pool containing two resources (e.g.\ with indices $0$ and
+	      $1$), each representing one individual \gls{gpu} device. These two
+	      resources are not interchangeable; the scheduler decides which specific resource will be assigned
+	      to a task, and it tracks the individual resources based on their identity. If a task
+	      $t$ is currently using \gls{gpu} $0$, that
+	      resource will not be assigned to any other task until $t$ has finished executing.
+
+	      Individual resources of an indexed pool can be further subdivided into \emph{groups},
+	      which mark some form of relationship between specific resources. This can be used e.g.\ to
+	      represent \gls{numa} domains and \gls{cpu} sockets; a worker might provide
+	      a single indexed pools of \glspl{cpu}, with a separate group for each
+	      \gls{numa} socket present on the worker's node. Tasks can then specify if they want to
+	      prioritize drawing resources that belong to the same group. This will be described later.
+	\item [Sum pool] is designed for resources that are fungible. Such resources are typically
+	      numerous, and it would not be practical to track each individual resource separately. A sum pool
+	      thus does not define its individual resources through indices, but only defines a single number
+	      that specifies the amount of resources available in the pool. A typical representative of a sum
+	      pool is \gls{ram} available on a worker. Modern \gls{hpc} nodes can
+	      contain hundreds of GiBs of memory, or even more, and it is not feasible to treat each byte as a
+	      separate resource. At the same time, tasks usually do not need such fine-grained tracking; if they
+	      care about memory requirements, they just specify how much memory they need.
+\end{description}
+
+\Autoref{lst:hq-cli-worker-resources} shows a few examples of how users can configure resources
+when starting workers through the \gls{cli}.
+
+\begin{listing}[h]
+	\begin{minted}[fontsize=\small, tabsize=4]{bash}
+# Start a worker with automatically detected resources
+$ hq worker start
+
+# Start a worker that manages 16 CPU cores
+$ hq worker start --cpus 16
+
+# Start a worker with additional resources
+# Adds an indexed pool of four GPUs and a sum pool of 1024 resources (bytes)
+$ hq worker start \
+	--resource 'gpus/nvidia=[0,1,2,3]' \
+	--resource 'memory=sum(1024)'
+	\end{minted}
+	\caption{Configuring worker resources using the \hyperqueue{} \gls{cli}}
+	\label{lst:hq-cli-worker-resources}
+\end{listing}
+
+\subsubsection*{Task resource requirements}
+Resource pools define the resources that are available on workers. The scheduler then uses
+\emph{resource requirements} attached to individual tasks to decide on which workers a given task can be
+executed, and which specific resources it will consume while the task is running. Task resource
+requirements are defined for each task separately. By default, each task requires a single
+\gls{cpu} core, but users can specify a different \gls{cpu}
+requirement, and also add additional arbitrary requirements.
+
+A resource requirement consists of a name of the resource that the task needs, and an amount
+specifying how many such resources are needed. For example, a task might specify that it requires
+two \glspl{gpu} for its execution. The resource requirement always specifies the amount
+of required resources, regardless of whether the given resource is taken from an indexed or a sum
+pool. Therefore, tasks cannot ask for specific instances of resources based on their identity; the
+scheduler decides which specific resources will be assigned to individual tasks, which makes
+scheduling more flexible. For example, assume that a worker has $128$ cores (each
+with their own identity), and there is a task that requires two cores. It would not be very
+practical if the task had to specify that it specifically requires cores with ID
+$0$ and $1$ or $5$ and
+$8$, etc. Instead, it just specifies the number of \gls{cpu} cores
+it needs, and lets the scheduler decide which specific cores it will assign to the task, based on
+what cores will be available on the given worker at the time the task is about to start executing.
+
+In addition to the basic system described above, resource requirements can also leverage a few
+additional parameters that allow tasks to describe more complex use-cases related to resource
+management.
+
+A \emph{group allocation strategy} can be used to affect which specific resources from an indexed pool will
+be used for the task. It is not relevant for indexed pools with a single group nor for sum pools. A
+typical example where indexed pool groups are useful are \gls{numa} nodes, where tasks
+might want to be executed on cores that belong to the same \gls{numa} node (group). There are three
+different strategies that can be selected:
+\begin{description}
+	\item [Compact] is the default strategy. The scheduler tries to allocate all requested
+	      resources from as few groups as possible. However, if there are not enough resources currently
+	      available for that on a given worker, it will also try to draw resources from a larger number of
+	      groups, to satisfy the resource requirement.
+	\item [Strict compact] is a stricter version of the \emph{compact} strategy. With this
+	      strategy, the scheduler first figures out the minimum number of groups required to satisfy the
+	      resource requirement, and it will then not schedule the task until it can provide all requested
+	      resources from the smallest number of groups possible.
+	\item [Scatter] is the opposite of the \emph{compact} mode. It tries to allocate resources
+	      for the task from as many groups as possible.
+\end{description}
+
+Resource requirements can also be specified without an upper bound, i.e.\ a task can specify that
+it wants to consume all available resources of the specified pool. If a worker has at least a
+single resource of the given pool available, and the scheduler assigns a task with this kind of
+resource requirement to it, that task will be allocated all the worker resources that are available
+when the task starts to execute.
+
+In some cases, requesting whole resources can still be too coarse-grained for some tasks. For
+example, a task might execute software that is able to leverage \gls{gpu}
+acceleration, but it cannot utilize a whole \gls{gpu} device by itself. If such task
+has requested a whole \gls{gpu}, part of that accelerator's hardware might sit idle
+while the task is executed. To avoid this situation, \hyperqueue{} allows tasks to define
+\emph{fractional resources}, which allow multiple tasks to share a single resource at the same time.
+For example, the mentioned task could ask for only $0.5$ of a
+\gls{gpu}, in which case the scheduler would allocate the same
+\gls{gpu} device to up to two tasks at once. The scheduler uses fixed-point
+arithmetic to manage fractional resources, in order to avoid common issues associated with
+floating-point arithmetic, rounding errors.
+
+An even more complex resource management use-case supported by \hyperqueue{} is the
+ability to specify \emph{resource variants}. Normally, each resource requirement specified by a task
+is additive; all the requested resources have to be available in order for the task to start
+executing. However, \hq{} also allows tasks to define a list of resource
+requirement sets (called resource variants), and lets the scheduler use the first one that can be
+satisfied by a worker at the time of scheduling (the order of the list elements decides the
+priority of the individual requirement sets). Resource variants allow tasks to define multiple
+situations under which it makes sense to execute the task, and let the scheduler decide which
+variant to select, based on dynamic information about the current worker resource. As an example,
+many \gls{hpc} software tools can run either on a \gls{cpu} or on a
+\gls{gpu} device. A task using such software might specify e.g.\ that it needs either
+a single \gls{gpu} and a single \gls{cpu}, or that it needs
+$16$ \gls{cpu} cores (in the case that a \gls{gpu} is
+not available). In this case, the scheduler could decide to execute the task purely using
+\gls{cpu} resources, if there are no \gls{gpu} resources currently
+available. Without support for resource variants, the scheduler would need to wait for a
+\gls{gpu} to become available, even if there were free \gls{cpu}
+resources that could be used in the meantime.
+
+There is also one additional special resource that is relevant for scheduling, called a
+\emph{time request}. If a task specifies a time request (a duration) $t$, it
+tells the scheduler that it needs at least $t$ time for its execution. This is
+important for avoiding needless task restarts, due to the way \hq{} workers are
+commonly deployed in allocations. Workers started in allocations cannot run for a longer time than
+the wall-time of the allocation. Since this duration is known (each allocation must have a
+wall-time), \hq{} knows the remaining lifetime of each such worker at any given
+time. This information is used for scheduling; if a worker has remaining lifetime
+$l$, the scheduler will not assign it tasks with a time request that is longer
+than $l$, because it is highly probable that such tasks could not finish
+executing before that worker shuts down.
+
+Once a task is scheduled to a worker, and the scheduler decides which resources will be allocated
+to it, it passes this information to the task through environment variables. For example, if a task
+asks for two \gls{cpu} cores, and the scheduler allocated the cores
+$10$ and $14$ of a specific worker to it,
+\hq{} will pass \texttt{HQ\_RESOURCE\_VALUES\_cpus=10,14} to the task.
+
+It is important to note that \hyperqueue{} treats resources as opaque and virtual; they
+are used only for scheduling. \hq{} does not enforce that e.g.\ if a task is
+provided the cores $0$ and $1$, it will be only executed on
+these specific cores. This responsibility is left to the task itself, which can use the provided
+environment variable to decide using which resources it should actually be executed. For example, a
+task could pin its executed program on cores allocated to it. In the case of
+\gls{cpu} cores, \hq{} can even pin the allocated cores for the
+task automatically, if the task is configured for pinning.
+
+\begin{listing}[h]
+	\begin{minted}[fontsize=\small, tabsize=4]{bash}
+# Submit a task requiring 4 CPU cores
+$ hq submit --cpus=4 ./my-program
+
+# Submit 1000 tasks, each requiring 2 CPU cores
+$ hq submit --cpus=2 --array=1-1000 ./my-program
+
+# Submit a task requiring 2 CPU cores, enable CPU pinning through OpenMP
+$ hq submit --cpus=2 --pin=omp ./my-program
+
+# Submit a task that requires 2 FPGA devices and needs at least 10 minutes to execute
+$ hq submit --resource 'fpga=2' --time-request 10m ./my-program
+	\end{minted}
+	\caption{Configuring task resource requirements using the \hyperqueue{} \gls{cli}}
+	\label{lst:hq-cli-task-resources}
+\end{listing}
+
+\subsubsection*{Multi-node tasks}
+\hyperqueue{} also supports a special kind of resource that is especially useful for
+tasks that want to execute \gls{hpc} computations which are designed to run on
+multiple nodes (e.g. \gls{mpi} programs). A task may specify that it wants to be
+executed on multiple workers at the same time. In this case, \hq{} assumes
+exclusive ownership of all the resources of each worker (node), which typically matches the
+requirement of \gls{mpi}-like applications. A multi-node task requiring
+$n$ nodes can only be scheduled when $n$ workers are idle
+(not executing any tasks) at the same time. When a multi-node task starts to execute,
+\hq{} passes it a \emph{nodefile} which contains the hostnames of all
+workers allocated to the task. This nodefile can then be used by common \gls{mpi}
+program launchers to start an \gls{mpi} program.
+
+Users that execute multi-node tasks running \gls{mpi} applications might want to make
+sure that all workers (nodes) contributing in this computation are started in the same allocation,
+for performance reasons (e.g.\ they might configure allocations to use nodes that reside close
+together in the networking topology of the cluster). By default, \hyperqueue{} tries to
+adhere to this constraint. It introduces an abstract concept of \emph{worker groups}, and always
+schedules a multi-node task to workers that belong to the same group. At the same time, it
+automatically configures the group of a worker based on the allocation inside which it is executed
+(if any). This ensures that multi-node tasks are by default executed only on workers that reside
+within the same allocation. However, it is possible to override the group of a worker, and e.g.\
+assign the same group to all workers. In that case, workers from all active allocations will be
+used to participate in multi-node tasks.
+
+\subsection{Fault tolerance}
+The execution of a task in \hyperqueue{} can end in a failure for two main reasons. The
+worker that executes the task might crash, be stopped by the user, or an allocation inside which it
+is executed can run out of its wall-time. In that case, the task will be rescheduled by the server
+to a different worker that upholds its resource requirements. This is made possible due to the fact
+that tasks are not tied to any specific computational resource or allocation. When such a task
+restart happens, it is important to let the executed program know that it is not being executed for
+the first time, so that it can react to it (for example clean up files that were created during a
+previous execution of the same task or restore execution from a previously created checkpoint).
+This is achieved using an \emph{instance ID}. It is a non-negative number attached to each
+task that is increased every time the task is restarted. This number is then passed to the executed
+task, so that it can decide whether it should react to the restart in any specific way.
+
+In rare cases, the crash of the worker might be caused by the task itself, e.g.\ if it allocates
+too much memory and causes an ``\gls{oom}'' error. If this happens repeatedly, such
+task could hamper the execution of the whole task graph, since it would be repeatedly crashing
+workers. For that reason, it is possible to configure the maximum number of worker crashes per task
+(it is configured to a low number by default). If a task exceeds this number (i.e.\ it is present
+during too many worker crashes), it will be automatically canceled.
+
+The second reason why a task might fail is that its computation simply does not succeed, for
+example due to the executed process returning a non-zero exit code. In that case, the task is
+marked as failed, and any tasks that (transitively) depend on it are canceled.
+\hyperqueue{} allows a simple way of querying tasks by their state and resubmitting only
+failed and/or canceled tasks in a straightforward way, which is possible due to the job state being
+kept outside of ephemeral allocations.~\Autoref{lst:hq-cli-fault-tolerance} demonstrates how users can use the
+\hq{} \gls{cli} to resubmit failed tasks from a previously
+submitted job. It also shows that several \hq{} commands are designed to be
+composable, adhering to the Unix philosophy of creating commands that do a single thing well and
+that can be easily combined together.
+
+\begin{listing}[h]
+	\begin{minted}[fontsize=\small, tabsize=4]{bash}
+# Submit task array with 1000 tasks, wait until it completes
+$ hq submit --array=1-1000 --wait ./my-script.sh
+
+# Find task IDs that have failed in the last job
+$ FAILED_TASKS=$(hq job task-ids last --filter=failed)
+
+# Resubmit only the failed tasks
+$ hq submit --array=${FAILED_TASKS} ./my-computation
+	\end{minted}
+	\caption{Handling task failure using the \hyperqueue{} \gls{cli}}
+	\label{lst:hq-cli-fault-tolerance}
+\end{listing}
+
+Too many tasks failing can signal the presence of some catastrophic condition, e.g.\ the user
+forgot to configure their program properly, load some required runtime dependencies or used the
+wrong filesystem path for inputs. If this happens for a very large job, it could lead to a lot of
+wasted computation, where tasks will start to execute, but they will probably fail very soon after
+that. \hyperqueue{} thus allows users to configure a parameter that specifies the maximum
+number of task failures per job. If the configured number of failures is exceeded,
+\hq{} will preemptively cancel the whole job to avoid wasting computation.
+
+A special case of a failure is when the server itself crashes or it is stopped by the user, or when
+a worker loses connection to the server due to networking issues. In this case, the worker cannot
+reasonably continue executing long-term, without having a communication channel with the server.
+However, if it stores tasks that are already being executed, it could be wasteful to stop their
+computation just because the connection to the server has been lost. The worker can thus be
+configured in a way that it will finish executing such running tasks before shutting itself down.
+However, the completion of these tasks will not be reported back to the server, so users will need
+to handle their output on disk manually.
+
+It is possible to configure the server to store a log containing all necessary information about
+its task database to the filesystem. The server can thus be restored in case of a crash or a
+failure to resume previously unfinished computation of tasks.
+
+\subsection{Automatic submission of allocations}
+\label{hq:automatic-allocation}
+The meta-scheduling design employed by \hyperqueue{} resolves most of the challenges
+associated with using allocation managers for executing tasks, since it fully automates the mapping
+of tasks to allocations. It also makes creating allocations simple, so that users can scale the
+computational resources used for computing their task graphs at their will. However, creating
+allocations manually can still be relatively demanding for users, who might want to employ a more
+automated approach for scaling computational resources. Since \hyperqueue{} knows the
+state of all tasks and workers, and it is commonly executed on login nodes that have access to
+allocation managers, it is natural to provide it with the ability to automatically submit new
+allocations on behalf of the user, based on current computational load. This system has been
+implemented in \hq{} under the name \emph{Automatic allocator} (shortened as \autoalloc{}). The automatic
+allocator was created with the following design goals:
+
+\begin{description}[wide=0pt]
+	\item[Allow computational resources to scale up] At any given moment, if there are tasks that are waiting to be executed, and there are no free
+		computational resources, \autoalloc{} should attempt to add more resources by creating
+		new allocations. At the same time, it should respect backpressure from the allocation manager to
+		avoid overloading it.
+	\item[Allow computational resources to scale down] Keeping allocations running on a supercomputer can be quite costly. \Autoalloc{} should
+		thus make sure to shutdown allocations that are not performing useful work because they do not have
+		anything to compute anymore, in order to avoid wasting resources.
+	\item[Be flexible] Allocation managers typically provide various configuration knobs that can affect the behavior of
+		allocations. While it will not ever be possible to support all possible implementations of
+		allocation managers out of the box, \autoalloc{} should provide extension points that
+		enable users to configure the submitted allocations to their liking.
+\end{description}
+
+\Autoalloc{} has been implemented as a background service within the
+\hyperqueue{} server. To use it, users first need to create at least one
+\emph{allocation queue}. Such a queue describes a template for creating new allocations, which will
+be submitted by \hq{} when there is a demand for more computational resources.
+Each queue contains several properties that can be configured by users:
+
+\begin{description}
+	\item[Allocation manager] \Autoalloc{} needs to communicate with a given allocation manager
+		to be able to submit allocations into it. Users thus need to tell \hq{} which
+		allocation manager it should communicate with. Currently, two managers are supported, Slurm and
+		\gls{pbs}.
+	\item[Time limit] This determines the wall-time of each allocation submitted by \autoalloc{}. Knowing the
+		maximum duration of each allocation helps it decide when it makes sense to create allocations. For
+		example, if the only tasks waiting to be computed have a \emph{time request} that is longer than
+		the time limit of a given allocation queue, it does not make sense to create allocations in this
+		queue, because workers started in these allocations could not execute such tasks anyway.
+	\item[Backlog] This parameter specifies the maximum number of allocations that can be queued in the allocation
+		manager at any given time. It is designed to ensure that the automatic allocator does not overload
+		the allocation manager.
+	\item[Worker count per allocation] Determines how many nodes (workers) should be requested for each allocation. Unless users want to
+		execute multi-node tasks, it is usually convenient to use the default value
+		($1$), because typically, the fewer nodes are requested in an allocation, the
+		sooner it will be started by the allocation manager.
+	\item[Max worker count] This parameter can be used to limit the maximum number of running workers across all allocations
+		started by this queue.
+	\item[Idle timeout] Time after which an idle worker (a worker that does not have any tasks to compute) will stop. The
+		idle timeout mechanism helps to avoid resource waste, by stopping workers that do not have anything
+		to do anymore. By default, this timeout is set to a few minutes.
+	\item[Worker resources] Users can override the worker resources assigned to each worker started by the given allocation
+		queue. This can be used if the user knows that the allocations will be started in a specific
+		partition of the cluster that contains resources that cannot be automatically detected by
+		\hyperqueue{} (e.g. \gls{fpga} devices).
+	\item[Custom allocation parameters] Users can also specify arbitrary command-line parameters that will be passed to the submit command
+		sent to the corresponding allocation manager, like the computational project that should be used,
+		or the Slurm partition where the allocation should be created. To make debugging easier,
+		\hyperqueue{} will submit a test allocation by default immediately after the allocation
+		queue is created, to test that the allocation parameters can be handled by the manager. If this
+		test allocation is successfully created, it is then immediately canceled to avoid wasting
+		computational resources.
+\end{description}
+
+\Autoref{lst:hq-cli-autoalloc} shows several examples of commands for creating allocation queues and
+observing allocation state using the \hyperqueue{} \gls{cli}.
+
+\begin{listing}[h]
+	\begin{minted}[fontsize=\small, tabsize=4]{bash}
+# Create an allocation queue for Slurm
+$ hq alloc add slurm --time-limit 1h -- -Aproject-1 -pcpu_partition
+
+# Create an allocation queue for PBS with GPU resources
+$ hq alloc add pbs --resource "gpus/nvidia=range(1-2)" ...
+
+# Display information about (in)active allocations from the given queue
+$ hq alloc info 1
+	\end{minted}
+	\caption{Handling task failure using the \hyperqueue{} \gls{cli}}
+	\label{lst:hq-cli-autoalloc}
+\end{listing}
+
+\Autoalloc{} is a reactive system. It observes events from the server (such as new jobs
+being submitted or new workers being connected) and manages allocations in response to these
+events. If it encounters a situation where there are tasks that are in the waiting state, and no
+workers can execute them (either because there are no workers or all of them are fully occupied),
+it will start submitting allocations to the allocation manager. It will submit allocations up until
+the configured \emph{backlog} value, or until the allocation manager applies backpressure
+(whichever comes sooner). Note that \autoalloc{} does not limit the total number of
+allocations that are ``in-flight'' (queued or running) by default, just the queued ones. This
+allows it to potentially create a large number of allocations and thus make use of all available resources of
+the cluster, if the allocation manager allows it. Users can use other configuration parameters
+(such as the total number of workers) to limit the amount of submitted resources.
+\Autoalloc{} also contains an internal rate limiter that makes sure that it does not
+submit allocations too often and that it pauses the allocation process if the allocations start
+failing too often.
+
+\hyperqueue{} communicates with \gls{pbs} or Slurm using standard
+commands, such as \texttt{qsub} or \texttt{sbatch}, as they do not provide a complete
+machine-readable \gls{api}. This means that in order to use automatic allocation, the server has to
+be executed on a node that has access to these commands and can communicate with the manager. If
+this is not possible, a proxy service could be used to forward communication between the node
+with the server and a node where the manager is deployed. \hyperqueue{} implements communication
+with each manager in a custom way. While there have been some attempts to create a unified
+interface~\cite{psij,workflow-alloc-manager-comm} for submitting allocations to different
+allocation managers, they have not seen wide adoption so far. Furthermore, adopting these
+approaches would require \hq{} to introduce a dependency on Python or an external \gls{http}
+service, which would make it more difficult to deploy.
+
+It is crucial for \autoalloc{} to maintain an updated state of its created allocations,
+so that it can report their state to the user, and also so that it knows if it can submit new
+allocations. Originally, it was using a polling approach to determine the latest state, where it
+was repeatedly querying the allocation manager about the state of allocations. However, this turned
+out to put a lot of pressure on the allocation managers, which were not very optimized for this
+use-case, especially if the polling frequency was very high (every few seconds). Some allocation
+managers are even configured in a way where they cache the state of allocations when they are
+queried too often; this reduces the chance of them being overloaded, but it also means that
+\hyperqueue{} would not get the latest data, which is not ideal. However, we can observe
+that it is not actually required to poll the allocation manager. The only allocation events that
+are important for the allocator are the start and an end of an allocation. And this information can
+be gained through a proxy; the connections are disconnections of \hq{} workers.
+When a worker is started in an allocation, it will connect to the server, and tell it its
+allocation ID\@. This lets the automatic allocator learn about new allocations. On the other hand,
+when such a worker disconnects, it signifies that its containing allocation has also been
+completed. Using this approach, the allocator is able to maintain the latest state of allocations
+without explicitly asking the allocation manager at all.
+
+\Autoalloc{} attempts to take certain task properties into account when creating
+allocations. For example, if a task has a \emph{time request} of two hours, but a configured
+allocation queue only has a time limit of one hour, the allocator will not submit allocations using
+this queue to provide resources for such a task, because workers started in these allocations could
+not compute such a task anyway. It should be noted that in general, it is very difficult to guess
+when and how many allocations should be created, because the allocator does not know in advance
+which tasks will be submitted in the future, nor for how long the currently submitted tasks will
+run. It also cannot precisely predict how long its submitted allocations will stay in the
+allocation manager queue. As a future extension, the allocator could be extended with a prediction
+of allocation queuing times~\cite{allocation-duration-prediction} or with a prediction of task execution
+times~\cite{task-duration-prediction}.
+
+%\Autoref{sec:hq-exp-autoalloc} will evaluate how well the automatic allocation system is able to
+%scale in response to computational demand and how it limits the waste of computational resources.
+
+\section{\hyperqueue{} use-cases}
+This section describes several use-cases where \hyperqueue{} has been successfully used
+to execute task graphs on \gls{hpc} systems. Apart from these selected case studies,
+it has also been used in other projects and scenarios; these will be enumerated at the end of this
+chapter.
+
+The presented use-cases originate from the LIGATE (LIgand Generator and portable drug discovery
+platform AT Exascale)~\cite{ligate} project, whose goal was to integrate state-of-the-art
+\gls{cadd} tools into a unified platform designed for executing drug design
+experiments on petascale and exascale \gls{hpc} clusters. This project provided
+funding for the development of \hyperqueue{}, and its use-cases also served as one of the
+main driving forces behind the design of this task runtime. The usage of \hyperqueue{}
+within the LIGATE project is briefly described in~\cite{ligate}.
+
+\subsection{Virtual screening and free-energy calculations}
+\label{sec:hq-usecase-ligen}
+One of the \gls{md} frameworks that were used in the LIGATE project was
+LiGen~\cite{ligen,ligen_exscalate}, a suite of utilities that can be used for performing virtual
+screening. Virtual screening is a computational method for identifying molecules that can bind to
+drug candidates, which is used for computer-driven drug discovery.
+
 %\begin{figure}[h]
 %	\centering
-%	\includegraphics[width=0.9\textwidth]{imgs/hq/architecture}
-%	\caption{Architecture of \hyperqueue{}.}
-%	\label{fig:hq-architecture}
+%	\includegraphics[width=\textwidth]{imgs/hq/ligen-workflow}
+%	\caption{LiGen high-throughput virtual screening}
+%	\label{fig:ligen-virtual-screening}
 %\end{figure}
-%
-%\subsubsection*{Server}
-%The \emph{server} is the most important part of \hyperqueue{}. Its main goal is
-%to manage both the lifecycle of task graphs and of workers that provide computational resources. It
-%keeps track of all tasks and workers, and allows users to query their state and also send commands
-%to it through a client interface. The server contains a work-stealing task scheduler that is based
-%on the \rsds{} scheduler implementation described in~\Autoref{sec:rsds-description}. The
-%scheduler assigns individual tasks to workers based on task resource requirements and current
-%computational load of workers, with the goal of maximizing hardware utilization of the connected
-%workers.
-%
-%It is designed to be executed as a long-running background process, which should ideally be
-%executed in a persistent location not managed by allocation managers (i.e.\ outside ephemeral
-%allocations). Typically, it is executed on a login node of a cluster, but it can also run
-%elsewhere, for example in a cloud partition. It should keep running until all tasks that the user
-%wants to execute are finished, although it can also restore its state from disk, so the computation
-%of a task graph can be interrupted and resumed at a later time, if needed.
-%
-%The fact that the server runs outside allocations allows it to load balance tasks across workers
-%running in multiple allocations concurrently, and work around the various limits of allocation
-%managers. This adheres to the first principle of the meta-scheduling design described in the
-%previous section.
-%
-%The server itself does not execute any tasks, and it consumes a relatively modest amount of
-%resources, and therefore it is not computationally demanding.~\Autoref{sec:hq-exp-server-cpu-consumption} evaluates how
-%many \gls{cpu} resources the server consumes in extreme scenarios.
-%
-%Apart from basic responsibilities related to worker management and task scheduling, the server also
-%provides additional functionality. For example, it can submit allocations fully automatically on
-%behalf of the user. This feature will be described in detail in~\Autoref{hq:automatic-allocation}.
-%
-%\subsubsection*{Worker}
-%The \emph{worker} component is a computational provider that executes tasks assigned to
-%it by the server. A single worker typically manages all hardware resources (\gls{cpu}
-%cores, \gls{gpu} or \gls{fpga} accelerators, memory, etc.) of a given
-%computer, usually a single computational node of a supercomputer.
-%
-%The worker is able to automatically detect all relevant hardware resources that are available on
-%the node where it is started and advertise them to the server. Therefore, in a typical case, users
-%can simply start the worker on a given node with a single uniform command, and from that moment on
-%the resources of that node will be used for task execution. This adheres to the second principle of
-%the proposed meta-scheduling design, where computational providers should be generic (not tied to
-%any specific task or a set of tasks), and it should be possible to start them using a uniform
-%command, to make their deployment trivial.
-%
-%Each worker also participates in task and resource scheduling. The server makes high-level
-%scheduling decisions, such as which tasks will be executed on a given worker, while the worker then
-%performs micro decisions, such as in which order it will execute tasks assigned to it, or which
-%specific resources will be assigned to a given task. Resource management will be described in more
-%detail in~\Autoref{sec:hq-resource-management}.
-%
-%\hyperqueue{} workers were designed with fault tolerance in mind. On an
-%\gls{hpc}
-%cluster, workers will be typically executed inside allocations that only run for a limited amount
-%of time, which implies that workers can disappear at any time during the computation of a task
-%graph. Both the server and workers thus operate with the assumption that workers can be potentially
-%short-lived; if a worker disconnects while it is executing a task, the task will be transparently
-%reassigned to a different worker without user intervention. Worker management is thus dynamic and
-%flexible; new workers can also be added at any time, after which they will immediately start
-%contributing to the execution of the submitted task graphs. This property enables users of
-%\hq{} to arbitrarily scale the computation of a task graph both up and down, even
-%while it is being executed, by dynamically adding or removing workers as needed.
-%
-%While workers can be deployed manually by users, \hq{} can also automatically
-%submit allocations to an allocation manager that start workers on computational nodes, based on
-%current computational needs of submitted task graphs, as was already mentioned. This system, called
-%\emph{automatic allocation}, will be described in more detail later in~\Autoref{hq:automatic-allocation}.
-%
-%\subsubsection*{Client interfaces}
-%Users can use two main interfaces for deploying the \hyperqueue{} server and workers,
-%submitting task graphs and managing and monitoring the computation. They can either use a
-%\gls{cli}, which has been designed to feel familiar to users of Slurm in order to
-%make it easier to migrate existing \gls{hpc} workflows to \hyperqueue{}, or
-%a Python \gls{api}, which is useful for more complex use-cases that are challenging
-%to express using the command line. These interfaces are relatively large, and their specific shape
-%is not crucial for this thesis; the complete set of the supported \gls{cli} commands
-%and their parameters and the Python \gls{api} is described in the
-%\hyperqueue{} documentation~\cite{hq_docs}. In the rest of the text, we will
-%show various examples of these interfaces (primarily of several \gls{cli} commands),
-%to provide an idea of how ergonomic it is for users to interact with \hyperqueue{}.
-%
-%The \gls{cli} has been designed with the ``Simple things should be simple. Complex
-%things should be possible.''\footnote{Originally coined by Alan Kay.} approach in mind. It allows submitting various
-%kinds of workflows in an easy way, but also allows users to configure their execution extensively.
-%This is in contrast to some other task runtimes, which require using Python code (e.g.\
-%\dask{}) or workflow files (e.g.\ \snakemake{}) for executing even the
-%simplest of workflows.~\Autoref{lst:hq-cli-commands} shows three basic commands that leverage the
-%\texttt{hq} binary to deploy an instance of a \hyperqueue{} server and a
-%worker, and then execute a single task through it. More examples will be shown later throughout
-%this chapter.
-%
-%For simple existing workflows defined using Bash scripts, it is enough to replace uses of the
-%\texttt{sbatch} command with \texttt{hq submit} to let \hyperqueue{} manage the execution
-%instead of Slurm.
-%
-%\begin{listing}[h]
-%	\begin{minted}[fontsize=\small, tabsize=4]{bash}
-%# Start a HQ server
-%$ hq server start &
-%
-%# Start a HQ worker
-%$ hq worker start &
-%
-%# Submit a HQ job (task graph) with a single task
-%$ hq submit ./my-program
-%	\end{minted}
-%	\caption{Examples of \hyperqueue{} \gls{cli} commands}
-%	\label{lst:hq-cli-commands}
-%\end{listing}
-%
-%\subsubsection*{Deployment}
-%Even though it is often overlooked, deployment of software on supercomputers can be challenging, as
-%was described in~\Autoref{challenge:deployment}. Since \hyperqueue{} aims to provide seamless
-%support for \gls{hpc} use-cases, it was also designed to be trivial to deploy. It is
-%distributed as a single, relatively small (approximately \SI{15}{\mebi\byte}), statically
-%linked executable called \texttt{hq}, which implements all the provided functionality
-%(server, worker and the whole \gls{cli}). It does not depend on any external services
-%or dynamic libraries, apart from the ubiquitous \texttt{C} standard library, and it
-%runs fully in userspace and does not require any elevated privileges. It also does not require any
-%installation nor configuration steps.
-%
-%The \hyperqueue{} Python \gls{api} is then distributed as a Python package
-%that is available on the standard Python Package Index~\cite{hq_pypi}. This package
-%contains all the \hq{} logic inline; it is thus self-contained and it does not
-%need the \texttt{hq} binary to function.
-%
-%Both clients and workers communicate with the server using the standard \gls{tcpip}
-%protocol, which is ubiquitously available on most clusters. By default, all communication is
-%encrypted, so that other users of the cluster cannot observe the data sent between the
-%\hyperqueue{} components. This is performed out of an abundance of caution, because the
-%server typically runs on a login node, which is shared by multiple users, rather than on
-%computational nodes, which are usually isolated between users by the allocation manager. The
-%performance overhead of encryption will be evaluated in~\Autoref{sec:hq-exp-encryption-overhead}.
-%
-%In order to connect the individual components using \gls{tcpip}, normally it would be
-%required for users to specify network hostnames and ports. While this process is relatively simple,
-%it still presents a minor ergonomic hurdle, because users would need to reconfigure their worker
-%deployment scripts and client commands every time the server would start on a new
-%\gls{tcpip} address. To make this easier, \hyperqueue{} removes the need to
-%specify hostnames and ports by default, by exploiting a useful property of \gls{hpc}
-%clusters, which commonly use a shared networked filesystem. When a server is created, it creates a
-%configuration file in the user's home directory, which contains all information necessary for
-%exchanging handshakes and connecting the components. When workers and clients discover the presence
-%of this file (which can be accessed due to the filesystem being shared), they are able to connect
-%to the server without the user having to specify any addresses. However, it is still possible to
-%deploy multiple concurrent instances of \hyperqueue{} under the same account; users just
-%need to provide separate directories for storing the configuration file.
-%
-%Thanks to these properties, it is trivial to deploy and use \hyperqueue{} on
-%supercomputers, even without the involvement of the administrators of the target cluster. The
-%deployment benefits extend also beyond \gls{hpc} clusters. Users can also trivially
-%deploy \hyperqueue{} on their own personal computers. This enables them to prototype
-%their \gls{hpc} workflows locally, which can accelerate their development process and
-%is another step towards improving the ergonomics of using task graphs on supercomputers. This is in
-%contrast with using allocation managers for submitting tasks directly, which makes local
-%experimentation very difficult, as allocation managers are typically not straightforward to deploy
-%on personal computers.
-%
-%\subsection{Programming model}
-%\label{sec:hq-programming-model}
-%The task-based programming model used by \hyperqueue{} builds upon the task model defined
-%in~\Autoref{ch:taskgraphs}. It adds some additional \gls{hpc}-focused features on top
-%of it, such as fine-grained resource management and support for multi-node tasks.
-%
-%The core element of the programming model is a \textbf{Task}, which has the following
-%properties:
-%\begin{itemize}
-%	\item It is a unit of computation. A task can be executed by \hq{}, and its execution
-%	      either succeeds or fails. In the current implementation, each task represents either the execution
-%	      of a binary executable, or the invocation of a single Python function, although the specific
-%	      details of the task execution are opaque to \hyperqueue{}.
-%	\item It is a unit of scheduling. The \hq{} scheduler assigns each task to a worker (or
-%	      to a set of workers in the case of multi-node tasks), and can move tasks between workers using
-%	      work-stealing if their load is unbalanced.
-%	\item It forms a failure boundary. When a worker crashes while executing a set of tasks,
-%	      \hq{} can schedule them again on a different worker and restart their execution
-%	      from scratch.
-%	\item It is a unit of dependency management. Each task may depend on a set of other tasks, and in this
-%	      way they may be composed in a computational \gls{dag} of tasks.
-%	\item It is a unit of resource management. Each task has a set of attached resource requirements, which
-%	      describe constraints on a computational environment where the task is allowed to be executed. The
-%	      \hq{} scheduler then matches these requirements with resources provided by
-%	      workers.
-%\end{itemize}
-%
-%Each task has various properties, such as a path to the executed binary (or a Python function), a
-%set of environment variables, working directory, and others. Each task also has a set of attached
-%resource requirements, which will be described in more detail in~\Autoref{sec:hq-resource-management}.
-%
-%Tasks are composed into task graphs, which are called \textbf{Jobs} in the
-%\hq{} terminology. Each task belongs to exactly one job, and jobs are completely
-%independent, so there can be no dependencies between tasks belonging to different jobs. Jobs are
-%units of monitoring and management, as they allow users to group many tasks together, observe their
-%status or perform operations on all (or some) tasks of a job at once. There are two kinds of jobs,
-%\emph{graph jobs} and \emph{task arrays}. Graph jobs correspond to arbitrary
-%\glspl{dag}, where tasks may depend on one another. These can be only created using the
-%Python \gls{api} or a \gls{toml} workflow file, since it would be very
-%difficult for users to express dependencies using a command-line interface.
-%
-%Task arrays are a special case of graph jobs, which use a compressed representation of a
-%potentially large task graph that has a regular shape. For example, a common use-case is to compute
-%a task graph where each task runs the same computation, but on a different input. This can be
-%achieved with a task array, which stores only a single instance of the task definition (what should
-%be computed), but creates many copies of this task, each with a different input. This both reduces
-%the memory usage of the server, since the task graph representation is stored in this compressed
-%way, and also allows users to easily execute large task graphs using the \gls{cli}.
-%
-%Each task in the task array gets assigned a different \emph{task ID}, which uniquely
-%identifies a specific task, which allows it to perform a computation on a different input. For
-%example, if a user creates a task array with a thousand tasks, by default, the first will have ID
-%$1$, the second one will have ID $2$, etc. The ID is passed to
-%the task through an environment variable. Apart from assigning unique inputs to tasks through task
-%IDs, \hq{} also supports passing a unique binary blob to each task (again through
-%an environment variable) that can contain arbitrary data.~\Autoref{lst:hq-cli-task-arrays} shows an example
-%of how users may submit task arrays through the \gls{cli}.
-%
-%\begin{listing}[h]
-%	\begin{minted}[fontsize=\small, tabsize=4]{bash}
-%# Task array with 10 tasks, each task gets a different ID
-%$ hq submit --array=1-10 ./my-script.sh
-%
-%# Each task will receive a single line from the given file
-%$ hq submit --each-line=inputs.txt ./my-script.sh
-%
-%# Each task will receive a single item from a JSON array stored in the given file
-%$ hq submit --from-json=items.json ./my-script.sh
-%	\end{minted}
-%	\caption{Creating task arrays using the \hyperqueue{} \gls{cli}}
-%	\label{lst:hq-cli-task-arrays}
-%\end{listing}
-%
-%\subsubsection*{Task and job lifecycle}
-%The server manages the state lifecycle of tasks and jobs and also reports them to the user, so that
-%they can observe what is happening with their computation. At any given time, each task can be in a
-%single \emph{state}:
-%
-%\begin{description}
-%	\item[Waiting] After the user creates (\emph{submits}) a task, it starts in the \emph{waiting}
-%		state, where it waits until it is scheduled to a worker that is able to fulfill its resource
-%		requirements.
-%	\item[Running] After a task is scheduled and starts executing on a worker, it moves on to the
-%		\emph{running} state. If the worker that is executing the task stops or crashes, the task
-%		will move back to the \emph{waiting} state, so that it can be rescheduled to a different
-%		worker. This is labeled as a \emph{task restart}.
-%	\item[Finished] When a task finishes successfully (a binary program exits with the exit code $0$
-%		or a Python function returns without throwing an exception), it moves to the \emph{finished}
-%		state.
-%	\item[Failed] When a task fails (a binary program exits with a non-zero exit code or a Python function throws an
-%		exception), it moves to the \emph{failed} state.
-%	\item[Canceled] When a waiting or a running task is canceled by the user, it moves to the \emph{canceled}
-%		state, and it is no longer considered for execution. Users can cancel tasks and jobs that are no
-%		longer relevant and that should not continue executing.
-%\end{description}
-%
-%\Autoref{fig:hq-task-state-diagram} displays a state diagram of the various task states and
-%transitions that cause state changes. The \emph{finished}, \emph{failed} and
-%\emph{canceled} states are terminal; once a task reaches that state, it cannot change its
-%state anymore. Each job also has its associated state, which is derived from the state of its
-%tasks.
-%
+
+%TODO: diagram
 %\begin{figure}[h]
 %	\centering
-%	\begin{tikzpicture}
-%		\tikzstyle{every node}=[font=\footnotesize]
-%		\tikzstyle{every state}=[fill={rgb:black,1;white,8},minimum size=1.5cm,font=\footnotesize]
-%
-%		\node[state,initial,initial text=Submitted]   	(waiting)  							{Waiting};
-%		\node[state] 							   		(running) 	[right=2.5 of waiting]	{Running};
-%		\node[state,accepting]           		   		(finished) 	[right=2 of running]	{Finished};
-%		\node[state,accepting]                     		(failed) 	[above=1 of finished] 	{Failed};
-%		\node[state,accepting]                     		(canceled)	[below=1 of finished]   {Canceled};
-%
-%		\path[->]
-%		(waiting)   edge [bend left]	node [above] 			{Scheduled} 		(running)
-%		(waiting)   edge [bend right]	node [below left]		{Canceled}			(canceled)
-%		(running)	edge    			node [above] 			{Finished}			(finished)
-%		(running) 	edge    			node [above left] 		{Failed} 			(failed)
-%		(running)	edge    			node [left,xshift=-5]	{Canceled} 			(canceled)
-%		(running)	edge [bend left]    node [below,xshift=8]	{Worker crashed}	(waiting);
-%	\end{tikzpicture}
-%	\caption{State diagram of \hyperqueue{} tasks}
-%	\label{fig:hq-task-state-diagram}
+%%	\resizebox{!}{35mm}{
+%		\begin{tikzpicture}
+%			\tikzset{%
+%				data/.style={rectangle, draw, rounded corners, minimum size=4mm},
+%			}
+%			\tikz{
+%				(0, 0) node[data] {Ligands (SMI)};
+%			}
+%		\end{tikzpicture}
+%%	}
+%	\caption{Simple task graph with six tasks and six data objects}
+%	\label{fig:task-graph-example}
 %\end{figure}
-%
-%\subsubsection*{Iterative computation}
-%Iterative computation, such as running a simulation until it converges or training a
-%machine-learning model, can be expressed using the \hyperqueue{} Python
-%\gls{api}. It provides facilities for executing a task graph, waiting until it
-%finishes computing and then submitting a new task graph based on the computed results. While this
-%is enough for describing basic scenarios that require dynamic iteration, it is not fully ergonomic,
-%as it only provides dynamic submission of new computation on the granularity level of jobs (task
-%graphs), not individual tasks.
-%
-%A more general solution would be to allow adding new tasks to already submitted
-%\hyperqueue{} jobs, which would enable tasks themselves to submit new tasks into their
-%own task graph. This would make it easier to express arbitrarily dynamic task graph structures,
-%where the shape of the graph is not fully known before their computation starts. We plan to
-%implement support for this feature as a future extension.
-%
-%\subsection{Task input and output}
-%By default, each \hyperqueue{} task stores its \emph{standard output} (\emph{stdout}) and
-%\emph{standard error output} (\emph{stderr}) streams to the filesystem. Users can override this to avoid storing these
-%output streams, or to let \hq{} remove them if they are empty after the task has
-%been finished, to reduce disk clutter. It is also possible to use various placeholders for
-%configuring the paths of these streams. For example, the string \texttt{\%\{TASK\_ID\}} in a stream
-%path will get resolved to the task ID of the task that produces the stream. This can be used to
-%easily separate the output of different tasks of task arrays, for example.
-%
-%Since task graphs can be large, generating two files per task, especially on shared network
-%filesystems that are commonly used on supercomputers, could cause performance bottlenecks or run
-%into limitations caused by user disk quotas. To alleviate this problem, \hq{}
-%supports an output management system called \emph{output streaming}. If it is enabled for a given
-%job, then \emph{stdout} and \emph{stderr} of tasks is streamed over the network
-%from workers to the server, instead of being stored into separate files. The server then stores all
-%this data into a single file, and then offers several commands for manipulating and filtering task
-%output data from this file. This helps to reduce the pressure put on the
-%filesystem.~\Autoref{sec:hq-exp-output-streaming} will evaluate how this system helps with potential
-%\gls{io} issues.~\Autoref{lst:hq-cli-log} shows several \hq{}
-%commands that can be used to interact with output streaming.
-%
-%\begin{listing}[h]
-%	\begin{minted}[fontsize=\small, tabsize=4]{bash}
-%# Submit a job with output streaming enabled
-%$ hq submit --log=log.bin --wait -- ./my-program
-%
-%# Print stdout of tasks 1 to 10 from the log
-%$ hq log log.bin cat --task 1-10 stdout
-%
-%# Export the log into a JSON format
-%$ hq log log.bin export
-%	\end{minted}
-%	\caption{\hyperqueue{} \gls{cli} commands for working with output streaming}
-%	\label{lst:hq-cli-log}
-%\end{listing}
-%
-%Note that \hyperqueue{} currently does not support data transfers between tasks, as it is
-%primarily focused on executing tasks that execute black-box binaries which communicate through
-%files on a file-system. Arbitrary binary data can be attached as an input for any task (through its
-%\emph{standard input} stream), but task outputs are only used for specifying dependencies; no
-%task outputs can actually be transferred between the workers. This is only relevant for the Python
-%\gls{api}, because tasks submitted using the \gls{cli} cannot express
-%data transfers. The \hq{} server is based on the \rsds{} server
-%implementation, which supports data transfers between workers, so the transfer functionality itself
-%is actually implemented in \hq{}. However, data transfers still need to be
-%incorporated into the \hyperqueue{} programming model, and a user-facing (Python)
-%interface for consuming outputs of tasks needs to be designed. It should be noted that this is
-%merely a limitation of the current implementation, which we plan to lift in the future.
-%
-%\subsection{Resource management and scheduling}
-%\label{sec:hq-resource-management}
-%As has already been mentioned, the \hyperqueue{} scheduler is derived from the
-%\rsds{} work-stealing scheduler that was described in~\Autoref{sec:rsds-description}. It
-%assigns tasks to workers eagerly, to optimize the fast path where there are enough tasks to utilize
-%the available workers. When some workers are under-utilized, the server uses work-stealing to steal
-%tasks between workers to balance the computational load. Scheduling is performed on the level of
-%tasks, regardless of which job they belong to. In fact, the scheduler does not even know anything
-%about jobs.
-%
-%What makes the scheduler different from \rsds{} is its support for complex resource
-%management. It takes into account various resource requirements requested by tasks, and also the
-%state of currently available resources on each worker, and uses this information to drive its
-%scheduling decisions. The most important responsibility of this resource management is to uphold
-%the invariant that each task will be executed on a worker that is able to provide the corresponding
-%amount of each resource requested by the task at the time of the task's execution. When a task is
-%being scheduled, the scheduler looks for a worker that can satisfy the resource requirements of the
-%task, based on the amount of resources provided by the worker in general, and also the amount of
-%resources that the worker currently has available. When a task is scheduled onto a worker, the
-%scheduler \emph{allocates} a specific subset of the worker's resources to that task, which
-%will not be available for other tasks until the scheduled tasks finished executing.
-%
-%\hyperqueue{} resources are \emph{generic}, as users can define their own
-%arbitrary resources for both tasks and workers, although \hq{} also recognizes
-%several known resource names and provides specialized support for them. Resource management in
-%\hyperqueue{} consists of two main elements, resource requirements specified by tasks and
-%resource pools provided by workers.
-%
-%\subsubsection*{Worker resource pools}
-%Worker resources are configured when a worker is started through so-called \emph{resource pools},
-%named sets of resources. The values of the most common resource pools, like the
-%\gls{cpu} cores and \gls{numa} sockets, the amount of
-%\gls{ram} and the presence of \gls{gpu} accelerators, are detected
-%automatically. On top of that, users can specify an arbitrary set of additional pools. There are
-%two kinds of resource pools:
-%
-%\begin{description}
-%	\item [Indexed pool] represents a set of resources where each individual resource is
-%	      non-fungible and has a unique identity (represented either by an integer or a string). An example
-%	      of such a resource pool could be a set of \gls{cpu} cores or \gls{gpu}
-%	      devices. For example, if a worker has two NVIDIA \glspl{gpu}, that worker could provide
-%	      an indexed pool containing two resources (e.g.\ with indices $0$ and
-%	      $1$), each representing one individual \gls{gpu} device. These two
-%	      resources are not interchangeable; the scheduler decides which specific resource will be assigned
-%	      to a task, and it tracks the individual resources based on their identity. If a task
-%	      $t$ is currently using \gls{gpu} $0$, that
-%	      resource will not be assigned to any other task until $t$ has finished executing.
-%
-%	      Individual resources of an indexed pool can be further subdivided into \emph{groups},
-%	      which mark some form of relationship between specific resources. This can be used e.g.\ to
-%	      represent \gls{numa} domains and \gls{cpu} sockets; a worker might provide
-%	      a single indexed pools of \glspl{cpu}, with a separate group for each
-%	      \gls{numa} socket present on the worker's node. Tasks can then specify if they want to
-%	      prioritize drawing resources that belong to the same group. This will be described later.
-%	\item [Sum pool] is designed for resources that are fungible. Such resources are typically
-%	      numerous, and it would not be practical to track each individual resource separately. A sum pool
-%	      thus does not define its individual resources through indices, but only defines a single number
-%	      that specifies the amount of resources available in the pool. A typical representative of a sum
-%	      pool is \gls{ram} available on a worker. Modern \gls{hpc} nodes can
-%	      contain hundreds of GiBs of memory, or even more, and it is not feasible to treat each byte as a
-%	      separate resource. At the same time, tasks usually do not need such fine-grained tracking; if they
-%	      care about memory requirements, they just specify how much memory they need.
-%\end{description}
-%
-%\Autoref{lst:hq-cli-worker-resources} shows a few examples of how users can configure resources
-%when starting workers through the \gls{cli}.
-%
-%\begin{listing}[h]
-%	\begin{minted}[fontsize=\small, tabsize=4]{bash}
-%# Start a worker with automatically detected resources
-%$ hq worker start
-%
-%# Start a worker that manages 16 CPU cores
-%$ hq worker start --cpus 16
-%
-%# Start a worker with additional resources
-%# Adds an indexed pool of four GPUs and a sum pool of 1024 resources (bytes)
-%$ hq worker start \
-%	--resource 'gpus/nvidia=[0,1,2,3]' \
-%	--resource 'memory=sum(1024)'
-%	\end{minted}
-%	\caption{Configuring worker resources using the \hyperqueue{} \gls{cli}}
-%	\label{lst:hq-cli-worker-resources}
-%\end{listing}
-%
-%\subsubsection*{Task resource requirements}
-%Resource pools define the resources that are available on workers. The scheduler then uses
-%\emph{resource requirements} attached to individual tasks to decide on which workers a given task can be
-%executed, and which specific resources it will consume while the task is running. Task resource
-%requirements are defined for each task separately. By default, each task requires a single
-%\gls{cpu} core, but users can specify a different \gls{cpu}
-%requirement, and also add additional arbitrary requirements.
-%
-%A resource requirement consists of a name of the resource that the task needs, and an amount
-%specifying how many such resources are needed. For example, a task might specify that it requires
-%two \glspl{gpu} for its execution. The resource requirement always specifies the amount
-%of required resources, regardless of whether the given resource is taken from an indexed or a sum
-%pool. Therefore, tasks cannot ask for specific instances of resources based on their identity; the
-%scheduler decides which specific resources will be assigned to individual tasks, which makes
-%scheduling more flexible. For example, assume that a worker has $128$ cores (each
-%with their own identity), and there is a task that requires two cores. It would not be very
-%practical if the task had to specify that it specifically requires cores with ID
-%$0$ and $1$ or $5$ and
-%$8$, etc. Instead, it just specifies the number of \gls{cpu} cores
-%it needs, and lets the scheduler decide which specific cores it will assign to the task, based on
-%what cores will be available on the given worker at the time the task is about to start executing.
-%
-%In addition to the basic system described above, resource requirements can also leverage a few
-%additional parameters that allow tasks to describe more complex use-cases related to resource
-%management.
-%
-%A \emph{group allocation strategy} can be used to affect which specific resources from an indexed pool will
-%be used for the task. It is not relevant for indexed pools with a single group nor for sum pools. A
-%typical example where indexed pool groups are useful are \gls{numa} nodes, where tasks
-%might want to be executed on cores that belong to the same \gls{numa} node (group). There are three
-%different strategies that can be selected:
-%\begin{description}
-%	\item [Compact] is the default strategy. The scheduler tries to allocate all requested
-%	      resources from as few groups as possible. However, if there are not enough resources currently
-%	      available for that on a given worker, it will also try to draw resources from a larger number of
-%	      groups, to satisfy the resource requirement.
-%	\item [Strict compact] is a stricter version of the \emph{compact} strategy. With this
-%	      strategy, the scheduler first figures out the minimum number of groups required to satisfy the
-%	      resource requirement, and it will then not schedule the task until it can provide all requested
-%	      resources from the smallest number of groups possible.
-%	\item [Scatter] is the opposite of the \emph{compact} mode. It tries to allocate resources
-%	      for the task from as many groups as possible.
-%\end{description}
-%
-%Resource requirements can also be specified without an upper bound, i.e.\ a task can specify that
-%it wants to consume all available resources of the specified pool. If a worker has at least a
-%single resource of the given pool available, and the scheduler assigns a task with this kind of
-%resource requirement to it, that task will be allocated all the worker resources that are available
-%when the task starts to execute.
-%
-%In some cases, requesting whole resources can still be too coarse-grained for some tasks. For
-%example, a task might execute software that is able to leverage \gls{gpu}
-%acceleration, but it cannot utilize a whole \gls{gpu} device by itself. If such task
-%has requested a whole \gls{gpu}, part of that accelerator's hardware might sit idle
-%while the task is executed. To avoid this situation, \hyperqueue{} allows tasks to define
-%\emph{fractional resources}, which allow multiple tasks to share a single resource at the same time.
-%For example, the mentioned task could ask for only $0.5$ of a
-%\gls{gpu}, in which case the scheduler would allocate the same
-%\gls{gpu} device to up to two tasks at once. The scheduler uses fixed-point
-%arithmetic to manage fractional resources, in order to avoid common issues associated with
-%floating-point arithmetic, rounding errors.
-%
-%An even more complex resource management use-case supported by \hyperqueue{} is the
-%ability to specify \emph{resource variants}. Normally, each resource requirement specified by a task
-%is additive; all the requested resources have to be available in order for the task to start
-%executing. However, \hq{} also allows tasks to define a list of resource
-%requirement sets (called resource variants), and lets the scheduler use the first one that can be
-%satisfied by a worker at the time of scheduling (the order of the list elements decides the
-%priority of the individual requirement sets). Resource variants allow tasks to define multiple
-%situations under which it makes sense to execute the task, and let the scheduler decide which
-%variant to select, based on dynamic information about the current worker resource. As an example,
-%many \gls{hpc} software tools can run either on a \gls{cpu} or on a
-%\gls{gpu} device. A task using such software might specify e.g.\ that it needs either
-%a single \gls{gpu} and a single \gls{cpu}, or that it needs
-%$16$ \gls{cpu} cores (in the case that a \gls{gpu} is
-%not available). In this case, the scheduler could decide to execute the task purely using
-%\gls{cpu} resources, if there are no \gls{gpu} resources currently
-%available. Without support for resource variants, the scheduler would need to wait for a
-%\gls{gpu} to become available, even if there were free \gls{cpu}
-%resources that could be used in the meantime.
-%
-%There is also one additional special resource that is relevant for scheduling, called a
-%\emph{time request}. If a task specifies a time request (a duration) $t$, it
-%tells the scheduler that it needs at least $t$ time for its execution. This is
-%important for avoiding needless task restarts, due to the way \hq{} workers are
-%commonly deployed in allocations. Workers started in allocations cannot run for a longer time than
-%the wall-time of the allocation. Since this duration is known (each allocation must have a
-%wall-time), \hq{} knows the remaining lifetime of each such worker at any given
-%time. This information is used for scheduling; if a worker has remaining lifetime
-%$l$, the scheduler will not assign it tasks with a time request that is longer
-%than $l$, because it is highly probable that such tasks could not finish
-%executing before that worker shuts down.
-%
-%Once a task is scheduled to a worker, and the scheduler decides which resources will be allocated
-%to it, it passes this information to the task through environment variables. For example, if a task
-%asks for two \gls{cpu} cores, and the scheduler allocated the cores
-%$10$ and $14$ of a specific worker to it,
-%\hq{} will pass \texttt{HQ\_RESOURCE\_VALUES\_cpus=10,14} to the task.
-%
-%It is important to note that \hyperqueue{} treats resources as opaque and virtual; they
-%are used only for scheduling. \hq{} does not enforce that e.g.\ if a task is
-%provided the cores $0$ and $1$, it will be only executed on
-%these specific cores. This responsibility is left to the task itself, which can use the provided
-%environment variable to decide using which resources it should actually be executed. For example, a
-%task could pin its executed program on cores allocated to it. In the case of
-%\gls{cpu} cores, \hq{} can even pin the allocated cores for the
-%task automatically, if the task is configured for pinning.
-%
-%\begin{listing}[h]
-%	\begin{minted}[fontsize=\small, tabsize=4]{bash}
-%# Submit a task requiring 4 CPU cores
-%$ hq submit --cpus=4 ./my-program
-%
-%# Submit 1000 tasks, each requiring 2 CPU cores
-%$ hq submit --cpus=2 --array=1-1000 ./my-program
-%
-%# Submit a task requiring 2 CPU cores, enable CPU pinning through OpenMP
-%$ hq submit --cpus=2 --pin=omp ./my-program
-%
-%# Submit a task that requires 2 FPGA devices and needs at least 10 minutes to execute
-%$ hq submit --resource 'fpga=2' --time-request 10m ./my-program
-%	\end{minted}
-%	\caption{Configuring task resource requirements using the \hyperqueue{} \gls{cli}}
-%	\label{lst:hq-cli-task-resources}
-%\end{listing}
-%
-%\subsubsection*{Multi-node tasks}
-%\hyperqueue{} also supports a special kind of resource that is especially useful for
-%tasks that want to execute \gls{hpc} computations which are designed to run on
-%multiple nodes (e.g. \gls{mpi} programs). A task may specify that it wants to be
-%executed on multiple workers at the same time. In this case, \hq{} assumes
-%exclusive ownership of all the resources of each worker (node), which typically matches the
-%requirement of \gls{mpi}-like applications. A multi-node task requiring
-%$n$ nodes can only be scheduled when $n$ workers are idle
-%(not executing any tasks) at the same time. When a multi-node task starts to execute,
-%\hq{} passes it a \emph{nodefile} which contains the hostnames of all
-%workers allocated to the task. This nodefile can then be used by common \gls{mpi}
-%program launchers to start an \gls{mpi} program.
-%
-%Users that execute multi-node tasks running \gls{mpi} applications might want to make
-%sure that all workers (nodes) contributing in this computation are started in the same allocation,
-%for performance reasons (e.g.\ they might configure allocations to use nodes that reside close
-%together in the networking topology of the cluster). By default, \hyperqueue{} tries to
-%adhere to this constraint. It introduces an abstract concept of \emph{worker groups}, and always
-%schedules a multi-node task to workers that belong to the same group. At the same time, it
-%automatically configures the group of a worker based on the allocation inside which it is executed
-%(if any). This ensures that multi-node tasks are by default executed only on workers that reside
-%within the same allocation. However, it is possible to override the group of a worker, and e.g.\
-%assign the same group to all workers. In that case, workers from all active allocations will be
-%used to participate in multi-node tasks.
-%
-%\subsection{Fault tolerance}
-%The execution of a task in \hyperqueue{} can end in a failure for two main reasons. The
-%worker that executes the task might crash, be stopped by the user, or an allocation inside which it
-%is executed can run out of its wall-time. In that case, the task will be rescheduled by the server
-%to a different worker that upholds its resource requirements. This is made possible due to the fact
-%that tasks are not tied to any specific computational resource or allocation. When such a task
-%restart happens, it is important to let the executed program know that it is not being executed for
-%the first time, so that it can react to it (for example clean up files that were created during a
-%previous execution of the same task or restore execution from a previously created checkpoint).
-%This is achieved using an \emph{instance ID}. It is a non-negative number attached to each
-%task that is increased every time the task is restarted. This number is then passed to the executed
-%task, so that it can decide whether it should react to the restart in any specific way.
-%
-%In rare cases, the crash of the worker might be caused by the task itself, e.g.\ if it allocates
-%too much memory and causes an ``\gls{oom}'' error. If this happens repeatedly, such
-%task could hamper the execution of the whole task graph, since it would be repeatedly crashing
-%workers. For that reason, it is possible to configure the maximum number of worker crashes per task
-%(it is configured to a low number by default). If a task exceeds this number (i.e.\ it is present
-%during too many worker crashes), it will be automatically canceled.
-%
-%The second reason why a task might fail is that its computation simply does not succeed, for
-%example due to the executed process returning a non-zero exit code. In that case, the task is
-%marked as failed, and any tasks that (transitively) depend on it are canceled.
-%\hyperqueue{} allows a simple way of querying tasks by their state and resubmitting only
-%failed and/or canceled tasks in a straightforward way, which is possible due to the job state being
-%kept outside of ephemeral allocations.~\Autoref{lst:hq-cli-fault-tolerance} demonstrates how users can use the
-%\hq{} \gls{cli} to resubmit failed tasks from a previously
-%submitted job. It also shows that several \hq{} commands are designed to be
-%composable, adhering to the Unix philosophy of creating commands that do a single thing well and
-%that can be easily combined together.
-%
-%\begin{listing}[h]
-%	\begin{minted}[fontsize=\small, tabsize=4]{bash}
-%# Submit task array with 1000 tasks, wait until it completes
-%$ hq submit --array=1-1000 --wait ./my-script.sh
-%
-%# Find task IDs that have failed in the last job
-%$ FAILED_TASKS=$(hq job task-ids last --filter=failed)
-%
-%# Resubmit only the failed tasks
-%$ hq submit --array=${FAILED_TASKS} ./my-computation
-%	\end{minted}
-%	\caption{Handling task failure using the \hyperqueue{} \gls{cli}}
-%	\label{lst:hq-cli-fault-tolerance}
-%\end{listing}
-%
-%Too many tasks failing can signal the presence of some catastrophic condition, e.g.\ the user
-%forgot to configure their program properly, load some required runtime dependencies or used the
-%wrong filesystem path for inputs. If this happens for a very large job, it could lead to a lot of
-%wasted computation, where tasks will start to execute, but they will probably fail very soon after
-%that. \hyperqueue{} thus allows users to configure a parameter that specifies the maximum
-%number of task failures per job. If the configured number of failures is exceeded,
-%\hq{} will preemptively cancel the whole job to avoid wasting computation.
-%
-%A special case of a failure is when the server itself crashes or it is stopped by the user, or when
-%a worker loses connection to the server due to networking issues. In this case, the worker cannot
-%reasonably continue executing long-term, without having a communication channel with the server.
-%However, if it stores tasks that are already being executed, it could be wasteful to stop their
-%computation just because the connection to the server has been lost. The worker can thus be
-%configured in a way that it will finish executing such running tasks before shutting itself down.
-%However, the completion of these tasks will not be reported back to the server, so users will need
-%to handle their output on disk manually.
-%
-%It is possible to configure the server to store a log containing all necessary information about
-%its task database to the filesystem. The server can thus be restored in case of a crash or a
-%failure to resume previously unfinished computation of tasks.
-%
-%\subsection{Automatic submission of allocations}
-%\label{hq:automatic-allocation}
-%The meta-scheduling design employed by \hyperqueue{} resolves most of the challenges
-%associated with using allocation managers for executing tasks, since it fully automates the mapping
-%of tasks to allocations. It also makes creating allocations simple, so that users can scale the
-%computational resources used for computing their task graphs at their will. However, creating
-%allocations manually can still be relatively demanding for users, who might want to employ a more
-%automated approach for scaling computational resources. Since \hyperqueue{} knows the
-%state of all tasks and workers, and it is commonly executed on login nodes that have access to
-%allocation managers, it is natural to provide it with the ability to automatically submit new
-%allocations on behalf of the user, based on current computational load. This system has been
-%implemented in \hq{} under the name \emph{Automatic allocator} (shortened as \autoalloc{}). The automatic
-%allocator was created with the following design goals:
-%
-%\begin{description}[wide=0pt]
-%	\item[Allow computational resources to scale up] At any given moment, if there are tasks that are waiting to be executed, and there are no free
-%		computational resources, \autoalloc{} should attempt to add more resources by creating
-%		new allocations. At the same time, it should respect backpressure from the allocation manager to
-%		avoid overloading it.
-%	\item[Allow computational resources to scale down] Keeping allocations running on a supercomputer can be quite costly. \Autoalloc{} should
-%		thus make sure to shutdown allocations that are not performing useful work because they do not have
-%		anything to compute anymore, in order to avoid wasting resources.
-%	\item[Be flexible] Allocation managers typically provide various configuration knobs that can affect the behavior of
-%		allocations. While it will not ever be possible to support all possible implementations of
-%		allocation managers out of the box, \autoalloc{} should provide extension points that
-%		enable users to configure the submitted allocations to their liking.
-%\end{description}
-%
-%\Autoalloc{} has been implemented as a background service within the
-%\hyperqueue{} server. To use it, users first need to create at least one
-%\emph{allocation queue}. Such a queue describes a template for creating new allocations, which will
-%be submitted by \hq{} when there is a demand for more computational resources.
-%Each queue contains several properties that can be configured by users:
-%
-%\begin{description}
-%	\item[Allocation manager] \Autoalloc{} needs to communicate with a given allocation manager
-%		to be able to submit allocations into it. Users thus need to tell \hq{} which
-%		allocation manager it should communicate with. Currently, two managers are supported, Slurm and
-%		\gls{pbs}.
-%	\item[Time limit] This determines the wall-time of each allocation submitted by \autoalloc{}. Knowing the
-%		maximum duration of each allocation helps it decide when it makes sense to create allocations. For
-%		example, if the only tasks waiting to be computed have a \emph{time request} that is longer than
-%		the time limit of a given allocation queue, it does not make sense to create allocations in this
-%		queue, because workers started in these allocations could not execute such tasks anyway.
-%	\item[Backlog] This parameter specifies the maximum number of allocations that can be queued in the allocation
-%		manager at any given time. It is designed to ensure that the automatic allocator does not overload
-%		the allocation manager.
-%	\item[Worker count per allocation] Determines how many nodes (workers) should be requested for each allocation. Unless users want to
-%		execute multi-node tasks, it is usually convenient to use the default value
-%		($1$), because typically, the fewer nodes are requested in an allocation, the
-%		sooner it will be started by the allocation manager.
-%	\item[Max worker count] This parameter can be used to limit the maximum number of running workers across all allocations
-%		started by this queue.
-%	\item[Idle timeout] Time after which an idle worker (a worker that does not have any tasks to compute) will stop. The
-%		idle timeout mechanism helps to avoid resource waste, by stopping workers that do not have anything
-%		to do anymore. By default, this timeout is set to a few minutes.
-%	\item[Worker resources] Users can override the worker resources assigned to each worker started by the given allocation
-%		queue. This can be used if the user knows that the allocations will be started in a specific
-%		partition of the cluster that contains resources that cannot be automatically detected by
-%		\hyperqueue{} (e.g. \gls{fpga} devices).
-%	\item[Custom allocation parameters] Users can also specify arbitrary command-line parameters that will be passed to the submit command
-%		sent to the corresponding allocation manager, like the computational project that should be used,
-%		or the Slurm partition where the allocation should be created. To make debugging easier,
-%		\hyperqueue{} will submit a test allocation by default immediately after the allocation
-%		queue is created, to test that the allocation parameters can be handled by the manager. If this
-%		test allocation is successfully created, it is then immediately canceled to avoid wasting
-%		computational resources.
-%\end{description}
-%
-%\Autoref{lst:hq-cli-autoalloc} shows several examples of commands for creating allocation queues and
-%observing allocation state using the \hyperqueue{} \gls{cli}.
-%
-%\begin{listing}[h]
-%	\begin{minted}[fontsize=\small, tabsize=4]{bash}
-%# Create an allocation queue for Slurm
-%$ hq alloc add slurm --time-limit 1h -- -Aproject-1 -pcpu_partition
-%
-%# Create an allocation queue for PBS with GPU resources
-%$ hq alloc add pbs --resource "gpus/nvidia=range(1-2)" ...
-%
-%# Display information about (in)active allocations from the given queue
-%$ hq alloc info 1
-%	\end{minted}
-%	\caption{Handling task failure using the \hyperqueue{} \gls{cli}}
-%	\label{lst:hq-cli-autoalloc}
-%\end{listing}
-%
-%\Autoalloc{} is a reactive system. It observes events from the server (such as new jobs
-%being submitted or new workers being connected) and manages allocations in response to these
-%events. If it encounters a situation where there are tasks that are in the waiting state, and no
-%workers can execute them (either because there are no workers or all of them are fully occupied),
-%it will start submitting allocations to the allocation manager. It will submit allocations up until
-%the configured \emph{backlog} value, or until the allocation manager applies backpressure
-%(whichever comes sooner). Note that \autoalloc{} does not limit the total number of
-%allocations that are ``in-flight'' (queued or running) by default, just the queued ones. This
-%allows it to potentially create a large number of allocations and thus make use of all available resources of
-%the cluster, if the allocation manager allows it. Users can use other configuration parameters
-%(such as the total number of workers) to limit the amount of submitted resources.
-%\Autoalloc{} also contains an internal rate limiter that makes sure that it does not
-%submit allocations too often and that it pauses the allocation process if the allocations start
-%failing too often.
-%
-%\hyperqueue{} communicates with \gls{pbs} or Slurm using standard
-%commands, such as \texttt{qsub} or \texttt{sbatch}, as they do not provide a complete
-%machine-readable \gls{api}. This means that in order to use automatic allocation, the server has to
-%be executed on a node that has access to these commands and can communicate with the manager. If
-%this is not possible, a proxy service could be used to forward communication between the node
-%with the server and a node where the manager is deployed. \hyperqueue{} implements communication
-%with each manager in a custom way. While there have been some attempts to create a unified
-%interface~\cite{psij,workflow-alloc-manager-comm} for submitting allocations to different
-%allocation managers, they have not seen wide adoption so far. Furthermore, adopting these
-%approaches would require \hq{} to introduce a dependency on Python or an external \gls{http}
-%service, which would make it more difficult to deploy.
-%
-%It is crucial for \autoalloc{} to maintain an updated state of its created allocations,
-%so that it can report their state to the user, and also so that it knows if it can submit new
-%allocations. Originally, it was using a polling approach to determine the latest state, where it
-%was repeatedly querying the allocation manager about the state of allocations. However, this turned
-%out to put a lot of pressure on the allocation managers, which were not very optimized for this
-%use-case, especially if the polling frequency was very high (every few seconds). Some allocation
-%managers are even configured in a way where they cache the state of allocations when they are
-%queried too often; this reduces the chance of them being overloaded, but it also means that
-%\hyperqueue{} would not get the latest data, which is not ideal. However, we can observe
-%that it is not actually required to poll the allocation manager. The only allocation events that
-%are important for the allocator are the start and an end of an allocation. And this information can
-%be gained through a proxy; the connections are disconnections of \hq{} workers.
-%When a worker is started in an allocation, it will connect to the server, and tell it its
-%allocation ID\@. This lets the automatic allocator learn about new allocations. On the other hand,
-%when such a worker disconnects, it signifies that its containing allocation has also been
-%completed. Using this approach, the allocator is able to maintain the latest state of allocations
-%without explicitly asking the allocation manager at all.
-%
-%\Autoalloc{} attempts to take certain task properties into account when creating
-%allocations. For example, if a task has a \emph{time request} of two hours, but a configured
-%allocation queue only has a time limit of one hour, the allocator will not submit allocations using
-%this queue to provide resources for such a task, because workers started in these allocations could
-%not compute such a task anyway. It should be noted that in general, it is very difficult to guess
-%when and how many allocations should be created, because the allocator does not know in advance
-%which tasks will be submitted in the future, nor for how long the currently submitted tasks will
-%run. It also cannot precisely predict how long its submitted allocations will stay in the
-%allocation manager queue. As a future extension, the allocator could be extended with a prediction
-%of allocation queuing times~\cite{allocation-duration-prediction} or with a prediction of task execution
-%times~\cite{task-duration-prediction}.
-%
-%%\Autoref{sec:hq-exp-autoalloc} will evaluate how well the automatic allocation system is able to
-%%scale in response to computational demand and how it limits the waste of computational resources.
-%
-%\section{\hyperqueue{} use-cases}
-%This section describes several use-cases where \hyperqueue{} has been successfully used
-%to execute task graphs on \gls{hpc} systems. Apart from these selected case studies,
-%it has also been used in other projects and scenarios; these will be enumerated at the end of this
-%chapter.
-%
-%The presented use-cases originate from the LIGATE (LIgand Generator and portable drug discovery
-%platform AT Exascale)~\cite{ligate} project, whose goal was to integrate state-of-the-art
-%\gls{cadd} tools into a unified platform designed for executing drug design
-%experiments on petascale and exascale \gls{hpc} clusters. This project provided
-%funding for the development of \hyperqueue{}, and its use-cases also served as one of the
-%main driving forces behind the design of this task runtime. The usage of \hyperqueue{}
-%within the LIGATE project is briefly described in~\cite{ligate}.
-%
-%\subsection{Virtual screening and free-energy calculations}
-%\label{sec:hq-usecase-ligen}
-%One of the \gls{md} frameworks that were used in the LIGATE project was
-%LiGen~\cite{ligen,ligen_exscalate}, a suite of utilities that can be used for performing virtual
-%screening. Virtual screening is a computational method for identifying molecules that can bind to
-%drug candidates, which is used for computer-driven drug discovery.
-%
-%%\begin{figure}[h]
-%%	\centering
-%%	\includegraphics[width=\textwidth]{imgs/hq/ligen-workflow}
-%%	\caption{LiGen high-throughput virtual screening}
-%%	\label{fig:ligen-virtual-screening}
-%%\end{figure}
-%
-%%TODO: diagram
-%%\begin{figure}[h]
-%%	\centering
-%%%	\resizebox{!}{35mm}{
-%%		\begin{tikzpicture}
-%%			\tikzset{%
-%%				data/.style={rectangle, draw, rounded corners, minimum size=4mm},
-%%			}
-%%			\tikz{
-%%				(0, 0) node[data] {Ligands (SMI)};
-%%			}
-%%		\end{tikzpicture}
-%%%	}
-%%	\caption{Simple task graph with six tasks and six data objects}
-%%	\label{fig:task-graph-example}
-%%\end{figure}
-%
-%LiGen was used to implement a high-throughput virtual screening pipeline, whose goal was to assign
-%scores to a large number of input ligands, and then perform molecular docking for the most
-%promising ligand candidates. The primary input for the workflow is a set of ligands in the
-%SMILES~\cite{smiles} format, where each line represents a single ligand. LiGen then
-%expands each ligand into a 3D representation stored in a Mol2~\cite{mol2} format, and
-%performs virtual screening to assign a score to it. The resulting ligand-score pairs are then
-%stored in a \gls{csv} file. After that, the most promising $N$
-%candidates are selected, based on their scores, and molecular docking is then performed on them.
-%
-%The virtual screening workflow has been implemented using the \hyperqueue{} Python
-%\gls{api}, due to its support for task dependencies, and also because it was natural
-%to implement several utility tasks within the workflow in Python, rather than e.g.\ in Bash. The
-%workflow consists of both very short running tasks (such as ligand expansion) and also more
-%computationally demanding tasks (such as scoring and docking). The scoring and docking stages can
-%also run on \gls{gpu} accelerators, which provide much higher throughput than the
-%\gls{cpu} implementation. These constraints were encoded using
-%\hq{} resource requirements, which allowed selecting the proper hardware
-%resources for each kind of task. \Autoref{sec:hq-exp-ligen} describes an experiment that measures the
-%achieved hardware utilization when running this workflow with \hyperqueue{}.
-%
-%This workflow was executed on four computational sites; the Karolina~\cite{karolina},
-%LUMI~\cite{lumi}, LEONARDO~\cite{leonardo} and E4~\cite{e4}
-%\gls{hpc} clusters. The only change required to port the workflow to a new cluster
-%was to update the Slurm credentials used for submitting allocations. This demonstrates the
-%simplicity of porting \hyperqueue{} workflows between different supercomputers.
-%
-%The output of the scoring and docking stages of the virtual screening workflow then serve as input
-%for a more complex \gls{cadd} workflow that is designed for performing free-energy
-%calculations that estimate the \gls{rbfe} of ligands and protein-hybrid ligand
-%complexes using \gls{awh} computation. The \gls{cadd} workflow uses the
-%GROMACS \gls{md} framework, along with tens of other bioinformatics tools and
-%packages, and is structurally quite complex, as it consists of tens of different Bash and Python
-%scripts that depend on the outputs of one another. This workflow has been also implemented using
-%the \hyperqueue{} Python \gls{api}, to encode the dependencies between
-%tasks and their resource requirements. The final \gls{awh} step, which is the most
-%computationally intensive part of the workflow, uses iterative computation.
-%%TODO: reword/implement
-%
-%The source code of the LiGen virtual screening and the \gls{cadd} workflows is
-%publicly available~\cite{cadd-workflow}.
-%
-%\subsection{Pose selection}
-%The \emph{Pose selection} workflow was one of the supporting workflows of the LIGATE project. Its
-%purpose was to generate a large training dataset that would then be used to train machine-learning
-%models designed to improve the accuracy of protein-ligand complex pose scoring and docking
-%performed by the LiGen virtual screening tool suite.
-%
-%A single task of the workflow estimates the stability of an individual pose of a protein-ligand
-%complex (a drug candidate). It leverages the GROMACS~\cite{gromacs}
-%\gls{md} framework for simulating a short (\SI{100}{\pico\second}) trajectory for
-%each pose, from which a final \gls{abfe} value is calculated. Because this computation
-%is relatively lightweight (it only lasts for a few minutes), it was possible to run it on a large
-%dataset of inputs. It was executed for more than four thousand complexes from the
-%PDBbind~\cite{pdbbind} v2020 database; for each complex, up to $256$
-%different poses were evaluated, and for each pose, $8$ simulation replicas were
-%executed to reduce statistical error (since the computation is randomized). This resulted in more
-%than $6.5$ million GROMACS simulations that had to be performed in total.
-%
-%The workflow itself is not structurally complex; each task is independent and there are no
-%dependencies between tasks. However, due to the sheer amount of simulations that needed to be
-%performed, it would be quite challenging to execute such a large number of tasks directly using
-%Slurm allocations. \hyperqueue{} was thus used to define the computational task graph and
-%manage the executions of all the simulations. Each task executed all eight replicas (independent
-%simulations) for a given complex pose, either on $8$ \glspl{gpu} or
-%$16$ \gls{cpu} cores in parallel. \hyperqueue{} thus had
-%to schedule and manage approximately $800$ thousand tasks in total. The automatic
-%allocator took care of automatically submitting Slurm allocations, users of the workflow thus did
-%not need to concern themselves with creating them manually.
-%
-%Another benefit of using \hyperqueue{} for this workflow was its built-in support for
-%fault-tolerance. With such a large number of tasks, some of them necessarily failed, either because
-%of a Slurm allocation ending in the middle of a computation, or because of an instability of the
-%used \gls{hpc} cluster. Thanks to \hyperqueue{}, such failed tasks were
-%transparently rescheduled to different computational nodes, without any user intervention. This was
-%possible due to the fact that the \hq{} server was executed on a login node, and
-%thus kept the state of the submitted tasks in a persistent database that was not affected by
-%shutdowns or failures of Slurm allocations.
-%
-%This workflow has been executed over the course of four months, and has consumed a non-trivial
-%amount of both \gls{cpu} and \gls{gpu} computational time. Concretely,
-%its execution has used $240$ thousand \gls{gpu} hours on
-%\emph{LUMI-G}
-%(the \gls{gpu} partition of the LUMI~\cite{lumi} cluster) and $2$ million \gls{cpu} core hours on
-%the MeluXina~\cite{meluxina} cluster. This demonstrates that \hyperqueue{} is
-%able to scale to large use-cases and enables robust execution using a significant amount of
-%computational resources. To our knowledge, the execution of this workflow was among the largest
-%\gls{md} campaigns that were ever computed on \gls{hpc}
-%resources\footnote{This claim can also be found in LIGATE Deliverable D7.1, which has not been published yet at the time of writing of this thesis.}.
-%
-%This use-case has benefited from several interconnected \hyperqueue{} features. Due to
-%its low overhead, it was possible to execute and schedule a very large number of tasks. These tasks
-%were automatically meta-scheduled to many different allocations, respecting their
-%(\gls{cpu} and \gls{gpu}) resource requirements. Thanks to the
-%automatic allocator, all required Slurm allocations were submitted automatically in response to
-%current computational load. And \hyperqueue{} also automatically re-executed any tasks
-%that have failed to successfully finish. Both the source code~\cite{ps-workflow} and the
-%datasets~\cite{ps_dataset_1,ps_dataset_2} with the computed results of the Pose Selector workflow are
-%publicly available.
-%
-%\subsection{Hyperparameter search}
-%\hyperqueue{} was used in the EXA4MIND~\cite{exa4mind} project to parallelize and
-%distribute independent instances of a hyperparameter search workflow on the \gls{gpu}
-%partition of the Karolina cluster~\cite{karolina}. Hyperparameter search is a technique
-%where a machine-learning model is trained multiple times with separate values for various
-%hyperparameters (such as learning rate or batch size). The goal is to find a configuration of
-%hyperparameters that produces a model with the highest possible prediction performance.
-%
-%Parallelizing a hyperparameter search using \hyperqueue{} is very simple, even using the
-%\gls{cli}. The individual configurations can be stored either into a
-%\gls{json} array (where each configuration is a \gls{json} object) or
-%into a text file (where each configuration is a separate line), from which \hq{}
-%can then automatically build the workflow.~\Autoref{lst:hq-exa4mind-hyperparameter-search} shows an example of how easy is
-%to use \hq{} in this case. The user simply starts the server, configures
-%automatic allocation, so that it starts allocations on their behalf, and then submits a job that is
-%autogenerated from a \gls{json} file containing the hyperparameter configurations. The
-%executed script does not know anything about \hyperqueue{}, apart from reading its
-%assigned configuration from the \texttt{HQ\_ENTRY} environment variable.
-%
-%\begin{listing}[h]
-%	\begin{minted}[fontsize=\small, tabsize=4]{bash}
-%# Start the HyperQueue server
-%$ hq server start &
-%
-%# Configure automatic allocation
-%$ hq alloc add slurm --time-limit 48h -- --partition=qgpu --gpus=1 --account=...
-%
-%# Submit the computation. Each training requires a single GPU and 16 CPU cores
-%$ hq submit --cpus=16 --resource="gpus/nvidia=1" --from-json configs.json train.sh
-%	\end{minted}
-%	\caption{Hyperparameter search using \hyperqueue{}}
-%	\label{lst:hq-exa4mind-hyperparameter-search}
-%\end{listing}
-%
-%\subsection{Efficient load balancing of opportunistic computations}
-%The CERN ATLAS~\cite{atlas} experiment generates vast amounts of data from its Large
-%Hadron Collider, which are then further postprocessed using various simulations. Some of these
-%simulations are executed on Czech supercomputing resources through the
-%\gls{arcce}~\cite{atlas-it4i-1} submission system. \gls{arcce}
-%periodically connects over the network to IT4Innovations \gls{hpc} clusters (such as
-%Karolina) and submits allocations that perform the desired simulations. Its goal is to
-%opportunistically leverage free cluster resources that are available when no other allocations with
-%a higher priority can run at the same time.
-%
-%Originally, \gls{arcce} was submitting simulation computations directly as
-%\gls{pbs} allocations\footnote{Note that the IT4Innovations clusters originally used \gls{pbs} as their allocation
-%manager; they have switched to Slurm in 2023.}. While this approach worked, it also ran
-%into some of the challenges presented in~\Autoref{challenge:allocation-manager}; notably the submission system was
-%hitting the limits of the maximum allowed number of allocations that could be submitted by a single
-%user. Furthermore, it encountered problems caused by communicating with the allocation manager too
-%frequently~\cite{atlas-it4i-2}, which we have also noticed during the implementation of the
-%\hyperqueue{} automatic allocator, described in~\Autoref{hq:automatic-allocation}. In order to
-%resolve issues with allocation manager communication and to improve hardware utilization, the users
-%of \gls{arcce} have switched to using \hyperqueue{}. This has provided two
-%primary benefits.
-%
-%The first benefit is that computation submission becomes much easier for \gls{arcce}.
-%It simply submits its computations into a \hyperqueue{} running on the login node of
-%Karolina, without having to deal with Slurm allocation count or communication frequency limits. It
-%also configures the automatic allocator to submit allocations into several Slurm queues, and the
-%rest is handled fully automatically by \hyperqueue{}.
-%
-%The second advantage of using \hyperqueue{} is improved utilization of nodes. Previously,
-%the computations were performed on the Salomon supercomputer~\cite{salomon}, which had
-%$24$ \gls{cpu} cores per node. This was a reasonable amount of
-%cores for computing a single simulation per each node. However, once Salomon has been
-%decommissioned, \gls{arcce} started submitting computations to
-%Karolina~\cite{karolina}, which has $128$ cores per node. This resulted in
-%a decrease of \gls{cpu} utilization, because each simulation spends a non-trivial
-%amount of time performing either serial computation or \gls{io}, during which only a
-%few cores were utilized. And with so many cores available on the node, this resulted in lower
-%hardware utilization, as many cores remained idle. A simple method of improving utilization is to
-%split the computation into smaller parts that each use a smaller number of cores. However, on the
-%Karolina \gls{cpu} partition it is not possible to ask for less than a whole node
-%using Slurm directly. This is where \hyperqueue{} came in; once \gls{arcce}
-%switched to it, the computations were configured for $32$ cores, and
-%\hyperqueue{} then took care of packing four such computations to each allocated Karolina
-%node. This change resulted in an improvement of the average \gls{cpu} utilization of
-%the submitted computations on Karolina from $70\%$ to $90\%$, which
-%saves tens of thousands of computational node hours each year~\cite{cern-hq}.
-%
-%This use-case shows that \hyperqueue{} can also be used programmatically by automated
-%tools, rather than manually by cluster users. It provides a machine-readable
-%\gls{json} output mode for its \gls{cli} commands that facilitates this
-%kind of usage.
-%
+
+LiGen was used to implement a high-throughput virtual screening pipeline, whose goal was to assign
+scores to a large number of input ligands, and then perform molecular docking for the most
+promising ligand candidates. The primary input for the workflow is a set of ligands in the
+SMILES~\cite{smiles} format, where each line represents a single ligand. LiGen then
+expands each ligand into a 3D representation stored in a Mol2~\cite{mol2} format, and
+performs virtual screening to assign a score to it. The resulting ligand-score pairs are then
+stored in a \gls{csv} file. After that, the most promising $N$
+candidates are selected, based on their scores, and molecular docking is then performed on them.
+
+The virtual screening workflow has been implemented using the \hyperqueue{} Python
+\gls{api}, due to its support for task dependencies, and also because it was natural
+to implement several utility tasks within the workflow in Python, rather than e.g.\ in Bash. The
+workflow consists of both very short running tasks (such as ligand expansion) and also more
+computationally demanding tasks (such as scoring and docking). The scoring and docking stages can
+also run on \gls{gpu} accelerators, which provide much higher throughput than the
+\gls{cpu} implementation. These constraints were encoded using
+\hq{} resource requirements, which allowed selecting the proper hardware
+resources for each kind of task. \Autoref{sec:hq-exp-ligen} describes an experiment that measures the
+achieved hardware utilization when running this workflow with \hyperqueue{}.
+
+This workflow was executed on four computational sites; the Karolina~\cite{karolina},
+LUMI~\cite{lumi}, LEONARDO~\cite{leonardo} and E4~\cite{e4}
+\gls{hpc} clusters. The only change required to port the workflow to a new cluster
+was to update the Slurm credentials used for submitting allocations. This demonstrates the
+simplicity of porting \hyperqueue{} workflows between different supercomputers.
+
+The output of the scoring and docking stages of the virtual screening workflow then serve as input
+for a more complex \gls{cadd} workflow that is designed for performing free-energy
+calculations that estimate the \gls{rbfe} of ligands and protein-hybrid ligand
+complexes using \gls{awh} computation. The \gls{cadd} workflow uses the
+GROMACS \gls{md} framework, along with tens of other bioinformatics tools and
+packages, and is structurally quite complex, as it consists of tens of different Bash and Python
+scripts that depend on the outputs of one another. This workflow has been also implemented using
+the \hyperqueue{} Python \gls{api}, to encode the dependencies between
+tasks and their resource requirements. The final \gls{awh} step, which is the most
+computationally intensive part of the workflow, uses iterative computation.
+%TODO: reword/implement
+
+The source code of the LiGen virtual screening and the \gls{cadd} workflows is
+publicly available~\cite{cadd-workflow}.
+
+\subsection{Pose selection}
+The \emph{Pose selection} workflow was one of the supporting workflows of the LIGATE project. Its
+purpose was to generate a large training dataset that would then be used to train machine-learning
+models designed to improve the accuracy of protein-ligand complex pose scoring and docking
+performed by the LiGen virtual screening tool suite.
+
+A single task of the workflow estimates the stability of an individual pose of a protein-ligand
+complex (a drug candidate). It leverages the GROMACS~\cite{gromacs}
+\gls{md} framework for simulating a short (\SI{100}{\pico\second}) trajectory for
+each pose, from which a final \gls{abfe} value is calculated. Because this computation
+is relatively lightweight (it only lasts for a few minutes), it was possible to run it on a large
+dataset of inputs. It was executed for more than four thousand complexes from the
+PDBbind~\cite{pdbbind} v2020 database; for each complex, up to $256$
+different poses were evaluated, and for each pose, $8$ simulation replicas were
+executed to reduce statistical error (since the computation is randomized). This resulted in more
+than $6.5$ million GROMACS simulations that had to be performed in total.
+
+The workflow itself is not structurally complex; each task is independent and there are no
+dependencies between tasks. However, due to the sheer amount of simulations that needed to be
+performed, it would be quite challenging to execute such a large number of tasks directly using
+Slurm allocations. \hyperqueue{} was thus used to define the computational task graph and
+manage the executions of all the simulations. Each task executed all eight replicas (independent
+simulations) for a given complex pose, either on $8$ \glspl{gpu} or
+$16$ \gls{cpu} cores in parallel. \hyperqueue{} thus had
+to schedule and manage approximately $800$ thousand tasks in total. The automatic
+allocator took care of automatically submitting Slurm allocations, users of the workflow thus did
+not need to concern themselves with creating them manually.
+
+Another benefit of using \hyperqueue{} for this workflow was its built-in support for
+fault-tolerance. With such a large number of tasks, some of them necessarily failed, either because
+of a Slurm allocation ending in the middle of a computation, or because of an instability of the
+used \gls{hpc} cluster. Thanks to \hyperqueue{}, such failed tasks were
+transparently rescheduled to different computational nodes, without any user intervention. This was
+possible due to the fact that the \hq{} server was executed on a login node, and
+thus kept the state of the submitted tasks in a persistent database that was not affected by
+shutdowns or failures of Slurm allocations.
+
+This workflow has been executed over the course of four months, and has consumed a non-trivial
+amount of both \gls{cpu} and \gls{gpu} computational time. Concretely,
+its execution has used $240$ thousand \gls{gpu} hours on
+\emph{LUMI-G}
+(the \gls{gpu} partition of the LUMI~\cite{lumi} cluster) and $2$ million \gls{cpu} core hours on
+the MeluXina~\cite{meluxina} cluster. This demonstrates that \hyperqueue{} is
+able to scale to large use-cases and enables robust execution using a significant amount of
+computational resources. To our knowledge, the execution of this workflow was among the largest
+\gls{md} campaigns that were ever computed on \gls{hpc}
+resources\footnote{This claim can also be found in LIGATE Deliverable D7.1, which has not been published yet at the time of writing of this thesis.}.
+
+This use-case has benefited from several interconnected \hyperqueue{} features. Due to
+its low overhead, it was possible to execute and schedule a very large number of tasks. These tasks
+were automatically meta-scheduled to many different allocations, respecting their
+(\gls{cpu} and \gls{gpu}) resource requirements. Thanks to the
+automatic allocator, all required Slurm allocations were submitted automatically in response to
+current computational load. And \hyperqueue{} also automatically re-executed any tasks
+that have failed to successfully finish. Both the source code~\cite{ps-workflow} and the
+datasets~\cite{ps_dataset_1,ps_dataset_2} with the computed results of the Pose Selector workflow are
+publicly available.
+
+\subsection{Hyperparameter search}
+\hyperqueue{} was used in the EXA4MIND~\cite{exa4mind} project to parallelize and
+distribute independent instances of a hyperparameter search workflow on the \gls{gpu}
+partition of the Karolina cluster~\cite{karolina}. Hyperparameter search is a technique
+where a machine-learning model is trained multiple times with separate values for various
+hyperparameters (such as learning rate or batch size). The goal is to find a configuration of
+hyperparameters that produces a model with the highest possible prediction performance.
+
+Parallelizing a hyperparameter search using \hyperqueue{} is very simple, even using the
+\gls{cli}. The individual configurations can be stored either into a
+\gls{json} array (where each configuration is a \gls{json} object) or
+into a text file (where each configuration is a separate line), from which \hq{}
+can then automatically build the workflow.~\Autoref{lst:hq-exa4mind-hyperparameter-search} shows an example of how easy is
+to use \hq{} in this case. The user simply starts the server, configures
+automatic allocation, so that it starts allocations on their behalf, and then submits a job that is
+autogenerated from a \gls{json} file containing the hyperparameter configurations. The
+executed script does not know anything about \hyperqueue{}, apart from reading its
+assigned configuration from the \texttt{HQ\_ENTRY} environment variable.
+
+\begin{listing}[h]
+	\begin{minted}[fontsize=\small, tabsize=4]{bash}
+# Start the HyperQueue server
+$ hq server start &
+
+# Configure automatic allocation
+$ hq alloc add slurm --time-limit 48h -- --partition=qgpu --gpus=1 --account=...
+
+# Submit the computation. Each training requires a single GPU and 16 CPU cores
+$ hq submit --cpus=16 --resource="gpus/nvidia=1" --from-json configs.json train.sh
+	\end{minted}
+	\caption{Hyperparameter search using \hyperqueue{}}
+	\label{lst:hq-exa4mind-hyperparameter-search}
+\end{listing}
+
+\subsection{Efficient load balancing of opportunistic computations}
+The CERN ATLAS~\cite{atlas} experiment generates vast amounts of data from its Large
+Hadron Collider, which are then further postprocessed using various simulations. Some of these
+simulations are executed on Czech supercomputing resources through the
+\gls{arcce}~\cite{atlas-it4i-1} submission system. \gls{arcce}
+periodically connects over the network to IT4Innovations \gls{hpc} clusters (such as
+Karolina) and submits allocations that perform the desired simulations. Its goal is to
+opportunistically leverage free cluster resources that are available when no other allocations with
+a higher priority can run at the same time.
+
+Originally, \gls{arcce} was submitting simulation computations directly as
+\gls{pbs} allocations\footnote{Note that the IT4Innovations clusters originally used \gls{pbs} as their allocation
+manager; they have switched to Slurm in 2023.}. While this approach worked, it also ran
+into some of the challenges presented in~\Autoref{challenge:allocation-manager}; notably the submission system was
+hitting the limits of the maximum allowed number of allocations that could be submitted by a single
+user. Furthermore, it encountered problems caused by communicating with the allocation manager too
+frequently~\cite{atlas-it4i-2}, which we have also noticed during the implementation of the
+\hyperqueue{} automatic allocator, described in~\Autoref{hq:automatic-allocation}. In order to
+resolve issues with allocation manager communication and to improve hardware utilization, the users
+of \gls{arcce} have switched to using \hyperqueue{}. This has provided two
+primary benefits.
+
+The first benefit is that computation submission becomes much easier for \gls{arcce}.
+It simply submits its computations into a \hyperqueue{} running on the login node of
+Karolina, without having to deal with Slurm allocation count or communication frequency limits. It
+also configures the automatic allocator to submit allocations into several Slurm queues, and the
+rest is handled fully automatically by \hyperqueue{}.
+
+The second advantage of using \hyperqueue{} is improved utilization of nodes. Previously,
+the computations were performed on the Salomon supercomputer~\cite{salomon}, which had
+$24$ \gls{cpu} cores per node. This was a reasonable amount of
+cores for computing a single simulation per each node. However, once Salomon has been
+decommissioned, \gls{arcce} started submitting computations to
+Karolina~\cite{karolina}, which has $128$ cores per node. This resulted in
+a decrease of \gls{cpu} utilization, because each simulation spends a non-trivial
+amount of time performing either serial computation or \gls{io}, during which only a
+few cores were utilized. And with so many cores available on the node, this resulted in lower
+hardware utilization, as many cores remained idle. A simple method of improving utilization is to
+split the computation into smaller parts that each use a smaller number of cores. However, on the
+Karolina \gls{cpu} partition it is not possible to ask for less than a whole node
+using Slurm directly. This is where \hyperqueue{} came in; once \gls{arcce}
+switched to it, the computations were configured for $32$ cores, and
+\hyperqueue{} then took care of packing four such computations to each allocated Karolina
+node. This change resulted in an improvement of the average \gls{cpu} utilization of
+the submitted computations on Karolina from $70\%$ to $90\%$, which
+saves tens of thousands of computational node hours each year~\cite{cern-hq}.
+
+This use-case shows that \hyperqueue{} can also be used programmatically by automated
+tools, rather than manually by cluster users. It provides a machine-readable
+\gls{json} output mode for its \gls{cli} commands that facilitates this
+kind of usage.
+
 \section{Evaluation}
 \label{hq:evaluation}
 This section evaluates the performance and scalability of \hyperqueue{} and its ability to
