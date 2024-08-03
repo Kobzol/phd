@@ -2134,12 +2134,12 @@ theoretical designs without any implementation available.
 	\newcolumntype{D}{c@{}c@{}c@{}c@{}c}
 %    \newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
 	\begin{threeparttable}
-	\begin{tabular}{|l|B|A|B|D|A|l|}
+	\begin{tabular}{|l|B|A|C|C|A|l|}
 	\multicolumn{1}{c}{Task runtime} &
 	\multicolumn{3}{c}{\rotheading{Task interfaces}} &
 	\multicolumn{2}{c}{\rotheading{Task dependencies}} &
-	\multicolumn{3}{c}{\rotheading{Meta-scheduling}} &
-	\multicolumn{5}{c}{\rotheading{Resources}} &
+	\multicolumn{4}{c}{\rotheading{Meta-scheduling}} &
+	\multicolumn{4}{c}{\rotheading{Resources}} &
 	\multicolumn{2}{c}{\rotheading{Data transfers}} &
 	\multicolumn{1}{c}{Deployment}\\
 	\midrule
@@ -2147,9 +2147,9 @@ theoretical designs without any implementation available.
 	\centering \rot{CLI} & \rot{Workflow file} & \rot{Python API} & % interfaces
 	\centering \rot{Explicit} & \rot{Inferred from files} & % dependencies
 	\centering \rot{Graph partitioning} & \rot{Fault tolerance} &
-	\rot{Automatic allocation} & % meta-scheduling
+	\rot{Automatic allocation} & \rot{Generic workers} & % meta-scheduling
 	\rot{Basic (CPU/GPU)} & \rot{Generic resources} & \rot{Resource pools} &
-	\rot{Multi-node tasks} & \rot{Generic workers} & %resources
+	\rot{Multi-node tasks} & %resources
 	\rot{Directly between tasks} & \rot{Output streaming} & % data transfers
 	Runtime dependencies \\ % deployment
 	\midrule
@@ -2158,28 +2158,28 @@ theoretical designs without any implementation available.
 	\hypershell{}\hfill\cite{hypershell} & \yes & \no & \yes & \no & \no & \manualmap & \automaticft & \yes & \no & \no & \no & \no & \no & \no & \yes & \python \\
 %	\midrule
 	\dask{}\hfill\cite{dask} & \no & \no & \yes{} & \yes{} & \no &
-	\automaticmap\textsuperscript{\dag} & \automaticft & \yes\textsuperscript{\dag} & \yes & \yes & \no & \no & \yes & \yes & \yes & \python \\
+	\automaticmap\textsuperscript{\dag} & \automaticft & \yes\textsuperscript{\dag} & \yes & \yes & \yes & \no & \no & \yes & \yes & \python \\
 %	\midrule
-	\ray{}\hfill\cite{ray} & \no & \no & \yes & \yes & \no & \automaticmap & \automaticft & \no & \yes & \yes & \no & \no & \yes & \yes & \partially & \python \\
+	\ray{}\hfill\cite{ray} & \no & \no & \yes & \yes & \no & \automaticmap & \automaticft & \no & \yes & \yes & \yes & \no & \no & \yes & \partially & \python \\
 %	\midrule
-	\parsl{}\hfill\cite{parsl} & \no & \no & \yes & \yes & \no & \automaticmap & \automaticft & \yes & \yes & \no & \no & \yes & \no & \yes & \no & \python \\
+	\parsl{}\hfill\cite{parsl} & \no & \no & \yes & \yes & \no & \automaticmap & \automaticft & \yes & \no & \yes & \no & \no & \yes & \yes & \no & \python \\
 %	\midrule
 	\pycompss{}\hfill\cite{pycompss} & \yes & \no & \yes & \yes & \no & \manualmap & \automaticft &
-	\no & \yes & \no & \no & \yes & \no & \yes & \yes & \python, Java \\
+	\no & \no & \yes & \no & \no & \yes & \yes & \yes & \python, Java \\
 %	\midrule
 	\pegasus{}\hfill\cite{pegasus} & \no & \yes & \yes & \yes & \yes & \manualmap & \automaticft &
-	\no & \yes & \no & \no & \no & \no & \no & \yes & \python, Java, HTCondor~\cite{htcondor} \\
+	\no & \no & \yes & \no & \no & \no & \no & \yes & \python, Java, HTCondor~\cite{htcondor} \\
 %	\midrule
-	\balsam{}\hfill\cite{balsam} & \no & \no & \yes & \yes & \no & \automaticmap & \automaticft & \yes & \yes & \no & \no & \yes & \yes & \yes & \no & \python, PostgreSQL \\
+	\balsam{}\hfill\cite{balsam} & \no & \no & \yes & \yes & \no & \automaticmap & \automaticft & \yes & \yes & \yes & \no & \no & \yes & \yes & \no & \python, PostgreSQL \\
 %	\midrule
 	\autosubmit{}\hfill\cite{autosubmit} & \no & \yes & \no & \yes & \no & \manualmap & \automaticft &
-	\yes & \yes & \no & \no & \yes & \no & \no & \no & \python \\
+	\yes & \no & \yes & \no & \no & \yes & \no & \no & \python \\
 %	\midrule
-	\fireworks{}\hfill\cite{fireworks} & \no & \yes & \yes & \yes & \no & \automaticmap & \manualft & \yes & \no & \no & \no & \no & \yes & \no & \no & \python, MongoDB \\
+	\fireworks{}\hfill\cite{fireworks} & \no & \yes & \yes & \yes & \no & \automaticmap & \manualft & \yes & \yes & \no & \no & \no & \no & \no & \no & \python, MongoDB \\
 %	\midrule
-	\merlin{}\hfill\cite{merlin} & \no & \yes & \no & \yes & \no & \automaticmap & \manualft & \no & \yes & \no & \no & \yes & \no & \no & \no & \python, RabbitMQ/Redis \\
+	\merlin{}\hfill\cite{merlin} & \no & \yes & \no & \yes & \no & \automaticmap & \manualft & \no & \no & \yes & \no & \no & \yes & \no & \no & \python, RabbitMQ/Redis \\
 %	\midrule
-	\snakemake{}\hfill\cite{snakemake} & \no & \yes & \yes & \no & \yes & \manualmap & \automaticft & \no & \yes & \yes & \no & \yes & \no & \no & \no & \python \\[2mm]
+	\snakemake{}\hfill\cite{snakemake} & \no & \yes & \yes & \no & \yes & \manualmap & \automaticft & \no & \no & \yes & \yes & \no & \yes & \no & \no & \python \\[2mm]
 %	\midrule
 	\hyperqueue{}\hfill\cite{hyperqueue} & \yes & \yes & \yes & \yes & \no & \automaticmap & \automaticft & \yes & \yes & \yes & \yes & \yes & \yes & \no & \yes & \\
 	\bottomrule
@@ -2227,7 +2227,10 @@ what happens to tasks that fail because of an external (e.g.\ worker) failure. T
 can automatically restart such tasks are marked with \automaticft, those that require user action
 to recompute failed tasks are marked with \manualft. \emph{Automatic allocation} highlights task
 runtimes that are able to automatically submit \emph{\gls{hpc} allocations} in response to submitted
-tasks and computational load.
+tasks and computational load. The \emph{Generic workers} column states whether the task runtime
+supports simple provisioning of generic workers that can execute any tasks whose resource
+requirements are compatible with it, without requiring users to preconfigure workers statically for
+a specific subset of tasks (which makes load balancing less flexible).
 
 The following section, \emph{Resources}, deals with resource management. It shows which task
 runtimes are only able to specify basic (such as \gls{cpu}, \gls{gpu}
@@ -2237,11 +2240,7 @@ take into account during scheduling) complex resource requirements, such as \gls
 nodes, fractional resources or resource variants. The \emph{Multi-node} column shows which
 programming models enable describing multi-node tasks. Note that the table only assigns this
 feature to task runtimes that provide the ability to assign the number of nodes
-\emph{per-task}, not just per task graph or per allocation. The \emph{Generic workers}
-column states whether the task runtime supports simple provisioning of generic workers that can
-execute any tasks whose resource requirements are compatible with it, without requiring users to
-preconfigure workers statically for a specific subset of tasks (which makes load balancing less
-flexible).
+\emph{per-task}, not just per task graph or per allocation.
 
 The penultimate section, \emph{Data transfers}, states whether it is possible to exchange data
 outputs between tasks directly over the network, without going through the filesystem
@@ -2319,17 +2318,16 @@ allows
 defining tasks that represent either Python function calls or command-line application
 invocations using Python. Computational resources in \parsl are configured through a
 \emph{block}, a set of preconfigured resources (nodes) designed for executing specific
-kinds of
-tasks. In addition to blocks, users also have to specify \emph{launchers}, which determine
-how will be each task executed (e.g.\ using a Slurm or an \gls{mpi} execution
-command), and also an \emph{executore}, which controls how will tasks be scheduled, batched
-into allocations and if the execution will support fault tolerance. While these options let users
-specify how will be their task graph executed on a very granular level, it requires them to tune
-this configuration per task graph or target cluster, and the whole system is relatively complex.
-This is in contrast to \hyperqueue, which has
-a fully general resource management model that does not require users to configure anything; tasks
-are automatically load-balanced across all available workers regardless of allocations, and
-workers do not have to be preconfigured for specific tasks.
+kinds of tasks. In addition to blocks, users also have to specify \emph{launchers}, which
+determine how will be each task executed (e.g.\ using a Slurm or an \gls{mpi}
+execution command), and also an \emph{executore}, which controls how will tasks be
+scheduled, batched into allocations and if the execution will support fault tolerance. While these
+options let users specify how will be their task graph executed on a very granular level, it
+requires them to tune this configuration per task graph or target cluster, and the whole system is
+relatively complex. This is in contrast to \hyperqueue, which has a fully general resource
+management model that does not require users to configure anything; tasks are automatically
+load-balanced across all available workers regardless of allocations, and workers do not have to be
+preconfigured for specific tasks.
 
 \parsl has basic support for resource requirements, but does not allow
 creating custom user-specified resource types. It also allows specifying the number of nodes
@@ -2338,9 +2336,8 @@ is not able to execute multi-node tasks across different blocks or allocations.
 
 \subsubsection*{\pycompss}
 \pycompss~\cite{pycompss} is a Python interface for executing task graphs on top of the
-COMPSs
-distributed system. It allows defining arbitrary task graphs and has comprehensive support for
-multi-node tasks and basic resource requirements, but it does not allow users to define custom
+COMPSs distributed system. It allows defining arbitrary task graphs and has comprehensive support
+for multi-node tasks and basic resource requirements, but it does not allow users to define custom
 resource requirements. In terms of scheduling, it implements several simple scheduling algorithms;
 users can select which one should be used. Assignment of tasks to allocations is performed in a
 manual way; users enqueue a task graph (an \emph{application}), which is then fully executed
@@ -2353,82 +2350,85 @@ interpreter.
 
 \subsubsection*{\pegasus}
 \pegasus~\cite{pegasus} is a very general workflow management system that can execute
-workflows
-on a wide range of clusters, from \gls{hpc} to cloud. It provides support for various
-additional features that have not been examined in this thesis, such as data provenance or advanced
-file management and staging. Its workflows are usually defined using workflow files, which enable
-specifying dependencies both explicitly or by inferring them from input/output files of tasks. It
-also supports basic resource requirements, but does not allow assigning custom resources to tasks
-or workers, and does not support multi-node tasks. By default, it maps each task to a single
-allocation, but it also allows users to \emph{cluster} tasks together using one of several
-predefined modes. However, users have to configure this clustering manually, it is not performed
-fully automatically like in \hyperqueue{}.
+workflows on a wide range of clusters, from \gls{hpc} to cloud. It provides support
+for various additional features that have not been examined in this thesis, such as data provenance
+or advanced file management and staging. Its workflows are usually defined using workflow files,
+which enable specifying dependencies both explicitly or by inferring them from input/output files
+of tasks. It also supports basic resource requirements, but does not allow assigning custom
+resources to tasks or workers, and does not support multi-node tasks. By default, it maps each task
+to a single allocation, but it also allows users to \emph{cluster} tasks together using
+one of several predefined modes. However, users have to configure this clustering manually, it is
+not performed fully automatically like in \hyperqueue{}.
 
 In terms of deployment, it has the most complex runtime dependencies out of the compared task
 runtimes, as it requires not only a Python interpreter and a Java runtime environment, but also the
-HTCondor~\cite{htcondor} workload management system, which can be non-trivial to install
-on an \gls{hpc} cluster. \pegasus{} delegates some of its functionality to HTCondor and requires a
-configured instance of HTCondor before it can execute workflows on a cluster.
+HTCondor~\cite{htcondor} workload management system, which can be non-trivial to install on
+an \gls{hpc} cluster. \pegasus{} delegates some of its functionality to
+HTCondor and requires a configured instance of HTCondor before it can execute workflows on a
+cluster.
 
 \subsubsection*{\balsam}
 \balsam~\cite{balsam} is a task runtime for executing workflows defined using Python on
-\gls{hpc} clusters. It uses a similar fully flexible method for mapping tasks to allocations
+\gls{hpc} clusters. It uses a similar fully flexible method for mapping tasks to
+allocations
 as \hyperqueue{}, including automatic allocation; however, it is limited to a single
-allocation queue, similarly as in \dask{}. It supports multi-node tasks, although users have to
-statically preconfigure workers to either execute single-node or multi-node tasks. It does not
-allow specifying custom resource requirements (nor more advanced resource management offered
-by \hyperqueue{}, such as resource variants), which limits its usability for heterogeneous clusters.
+allocation queue, similarly as in \dask{}. It supports multi-node tasks, although
+users have to statically preconfigure workers to either execute single-node or multi-node tasks. It
+does not allow specifying custom resource requirements (nor more advanced resource management
+offered by \hyperqueue{}, such as resource variants), which limits its usability for
+heterogeneous clusters.
 
-The \balsam{} server requires access to a PostgreSQL database instance, which makes its
-deployment slightly more challenging than some other tools that do not need a database or that
+The \balsam{} server requires access to a PostgreSQL database instance, which makes
+its deployment slightly more challenging than some other tools that do not need a database or that
 can use an embedded database like SQLite.
 
 \subsubsection*{\autosubmit}
 \autosubmit~\cite{autosubmit} is a tool for executing workflows and experiments. It focuses
 primarily on experiment tracking, data provenance and workflow automation. In its default mode,
-each task corresponds to a single allocation, which is not ideal for short running
-tasks; \autosubmit is designed for more high-level and coarse-grained workflows. It provides a
-way to bundle multiple tasks into the same allocation using \emph{wrappers}, but same as
-with e.g.\ \pegasus{}, this has to be preconfigured statically by the user and it is not
-performed automatically. \autosubmit{} does not support custom task resource requirements and it
-also does not support direct data transfers between tasks nor output streaming.
+each task corresponds to a single allocation, which is not ideal for short running tasks;
+\autosubmit is designed for more high-level and coarse-grained workflows. It provides a way to
+bundle multiple tasks into the same allocation using \emph{wrappers}, but same as with
+e.g.\ \pegasus{}, this has to be preconfigured statically by the user and it is not
+performed automatically. \autosubmit{} does not support custom task resource requirements
+and it also does not support direct data transfers between tasks nor output streaming.
 
 \subsubsection*{\fireworks}
 \fireworks~\cite{fireworks} is a workflow system for managing the execution of workflows on
 distributed clusters. It allows defining task graphs using either workflow files or through a
-Python \gls{api}. It supports fault-tolerant task execution, although failed tasks have to be
-re-executed manually. \fireworks{} does not seem to support any task resource requirements;
-resources can only be configured for individual allocations.
-Its meta-scheduling approach is relatively complicated; it provides several ways of mapping
-tasks to allocations and individual workers with different trade-offs, rather than providing a
-unified way that users would not have to worry about. \fireworks{} requires a MongoDB database
-instance to store the state of tasks, which again makes its deployment slightly more challenging.
+Python \gls{api}. It supports fault-tolerant task execution, although failed tasks
+have to be re-executed manually. \fireworks{} does not seem to support any task resource
+requirements; resources can only be configured for individual allocations. Its meta-scheduling
+approach is relatively complicated; it provides several ways of mapping tasks to allocations and
+individual workers with different trade-offs, rather than providing a unified way that users would
+not have to worry about. \fireworks{} requires a MongoDB database instance to store the
+state of tasks, which again makes its deployment slightly more challenging.
 
 \subsubsection*{\merlin}
 \merlin~\cite{merlin} is a task queue system that enables execution of large workflows on
-\gls{hpc} clusters. It leverages the Celery~\cite{celery} task queue for distributing tasks to
-workers and the Maestro~\cite{maestro} workflow specification for defining task graphs. Tasks
-are submitted into separate Celery queues; whose resources need to be preconfigured, its load
-balancing is thus not fully flexible and automatic like in \hyperqueue{}. It also does not
-support automatic allocation of allocations and workers and also does not support custom resource
-requirements. Failed tasks can be automatically restarted if they end with a specific status
-code; however, if they fail because of unexpected reasons, users have to mark them for
-re-execution manually. \merlin{} requires a message broker backend, such as RabbitMQ or Redis,
-for its functionality, which makes its deployment non-trivial.
+\gls{hpc} clusters. It leverages the Celery~\cite{celery} task queue for
+distributing tasks to
+workers and the Maestro~\cite{maestro} workflow specification for defining task graphs.
+Tasks are submitted into separate Celery queues; whose resources need to be preconfigured, its load
+balancing is thus not fully flexible and automatic like in \hyperqueue{}. It also does
+not support automatic allocation of allocations and workers and also does not support custom
+resource requirements. Failed tasks can be automatically restarted if they end with a specific
+status code; however, if they fail because of unexpected reasons, users have to mark them for
+re-execution manually. \merlin{} requires a message broker backend, such as RabbitMQ
+or Redis, for its functionality, which makes its deployment non-trivial.
 
 \subsubsection*{\snakemake}
 \snakemake~\cite{snakemake} is a popular workflow management system for executing
-coarse-grained workflows defined using workflow files that can be extended with inline Python
-code. \snakemake{} workflows are based on files, tasks are expected to produce and consume
-files, which are also used to infer dependencies between them. This can pose an issue with a
-large number of tasks, as the created files can overload distributed filesystems; no output
-streaming is offered by the task runtime. It does enable assigning both known (e.g.\ \gls{cpu}
-or memory) and custom resource requirements to tasks, and also specify the number of nodes
-required for each task.
-Similarly to \pegasus{} or \autosubmit{}, it provides an option to \emph{cluster} multiple tasks
-into the same allocation, however this partitioning has to be specified manually by users. Other
-than that, it submits tasks as individual allocations, which is not ideal for large workflows,
-because it can easily overload the target cluster~\cite{nersc-snakemake}.
+coarse-grained workflows defined using workflow files that can be extended with inline Python code.
+\snakemake{} workflows are based on files, tasks are expected to produce and consume
+files, which are also used to infer dependencies between them. This can pose an issue with a large
+number of tasks, as the created files can overload distributed filesystems; no output streaming is
+offered by the task runtime. It does enable assigning both known (e.g.\ \gls{cpu} or
+memory) and custom resource requirements to tasks, and also specify the number of nodes required
+for each task. Similarly to \pegasus{} or \autosubmit{}, it provides an
+option to \emph{cluster} multiple tasks into the same allocation, however this
+partitioning has to be specified manually by users. Other than that, it submits tasks as individual
+allocations, which is not ideal for large workflows, because it can easily overload the target
+cluster~\cite{nersc-snakemake}.
 
 \section*{Summary}
 This chapter has presented a meta-scheduling design for executing task graphs on
