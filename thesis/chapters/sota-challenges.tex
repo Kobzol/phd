@@ -7,13 +7,12 @@ discussed in the previous chapter. These runtimes are quite popular, and they ar
 computing all kinds of scientific workflows on \gls{hpc}
 clusters~\cite{hpc_tasks, hpc_tasks_2, hpc_tasks_3, pegasus}.
 
-%TODO: use commands for tools, remove SciLuigi?
 Examples of such task runtimes include e.g.\ \dask~\cite{dask},
 \parsl~\cite{parsl}, \ray~\cite{ray},
 \pycompss~\cite{pycompss}, HyperLoom~\cite{hyperloom},
 Pydra~\cite{pydra}, \snakemake~\cite{snakemake},
-SciLuigi~\cite{sciluigi}, Merlin~\cite{merlin},
-Autosubmit~\cite{autosubmit} or FireWorks~\cite{fireworks}. Each task runtime
+SciLuigi~\cite{sciluigi}, \merlin~\cite{merlin},
+\autosubmit~\cite{autosubmit} or \fireworks~\cite{fireworks}. Each task runtime
 defines its own instance of a task-based programming model, and has a different set of trade-offs
 in areas such as performance and scalability, fault tolerance, ease-of-use, ease-of-deployment and
 others.
@@ -290,7 +289,7 @@ allocation. Thanks to this property, they are able to represent task graphs that
 allocations. We will use the term \emph{meta-schedulers} for these task runtimes.
 
 Example of such tools are e.g.\ \snakemake~\cite{snakemake} or
-Pegasus~\cite{pegasus}, which allow users to define complex task graphs that be
+\pegasus~\cite{pegasus}, which allow users to define complex task graphs that be
 executed in multiple allocations. They are also able to partition the task graph into groups, where
 all tasks of a single group are always executed inside the same allocation. However, this
 partitioning has to be specified explicitly by the author of the workflow, which can be laborious.
