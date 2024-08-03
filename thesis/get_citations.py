@@ -220,7 +220,7 @@ if __name__ == "__main__":
 
     # Inspiration taken from https://tex.stackexchange.com/a/304968/95679
     now = datetime.datetime.now()
-    date_formatted = now.strftime("%-d. %-m. %Y")
+    date_formatted = now.strftime("%B %Y")
     with open("chapters/publications-generated.tex", "w") as f:
         f.write(
             f"""All citation data presented below is actual as of {date_formatted}, unless otherwise
@@ -246,7 +246,9 @@ Note that Ada Böhm was named Stanislav Böhm in older publications.
 	{\textbf{#1}}
 	{#1}}
 
-\section*{Publications Related to Thesis}
+\section*{Publications Related to Thesis}""")
+        f.write(f"""
+	Below is a list of ${len(related)}$ publications that are related to the topic of this thesis.
 """)
 
         f.write("\t\\begin{itemize}\n")
@@ -254,10 +256,11 @@ Note that Ada Böhm was named Stanislav Böhm in older publications.
             f.write(format_entry(item))
         f.write("\t\\end{itemize}\n")
 
-        f.write("""
-\\section*{Publications Not Related to Thesis}
-\t\\begin{itemize}
+        f.write(r"\section*{Publications Not Related to Thesis}")
+        f.write(f"""
+	Below is a list of ${len(nonrelated)}$ publications that are not related to the topic of this thesis.
 """)
+        f.write("\t\\begin{itemize}\n")
         for item in nonrelated:
             f.write(format_entry(item))
         f.write("\t\\end{itemize}\n")
