@@ -1,0 +1,277 @@
+\subsection*{GNU parallel}
+% architecture: centralized
+% encryption: yes
+% interfaces: CLI
+% meta-scheduling: no
+% autoalloc: no
+% deps: no
+% data transfer between tasks: no
+% stdout/stderr streaming: yes
+% resources: no
+% multi-node: no
+% dynamic task graphs: no
+% Python: no
+% external services: no
+% language: Perl
+
+- basic functionality of HQ
+
+% https://docs.nersc.gov/jobs/workflow/gnuparallel/
+
+\subsection*{HyperShell}
+% architecture: centralized
+% encryption: yes
+% interfaces: Bash, Python
+% meta-scheduling: yes (manual bundle size)
+% autoalloc: yes
+% deps: no
+% data transfer between tasks: no
+% stdout/stderr streaming: yes
+% resources: no
+% multi-node: no
+% dynamic task graphs: no
+% Python: yes
+% external services: no (SQLite)
+% language: Python
+
+\subsection*{Dask}
+% architecture: centralized
+% encryption: yes
+% interfaces: Python
+% meta-scheduling: automatic (with Dask-Jobqueue)
+% autoalloc: yes (with Dask-Jobqueue)
+% deps: explicit
+% data transfer between tasks: yes
+% stdout/stderr streaming: yes
+% resources: basic, arbitrary
+% multi-node: no
+% dynamic task graphs: yes
+% Python: yes
+% external services: no
+% language: Python
+
+\dask{} was already extensively decribed in~\Autoref{sec:rsds-dask}. It is a distributed task
+runtime written in Python, which allows parallelizing and distributing Python code in an easy
+way. \dask{} offers a low-level \gls{api} for building task graphs explicitly from Python
+function calls, however one of its most powerful features is the ability to parallelize
+numpy/pandas code.
+
+- only one autoalloc queue
+- already described in RSDS chapter
+- especially useful for numpy/pandas parallelization
+
+\subsection*{Ray}
+% architecture: distributed
+% encryption: yes
+% interfaces: Python
+% meta-scheduling: no
+% autoalloc: no
+% deps: explicit
+% data transfer between tasks: yes
+% stdout/stderr streaming: no
+% resources: basic, arbitrary
+% multi-node: no
+% dynamic task graphs: yes
+% Python: yes
+% external services: yes
+% language: C++/Python
+
+- distributed scheduling
+- useful for ML
+- tasks are low level
+
+\subsection*{Parsl}
+% architecture: Centralized
+% encryption: yes
+% interfaces: Python
+% meta-scheduling: yes
+% autoalloc: yes
+% deps: explicit
+% data transfer between tasks: yes
+% stdout/stderr streaming: no
+% resources: basic
+% multi-node: yes
+% dynamic task graphs: yes
+% Python: yes
+% external services: no
+% language: Python
+
+- very Python centric
+- executors have to be fine-tuned per workflow
+- only basic resource support
+- `WorkQueueExecutor` most similar to HyperQueue
+
+\subsection*{PyCOMPSs}
+% architecture: Centralized
+% encryption: yes
+% interfaces: Bash, Python
+% meta-scheduling:
+% autoalloc: yes
+% deps: explicit
+% data transfer between tasks: yes
+% stdout/stderr streaming: yes
+% resources: basic
+% multi-node: yes
+% dynamic task graphs: yes
+% Python: yes
+% external services:
+% language: Java, Python
+
+\subsection*{Pegasus}
+% architecture: centralized
+% encryption: yes
+% interfaces: workflow, Python
+% meta-scheduling: manual
+% autoalloc: yes?
+% deps: yes
+% data transfer between tasks: no
+% stdout/stderr streaming: yes
+% resources: basic
+% multi-node: no (https://htcondor.readthedocs.io/en/latest/users-manual/quick-start-guide.html)
+% dynamic task graphs: no
+% Python: no, Java
+% external services: yes (HTCondor)
+% language: Python, Java
+
+- hard-coded clustering
+- level-based clustering
+- bin-packing clustering
+- data movement
+- multiple backends (cloud, HPC, local, ...)
+- HTCondor
+- https://dl.acm.org/doi/pdf/10.1145/1341811.1341822
+
+\subsection*{Balsam}
+% https://arxiv.org/abs/1909.08704
+% https://balsam.readthedocs.io/en/latest/
+
+% architecture: centralized
+% encryption: yes
+% interfaces: Python
+% meta-scheduling: automatic
+% autoalloc: yes
+% deps: explicit
+% data transfer between tasks: yes
+% stdout/stderr streaming: no
+% resources: basic
+% multi-node: yes
+% dynamic task graphs: yes
+% Python: yes
+% external services: PostgreSQL
+% language: Python
+
+%TODO: benchmark
+
+\subsection*{AutoSubmit}
+% architecture: centralized
+% encryption: yes
+% interfaces: workflow file
+% meta-scheduling: manual
+% autoalloc: yes
+% deps: explicit
+% data transfer between tasks: no
+% stdout/stderr streaming: no
+% resources: basic
+% multi-node: yes
+% dynamic task graphs: no
+% Python: yes
+% external services: no
+% language: Python
+
+- focuses on experiment tracking and provenance
+
+\subsection*{FireWorks}
+%TODO: FireWorks https://onlinelibrary.wiley.com/doi/10.1002/cpe.3505
+%https://docs.nersc.gov/jobs/workflow/fireworks/
+
+% architecture: centralized
+% encryption: yes
+% interfaces: workflow file, Python
+% meta-scheduling: yes
+% autoalloc: yes
+% deps: explicit
+% data transfer between tasks: no
+% stdout/stderr streaming: no
+% resources: no
+% multi-node: no
+% dynamic task graphs: yes
+% Python: yes
+% external services: MongoDB
+% language: Python
+
+- weird metascheduling
+
+\subsection*{Merlin}
+Merlin~\cite{merlin} is a ...  - similar idea to% https://merlin.readthedocs.io/en/latest/tutorial/1_introduction/?h=many#how-can-merlin-run-so-many-simulations
+HyperQueue
+- wraps Maestro and Celery
+- workflows defined in files
+- does not have autoallocation
+- encrypts with per-user key, same as HQ
+- more high-level
+- resources: only CPUs and nodes, can be simulated with different Celery queues
+- dependencies: Python, Redis
+
+% architecture: centralized
+% encryption: yes
+% interfaces: workflow files
+% meta-scheduling: yes
+% autoalloc: no
+% deps: explicit
+% data transfer between tasks: no
+% stdout/stderr streaming: no
+% resources: basic
+% multi-node: yes
+% dynamic task graphs: no
+% Python: yes
+% external services: Redis
+% language: Python
+
+\subsection*{SnakeMake}
+% architecture: centralized
+% encryption: no
+% interfaces: Python, workflow files
+% meta-scheduling: manual partitioning
+% autoalloc: yes
+% deps: filesystem
+% data transfer between tasks: no
+% stdout/stderr streaming: no
+% resources: basic, arbitrary
+% multi-node: yes
+% dynamic task graphs: no
+% Python: yes
+% external services: no
+% language: Python
+% fault-tolerance: https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html#retries-or-trying-again-when-a-job-failed
+
+- lot of additional functionality
+- useful for bash workflows
+- cluster mode explicitly discouraged (https://docs.nersc.gov/jobs/workflow/snakemake/)
+
+% Ignored
+% - dagger (https://github.com/trustyou/dagger) - obsolete
+% - DeepDIVA/Gale (https://github.com/v7labs/Gale) - too niche, ML focused
+% - signac (https://github.com/glotzerlab/signac) - focuses on managing datasets
+% - noWorkflow (https://github.com/gems-uff/noworkflow) - focuses on extracting provenance from
+% Python scripts
+% - Reshi (https://arxiv.org/pdf/2208.07905) - recommends task to node scheduling (for Slurm?)
+% - Design Principles of Dynamic Resource Management for High-Performance Parallel Programming
+% Models (https://arxiv.org/pdf/2403.17107) - general principles for allocations, focuses on MPI
+% - QueueDO (https://bitbucket.org/berkeleylab/qdo/src/master/) - very simple version of HQ
+% - Swift (Swift: Fast, Reliable, Loosely Coupled Parallel Computation) - wtf is this?
+% - Mercury (https://www.usenix.org/system/files/conference/atc15/atc15-paper-karanasos.pdf) -
+% decentralized scheduling
+% - Falkon (https://dl.acm.org/doi/pdf/10.1145/1362622.1362680) - something like HQ
+% - Askalon (ASKALON: A Development and Grid Computing Environment for Scientific Workflows) -
+% old, IDE for workflows?
+% - VGrADS: Enabling e-Science Workflows on Grids and Clouds with Fault Tolerance - abstraction
+% over cloud and HPC
+% - Hawk: Hybrid Datacenter Scheduling - data centers, hybrid centralized/distributed scheduling
+% - Tarema (https://arxiv.org/pdf/2111.05167) - Kubernetes, profiles HW to cluster nodes with
+% similar performance
+% - Tigres (https://ieeexplore.ieee.org/document/7515681), RADICAL (https://arxiv.org/pdf/1609
+% .03484) - templates for building workflows
+% - pydra (https://github.com/nipype/pydra) - too niche, has some iteration support, not different enough from Dask
+% - SciLuigi - not documented enough
+% - gwf (https://github.com/gwforg/gwf) - too niche, dependencies through files, basic resources,
+% fault-tolerance partially manual, task per Slurm allocation
