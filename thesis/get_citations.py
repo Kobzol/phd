@@ -224,7 +224,7 @@ if __name__ == "__main__":
     with open("chapters/publications-generated.tex", "w") as f:
         f.write(
             f"""All citation data presented below is actual as of {date_formatted}, unless otherwise
-            specified. Citation data was taken from {resolver.name()}\\footnoteurl{{{resolver.url()}}}.
+specified. Citation data was taken from {resolver.name()}\\footnoteurl{{{resolver.url()}}}.
 Self-citation is defined as a citation with a non-empty intersection between the authors of the citing and the cited paper.
 SJR (Scientific Journal Rankings) ranking was taken from Scimago Journal\\footnoteurl{{https://www.scimagojr.com}},
 IF (Impact Factor) ranking was taken from Oxford Academic\\footnoteurl{{https://academic.oup.com/bioinformatics}}.
@@ -246,9 +246,7 @@ Note that Ada Böhm was named Stanislav Böhm in older publications.
 	{\textbf{#1}}
 	{#1}}
 
-\section*{Publications Related to Thesis}""")
-        f.write(f"""
-	Below is a list of ${len(related)}$ publications that are related to the topic of this thesis.
+\section*{Publications Related to Thesis}
 """)
 
         f.write("\t\\begin{itemize}\n")
@@ -256,11 +254,19 @@ Note that Ada Böhm was named Stanislav Böhm in older publications.
             f.write(format_entry(item))
         f.write("\t\\end{itemize}\n")
 
-        f.write(r"\section*{Publications Not Related to Thesis}")
-        f.write(f"""
-	Below is a list of ${len(nonrelated)}$ publications that are not related to the topic of this thesis.
+        f.write(r"""
+	\subsection*{Posters}
+	\begin{itemize}
+		\item\fullcite{hyperqueue_poster}\par{}Presented at the SuperComputing'21 conference.
+		\item\fullcite{hyperqueue2_poster}\par{}Presented at the HPCSE (High Performance
+		Computing in Science and Engineering) 2022 conference.
+		\item\fullcite{estee_poster}\par{}Presented at the SuperComputing'19 conference.
+	\end{itemize}
+
 """)
-        f.write("\t\\begin{itemize}\n")
+
+        f.write(r"\section*{Publications Not Related to Thesis}")
+        f.write("\n\t\\begin{itemize}\n")
         for item in nonrelated:
             f.write(format_entry(item))
         f.write("\t\\end{itemize}\n")
