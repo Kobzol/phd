@@ -1021,11 +1021,19 @@ several times smaller than with \dask{}, and it increases for the work-stealing
 scheduler slightly with more added workers. Although this increase is so small that it is almost
 negligible, at least for the benchmarked number of workers.
 
-\begin{figure}
+\begin{figure}[h]
 	\centering
-	\includegraphics[width=0.8\columnwidth]{./imgs/rsds/charts/rsds-dask-overhead-all}
+	\includegraphics[width=0.7\textwidth]{./imgs/rsds/charts/rsds-dask-overhead-all}
 	\caption{Overhead per task for various cluster sizes and benchmarks}
 	\label{fig:rsds-dask-overhead-all}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{./imgs/rsds/charts/speedup-zw-rsds-ws-1}
+	\caption{Speedup of \rsds{}/ws over \dask{}/ws with the zero worker
+	implementation}
+	\label{fig:rsds-zero-worker-speedup}
 \end{figure}
 
 In order to confirm that the per-task overhead results from the \emph{merge}
@@ -1036,14 +1044,6 @@ the spectrum, and it reaches up to \SI{1.25}{\milli\second} for some other bench
 results show that the per-task overhead of \rsds{} is always smaller then the
 overhead of \dask{}; however, the difference is not that large for the
 \emph{xarray} and \emph{bag} benchmarks.
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.9\textwidth]{./imgs/rsds/charts/speedup-zw-rsds-ws-1}
-	\caption{Speedup of \rsds{}/ws over \dask{}/ws with the zero worker
-	implementation}
-	\label{fig:rsds-zero-worker-speedup}
-\end{figure}
 
 To evaluate the end-to-end effect of overhead on task graph makespan, we have executed several
 benchmarks with the \emph{zero worker} implementation, and compared their overall

@@ -1,6 +1,6 @@
 There are many ways to design and implement applications for a distributed cluster, a set of
 computers (typically labeled as computing nodes) that have their own independent processors and
-memory, and are connected together with a computer network so that they can cooperate on solving
+memory and are connected together with a computer network so that they can cooperate on solving
 difficult problems. In the context of \gls{hpc}, such distributed clusters are called
 \emph{supercomputers}, and one of their distinguishing features is that all the computers of the
 cluster reside within one physical location, and they are connected with a very high-speed and
@@ -115,7 +115,7 @@ int main() {
 		multithreading to achieve speedup. In the area of \gls{hpc}, it is common to use the
 		\gls{openmp}~\cite{openmp} framework to implement multi-threaded applications.
 		Apart from providing interfaces for parallelizing code, synchronizing threads through barriers or
-		various locks, or performing atomic operations, it is also able to offload computation to various
+		various locks, and performing atomic operations, it is also able to offload computation to various
 		accelerators (like a \gls{gpu}) attached to the node. \gls{openmp} can be
 		used together with the two previously mentioned programming models (it is often combined especially
 		with \gls{mpi}~\cite{hybrid_openmp_mpi}), in order to achieve parallelization both
