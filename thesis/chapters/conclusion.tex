@@ -1,58 +1,63 @@
 The main goals of this thesis were to describe and analyze existing challenges of task graph
 execution on \gls{hpc} systems, with the main focus on efficiency and usage
 ergonomics, and design and implement approaches for alleviating them. The main issues affecting
-\gls{hpc} task graph execution were described in~\Autoref{ch:sota}, which has identified several
-problematic areas that can cause problems when executing task graphs on modern heterogeneous
-\gls{hpc} clusters, and outlined motivation for work presented in the rest of the thesis.
+\gls{hpc} task graph execution were described in~\Autoref{ch:sota}, which
+has identified several problematic areas that can cause problems when executing task graphs on
+modern heterogeneous \gls{hpc} clusters, and outlined motivation for work
+presented in the rest of the thesis.
 
 The following two chapters focused on the performance and efficiency aspects of executing task
 graphs.~\Autoref{ch:estee} has introduced \estee{}, a simulation
 environment designed for prototyping task schedulers and benchmarking various aspects of task graph
 execution. We have used \estee{} to perform a comprehensive study of several task
 scheduling algorithms and examine several hypotheses of the effect of various factors on the
-performance of the scheduler. Through our experiments, we have found that the \emph{b-level}
-heuristic combined with work-stealing provides a good baseline scheduling algorithm that
-achieves good performance across various kinds of task graphs. This scheduling approach was then
-used for implementing efficient scheduling in the~\rsds{} and~\hyperqueue{} task runtimes.
-Our results have also indicated that while important, task scheduling might not be the most crucial factor
-that affects the performance of task graph execution in certain scenarios, and that even a completely random
+performance of the scheduler. Through our experiments, we have found that the
+\emph{b-level} heuristic combined with work-stealing provides a good baseline
+scheduling algorithm that achieves good performance across various kinds of task graphs. This
+scheduling approach was then used for implementing efficient scheduling in
+the~\rsds{} and~\hyperqueue{} task runtimes. Our results have also
+indicated that while important, task scheduling might not be the most crucial factor that affects
+the performance of task graph execution in certain scenarios, and that even a completely random
 scheduler might be competitive.
 
-\Autoref{ch:rsds} focused on the performance bottlenecks of a real-world task runtime \dask{} in a non-simulated
+\Autoref{ch:rsds} focused on the performance bottlenecks of a real-world task runtime
+\dask{} in a non-simulated
 environment, to leverage our insights gained from the previous scheduler experiments. Our analysis
-has shown that \dask{} is severely limited by its
-implementation characteristics, moreso than its scheduler. In particular, it is limited by its
-choice of Python as an implementation language, which can introduce massive overhead particularly for \gls{hpc}
-use-cases. We have proposed and implemented~\rsds{}, a backwards-compatible
-implementation of the \dask{} server written in Rust, which was carefully
-designed to minimize runtime overhead. Our experiments demonstrated that such an optimized server
-implementation can improve the scalability and end-to-end performance of \dask{}
-workflows by several times, even though it uses a simpler scheduling algorithm.
+has shown that \dask{} is severely limited by its implementation
+characteristics, moreso than its scheduler. In particular, it is limited by its choice of Python as
+an implementation language, which can introduce massive overhead particularly for
+\gls{hpc} use-cases. We have proposed and implemented~\rsds{},
+a backwards-compatible implementation of the \dask{} server written in Rust,
+which was carefully designed to minimize runtime overhead. Our experiments demonstrated that such
+an optimized server implementation can improve the scalability and end-to-end performance of
+\dask{} workflows by several times, even though it uses a simpler scheduling
+algorithm.
 
 \Autoref{ch:hyperqueue} combined the gained performance insights with a focus on
 the ergonomic aspects of designing and executing task graphs on supercomputers. It introduced a
 general meta-scheduling approach designed primarily to avoid complications caused by the need to
 interact with \gls{hpc} allocation managers and also to support the complex nature
 of modern heterogeneous clusters. The described method completely separates task submission from
-computational resource provisioning, which enables fully dynamic and automatic load balancing
-even across different allocations. It is combined with a resource management system
-that allows tasks to express complex resource requirements in a generic way, while still making
-it trivial to provision computational resources.
+computational resource provisioning, which enables fully dynamic and automatic load balancing even
+across different allocations. It is combined with a resource management system that allows tasks to
+express complex resource requirements in a generic way, while still making it trivial to provision
+computational resources.
 
-The described approach has been implemented in \hyperqueue{}, an \gls{hpc}-optimized task
-runtime that was designed to make it simple to execute task graphs in the presence of allocation managers.
-Many features of \hyperqueue{} have been described extensively in this chapter, such as its support
-for complex resource management and multi-node tasks, fault-tolerant task execution and automatic submission
-of allocations. The overhead and scalability of this task runtime were also evaluated on several benchmarks
-that were designed to push it to its performance limits. The results of these experiments indicate that
-it does not introduce significant overhead and can be used to efficiently scale task graphs to a large
-amount of computational resources.
+The described approach has been implemented in \hyperqueue{}, an
+\gls{hpc}-optimized task runtime that was designed to make it simple to execute
+task graphs in the presence of allocation managers. Many features of \hyperqueue{}
+have been described extensively in this chapter, such as its support for complex resource
+management and multi-node tasks, fault-tolerant task execution and automatic submission of
+allocations. The overhead and scalability of this task runtime were also evaluated on several
+benchmarks that were designed to push it to its performance limits. The results of these
+experiments indicate that it does not introduce significant overhead and can be used to efficiently
+scale task graphs to a large amount of computational resources.
 
 \hyperqueue{} is a culmination of the work described in this thesis; it was
 designed as a unified solution for removing bottlenecks and challenges from task graph execution on
-supercomputers. The following list describes how \hyperqueue{} deals with challenges introduced
-by~\Autoref{ch:sota}, and also which improvements could be made to it as future work to
-further improve its ability to provide ergonomic and efficient task graph execution on
+supercomputers. The following list describes how \hyperqueue{} deals with challenges
+introduced by~\Autoref{ch:sota}, and also which improvements could be made to it as future
+work to further improve its ability to provide ergonomic and efficient task graph execution on
 \gls{hpc} clusters.
 \begin{description}[wide=0pt]
 	\item[Interaction with allocation manager] The used meta-scheduling approach removes the need for the workflow author to think about mapping
@@ -119,15 +124,15 @@ further improve its ability to provide ergonomic and efficient task graph execut
 		of Python versions.
 \end{description}
 
-To summarize, this thesis makes the following contributions.
+To summarize, this thesis makes the following contributions:
 \begin{itemize}
 	\item It introduces a task graph simulator for evaluating the quality of task schedulers under various
 	      conditions and provides an extensive evaluation of several scheduling algorithms using this
 	      simulator.
 	\item It provides an analysis of the performance bottlenecks of a state-of-the-art task runtime
 	      \dask{} and introduces an alternative implementation of its server that provides
-	      significant performance improvements in \gls{hpc} scenarios while retaining backwards
-	      compatibility.
+	      significant performance improvements in \gls{hpc} scenarios while retaining
+	      backwards compatibility.
 	\item Primarily, it proposes an approach for effortless execution of task graphs in the presence of
 	      \gls{hpc} allocation managers and provides an implementation of this approach in
 	      the \hyperqueue{} task runtime.

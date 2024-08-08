@@ -37,14 +37,15 @@ environments. These heuristics can suffer from non-obvious edge cases that produ
 schedules or from low runtime efficiency, which can in turn erase any speedup gained from producing
 a higher quality schedule.
 
-For \gls{hpc} use-cases, the performance and quality of task scheduling is even more
-important, since the scale and heterogeneity of task graphs used in \gls{hpc} provides
-a challenge for the scheduler. \gls{hpc} clusters also tend to provide advanced
-network topologies with low latency and high bandwidth~\cite{dragonfly,slimfly}, which offer the
-scheduler more leeway to create sophisticated schedules leveraging large amounts of network
-communication, which would otherwise be infeasible on clusters with slower networks.
+In \gls{hpc} use-cases, the performance and quality of task scheduling is even more
+important, since the scale and heterogeneity of task graphs provides an additional challenge for
+the scheduler. \gls{hpc} clusters also tend to contain advanced network topologies
+with low latency and high bandwidth~\cite{dragonfly,slimfly}, which offer the scheduler more leeway
+to create sophisticated schedules leveraging large amounts of network communication, which would
+otherwise be infeasible on clusters with slower networks.
 
-To better understand the behavior and performance of various scheduling algorithms, we have
+To better understand the behavior and performance of various scheduling algorithms, and to find out
+which scheduling approach is best suited for executing task graphs on distributed clusters, we have
 performed an extensive analysis of several task scheduling algorithms in
 \emph{Analysis of workflow schedulers in simulated distributed environments}~\cite{estee}. The two main contributions of this work are as
 follows:
@@ -52,13 +53,13 @@ follows:
 	\item We have created an extensible, open-source simulator of task graph execution, which allows users to
 	      easily implement their own scheduling algorithms and compare them, while taking into account
 	      various factors that affect task scheduling.
-	\item We have benchmarked several task schedulers from existing literature under various conditions,
-	      including factors affecting scheduling that have not been explored so far, like the minimum delay
-	      between invoking the scheduler or the amount of knowledge about task durations available to the
-	      scheduler, and evaluated the suitability of the individual algorithms for various types of task
-	      graphs. All parts of the benchmark suite are provided in an open and reproducible form. This
-	      includes the task graphs, all source code for the schedulers and the simulation environment and
-	      also all benchmark scripts.
+	\item We have benchmarked several task schedulers from existing literature under various conditions, including
+	      factors affecting scheduling that have not been explored so far to our knowledge, like the minimum
+	      delay between invoking the scheduler or the amount of knowledge about task durations available to
+	      the scheduler, and evaluated the suitability of the individual algorithms for various types of task
+	      graphs. All parts of the benchmark suite, including the task graphs, all source code for the
+	      schedulers and the simulation environment and also all benchmark scripts, are provided in an open
+	      and reproducible form.
 \end{enumerate}
 
 Various descriptions of schedulers, task graphs and other parts of the simulator and the benchmark
@@ -95,7 +96,8 @@ implementation, which makes it difficult to reproduce or extend its results.
 SimDAG~\cite{simdag} is a task graph simulator focused on \gls{hpc}
 use-cases built on top of the SimGrid~\cite{simgrid} framework. It allows relatively
 simple implementation of new task scheduling algorithms; however, it does not support any task
-resource requirements (e.g.\ the number of used \gls{cpu} cores).
+resource requirements (e.g.\ the number of used \gls{cpu} cores), which are crucial
+for simulating heterogeneous task graphs.
 
 In addition to simply comparing the performance of different schedulers, our goal was also to test
 two factors that affect scheduling, which we have not seen explored in detail in existing works.
@@ -120,11 +122,12 @@ with properties similar to real-world task graphs.
 
 \subsection{Architecture}
 \Autoref{fig:estee-architecture} shows the architecture of \estee{}. The core of the
-tool is the Simulator component, which uses discrete event simulation to simulate the execution of
-a task graph. It manages task lifetime, queries the Scheduler component for task-to-worker
-assignments (schedules) and then assigns the tasks to their corresponding workers. The Worker
-component then simulates task execution, and also uses the provided network model to simulate
-exchanges of data (task outputs) between the individual workers in the simulated cluster.
+tool is the \emph{Simulator} component, which uses discrete event simulation to simulate the
+execution of a task graph. It manages task lifetime, queries the \emph{Scheduler} component
+for task-to-worker assignments (schedules) and then assigns the tasks to their corresponding
+workers. The \emph{Worker} component then simulates task execution, and also uses the
+provided network model to simulate exchanges of data (task outputs) between the individual workers
+in the simulated cluster.
 
 \begin{figure}
 	\centering
@@ -173,7 +176,7 @@ workers = [Worker(cpus=1) for _ in range(2)]
 netmodel = MaxMinFlowNetModel(bandwidth=100)
 
 # Run simulation, returns the makespan in seconds
-simulator = Simulator(tg, workers, scheduler, netmodel, trace=True)
+simulator = Simulator(tg, workers, scheduler, netmodel)
 makespan = simulator.run()
 print(f"Task graph execution makespan = {makespan}s")
     \end{minted}
@@ -185,7 +188,7 @@ print(f"Task graph execution makespan = {makespan}s")
 Each task has an associated duration, and can contain multiple outputs (data objects), each with an
 associated size. It can also specify how many cores it requires, to model the common requirement of
 executing multi-threaded functions and programs on modern \gls{hpc} machines. The
-used model of a task graph corresponds precisely to the task graph definition contained
+used task graph model corresponds to the task graph definition introduced
 in~\Autoref{ch:taskgraphs}.
 
 \subsection{Communication model}
@@ -208,14 +211,11 @@ transfer starts or finishes, the data flow between workers is recomputed immedia
 neglect the fact that it may take some time for the bandwidth to fully saturate.
 
 This model is not as accurate as e.g.\ packet-level simulation implemented in some other
-simulators~\cite{simgrid}, but it is a notable improvement over the naive model.
-
-To provide a baseline that corresponds to the naive model described above, which has been used in
+simulators~\cite{simgrid}, but it is a notable improvement over the naive model. To
+provide a baseline that corresponds to the naive model described above, which has been used in
 several previous works, \estee{} also implements a \emph{simple} network
-model.
-
-It is possible to choose an arbitrary network bandwidth amount for a given simulation for any used
-networking model.
+model. It is possible to choose an arbitrary network bandwidth amount for a given simulation for
+any used networking model.
 
 \subsection{Scheduler parameters}
 \estee{} implements support for two parameters that can affect scheduler
@@ -575,14 +575,14 @@ greedy transfer were highly correlated.
 	(\emph{irw} dataset)} \label{fig:estee-chart-irw-netmodel}
 \end{figure}
 
-\begin{figure}
-	\centering
-	\includegraphics[width=\textwidth]{imgs/estee/charts/pegasus-32x4-netmodel-score}
-	\\ {\small x axis: bandwidth [MiB/s]; y axis: execution makespan normalized
-	to average of makespan of \emph{simple} model; row: scheduler, cluster
-	$32x4$} \caption{Comparison of \emph{maxmin} and \emph{simple} network models
-	(\emph{pegasus} dataset)} \label{fig:estee-chart-pegasus-netmodel}
-\end{figure}
+%\begin{figure}
+%	\centering
+%	\includegraphics[width=\textwidth]{imgs/estee/charts/pegasus-32x4-netmodel-score}
+%	\\ {\small x axis: bandwidth [MiB/s]; y axis: execution makespan normalized
+%	to average of makespan of \emph{simple} model; row: scheduler, cluster
+%	$32x4$} \caption{Comparison of \emph{maxmin} and \emph{simple} network models
+%	(\emph{pegasus} dataset)} \label{fig:estee-chart-pegasus-netmodel}
+%\end{figure}
 
 \Autoref{fig:estee-chart-irw-netmodel} demonstrates how the used network model affects simulated task
 graph makespans for a selected set of task graphs and schedulers, using task graphs from the
@@ -600,8 +600,9 @@ The makespans of simulations with these two network models are sometimes up to a
 magnitude apart. This is quite significant, because the difference between the performance of
 schedulers (with a fixed network model) is otherwise usually within a factor of two, which was
 demonstrated both by our other results and in~\cite{wang2018list}. The gap between the two
-network models depends heavily on the used task graph. For task graphs from the Pegasus dataset,
-the difference was much smaller, as can be seen in~\Autoref{fig:estee-chart-pegasus-netmodel}.
+network models depends heavily on the used task graph.
+%For task graphs from the Pegasus dataset,
+%the difference was much smaller, as can be seen in~\Autoref{fig:estee-chart-pegasus-netmodel}.
 
 \subsubsection*{Minimal scheduling delay}
 
@@ -785,9 +786,9 @@ results. We have tried our best to make all available source-code, benchmark dat
 results of our experiments public, to make them easy to reproduce and thus avoid this issue.
 
 Our analysis has shown that despite its simplicity, the foundational \gls{hlfet}
-algorithm~\cite{hlfet1974} (\emph{b-level}) produces high quality schedules in various scenarios
-and should thus serve as a good baseline scheduler for task runtimes. It can be complemented
-with work-stealing, which is able to dynamically react to load imbalances of individual workers.
+algorithm~\cite{hlfet1974} (\emph{b-level}) produces high quality schedules in various scenarios and should
+thus serve as a good baseline scheduler for task runtimes. It can be complemented with
+work-stealing, which is able to dynamically react to load imbalances of individual workers.
 
 We have also demonstrated that even a completely random scheduler can be competitive with other
 scheduling approaches for certain task graphs and cluster configurations.
@@ -815,9 +816,9 @@ also allows simulating execution of various task graphs. We hope that it could h
 potential to simplify the development and evaluation of novel task schedulers.
 
 Through our experiments that were presented in this chapter, we have learned more about the effect
-of scheduling algorithms on the performance of task graphs. Most importantly, we have
-identified a performant baseline scheduling approach, work-stealing combined with the
-\emph{b-level heuristic}, which we have further leveraged in work described in the following two
-chapters. Although task scheduling is an important factor, it is not the only aspect that contributes to
-the overall overhead and performance of task runtimes. The following chapter will
-holistically examine the performance aspects of a state-of-the-art task runtime in more detail.
+of scheduling algorithms on the performance of task graphs. Most importantly, we have identified a
+performant baseline scheduling approach, work-stealing combined with the \emph{b-level heuristic},
+which we have further leveraged in work described in the following two chapters. Although task
+scheduling is an important factor, it is not the only aspect that contributes to the overall
+overhead and performance of task runtimes. The following chapter will holistically examine the
+performance aspects of a state-of-the-art task runtime in more detail.

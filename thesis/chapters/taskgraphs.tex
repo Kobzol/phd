@@ -1,11 +1,10 @@
-%TODO: shorten
-In order to discuss task-based programming models, it is useful to provide a vocabulary of terms
-related to them. This is not as straightforward as it might seem, because even though the previous
-chapter has specified a very precise subset of task-based programming models that will be examined
-and analyzed in this thesis, there is still a large number of tools and systems that fall under
-this area of interest, each with their own distinct concepts and semantic rules. Therefore, it is
-not feasible to provide a single unifying and complete task theory that would encompass all of
-them, without generalizing heavily and glossing over many important details.
+In order to discuss task-based programming, it is useful to provide a vocabulary of terms related
+to it. This is not as straightforward as it might seem, because even though the previous chapter
+has specified a very precise subset of task-based programming models that will be examined and
+analyzed in this thesis, there is still a large number of tools and systems that fall under this
+area of interest, each with their own distinct concepts and semantic rules. Therefore, it is not
+feasible to provide a single unifying and complete task theory that would encompass all of them,
+without generalizing heavily and glossing over many important details.
 
 Nevertheless, this chapter introduces a basic set of concepts that form a lowest common denominator
 baseline that can be applied to all tools and use-cases discussed later in this thesis. In
@@ -17,7 +16,7 @@ described in~\Autoref{ch:sota}.
 A computational workflow in the task-based programming model is represented with a
 \gls{dag} that we will label as a \emph{task graph}. From a high-level
 perspective, it describes which individual computational steps should be performed, what are the
-constraints for where and in which order should they be computed and how should data be transferred
+constraints for where and in which order they should be computed and how should data be transferred
 between the individual steps of the workflow.
 
 There are many variations of task graphs, based on the computational properties that they are able
@@ -70,24 +69,24 @@ properties:
 	      $t_2$ \emph{depends} on $t_1$ and that
 	      $t_1$ is a \emph{dependency} of $t_2$.
 
-	\item We label tasks without any dependencies \emph{source tasks}. $S = \{ t \mid t\in{}T \land \forall{}t_d\in{}T:
-		      (t_d, t)\notin D\}$. It is a
-	      simple observation that unless the task graph is empty ($(T\cup{}O) = \emptyset$), there is always at
-	      least one source task in the graph, because the graph is acyclic.
-	\item We label tasks that are not depended upon by any other task \emph{leaf tasks}.
-	      $L = \{ t \mid t\in{}T \land \forall{}t_d\in{}T: (t,
-		      t_d)\notin D\}$.
+	      %	\item We label tasks without any dependencies \emph{source tasks}. $S = \{ t \mid t\in{}T \land \forall{}t_d\in{}T:
+	      %		      (t_d, t)\notin D\}$. It is a
+	      %	      simple observation that unless the task graph is empty ($(T\cup{}O) = \emptyset$), there is always at
+	      %	      least one source task in the graph, because the graph is acyclic.
+	      %	\item We label tasks that are not depended upon by any other task \emph{leaf tasks}.
+	      %	      $L = \{ t \mid t\in{}T \land \forall{}t_d\in{}T: (t,
+	      %		      t_d)\notin D\}$.
 \end{enumerate}
 
 % \footnote{This representation will be used in all following task graph diagrams.}
 
 An example of a simple task graph is shown in~\Autoref{fig:task-graph-example}. Tasks are represented as
-circles, data objects as (rounded) rectangles and arcs as arrows. The source task
-$t_0$ generates two data objects, which are then used as inputs for four
-additional tasks. The outputs of these four tasks are then aggregated by a final task
-$t_5$. This can correspond e.g.\ to a workflow where $t_0$
-generates some data, $t_{1-4}$ performs a calculation on that data and
-$t_5$ then performs a final post-processing step and stores the results to disk.
+circles, data objects as (rounded) rectangles and arcs as arrows. The task $t_0$
+generates two data objects, which are then used as inputs for four additional tasks. The outputs of
+these four tasks are then aggregated by a final task $t_5$. This can correspond
+e.g.\ to a workflow where $t_0$ generates some data, $t_{1-4}$
+performs a calculation on that data and $t_5$ then performs a final
+post-processing step and stores the results to disk.
 
 \begin{figure}[h]
 	\centering
@@ -139,11 +138,11 @@ different input parameters.
 
 Even though the inputs and outputs of tasks were defined as sets in the formal definition, in
 practice they are usually stored using either ordered sequences or a mapping that associates a name
-with each input or output, because it is important to maintain a specific ordering both inputs and
-outputs. For functions, the inputs are passed as arguments, and the output is derived from its
+with each input or output, because it is important to maintain a specific ordering of both inputs
+and outputs. For functions, the inputs are passed as arguments, and the output is derived from its
 return value (which can potentially form a sequence of values). Therefore, we have to be able to
 associate each task input to a specific argument index. The same holds for tasks that execute
-programs. In this case, inputs can be mapped command-line arguments and the content of the
+programs. In this case, inputs can be mapped to command-line arguments and the content of the
 \texttt{standard input stream}, and the output can be e.g.\ the content of the \texttt{standard output stream}
 generated by the executed program.
 
@@ -155,17 +154,18 @@ file on a disk, without it being specified as a task output. Such actions, which
 \emph{side effects}, are typically not encoded within the task graph. Tasks should ideally
 contain as few side effects as possible, because they can make task execution non-deterministic,
 causing them to produce different outputs when executed multiple times, which might not be
-desirable. It might be difficult to completely avoid side effects though, as most task graphs will
-eventually store some data to a file-system when executed, usually to persist the results of the
-computation.
+desirable.
 
-Apart from specifying the required inputs and produced outputs, tasks can also define various
-constraints for the environment in which they will be executed. We will use the term
-\emph{resource requirements} for such constraints. As an example, a task that performs training of a
-machine-learning model might require a \gls{gpu} to be present on the computational
-node where the task will be executed. Other resources might include e.g.\ a minimum required amount
-of \gls{ram} or a specific number of \gls{cpu} cores necessary to execute
-the task.
+%It might be difficult to completely avoid side effects though, as most task graphs will
+%eventually store some data to a file-system when executed, usually to persist the results of the
+%computation.
+
+Apart from specifying inputs and outputs, tasks can also define various constraints for the
+environment in which they will be executed. We will use the term \emph{resource requirements} for such
+constraints. As an example, a task that performs training of a machine-learning model might require
+a \gls{gpu} to be present on the computational node where the task will be executed.
+Other resources might include e.g.\ a minimum required amount of \gls{ram} or a
+specific number of \gls{cpu} cores necessary to execute the task.
 
 A \emph{data object} represents the computed result of a task. Typically, it is a serialized
 blob of data that is eventually transferred from the node where its producer was computed to the
@@ -187,12 +187,10 @@ and their outputs have been transferred to the computational node of the worker.
 
 There are many existing task runtimes, with varying architectures, features and trade-offs, which
 affect factors like performance, fault tolerance or expressivity of the supported variant of the
-task-based programming model. Selected task runtimes will be discussed in the following chapter,
-and~\Autoref{ch:rsds} will then describe the architecture of the \dask{} task
-runtime in detail, and examine its performance bottlenecks. In the rest of this section, we will
-consider a case typical for \gls{hpc} environments; a distributed task runtime with a
-central manager that communicates with a set of workers running on distributed nodes that
-communicate together via a network.
+task-based programming model. Several task runtimes will be discussed throughout this thesis. In
+the rest of this section, we will consider a case typical for \gls{hpc} environments;
+a distributed task runtime with a central manager that communicates with a set of workers running
+on distributed nodes that communicate together via a network.
 
 In general, a task runtime oversees all aspects of task graph execution. Its two main
 responsibilities can be divided into managing communication with the workers, and handling the
@@ -230,27 +228,27 @@ cost by leveraging task checkpointing~\cite{task_checkpointing}, which is able t
 computational state of a task during its execution, and then restore it in case of a failure, thus
 avoiding the need to start from the beginning.
 
-Fault tolerance is challenging in the presence of dependencies. When a task has inputs, the runtime
-might have to store them (either in memory or in a serialized format on disk) even after the task
-has started executing. Because there is always a possibility that it will have to restart the task
-in case of a failure, and thus it needs to hold on to its inputs. In some cases, it can actually be
-a better trade-off to avoid storing the inputs and instead re-execute the dependencies of the task
-(even if they have been executed successfully before) to regenerate the inputs. This can help
-reduce memory footprint, albeit at the cost of additional computation time, and it also might not
-work well if the dependencies are not deterministic.
-
-Note that the fact that it is even possible to execute a task multiple times is one of the core
-advantages of the task-based programming model, where tasks declaratively describe a self-contained
-computation that can be re-executed arbitrarily many times. This crucial property of tasks makes
-fault-tolerant execution of task graphs possible.
+%Fault tolerance is challenging in the presence of dependencies. When a task has inputs, the runtime
+%might have to store them (either in memory or in a serialized format on disk) even after the task
+%has started executing. Because there is always a possibility that it will have to restart the task
+%in case of a failure, and thus it needs to hold on to its inputs. In some cases, it can actually be
+%a better trade-off to avoid storing the inputs and instead re-execute the dependencies of the task
+%(even if they have been executed successfully before) to regenerate the inputs. This can help
+%reduce memory footprint, albeit at the cost of additional computation time, and it also might not
+%work well if the dependencies are not deterministic.
+%
+%Note that the fact that it is even possible to execute a task multiple times is one of the core
+%advantages of the task-based programming model, where tasks declaratively describe a self-contained
+%computation that can be re-executed arbitrarily many times. This crucial property of tasks makes
+%fault-tolerant execution of task graphs possible.
 
 \section{Task scheduling}
-Arguably the most important responsibility of a task runtime (which also gets the most attention in
-research works), is \emph{task scheduling}. It is the act of deciding in which order and on which
-specific worker(s) should each task execute, in a way that optimizes some key metric. There are
-many metrics that we can optimize for, such as the latency to execute specific critical tasks, but
-the most commonly used metric is \emph{makespan} -- the duration between the start of the
-execution of the first task to the completion of all tasks within the task graph.
+One of the most important responsibilities of a task runtime is \emph{task scheduling}. It is the
+act of deciding in which order and on which specific worker(s) should each task execute, in a way
+that optimizes some key metric. There are many metrics that we can optimize for, such as the
+latency to execute specific critical tasks, but the most commonly used metric is
+\emph{makespan} -- the duration between the start of the execution of the first task to the
+completion of all tasks within the task graph.
 
 We will use the term \emph{scheduler} for a component of the task runtime that is responsible
 for assigning tasks to workers by creating \emph{schedules}. A schedule is a mapping that
@@ -264,7 +262,7 @@ or if some worker is starving).
 
 \begin{figure}[h]
 	\centering
-	\resizebox{!}{110mm}{
+	\resizebox{!}{70mm}{
 	\begin{tikzpicture}
 			\tikzmath{
 				\tzerowidth = 15mm;
@@ -294,8 +292,8 @@ or if some worker is starving).
 			\node[task, taskstyle, minimum size=17.5mm] (t3) at (2, -2.5) {$t_3$};
 			\draw [arrow] (d0b.south) edge (t3.north);
 
-			% Move below to draw the timelines
-			\tikzset{shift={(-4,-4)}}
+			% Move to the right to draw the timelines
+			\tikzset{shift={(4,2)}}
 
 			\node[anchor=west] at (0, 0) {Schedule $S_0$: $w_0$=\{$t_0$, $t_1$\}, $w_1$=\{$t_2$\}, $w_2$=\{$t_3$\}};
 
@@ -390,40 +388,43 @@ resort to various heuristics tailored to their users' needs. Some classic task s
 heuristics and their comparisons can be found in~\cite{hlfet1974,kwok1998benchmarking,hagras2003static,wang2018list,estee}. \Autoref{ch:estee}
 contains a comprehensive survey of various task scheduling algorithms.
 
-Scheduling heuristics have to take many factors into consideration when deciding on which worker
-should a task be executed:
-
-\begin{description}[wide=0pt]
-	\item[Resource requirements] The scheduler should respect all resource requirements specified by tasks. The runtime thus has to
-		observe the dynamically changing available resources of each worker and schedule tasks accordingly,
-		to uphold their requirements. This can be challenging especially in the presence of complex
-		resource requirements.
-	\item[Data transfer cost] If the runtime operates within a distributed cluster, one of the most important scheduling aspects
-		that it needs to consider is the transfer cost of data between workers over the network. All
-		benefits gained by computing a task on another worker to achieve more parallelization might be lost
-		if it takes too much time to send the data (task outputs) to that worker.
-
-		The scheduler thus has to carefully balance the communication-to-computation ratio, based on the
-		available network bandwidth, sizes of outputs produced by tasks and the current utilization of
-		workers.
-	\item[Scheduling overhead] The overhead of generating the schedule itself also cannot be underestimated. As was already
-		stated, computing an optimal solution quickly is infeasible, but even heuristical approaches can
-		have wildly different performance characteristics. Producing a lower quality schedule sooner,
-		rather than a higher quality schedule later, can be sometimes beneficial.
-	\item[Memory consumption] It is desirable to execute as many tasks in parallel on a given worker (with respect to its
-		available parallelism), to speed up the completion of the whole workflow. However, the scheduler
-		should also balance the number of concurrently executing tasks according to the total amount of
-		memory that they consume. In general, it is difficult to predict for how long will a task execute,
-		and how much (peak) memory will it consume. When a task executes longer than expected, the workflow
-		will still be computed, it will just take more time. But when a task uses more memory than
-		expected, or the scheduler puts too many tasks on a worker at the same time, then the worker might
-		run out of memory and crash. If this happens repeatedly, it can stall or completely stop the
-		execution of the workflow. For memory-intensive workflows, the runtime should assign fewer tasks at
-		the same time to a single worker, or reduce overall memory consumption in some other way, e.g.\ by
-		keeping less cached data objects in the worker's memory.
-\end{description}
+%Scheduling heuristics have to take many factors into consideration when deciding on which worker
+%should a task be executed:
+%
+%\begin{description}[wide=0pt]
+%	\item[Resource requirements] The scheduler should respect all resource requirements specified by tasks. The runtime thus has to
+%		observe the dynamically changing available resources of each worker and schedule tasks accordingly,
+%		to uphold their requirements. This can be challenging especially in the presence of complex
+%		resource requirements.
+%	\item[Data transfer cost] If the runtime operates within a distributed cluster, one of the most important scheduling aspects
+%		that it needs to consider is the transfer cost of data between workers over the network. All
+%		benefits gained by computing a task on another worker to achieve more parallelization might be lost
+%		if it takes too much time to send the data (task outputs) to that worker.
+%
+%		The scheduler thus has to carefully balance the communication-to-computation ratio, based on the
+%		available network bandwidth, sizes of outputs produced by tasks and the current utilization of
+%		workers.
+%	\item[Scheduling overhead] The overhead of generating the schedule itself also cannot be underestimated. As was already
+%		stated, computing an optimal solution quickly is infeasible, but even heuristical approaches can
+%		have wildly different performance characteristics. Producing a lower quality schedule sooner,
+%		rather than a higher quality schedule later, can be sometimes beneficial.
+%	\item[Memory consumption] It is desirable to execute as many tasks in parallel on a given worker (with respect to its
+%		available parallelism), to speed up the completion of the whole workflow. However, the scheduler
+%		should also balance the number of concurrently executing tasks according to the total amount of
+%		memory that they consume. In general, it is difficult to predict for how long will a task execute,
+%		and how much (peak) memory will it consume. When a task executes longer than expected, the workflow
+%		will still be computed, it will just take more time. But when a task uses more memory than
+%		expected, or the scheduler puts too many tasks on a worker at the same time, then the worker might
+%		run out of memory and crash. If this happens repeatedly, it can stall or completely stop the
+%		execution of the workflow. For memory-intensive workflows, the runtime should assign fewer tasks at
+%		the same time to a single worker, or reduce overall memory consumption in some other way, e.g.\ by
+%		keeping less cached data objects in the worker's memory.
+%\end{description}
 
 \section*{Summary}
-Now that we have seen what kind of task-based programming models are the main focus of this thesis,
-and we have defined a vocabulary of task related terms, we can move on to the existing challenges
-that users and task runtimes face when they execute task graphs on \gls{hpc} clusters.
+This chapter has provided a basic definition of the most important terms related to task-based
+programming models that will be used throughout this chapter. It has introduced the notion of task
+graphs, tasks, data objects, resource requirements, workers, task runtimes and task scheduling.
+
+The following chapter will focus on describing what challenges are faced by users and task runtimes
+when they execute task graphs on \gls{hpc} clusters.

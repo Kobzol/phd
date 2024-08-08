@@ -1,10 +1,11 @@
 This chapter delves further into the performance aspects of task graph execution on
 \gls{hpc} clusters. After performing the task scheduling experiments using
 \estee{}, our next goal was to find out how do other parts of task runtimes
-(other than the scheduler) affect task graph makespans, and also to validate some of the rather
+(other than the scheduler) affect task graph makespans, in order to provide guidelines for efficient
+design of task runtimes. We also wanted to validate some of the rather
 surprising results of our experiments, for example the competitiveness of the random scheduler, in
-a non-simulated setting. In order to do that, we had to move from a simulator to a task runtime
-that can execute task graphs on an actual distributed cluster.
+a non-simulated setting. In order to do that, we moved from a simulator to a task runtime
+that executes task graphs on an actual distributed cluster.
 
 As was already discussed in~\Autoref{ch:sota}, there is a large number of existing task
 runtimes that are being used on \gls{hpc} systems, which could be used as a test
@@ -382,7 +383,8 @@ random schedule is sufficient to achieve reasonable results. However, all of tha
 a rather weak explanation for why a random scheduler is so competitive with the work-stealing
 scheduler in \dask{}. In the following experiments, we will show that
 \dask{} has considerable runtime overhead, which might introduce a bottleneck
-that is more impactful than the effect of the used schedule. In~\Autoref{sec:rsds-description}, we will see that with a more efficient runtime and less server
+that is more impactful than the effect of the used schedule. In~\Autoref{sec:rsds-description}, we
+will see that with a more efficient runtime and less server
 overhead, random schedules will become less competitive.
 
 %There are two effects that explain the reasonable performance of the random scheduler. Firstly, the
@@ -570,7 +572,7 @@ it is well suited for writing distributed applications.
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.8\linewidth]{./imgs/rsds/rsds-architecture}
+	\includegraphics[width=0.6\linewidth]{./imgs/rsds/rsds-architecture}
 	\caption{Architecture of \rsds{} (\dask{} components are dashed)}
 	\label{fig:rsds-architecture}
 \end{figure}
@@ -642,7 +644,7 @@ and workers.
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.9\columnwidth]{./imgs/rsds/frame-encoding}
+	\includegraphics[width=0.7\columnwidth]{./imgs/rsds/frame-encoding}
 	\caption{\dask{} message encoding}
 	\label{fig:rsds-dask-frame-encoding}
 \end{figure}
@@ -735,7 +737,7 @@ and worker implementations.
 
 \subsection*{Server comparison}
 
-\begin{figure}
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.8\textwidth]{./imgs/rsds/charts/speedup-rsds-ws-1}
 	\includegraphics[width=0.8\textwidth]{./imgs/rsds/charts/speedup-rsds-ws-7}
@@ -969,7 +971,7 @@ negligible, at least for the benchmarked number of workers.
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.7\textwidth]{./imgs/rsds/charts/rsds-dask-overhead-all}
+	\includegraphics[width=0.6\textwidth]{./imgs/rsds/charts/rsds-dask-overhead-all}
 	\caption{Overhead per task for various cluster sizes and benchmarks}
 	\label{fig:rsds-dask-overhead-all}
 \end{figure}

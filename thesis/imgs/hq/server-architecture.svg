@@ -24,9 +24,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="0.70710678"
-     inkscape:cx="783.47431"
-     inkscape:cy="791.9596"
+     inkscape:zoom="0.5"
+     inkscape:cx="922"
+     inkscape:cy="656"
      inkscape:window-width="1920"
      inkscape:window-height="1015"
      inkscape:window-x="0"
@@ -418,25 +418,6 @@
          d="m -0.21114562,-4.1055728 6.42229122,3.21114561 a 1,1 90 0 1 0,1.78885438 L -0.21114562,4.1055728 A 1.236068,1.236068 31.717474 0 1 -2,3 v -6 a 1.236068,1.236068 148.28253 0 1 1.78885438,-1.1055728 z"
          style="fill:context-stroke;fill-rule:evenodd;stroke:none"
          id="path19-4-2" />
-    </marker>
-    <marker
-       style="overflow:visible"
-       id="marker19-89"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Rounded arrow"
-       markerWidth="1"
-       markerHeight="1"
-       viewBox="0 0 1 1"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="xMidYMid">
-      <path
-         transform="scale(0.7)"
-         d="m -0.21114562,-4.1055728 6.42229122,3.21114561 a 1,1 90 0 1 0,1.78885438 L -0.21114562,4.1055728 A 1.236068,1.236068 31.717474 0 1 -2,3 v -6 a 1.236068,1.236068 148.28253 0 1 1.78885438,-1.1055728 z"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:none"
-         id="path19-73" />
     </marker>
   </defs>
   <g
@@ -1096,7 +1077,7 @@
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:Raleway-v4020;-inkscape-font-specification:'Raleway-v4020, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:lining-nums;text-align:center;text-anchor:middle;stroke-width:0.264583"
          x="275.43033"
          y="100.91921"
-         id="tspan20-2-2-8">Task results</tspan></text>
+         id="tspan20-2-2-8">Task status</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:7.05556px;line-height:1.25;font-family:'AG Book Pro';-inkscape-font-specification:'AG Book Pro';stroke-width:0.264583"
@@ -1216,22 +1197,6 @@
          x="138.88156"
          y="94.710632"
          id="tspan1">synchronization</tspan></text>
-    <path
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.05834;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker19-89);enable-background:new"
-       d="m 157.78036,232.16253 -46.23304,2.3e-4"
-       id="path1819-2-2-7-3-3-1-6"
-       sodipodi:nodetypes="cc" />
-    <text
-       xml:space="preserve"
-       style="font-size:7.05556px;line-height:1.25;font-family:Raleway-v4020;-inkscape-font-specification:'Raleway-v4020, Normal';font-variant-numeric:lining-nums;stroke-width:0.264583"
-       x="131.97491"
-       y="223.27934"
-       id="text37-1"><tspan
-         sodipodi:role="line"
-         style="font-size:7.05556px;text-align:center;text-anchor:middle;stroke-width:0.264583"
-         x="131.97491"
-         y="223.27934"
-         id="tspan1-9">Required resources</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:7.05556px;line-height:1.25;font-family:Raleway-v4020;-inkscape-font-specification:'Raleway-v4020, Normal';font-variant-numeric:lining-nums;text-align:start;text-anchor:start;stroke-width:0.264583"

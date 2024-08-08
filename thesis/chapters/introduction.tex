@@ -6,12 +6,12 @@ dynamics~\cite{cfd}, bioinformatics~\cite{bioinformatics} or deep
 learning~\cite{hpcdl}.
 
 Over the last several decades, the performance of \gls{hpc} clusters
-(\emph{supercomputers}) has been steadily increasing, effectively doubling every few years, in
-line with Moore's Law and Dennard scaling~\cite{mooreslaw}. However, it also became more
-difficult for \gls{hpc} users to tap into that performance increase. Thirty years ago,
-it was possible to get essentially double the performance for free, just by using a new
-(super)computer every two years, without having to modify existing programs. This phenomenon had
-started to diminish by the end of the last century, as chip designers became limited by the memory
+(\emph{supercomputers}) has been steadily increasing, effectively doubling every few years, in line
+with Moore's Law and Dennard scaling~\cite{mooreslaw}. However, it also became more difficult
+for \gls{hpc} users to tap into that performance increase. Thirty years ago, it was
+possible to get essentially double the performance for free, just by using a new (super)computer
+every two years, without having to modify existing programs. This phenomenon had started to
+diminish by the end of the last century, as chip designers became limited by the memory
 wall~\cite{memorywall} and especially the power wall~\cite{powerwall}.
 
 To keep up with the expectations of exponential performance increases, \glspl{cpu} had
@@ -80,15 +80,16 @@ described by a task graph close to manually parallelized and distributed program
 the development cost for the application developer. They are also relatively portable by default,
 as the task graph programming model typically does not make many assumptions about the target
 platform; therefore, the same task graph can be executed on various systems and clusters, provided
-the individual tasks can be ported to them and there is a task execution runtime implemented for that cluster.
+the individual tasks can be ported to them and there is a task execution runtime implemented for
+that cluster.
 
 Combined with the fact that task-based tools often allow users to implement their workflows in very
-high-level languages, such as Python or various \glspl{dsl}, it makes them an ideal
-tool for rapid scientific prototyping. However, this does not mean that low-level high-performance
+high-level languages, such as Python or various \glspl{dsl}, it makes them an ideal tool
+for rapid scientific prototyping. However, this does not mean that low-level high-performance
 kernels are not being used anymore; a common approach is to describe the high-level structure of
-the computational workflow using a task graph where the individual tasks execute the low-level kernels,
-rather than implementing a monolithic application that performs all the network communication
-explicitly.
+the computational workflow using a task graph where the individual tasks execute the low-level
+kernels, rather than implementing a monolithic application that performs all the network
+communication explicitly.
 
 Task graphs are already commonly being used and deployed on various distributed
 systems~\cite{pegasus, workflows_at_scale, large_scale_modelling}, yet there are certain challenges that limit their usage ergonomics
@@ -108,37 +109,37 @@ To achieve the goal of making it easier and more efficient to execute task graph
 supercomputers, this thesis sets out the following objectives:
 
 \begin{itemize}
-	\item Identify and analyze existing challenges and bottlenecks of task graph execution on \gls{hpc}
-	clusters, particularly in the areas of efficient hardware utilization and usage ergonomics,
-	and examine how are existing tools able to deal with them.
-	\item Introduce a set of approaches for effortless execution of task graphs on supercomputers
-	that are able to overcome these challenges.
-	\item Implement and integrate these approaches in a task graph execution tool and validate
-	them on real-world use-cases.
+	\item Identify and analyze existing challenges and bottlenecks of task graph execution on
+	      \gls{hpc} clusters, particularly in the areas of efficient hardware utilization and
+	      usage ergonomics, and examine how are existing tools able to deal with them.
+	\item Introduce a set of approaches for effortless execution of task graphs on supercomputers that are
+	      able to overcome these challenges.
+	\item Implement and integrate these approaches in a task graph execution tool and validate them on
+	      real-world use-cases.
 \end{itemize}
 
-The thesis is structured as follows.~\Autoref{ch:distributed-computing} describes various
-approaches for designing parallelized programs on distributed clusters, to provide context on how does
-task-based programming relate to them. It also concretizes a specific subset of task-based
-programming relevant for this thesis.~\Autoref{ch:taskgraphs} then defines key terms related to
-tasks and task graphs in detail, to provide a shared vocabularity that will be used throughout
-this thesis. It is followed by~\Autoref{ch:sota}, which discusses various ergonomic challenges and
-performance bottlenecks faced by state-of-the-art distributed task runtimes when executing task
-graphs on \gls{hpc} systems.
+The thesis is structured as follows.~\Autoref{ch:distributed-computing} describes various approaches for
+designing parallelized programs on distributed clusters, to provide context on how does task-based
+programming relate to them. It also concretizes a specific subset of task-based programming
+relevant for this thesis.~\Autoref{ch:taskgraphs} then defines key terms related to tasks and task
+graphs in detail, to provide a shared vocabularity that will be used throughout this thesis. It is
+followed by~\Autoref{ch:sota}, which discusses various ergonomic challenges and performance
+bottlenecks faced by state-of-the-art distributed task runtimes when executing task graphs on
+\gls{hpc} systems.
 
-The following three chapters then discuss designs for
-overcoming these challenges. Chapters~\ref{ch:estee} and~\ref{ch:rsds} focus solely on the
-efficiency aspects.~\Autoref{ch:estee} evaluates the quality of various task
-scheduling algorithms, which are important for achieving good performance when executing task
-workflows, and introduces \estee{}, a task graph execution simulator that can be used to
-prototype new scheduling algorithms.~\Autoref{ch:rsds} analyzes the runtime performance of \dask{}, a
-state-of-the-art task runtime, and proposes an alternative implementation of its server that is
-able to outperform it in various \gls{hpc} use-cases.~\Autoref{ch:hyperqueue} then
-focuses on improving both the ergonomic and performance aspects of task execution using a
-meta-scheduling approach designed to facilitate task graph execution on \gls{hpc}
-clusters. This approach has been implemented in the \hyperqueue{} task runtime, which is
-also described and evaluated in this chapter in detail. Finally,~\Autoref{ch:conclusion} summarizes
-the thesis and outlines future work.
+The following three chapters then discuss designs for overcoming these challenges.
+Chapters~\ref{ch:estee} and~\ref{ch:rsds} focus solely on the efficiency
+aspects.~\Autoref{ch:estee} evaluates the quality of various task scheduling algorithms, which
+are important for achieving good performance when executing task workflows, and introduces
+\estee{}, a task graph execution simulator that can be used to prototype new
+scheduling algorithms.~\Autoref{ch:rsds} analyzes the runtime performance of
+\dask{}, a state-of-the-art task runtime, and proposes an alternative implementation
+of its server that is able to outperform it in various \gls{hpc}
+use-cases.~\Autoref{ch:hyperqueue} then focuses on improving both the ergonomic and performance
+aspects of task execution using a meta-scheduling approach designed to facilitate task graph
+execution on \gls{hpc} clusters. This approach has been implemented in the
+\hyperqueue{} task runtime, which is also described and evaluated in this chapter in
+detail. Finally,~\Autoref{ch:conclusion} summarizes the thesis and outlines future work.
 
 %\begin{figure}
 %	\centering
