@@ -1,4 +1,4 @@
-\chapter{\estee{} benchmark definitions}
+\chapter{Benchmark configurations}
 \begin{figure}[h]
 	\centering
 	\begin{subfigure}{.2\textwidth}
@@ -147,4 +147,58 @@
 
 	\caption{\estee{} scheduler benchmark task graph properties}
 	\label{tab:estee-graph-properties}
+\end{table}
+
+\setlength{\tabcolsep}{5pt}
+\begin{table}[h]
+	\centering
+	\begin{tabular}{l|rrrrrc}
+		\toprule
+		\textbf{Task graph} & \textbf{\#T} & \textbf{\#I}       & \textbf{S} &
+		\textbf{AD}         & \textbf{LP}  & \textbf{\gls{api}}                               \\
+		\midrule
+		merge-10K           & 10001        & 10000              & 0.027      & 0.006 & 1  & F \\
+		merge-15K           & 15001        & 15000              & 0.027      & 0.006 & 1  & F \\
+		merge-20K           & 20001        & 20000              & 0.027      & 0.006 & 1  & F \\
+		merge-25K           & 25001        & 25000              & 0.027      & 0.006 & 1  & F \\
+		merge-30K           & 30001        & 30000              & 0.027      & 0.006 & 1  & F \\
+		merge-50K           & 50001        & 50000              & 0.027      & 0.006 & 1  & F \\
+		merge-100K          & 100001       & 100000             & 0.027      & 0.006 & 1  & F \\
+		merge\_slow-5K-0.1  & 5001         & 5000               & 0.023      & 100   & 1  & F \\
+		merge\_slow-20K-0.1 & 20001        & 20000              & 0.023      & 100   & 1  & F \\
+		tree-15             & 32767        & 32766              & 0.027      & 0.007 & 14 & F \\
+		xarray-25           & 552          & 862                & 55.7       & 3.1   & 10 & X \\
+		xarray-5            & 9258         & 14976              & 3.3        & 0.4   & 10 & X \\
+		bag-25K-10          & 236          & 415                & 292        & 1233  & 6  & B \\
+		bag-25K-100         & 21631        & 41430              & 3.2        & 13.9  & 8  & B \\
+		bag-25K-200         & 86116        & 165715             & 0.8        & 3.6   & 9  & B \\
+		bag-25K-50          & 5458         & 10357              & 12.6       & 54.9  & 7  & B \\
+		bag-50K-50          & 5458         & 10357              & 25.2       & 214   & 7  & B \\
+		numpy-50K-10        & 209          & 228                & 70108      & 169   & 7  & A \\
+		numpy-50K-100       & 19334        & 21783              & 760        & 2.6   & 10 & A \\
+		numpy-50K-200       & 77067        & 86966              & 191        & 0.9   & 11 & A \\
+		numpy-50K-50        & 4892         & 5491               & 2999       & 8.3   & 9  & A \\
+		groupby-2880-1S-16H & 22842        & 31481              & 1005       & 11.9  & 9  & D \\
+		groupby-2880-1S-8H  & 45674        & 62953              & 503        & 7.7   & 9  & D \\
+		groupby-1440-1S-1H  & 182682       & 251801             & 64.3       & 3.8   & 10 & D \\
+		groupby-1440-1S-8H  & 22842        & 31481              & 503        & 7.7   & 9  & D \\
+		groupby-360-1S-1H   & 45674        & 62953              & 64.3       & 3.8   & 9  & D \\
+		groupby-360-1S-8H   & 5714         & 7873               & 503        & 8.0   & 8  & D \\
+		groupby-90-1S-1H    & 11424        & 15743              & 64.3       & 3.9   & 8  & D \\
+		groupby-90-1S-8H    & 1434         & 1973               & 501        & 7.7   & 7  & D \\
+		join-1-1S-1H        & 673          & 1224               & 15.3       & 33.0  & 5  & D \\
+		join-1-1S-1T        & 72001        & 125568             & 3.7        & 1.7   & 11 & D \\
+		join-1-2s-1H        & 673          & 1224               & 9.3        & 9.8   & 5  & D \\
+		vectorizer-1M-300   & 301          & 0                  & 10226      & 1504  & 0  & F \\
+		wordbag-100K-50     & 250          & 200                & 5136       & 301   & 2  & F \\
+		\bottomrule
+	\end{tabular}\\
+	\vspace{1mm}
+
+	\#T = Number of tasks; \#I = Number of dependencies; \\
+	S = Average task output size [KiB]; AD = Average task
+	duration [ms]; \\ LP = longest oriented path in the graph; \\ D = DataFrame; B
+	= Bag; A = Arrays; F = Futures; X = XArray
+	\caption{Properties of \dask{} benchmark task graphs}
+	\label{tab:dask-graph-properties}
 \end{table}
