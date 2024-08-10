@@ -934,7 +934,7 @@ The second reason why a task might fail is that its computation simply does not 
 example due to the executed process returning a non-zero exit code. In that case, the task is
 marked as failed, and any tasks that (transitively) depend on it are canceled.
 \hyperqueue{} allows a simple way of querying tasks by their state and resubmitting only
-failed and/or canceled tasks in a straightforward way, which is possible due to the job state being
+failed or canceled tasks in a straightforward way, which is possible due to the job state being
 kept outside of ephemeral allocations.~\Autoref{lst:hq-cli-fault-tolerance} demonstrates how users can use the
 \hq{} \gls{cli} to resubmit failed tasks from a previously
 submitted job. It also shows that several \hq{} commands are designed to be
@@ -1806,7 +1806,7 @@ encryption at runtime.
 \subsection{Output streaming}
 \label{sec:hq-exp-output-streaming}
 In this experiment we evaluate the effect of the \emph{output streaming} mode, which can be used to
-stream the outputs of \emph{stdout} and/or \emph{stderr} streams from
+stream the outputs of \emph{stdout} and \emph{stderr} streams from
 individual tasks to the \hyperqueue{} server, to avoid creating a large number of files
 on the filesystem. We have benchmarked two task graphs without dependencies, with
 $10$ and $50$ thousand tasks, where each task generates a a
