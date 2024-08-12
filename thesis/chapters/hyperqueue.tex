@@ -2082,60 +2082,71 @@ theoretical designs without any implementation available.
 	\newcolumntype{B}{c@{}c@{}c}
 	\newcolumntype{C}{c@{}c@{}c@{}c}
 	\begin{threeparttable}
-	\begin{tabular}{|l|B|A|C|C|A|l|}
+	\begin{tabular}{|l|B|A|A|B|C|A|l|}
 	\multicolumn{1}{c}{Task runtime} &
 	\multicolumn{3}{c}{\rotheading{Task interfaces}} &
 	\multicolumn{2}{c}{\rotheading{Task dependencies}} &
-	\multicolumn{4}{c}{\rotheading{Meta-scheduling}} &
-	\multicolumn{4}{c}{\rotheading{Resources}} &
+	\multicolumn{2}{c}{\rotheading{Fault tolerance}} &
+	\multicolumn{3}{c}{\rotheading{Meta-scheduling}} &
+	\multicolumn{4}{c}{Resources} &
 	\multicolumn{2}{c}{\rotheading{Data transfers}} &
 	\multicolumn{1}{c}{Deployment}\\
 	\midrule
 	& % tool
-	\centering \rot{CLI} & \rot{Workflow file} & \rot{Python API} & % interfaces
-	\centering \rot{Explicit} & \rot{Inferred from files} & % dependencies
-	\centering \rot{Graph partitioning} & \rot{Fault tolerance} &
+	\rot{CLI} & \rot{Workflow file} & \rot{Python API} & % interfaces
+	\rot{Explicit} & \rot{Inferred from files} & % dependencies
+	\rot{Worker failure} & \rot{Server failure} & % fault tolerance
+	\rot{Graph partitioning} &
 	\rot{Automatic allocation} & \rot{Generic workers} & % meta-scheduling
 	\rot{Basic (CPU/GPU)} & \rot{Generic resources} & \rot{Resource pools} &
 	\rot{Multi-node tasks} & %resources
 	\rot{Directly between tasks} & \rot{Output streaming} & % data transfers
 	Runtime dependencies \\ % deployment
 	\midrule
-	\gnuparallel{}\hfill\cite{parallel} & \yes & \no & \no & \no & \no & \no & \manualft & \no & \no & \no & \no & \no & \no & \no & \yes & Perl \\
+	\gnuparallel{}\hfill\cite{parallel} & \yes & \no & \no & \no & \no & \manualft & \no & \no & \no & \no & \no & \no & \no & \no & \no & \yes & Perl \\
 %	\midrule
-	\hypershell{}\hfill\cite{hypershell} & \yes & \no & \yes & \no & \no & \manualmap & \automaticft & \yes & \no & \no & \no & \no & \no & \no & \yes & \python \\
+	\hypershell{}\hfill\cite{hypershell} & \yes & \no & \yes & \no & \no & \automaticft & \yes & \manualmap & \yes & \no & \no & \no & \no & \no & \no & \yes & \python \\
 %	\midrule
 	\dask{}\hfill\cite{dask} & \no & \no & \yes{} & \yes{} & \no &
-	\automaticmap\textsuperscript{\dag} & \automaticft & \yes\textsuperscript{\dag} & \yes & \yes & \yes & \no & \no & \yes & \yes & \python \\
+	\automaticft & \no & \automaticmap\textsuperscript{\dag} & \yes\textsuperscript{\dag} & \yes & \yes & \yes & \no & \no & \yes & \yes & \python \\
 %	\midrule
-	\ray{}\hfill\cite{ray} & \no & \no & \yes & \yes & \no & \automaticmap & \automaticft & \no & \yes & \yes & \yes & \no & \no & \yes & \partially & \python \\
+	\ray{}\hfill\cite{ray} & \no & \no & \yes & \yes & \no & \automaticft & \yes
+\textsuperscript{*} & \automaticmap & \no & \yes & \yes & \yes & \no & \no & \yes & \partially & \python \\
 %	\midrule
 	\parsl{}\hfill\cite{parsl} & \no & \no & \yes & \yes & \no & \automaticmap & \automaticft & \yes & \no & \yes & \no & \no & \yes & \yes & \no & \python \\
 %	\midrule
-	\pycompss{}\hfill\cite{pycompss} & \yes & \no & \yes & \yes & \no & \manualmap & \automaticft &
-	\no & \no & \yes & \no & \no & \yes & \yes & \yes & \python, Java \\
+	\pycompss{}\hfill\cite{pycompss} & \yes & \no & \yes & \yes & \no & \automaticft &
+	\yes\textsuperscript{*} & \manualmap & \no & \no & \yes & \no & \no & \yes & \yes & \yes & \python, Java \\
 %	\midrule
-	\pegasus{}\hfill\cite{pegasus} & \no & \yes & \yes & \yes & \yes & \manualmap & \automaticft &
-	\no & \no & \yes & \no & \no & \no & \no & \yes & \python, Java, HTCondor~\cite{htcondor} \\
+	\pegasus{}\hfill\cite{pegasus} & \no & \yes & \yes & \yes & \yes & \automaticft &
+    \yes & \manualmap & \no & \no & \yes & \no & \no & \no & \no & \yes & \python, Java,
+HTCondor~\cite{htcondor} \\
 %	\midrule
-	\balsam{}\hfill\cite{balsam} & \no & \no & \yes & \yes & \no & \automaticmap & \automaticft & \yes & \yes & \yes & \no & \no & \yes & \yes & \no & \python, PostgreSQL \\
+	\balsam{}\hfill\cite{balsam} & \no & \no & \yes & \yes & \no & \automaticft &
+	\yes & \automaticmap & \yes & \yes & \yes & \no & \no & \yes & \yes & \no & \python,
+PostgreSQL \\
 %	\midrule
-	\autosubmit{}\hfill\cite{autosubmit} & \no & \yes & \no & \yes & \no & \manualmap & \automaticft &
-	\yes & \no & \yes & \no & \no & \yes & \no & \no & \python \\
+	\autosubmit{}\hfill\cite{autosubmit} & \no & \yes & \no & \yes & \no & \automaticft &
+	\yes & \manualmap & \yes & \no & \yes & \no & \no & \yes & \no & \no & \python \\
 %	\midrule
-	\fireworks{}\hfill\cite{fireworks} & \no & \yes & \yes & \yes & \no & \automaticmap & \manualft & \yes & \yes & \no & \no & \no & \no & \no & \no & \python, MongoDB \\
+	\fireworks{}\hfill\cite{fireworks} & \no & \yes & \yes & \yes & \no & \manualft &
+	\yes & \automaticmap & \yes & \yes & \no & \no & \no & \no & \no & \no & \python, MongoDB \\
 %	\midrule
-	\merlin{}\hfill\cite{merlin} & \no & \yes & \no & \yes & \no & \automaticmap & \manualft & \no & \no & \yes & \no & \no & \yes & \no & \no & \python, RabbitMQ/Redis \\
+	\merlin{}\hfill\cite{merlin} & \no & \yes & \no & \yes & \no & \manualft &
+	\yes & \automaticmap & \no & \no & \yes & \no & \no & \yes & \no & \no & \python, RabbitMQ/Redis \\
 %	\midrule
-	\snakemake{}\hfill\cite{snakemake} & \no & \yes & \yes & \no & \yes & \manualmap & \automaticft & \no & \no & \yes & \yes & \no & \yes & \no & \no & \python \\[2mm]
+	\snakemake{}\hfill\cite{snakemake} & \no & \yes & \yes & \no & \yes & \automaticft &
+	\no & \manualmap & \yes\textsuperscript{\dag} & \no & \yes & \yes & \no & \yes & \no & \no & \python \\[2mm]
 %	\midrule
-	\hyperqueue{}\hfill\cite{hyperqueue} & \yes & \yes & \yes & \yes & \no & \automaticmap & \automaticft & \yes & \yes & \yes & \yes & \yes & \yes & \no & \yes & \\
+	\hyperqueue{}\hfill\cite{hyperqueue} & \yes & \yes & \yes & \yes & \no & \automaticft &
+	\yes & \automaticmap & \yes & \yes & \yes & \yes & \yes & \yes & \no & \yes & \\
 	\bottomrule
 \end{tabular}
 \begin{tablenotes}
 	\centering
-	\item \yes{} supported; \no{} not supported; \automaticmap{} automatic; \manualmap{}
-manual; \textsuperscript{\dag}with an external plugin
+	\item \yes{} supported; \no{} not supported; \automaticmap{} automatic; \manualmap{} manual;
+	\item \textsuperscript{\dag}with an external plugin; \textsuperscript{*}with additional
+	runtime dependencies
 \end{tablenotes}
 \caption{Comparison of task runtimes}
 \label{tab:hq-tools-comparison}
@@ -2179,7 +2190,21 @@ the individual tasks. For \snakemake{}, it is the only way to express dependenci
 limit performance for task graphs with many tasks, as every dependency necessitates the creation
 of a file on a filesystem.
 
-The third section, \emph{Meta-scheduling}, specifies four properties related to executing tasks
+The third section, \emph{Fault tolerance} describes what happens when after a worker or a
+server failure. Task runtimes that can automatically restart tasks after a worker failure are
+marked with \automaticft, those that require user action to recompute failed tasks are
+marked with \manualft. All the evaluated task runtimes provide support for at least some
+kind of resilience against worker failures; it is a truly fundamental feature without which it
+would be infeasible to execute task graphs. To be resilient against server failures,
+the task runtime should be able to restore the state of already computed tasks, and all the
+submitted task graphs, when the task submission command or the main server/scheduler component
+crashes (e.g.\ when it is executed on a login node that shuts down). This property is very useful
+for avoiding unnecessary re-execution of long-running task graphs. Resilience against server
+failures is supported so ubiquitously, although is is still a rather common feature. However, most
+task runtimes require an external service or a database instance to implement server
+persistence, which can complicate their deployment.
+
+The fourth section, \emph{Meta-scheduling}, specifies three properties related to executing tasks
 on top of allocations and general scheduling capabilities. The following list describes the
 individual columns:
 
@@ -2192,13 +2217,6 @@ individual columns:
 	from the user and can limit hardware utilization. Other task runtimes, such as \dask{}
 	or \balsam{}, are able to fully automatically assign tasks to allocations without any
 	intervention from the user, same as \hyperqueue{}.
-
-	\item[Fault tolerance] describes what happens to tasks that fail because of an external
-	(e.g.\ worker node) failure. Task runtimes that can automatically restart such tasks are
-	marked with \automaticft, those that require user action to recompute failed tasks are
-	marked with \manualft. All the evaluated task runtimes provide support for at least some
-	kind of fault tolerance; it is a truly fundamental feature without which it would be
-	infeasible to execute task graphs.
 
 	\item[Automatic allocation] highlights task
 	runtimes that are able to automatically submit \emph{\gls{hpc} allocations}. There are
