@@ -2263,10 +2263,15 @@ task runtimes, such as \dask{} or \ray{}. It is not supported by \hyperqueue{}.
 
 The last section, \emph{Deployment}, specifies which runtime
 dependencies and external services have to be available in order to use the task runtime. We can
-see that almost all evaluated task runtimes require Python, it is a very popular technology for
+see that almost all evaluated task runtimes require Python, as it is a very popular technology for
 working with tasks. Some task runtimes, such as \merlin{} or \fireworks{}, additionally require
-external service for managing persistence or task assignment, these can thus be challenging to
-deploy on \gls{hpc} clusters.
+an external service for managing persistence or task assignments, these can be challenging to
+deploy on \gls{hpc} clusters. Note that this column specifies the \emph{required} runtime
+dependencies, which are necessary for the task runtime to function. It does not mention optional
+dependencies; for example, \hyperqueue{}'s Python \gls{api} of course also requires a Python
+interpreter, but \hyperqueue{} itself can operate without it.
+
+% TODO: summary?
 
 %The individual task runtimes will be briefly discussed and compared with \hyperqueue{}
 %below.
