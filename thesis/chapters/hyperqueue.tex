@@ -1505,7 +1505,8 @@ throughput achievable by \hyperqueue{}. Such a task duration is uncommon for sci
 workflows (indeed, on Karolina even starting a new process takes a hundred times longer); it is
 more common for task-parallel programming models that have been described
 in~\Autoref{sec:task-granularity}, which are operating on a very different level of granularity than what
-\hyperqueue{} was designed for.
+\hyperqueue{} was designed for. This task throughput is orders of magnitude higher than
+throughput measured for the \parsl{}, \fireworks{} and \dask{} task runtimes, as reported in~\cite{parsl}.
 
 \subsection{Strong scaling}
 \label{sec:hq-exp-scalability}
