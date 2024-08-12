@@ -2,7 +2,7 @@ The main goals of this thesis were to describe and analyze existing challenges o
 execution on \gls{hpc} systems, with the main focus on efficiency and usage
 ergonomics, and design and implement approaches for alleviating them. The main issues affecting
 \gls{hpc} task graph execution were described in~\Autoref{ch:sota}, which
-has identified several problematic areas that can cause problems when executing task graphs on
+has identified several areas that can cause problems when executing task graphs on
 modern heterogeneous \gls{hpc} clusters, and outlined motivation for work
 presented in the rest of the thesis.
 
@@ -12,7 +12,7 @@ environment designed for prototyping task schedulers and benchmarking various as
 execution. We have used \estee{} to perform a comprehensive study of several task
 scheduling algorithms and examine several hypotheses of the effect of various factors on the
 performance of the scheduler. Through our experiments, we have found that the
-\emph{b-level} heuristic combined with work-stealing provides a good baseline
+\emph{b-level} heuristic combined with work-stealing provides a solid baseline
 scheduling algorithm that achieves good performance across various kinds of task graphs. This
 scheduling approach was then used for implementing efficient scheduling in
 the~\rsds{} and~\hyperqueue{} task runtimes. Our results have also
@@ -45,11 +45,11 @@ computational resources.
 
 The described approach has been implemented in \hyperqueue{}, an
 \gls{hpc}-optimized task runtime that was designed to make it simple to execute
-task graphs in the presence of allocation managers. Many features of \hyperqueue{}
-have been described extensively in this chapter, such as its support for complex resource
+task graphs in the presence of allocation managers. The most important features of \hyperqueue{}
+have been described in this chapter, such as its support for complex resource
 management and multi-node tasks, fault-tolerant task execution and automatic submission of
 allocations. The overhead and scalability of this task runtime were also evaluated on several
-benchmarks that were designed to push it to its performance limits. The results of these
+benchmarks designed to push it to its performance limits. The results of these
 experiments indicate that it does not introduce significant overhead and can be used to efficiently
 scale task graphs to a large amount of computational resources.
 
