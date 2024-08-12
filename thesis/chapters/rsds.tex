@@ -695,8 +695,10 @@ Even though it was not possible to exactly replicate the work-stealing implement
 and details, our implementation is inspired by it. However, it is also deliberately kept simple, to
 avoid the need to perform extensive hand-tuning of constants and parameters within the scheduler.
 Some of the heuristics used by \dask{} were changed, simplified, or dropped in
-our implementation. For example \rsds{}, does not estimate average task
-durations and does not use any network bandwidth estimates.
+our implementation. For example, \rsds{} does not estimate average task
+durations and does not use any network bandwidth estimates. The work-stealing scheduler uses the
+\emph{b-level} heuristic, as we have found that it provides reasonable performance in our
+experiments described in the previous chapter.
 
 The \rsds{} work-stealing scheduler works as follows: when a task becomes ready
 (i.e.\ all its inputs are already finished), it is immediately assigned to a worker. The scheduler
