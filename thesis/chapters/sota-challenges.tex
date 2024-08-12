@@ -709,10 +709,10 @@ needs a running instance of the MongoDB database, and \balsam{} uses the Postgre
 storing task metadata. Compiling, configuring and deploying these complex runtime dependencies on
 \gls{hpc} clusters can be quite challenging.
 
-\section{Interfaces}
-One of the important aspects that affect the simplicity of defining task graphs is the interface
-offered to describe the execution logic, resource requirements, dependencies and other
-properties of tasks.
+\section{Programming interface}
+One important aspect that affects the simplicity of defining task graphs is
+the programming interface used to describe the execution logic, resource
+requirements, dependencies and other properties of tasks and task graphs.
 
 Existing interfaces usually belong to one of three broad categories. Tools such as \gnuparallel{} or \hypershell{}
 offer a \gls{cli}, which enables defining tasks that should be computed directly in the
@@ -730,8 +730,10 @@ defining tasks, e.g.\ \dask{}, \ray{}, \parsl{}, \balsam{} or \pegasus{}. This a
 users to create task graphs however they like, although it can be unnecessarily verbose and complex
 for simple use-cases.
 
-Although this aspect of task graph execution is not specific to \gls{hpc} use-cases,
-their scale can make some interfaces (such as workflow files) less practical.
+Although this aspect of task graph execution is not specific to \gls{hpc} use-cases, their
+idiosyncracies can affect the suitability of certain interfaces. For example, workflow files
+might be less practical for large task graphs, while a \gls{cli} can be familiar to users of
+other \gls{hpc} technologies.
 
 \section*{Summary}
 This chapter has described a set of challenges that can limit the usage ergonomics or efficiency
