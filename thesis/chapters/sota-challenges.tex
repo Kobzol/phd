@@ -27,8 +27,7 @@ Examples of such task runtimes include e.g.\ \dask~\cite{dask},
 \autosubmit~\cite{autosubmit} or \fireworks~\cite{fireworks}. Each task runtime
 defines its own instance of a task-based programming model, and has a different set of trade-offs
 in areas such as performance and scalability, fault tolerance, ease-of-use, ease-of-deployment and
-others. There is no single best task runtime; each one has a specific set of use-cases for which it was designed
-and where it provides the most value. Various representatives of task runtimes will be described in
+others. Various representatives of task runtimes will be described in
 this chapter in the context of the individual task graph execution challenges.
 
 After the general overview of existing task runtimes presented in this chapter,~\Autoref{ch:rsds} will
@@ -306,7 +305,9 @@ While this approach makes partitioning easier for users, they still need to deci
 partitioning mode should be used for which tasks. Furthermore, a significant disadvantage is
 that the partitioning is performed statically, before the task graph is executed. This can lead
 to suboptimal hardware utilization, because it is not possible to load balance tasks across
-different allocations.
+different allocations. It can also lead to resource waste, because allocations created to
+execute a group of tasks will typically be configured so that they ask for a sum of all the
+resource requirements of tasks within that group
 
 \textsc{E-HPC}~\cite{ehpc} tackles the issue of monolithic allocations that waste resources by
 asking for a union of resources required for the workflow. It does that by splitting individual
