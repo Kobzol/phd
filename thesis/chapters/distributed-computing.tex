@@ -394,12 +394,12 @@ df = pd.read_csv("dataset.csv")
 # task graph shown on the right
 df.groupby("Country").GDP.mean()
 	\end{minted}
-		\caption{\dask{} DataFrame query and its corresponding task graph}
-		\label{lst:dask-dataframe-example-1}
 	\end{minipage}
 	\begin{minipage}{.6\linewidth}
 		\includegraphics[width=\linewidth]{imgs/dask-dataframe-1-graph}
 	\end{minipage}
+	\caption{\dask{} DataFrame query and its corresponding task graph}
+	\label{lst:dask-dataframe-example-1}
 \end{listing}
 
 Specialized types of task graphs are also commonly used to parallelize \emph{dataframe}
