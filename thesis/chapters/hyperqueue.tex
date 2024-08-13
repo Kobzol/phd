@@ -838,7 +838,8 @@ not available). In this case, the scheduler could decide to execute the task pur
 \gls{cpu} resources, if there are no \gls{gpu} resources currently
 available. Without support for resource variants, the scheduler would need to wait for a
 \gls{gpu} to become available, even if there were free \gls{cpu}
-resources that could be used in the meantime.
+resources that could be used in the meantime. The load-balancing improvements that can be
+achieved with resource variants will be evaluated in~\Autoref{sec:hq-exp-resource-variants}.
 
 There is also one additional special resource that is relevant for scheduling, called a
 \emph{time request}. If a task specifies a time request (a duration) $t$, it
@@ -1654,6 +1655,54 @@ the tasks are empty; however, it does demonstrate that \dask{}'s can have
 performance issues with large or very granular task graphs. It is also clear that the overhead of
 \dask{} increases quickly with multiple added workers, which is further exacerbated
 when multiple workers per node are used.
+
+\subsection{Resource variants}
+\label{sec:hq-exp-resource-variants}
+This experiment evaluates the load-balancing benefits of \emph{resource variants}. We simulate a
+task graph with a computation that can run either on a \gls{gpu} or on a \gls{cpu}. Assume that
+there is a limited number of accelerators on a node , but there are also additional
+\gls{cpu} cores that can be used for the computation. The simplest approach is to configure all
+tasks to run on the \gls{gpu}. However, this means that the \gls{cpu} resources will be wasted.
+To avoid that, we can assign a fixed portion of the tasks to run on the \gls{cpu}; however,
+deciding this up front will not allow \hyperqueue{} to execute such tasks on a \gls{gpu} even if
+one was available at the given moment. Using resource variants, we can state that a task should
+be executed primarily on a \gls{gpu}, but if one is not currently available, then it can also
+run on the \gls{cpu}.
+
+In this experiment, we evaluate the simple workflow with $300$ tasks, on a node with $8$
+virtual \glspl{gpu} and same number of \glspl{cpu}. To emulate the performance difference
+between the \gls{gpu} and the \gls{cpu}, tasks executed on the accelerator will sleep for
+\SI{1}{\second}, and tasks executed on the \gls{cpu} will sleep for a multiple of this duration,
+according to a given ratio (which is a benchmark parameter).
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/hq/charts/alternative-resources}
+	\caption{Load-balancing effect of resource variants}
+	\label{fig:hq-resource-variants}
+\end{figure}
+
+The results of the experiment can be observed in~\Autoref{fig:hq-resource-variants}. The
+vertical axis displays the makespan; the five bars represent different configurations of
+resources. In the \emph{\gls{gpu} only} mode, all tasks were configured to run on a single
+\gls{gpu}. In the \emph{\gls{gpu} or \gls{cpu}} mode, tasks were configured to run either on the \gls{gpu}
+or on the \gls{cpu}, using resource variants. The remaining three modes assigned a specific
+fraction of tasks to run on the \gls{gpu}; the rest was executed on the \gls{cpu}. The three
+charts show results for different values of the \gls{gpu} vs \gls{cpu} performance ratio, i.e.\ how
+much faster was the task running on a \gls{gpu}.
+
+We can see that unless the \gls{gpu} ratio is too high or we assign too many tasks to the
+\gls{cpu}, it is beneficial to also leverage the \gls{cpu} resources, rather than using only \glspl{gpu}.
+With \gls{cpu} fractions determined manually in advance, the result depends heavily on
+the \emph{\gls{gpu} ratio}, and in certain configurations it can make the makespan significantly
+longer. This would thus be both less efficient and more laborious to configure for the user. On
+the other hand, when the resources for each task are configured using two resource variants
+(either \gls{gpu} or \gls{cpu}), \hyperqueue{} is able to dynamically adapt to all three
+\gls{gpu} ratios. In all three scenarios, the makespan with resource variants is strictly
+smaller than with \glspl{gpu} only, and it either surpasses or matches
+the best result achieved with a predetermined fraction of tasks running on the \gls{cpu}. This
+shows that resource variants can help achieve better hardware utilization without requiring the user to
+fine-tune resource configurations of individual tasks in the task graph.
 
 \subsection{Worker \gls{cpu} utilization}
 \label{sec:hq-cpu-utilization}
