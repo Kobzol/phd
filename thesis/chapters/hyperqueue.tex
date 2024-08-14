@@ -1,8 +1,10 @@
 The previous two chapters focused primarily on the performance aspects of task graph execution, by
 examining various task scheduling algorithms and also bottlenecks that can limit the scalability of
-existing task runtimes. Performance is naturally crucial for \gls{hpc}, yet it should
+existing task runtimes. Our experiments have provided us a guidance on how to implement efficient
+task scheduling and what sorts of bottlenecks to avoid in the implementation of the task runtime
+itself. However, while performance is naturally crucial for \gls{hpc}, it should
 not be the only factor to focus on. \Autoref{ch:sota} discussed several other challenges
-affecting \gls{hpc} task graphs, that are related to the second main focus of this
+affecting \gls{hpc} task graphs that are related to the second main focus of this
 thesis, namely the \emph{ergonomics} of task graph execution.
 
 Execution ergonomics (in the context of task-based programming models) is a broad area that
@@ -15,22 +17,18 @@ resolving ergonomic challenges that form a barrier for executing task graphs on
 have to contradict each other; approaches that increase ergonomics can also help with improving
 performance and hardware utilization.
 
-One approach to improve ergonomics could be to make incremental improvements that would mitigate
-the mentioned issues in off-the-shelf task runtimes. However, as we will see later in this chapter,
-ergonomic areas such as supporting heterogeneous tasks and clusters and resource requirements,
-providing fault tolerance and dynamic load balancing and overcoming allocation manager limits are
-all intertwined, and they affect each other in non-trivial ways. Therefore, this chapter introduces
-a holistic meta-scheduling design that aims to tackle the most important challenges with a unified
-solution, in order to enable effortless, efficient and fault-tolerant execution of task graphs on
-heterogeneous \gls{hpc} clusters in the presence of allocation managers.
+This chapter introduces a meta-scheduling design that aims to tackle the most important
+\gls{hpc} task graph execution challenges with a unified solution, by providing a set of
+guiding principles for implementing task runtimes. It takes into account
+heterogeneous resource management, fault tolerance, dynamic load balancing, interaction with
+allocation managers and other aspects required to enable effortless and efficient
+execution of task graphs on supercomputers.
 
-This reference design has been implemented in \hyperqueue{}, an
-\gls{hpc}-tailored task runtime that was designed to enable transparent, ergonomic
-and efficient execution of task graphs on \gls{hpc} systems. \hyperqueue{}
-is a spiritual successor of \rsds{}, and builds upon its server and task scheduler
-implementation; however, it does not use the \dask{} interface. It is the
-culmination of the research and work presented in this thesis, which was made possible thanks to
-the experience gained from \estee{} and \rsds{}, and also from
+Additionally, it describes a reference implementation of this design called \hyperqueue{}, an
+\gls{hpc}-tailored task runtime that was created with these guiding principles in mind in order to
+enable transparent, ergonomic and efficient execution of task graphs on \gls{hpc} clusters.  It
+is the culmination of the research and work presented in this thesis, which was made possible thanks to
+the experience gained from our work on \estee{} and \rsds{}, and also from
 interacting with many \gls{hpc} workflows and use-cases over the course of several
 years.
 
@@ -50,31 +48,37 @@ The work presented in this chapter makes the following contributions:
 	      and use-cases.
 \end{enumerate}
 
-This chapter first introduces the general meta-scheduling design for mapping tasks to allocations.
+This chapter first introduces the proposed general meta-scheduling design.
 Then it describes the architecture of \hyperqueue{}, which implements the proposed
 design, and presents how its features alleviate the challenges described
-in~\Autoref{ch:sota}. Finally, it provides a performance analysis of \hyperqueue{},
-evaluates it on several use-cases and compares its features with other state-of-the-art
-meta-scheduling task runtimes.
+in~\Autoref{ch:sota}. Finally, it presents several use-cases where \hyperqueue{} was successfully
+used, provides a performance analysis of \hyperqueue{} on various stress tests and compares it with
+state-of-the-art meta-scheduling task runtimes.
 
 We have described the design and key ideas of \hyperqueue{} in
 \emph{HyperQueue: efficient and ergonomic task graphs on HPC clusters}~\cite{hyperqueue}. The architecture of \hyperqueue{}
-descriptions presented in this chapter was adapted from this publication.
+presented in this chapter was adapted from this publication.
 
 \workshare{I have collaborated on this work with Ada Böhm; we have both contributed to it equally. I am the
 sole author of the design and implementation of the automatic allocator
 component, and I have also significantly contributed to the design and implementation of most remaining parts
 of \hyperqueue{}. I have designed and performed all the experiments described in this
-chapter. While Ada and I are the primary contributors to \hyperqueue{}, it should be noted that several other people have contributed to it, as its development is a team effort. Source code contribution statistics for
+chapter. While Ada and I are the primary contributors to \hyperqueue{}, it should be noted that other people have also contributed to it, as its development is a team effort. Source code contribution statistics for
 \hyperqueue{} can be found on GitHub\footnoteurl{https://github.com/it4innovations/hyperqueue/graphs/contributors}.}
 
-\section{Interaction with allocation managers}
+\section{Meta-scheduling design}
+This section describes a design for executing task graphs that aims to alleviate the challenges
+described in~\Autoref{ch:sota}. First, we will see a general overview of the design, then we will
+discuss its properties, and the following sections will then describe its concrete implementation
+within the \hyperqueue{} task runtime.
+
 The primary challenge that affects the simplicity of task graph execution on
-\gls{hpc} clusters is the presence of an allocation manager, as it forms a barrier;
+\gls{hpc} clusters is the presence of an allocation manager, because it forms a barrier;
 on such clusters, it is not possible to compute anything at all without interacting with
-allocations. In order for task graph execution to become truly ergonomic, there is no point in
-tackling the rest of the (ergonomic) challenges until there is a straightforward way of executing
-task graphs through an allocation manager.
+allocations. In order for task graph execution to become truly ergonomic, it is the first and
+foremost challenge that needs to be resolved. It is also tied to most of the other mentioned
+challenges; heterogeneous resource requirements, fault tolerance and efficient hardware
+utilization are all affected by the way allocations are managed.
 
 \Autoref{challenge:allocation-manager} has described several approaches that can be used to map tasks to
 allocations, which is necessary to execute task graphs, as well as their various shortcomings. Due
@@ -84,7 +88,7 @@ Furthermore, it can result in non-optimal usage of hardware resources, because t
 (sub)graphs submitted in separate allocations will only be load balanced within their own
 allocation, and not across different allocations.
 
-It is important to understand what is uniquely challenging about the interaction with allocations.
+It is important to note what is uniquely challenging about the interaction with allocations.
 The fact that the computation needs to go through a queue is not an issue by itself, as we are
 dealing with batch processing anyway. Therefore, some form of a delay between submitting the task
 graph and receiving the results is expected, even if we did not have to submit allocations at all.
@@ -98,46 +102,37 @@ several reasons:
 
 \begin{itemize}
 	\item The user needs to consider both aspects at the same time. Ultimately, the main thing that the user
-	      cares about is what they want to compute. With allocations, they also need to think about specific
-	      hardware resources that should be allocated for computing their task graph, which can be
-	      challenging.
+	cares about is what they want to compute. With allocations, they also need to think about specific
+	hardware resources that should be allocated for computing their task graph, which can be
+	challenging.
 	\item Hardware resources are allocated for the whole duration of the allocation. This can result in
-	      inefficient resource usage, especially for heterogeneous task graphs that consist of many types of
-	      tasks that use different resources. In situations where not all resources can be used at the same
-	      time, some of the resources can unnecessarily remain idle. For example, consider a task graph
-	      executed inside an allocation that provides two computational nodes. Tasks will be load balanced
-	      among these two nodes, but towards the end of the computation, there might be tasks that will take
-	      a long time to finish. This might lead to a situation where only one of the nodes will be computing
-	      the long tail of the remaining tasks, while the second node will be idle. Due to the fact that the
-	      allocation cannot release the second node while the computation is still ongoing, the user
-	      pointlessly pays the cost of both nodes until the task graph finishes computing, even though the
-	      second node is not doing any useful work.
-
+	inefficient resource usage, especially for heterogeneous task graphs that consist of many types of
+	tasks that use different resources. In situations where not all resources can be used at the same
+	time, some of the resources can unnecessarily remain idle.
 	\item The amount of used resources has to be decided up front, new hardware resources cannot be added or
-	      removed from existing allocations. This can cause inefficiencies, as described above, but it also
-	      limits load balancing. If balancing only happens within (and not across) allocations, users cannot
-	      easily provide new hardware resources during the computation, if they realize that it is
-	      progressing too slowly.
+	removed from existing allocations. Apart from resource waste, this also
+	limits load balancing. If balancing only happens within (and not across) allocations, users cannot
+	easily provide new hardware resources during the computation to make the task graph
+	execution faster.
 	\item Granularity of the allocated resources might not match the granularity of tasks. Unless the
-	      allocation manager supports very fine-grained allocations (e.g.\ on the level of individual
-	      \gls{cpu} cores, rather than whole computational nodes), there can be a large gap
-	      between the resources required by a task graph and the resources provided to an individual
-	      allocation. This can again lead to resources sitting idle.
+	allocation manager supports very fine-grained allocations (e.g.\ on the level of individual
+	\gls{cpu} cores, rather than whole computational nodes), there can be a large gap
+	between the resources required by a task graph and the resources provided to an individual
+	allocation. This can again lead to resources sitting idle.
 	\item Binding computation with specific hardware resources up front complicates handling task failures.
-	      When the user submits thousands of tasks on a specific set of hardware resources, and some of these
-	      tasks fail, the user might need to create a new allocation to recompute the failed tasks. This
-	      requires once again figuring out a new set of hardware resources that should be requested, as the
-	      original resources will probably not be a good fit for just a subset of the original computation. A
-	      fault-tolerant design would ideally allow recomputing tasks on any compatible hardware resource
-	      transparently, which is incompatible with forcing computations and resources to be defined
-	      together. Furthermore, fault tolerance should be handled automatically, without the user's
-	      intervention.
+	When the user submits thousands of tasks on a specific set of hardware resources, and some of these
+	tasks fail, the user might need to create a new allocation to recompute the failed tasks. This
+	requires once again figuring out a new set of hardware resources that should be requested, as the
+	original resources will probably not be a good fit for just a subset of the original computation. A
+	fault-tolerant design would ideally allow recomputing tasks on any compatible hardware resource
+	transparently, which is incompatible with forcing computations and resources to be defined
+	together.
 \end{itemize}
 
-It is interesting to note that some of these challenges uniquely affect task graphs, and in general
-programming models that are different from the traditional ways of defining \gls{hpc}
+As an aside, it is interesting to note that some of these challenges uniquely affect task graphs,
+and in general programming models that are different from the traditional ways of defining \gls{hpc}
 computations. Consider a distributed application implemented using \gls{mpi}, which
-has historically been the most common way of defining computations on supercomputers.
+has historically been a common way of defining computations on supercomputers.
 \gls{mpi} applications typically assume that they will run on a set of computational
 nodes for a relatively long duration (hours or even days). This set of nodes (corresponding to
 \gls{mpi} processes) usually does not change during the computation; it is not
@@ -146,25 +141,11 @@ computation being aborted, as fault tolerance is not a default property of \gls{
 applications~\cite{fault_tolerant_mpi}.
 
 These properties of \gls{mpi} applications are similar to the mentioned properties of
-allocations; therefore, they fit together well, and using allocations to execute them is relatively
+allocations, so they fit together well, and using allocations to execute them is relatively
 straightforward. In fact, it is clear that the allocation model itself was designed with
 \gls{mpi}-like use-cases in mind. Therefore, it is not very surprising that the
 concept of allocations is not a good match for programming models that are very different from
 \gls{mpi}, such as task-based workflows.
-
-%Note that several of the problems associated with using allocations are directly relevant to
-%various challenges from~\Autoref{ch:sota}. Factors such as heterogeneous resource
-%requirements, fault tolerance or efficient hardware usage are affected by the usage of allocations.
-%Because of that, resolving the problems with allocations should also go a long way towards
-%alleviating other ergonomic challenges of task graph execution.
-
-\section{Meta-scheduling design}
-This section describes a design for executing task graphs that aims to alleviate the mentioned
-challenges by treating task-based programming models as first-class citizens, but still remaining
-compatible with allocation managers to enable straightforward execution on \gls{hpc}
-clusters. First, we will see a general overview of the design, then we will discuss its properties,
-and the following sections will describe its concrete implementation within the
-\hyperqueue{} task runtime.
 
 We have seen that the most problematic aspect of allocations is the requirement to define
 computations and hardware resources together. The key idea of the proposed design is thus to
@@ -181,50 +162,50 @@ submission process. The proposed approach is built upon the following three prin
 
 \begin{description}[wide=0pt]
 	\item[Task runtime runs outside of allocations] Moving the task runtime outside of allocations and running it at some persistent location in the
-		cluster (e.g.\ on a login node) enables users to submit tasks to it in a straightforward way and
-		crucially also to define the task graph independently of allocations. This removes the need to
-		decide which tasks should be computed on which hardware resources and in which allocations up
-		front. It can also improve hardware utilization, because it gives the task runtime the ability to
-		load balance tasks across all active allocations.
+	cluster (e.g.\ on a login node) enables users to submit tasks to it in a straightforward way and
+	crucially also to define the task graph independently of allocations. This removes the need to
+	decide which tasks should be computed on which hardware resources and in which allocations up
+	front. It can also improve hardware utilization, because it gives the task runtime the ability to
+	load balance tasks across all active allocations.
 
-		This is where the term \emph{meta-scheduling} comes in; the essence of the idea is to use a task
-		runtime as a sort of high-level scheduler on top of an allocation manager. Instead of forcing users
-		to think in terms of allocations, they can submit task graphs in the same way they would on a
-		system that is not supervised by allocation managers, and let the task runtime automatically decide
-		in which allocation a task should be executed.
+	This is where the term \emph{meta-scheduling} comes in; the essence of the idea is to use a task
+	runtime as a sort of high-level scheduler on top of an allocation manager. Instead of forcing users
+	to think in terms of allocations, they can submit task graphs in the same way they would on a
+	system that is not supervised by allocation managers, and let the task runtime automatically decide
+	in which allocation a task should be executed.
 
 	\item[Allocations are uniform] Even if the task runtime runs outside an allocation, we still need to submit \emph{some}
-		allocations to provide hardware resources that will actually execute tasks. However, instead of
-		defining specific tasks that should be computed within an allocation, we can submit allocations
-		that execute a generic computational provider (worker), which will connect to the task runtime
-		instance running outside the allocation, and then execute tasks that are dynamically assigned to it
-		by the runtime.
+	allocations to provide hardware resources that will actually execute tasks. However, instead of
+	defining specific tasks that should be computed within an allocation, we can submit allocations
+	that execute a generic computational provider (worker), which will connect to the task runtime
+	instance running outside the allocation, and then execute tasks that are dynamically assigned to it
+	by the runtime.
 
-		With this approach, allocations become trivial and completely uniform, because they all have the
-		same structure; each allocation simply starts a (set of) computational provider(s). This makes it
-		much easier for users to submit allocations. Instead of thinking about how to partition their task
-		graphs, users simply decide how many computational resources they want to spend at any given
-		moment, and start the corresponding number of allocations. Furthermore, this also allows the task
-		runtime to submit allocations completely automatically based on the current computational load.
+	With this approach, allocations become trivial and completely uniform, because they all have the
+	same structure; each allocation simply starts a (set of) computational provider(s). This makes it
+	much easier for users to submit allocations. Instead of thinking about how to partition their task
+	graphs, users simply decide how many computational resources they want to spend at any given
+	moment, and start the corresponding number of allocations. Furthermore, this also allows the task
+	runtime to submit allocations completely automatically based on the current computational load.
 	\item[Pair tasks with workers using abstract resources] The principles described above separate the two core pillars of task graph execution; the
-		definition of the task graph and the provisioning of hardware resources. However, we actually do
-		need to have \emph{some} way of tying these two aspects together, because tasks might
-		have various constraints on the environment in which they can be executed. We saw that submitting
-		tasks directly as allocations, which explicitly ties tasks to a set of hardware resources, had many
-		disadvantages. What we can do instead is to use a resource system that will allow us to pair tasks
-		with workers in a more general and abstract way. Each task can describe a set of abstract resources
-		that have to be available so that the task can be executed, and each worker will in turn provide a
-		set of abstract resources that it provides. The task runtime will then dynamically assign tasks to
-		workers by matching these resources together, while making sure that worker resources are not being
-		oversubscribed.
+	definition of the task graph and the provisioning of hardware resources. However, we actually do
+	need to have \emph{some} way of tying these two aspects together, because tasks might
+	have various constraints on the environment in which they can be executed. We saw that submitting
+	tasks directly as allocations, which explicitly ties tasks to a set of hardware resources, had many
+	disadvantages. What we can do instead is to use a resource system that will allow us to pair tasks
+	with workers in a more general and abstract way. Each task can describe a set of abstract resources
+	that have to be available so that the task can be executed, and each worker will in turn provide a
+	set of abstract resources that it provides. The task runtime will then dynamically assign tasks to
+	workers by matching these resources together, while making sure that worker resources are not being
+	oversubscribed.
 
-		As an example, a task can specify that it requires four \gls{cpu} cores and two
-		\glspl{gpu}. If we provide the task runtime with a worker that has 128 cores and 8
-		\glspl{gpu}, it could schedule up to four instances of this task on this worker at the
-		same time.
+	As an example, a task can specify that it requires four \gls{cpu} cores and two
+	\glspl{gpu}. If we provide the task runtime with a worker that has 128 cores and 8
+	\glspl{gpu}, it could schedule up to four instances of this task on this worker at the
+	same time.
 
-		This approach allows defining complex heterogeneous tasks while allowing users to provide workers
-		independently of tasks, and without having to bind tasks to specific allocations.
+	This approach allows defining complex heterogeneous tasks while allowing users to provide workers
+	independently of tasks, and without having to bind tasks to specific allocations.
 \end{description}
 
 The proposed design enables straightforward execution of large heterogeneous task graphs with
@@ -263,12 +244,14 @@ runtime called \hyperqueue{}, which will be described in the rest of this chapte
 \section{\hyperqueue{}}
 \hyperqueue{} (\hq{}) is a distributed task runtime that aims to make task graph execution a
 first-class concept on supercomputers. It does that by implementing the meta-scheduling design
-described in the previous section, and providing functionality optimized for
-\gls{hpc} use-cases. In terms of architecture and implementation, it is an evolution
+described in the previous section and leveraging insights gained from our task scheduling
+experiments and \dask{} runtime efficiency analysis. In terms of architecture and
+implementation, it is an evolution
 of the \rsds{} task runtime described in~\Autoref{ch:rsds}; however, instead
 of using the \dask{} components and \glspl{api}, it implements its own
-task-based programming model. \hyperqueue{} is developed in the Rust programming language
-and it is provided as an \mbox{MIT-licensed} open-source tool~\cite{hq_github}.
+task-based programming model. \hyperqueue{} is developed in the Rust
+programming language~\cite{rust} and it is provided as an \mbox{MIT-licensed}
+open-source tool~\cite{hq_github}.
 
 This section describes the high-level design of \hyperqueue{}, its programming model and
 the most important features. It also presents several use-cases where it has been successfully
@@ -1125,7 +1108,7 @@ times~\cite{task-duration-prediction}.
 %\Autoref{sec:hq-exp-autoalloc} will evaluate how well the automatic allocation system is able to
 %scale in response to computational demand and how it limits the waste of computational resources.
 
-\section{\hyperqueue{} use-cases}
+\section{Use-cases}
 This section describes several use-cases where \hyperqueue{} has been successfully used
 to execute task graphs on \gls{hpc} systems. Apart from these selected case studies,
 it has also been used in other projects and scenarios; these will be enumerated at the end of this
@@ -2055,275 +2038,6 @@ necessary to tune the number of tasks for some workflows in order to achieve opt
 
 %%TODO: GPU benchmark (with pre-expanded ligands?)
 
-\section{Comparison with other task runtimes}
-\label{hq:related-work}
-\Autoref{ch:sota} has described several existing task runtimes and their ability to cope
-with the mentioned challenges that affect task graph execution on \gls{hpc} clusters.
-Even within the particular area of task-based programming that was specified
-in~\Autoref{ch:distributed-computing}, there are dozens of tools designed for executing some
-kind of task graph, whose features and target use-cases partially overlap with \hyperqueue{}. We
-will focus on a smaller subset of task runtimes that enable performing some form of
-meta-scheduling on top of allocation managers and can therefore be more directly compared with
-\hyperqueue{}. Several representatives of these tools will be mentioned in this section.
-
-It should be noted that when comparing task runtimes, we compare not only the inherent properties
-of their design and programming model (such as how do they specify dependencies or manage resource
-requirements), but also their implementation details (such as what runtime dependencies are
-necessary to deploy the task runtime). As was shown in~\Autoref{subsec:estee-schedulers}
-and~\Autoref{sec:rsds-dask-overhead-analysis}, implementation details are crucial; they significantly
-affect both the efficiency and scalability of the task runtime, and they also dictate how easy it is
-to use and deploy it. We thus consider it important to compare actual implementations, rather than only
-theoretical designs without any implementation available.
-
-% !{\kern1em} - space
-% @{} - remove space
-%    \begin{tabular}{@{}lc GG !{\kern1em} GGG !{\kern1em} GG@{}}
-%    \multicolumn{3}{c|}{\makecell{Task\\interfaces}} &
-%    \multicolumn{p{4em}}{c|}{Task\newline{}interfaces} &
-% https://stackoverflow.com/questions/1357798/how-to-center-cell-contents-of-a-latex-table-whose-columns-have-fixed-widths
-
-% Inspiration taken from https://tex.stackexchange.com/a/377651/95679
-% tasks unrelated to allocations
-% map tasks to allocations
-% tasks pinned to a specific queue
-% task graph partitioning
-% load balancing
-% generic workers - Parsl no, Merlin no
-% auto-allocation
-% fault-tolerance - automatic, manual
-
-% Manual task graph partitioning
-\newcommand*\manualmap{\LEFTcircle}
-% Automatic task graph partitioning
-\newcommand*\automaticmap{\CIRCLE}
-% Manual fault tolerance
-\newcommand*\manualft{\LEFTcircle}
-% Automatic fault tolerance
-\newcommand*\automaticft{\CIRCLE}
-
-% \begin{noindent}
-\begin{table}[h]
-%	\aboverulesep=0ex
-%	\belowrulesep=0ex
-	\footnotesize
-	\newcommand*\rot[1]{\footnotesize\hbox to1em{\hss\rotatebox[origin=br]{-90}{#1}}}
-	\newcommand*\rotheading[1]{\footnotesize\hbox to1em{\hss\rotatebox[origin=br]{-60}{#1}}}
-	\newcommand*\feature[1]{\ifcase#1 -\or\LEFTcircle\or\CIRCLE\fi}
-	\newcommand*\f[3]{\feature#1&\feature#2&\feature#3}
-	\makeatletter
-	\newcommand*\ex[9]{#1\tnote{#2}&#3&%
-	\f#4&\f#5&\f#6&\f#7&\f#8&\f#9&\expandafter\f\@firstofone
-	}
-	% Features
-	\newcommand*\yes{\faThumbsOUp}
-%	\newcommand*\no{\faThumbsODown}
-	\newcommand*\no{-}
-	\newcommand*\partially{\faThumbsOUp}
-	% CLI for submitting tasks
-	\newcommand*\cli{C}
-	% Workflow files for submitting tasks
-	\newcommand*\workflowfile{W}
-	% Python API for submitting tasks
-	\newcommand*\pythonapi{P}
-	% Requires Python
-	\newcommand*\python{Python}
-	\makeatother
-	\newcolumntype{A}{c@{}c}
-	\newcolumntype{B}{c@{}c@{}c}
-	\newcolumntype{C}{c@{}c@{}c@{}c}
-	\begin{threeparttable}
-	\begin{tabular}{|l|B|A|A|B|C|A|l|}
-	\multicolumn{1}{c}{Task runtime} &
-	\multicolumn{3}{c}{\rotheading{Task interfaces}} &
-	\multicolumn{2}{c}{\rotheading{Task dependencies}} &
-	\multicolumn{2}{c}{\rotheading{Fault tolerance}} &
-	\multicolumn{3}{c}{\rotheading{Meta-scheduling}} &
-	\multicolumn{4}{c}{Resources} &
-	\multicolumn{2}{c}{\rotheading{Data transfers}} &
-	\multicolumn{1}{c}{Deployment}\\
-	\midrule
-	& % tool
-	\rot{CLI} & \rot{Workflow file} & \rot{Python API} & % interfaces
-	\rot{Explicit} & \rot{Inferred from files} & % dependencies
-	\rot{Worker failure} & \rot{Server failure} & % fault tolerance
-	\rot{Graph partitioning} &
-	\rot{Automatic allocation} & \rot{Generic workers} & % meta-scheduling
-	\rot{Basic (CPU/GPU)} & \rot{Generic resources} & \rot{Resource pools} &
-	\rot{Multi-node tasks} & %resources
-	\rot{Directly between tasks} & \rot{Output streaming} & % data transfers
-	Runtime dependencies \\ % deployment
-	\midrule
-	\gnuparallel{}\hfill\cite{parallel} & \yes & \no & \no & \no & \no & \manualft & \no & \no & \no & \no & \no & \no & \no & \no & \no & \yes & Perl \\
-%	\midrule
-	\hypershell{}\hfill\cite{hypershell} & \yes & \no & \yes & \no & \no & \automaticft & \yes & \manualmap & \yes & \no & \no & \no & \no & \no & \no & \yes & \python \\
-%	\midrule
-	\dask{}\hfill\cite{dask} & \no & \no & \yes{} & \yes{} & \no &
-	\automaticft & \no & \automaticmap\textsuperscript{\dag} & \yes\textsuperscript{\dag} & \yes & \yes & \yes & \no & \no & \yes & \yes & \python \\
-%	\midrule
-	\ray{}\hfill\cite{ray} & \no & \no & \yes & \yes & \no & \automaticft & \yes
-\textsuperscript{*} & \automaticmap & \no & \yes & \yes & \yes & \no & \no & \yes & \partially & \python \\
-%	\midrule
-	\parsl{}\hfill\cite{parsl} & \no & \no & \yes & \yes & \no & \automaticft &
-	\no & \automaticmap & \yes & \no & \yes & \no & \no & \yes & \yes & \no & \python \\
-%	\midrule
-	\pycompss{}\hfill\cite{pycompss} & \yes & \no & \yes & \yes & \no & \automaticft &
-	\yes\textsuperscript{*} & \manualmap & \no & \no & \yes & \no & \no & \yes & \yes & \yes & \python, Java \\
-%	\midrule
-	\pegasus{}\hfill\cite{pegasus} & \no & \yes & \yes & \yes & \yes & \automaticft &
-    \yes & \manualmap & \no & \no & \yes & \no & \no & \no & \no & \yes & \python, Java,
-HTCondor~\cite{htcondor} \\
-%	\midrule
-	\balsam{}\hfill\cite{balsam} & \no & \no & \yes & \yes & \no & \automaticft &
-	\yes & \automaticmap & \yes & \yes & \yes & \no & \no & \yes & \yes & \no & \python,
-PostgreSQL \\
-%	\midrule
-	\autosubmit{}\hfill\cite{autosubmit} & \no & \yes & \no & \yes & \no & \automaticft &
-	\yes & \manualmap & \yes & \no & \yes & \no & \no & \yes & \no & \no & \python \\
-%	\midrule
-	\fireworks{}\hfill\cite{fireworks} & \no & \yes & \yes & \yes & \no & \manualft &
-	\yes & \automaticmap & \yes & \yes & \no & \no & \no & \no & \no & \no & \python, MongoDB \\
-%	\midrule
-	\merlin{}\hfill\cite{merlin} & \no & \yes & \no & \yes & \no & \manualft &
-	\yes & \automaticmap & \no & \no & \yes & \no & \no & \yes & \no & \no & \python, RabbitMQ/Redis \\
-%	\midrule
-	\snakemake{}\hfill\cite{snakemake} & \no & \yes & \yes & \no & \yes & \automaticft &
-	\no & \manualmap & \yes\textsuperscript{\dag} & \no & \yes & \yes & \no & \yes & \no & \no & \python \\[2mm]
-%	\midrule
-	\hyperqueue{}\hfill\cite{hyperqueue} & \yes & \yes & \yes & \yes & \no & \automaticft &
-	\yes & \automaticmap & \yes & \yes & \yes & \yes & \yes & \yes & \no & \yes & \\
-	\bottomrule
-\end{tabular}
-\begin{tablenotes}
-	\centering
-	\item \yes{} supported; \no{} not supported; \automaticmap{} automatic; \manualmap{} manual;
-	\item \textsuperscript{\dag}with an external plugin; \textsuperscript{*}with additional
-	runtime dependencies
-\end{tablenotes}
-\caption{Comparison of task runtimes}
-\label{tab:hq-tools-comparison}
-\end{threeparttable}
-\end{table}
-% \end{noindent}
-
-\Autoref{tab:hq-tools-comparison} provides a high-level comparison of \hyperqueue{} and twelve
-other task runtimes. It should be noted that there are also many important
-properties that are not mentioned in this table; it primarily compares meta-scheduling aspects
-described in this chapter and other features related to challenges described
-in~\Autoref{ch:sota}. Furthermore, there is no single universally best task runtime; each one has
-a different programming model, a different set of features, and makes various trade-offs based
-on which use-cases it was primarily designed for.
-
-The first section of the table, \emph{Task interfaces}, shows which interfaces can be used to
-submit tasks. \gls{cli} specifies that tasks can be submitted from the command-line,
-\emph{Workflow file} specifies that task graphs can be defined using e.g.\
-\gls{yaml} or \gls{toml} files and \emph{Python \gls{api}} marks runtimes
-that provide the option to specify tasks using Python. Note that the \gls{cli} column
-indicates that tasks and task graphs can be actually defined and submitted using the command-line,
-without requiring additional input files, not just that the runtime provides some form of a
-\gls{cli} (which is true for most of the runtimes).
-
-Most evaluated task runtimes provide a Python \gls{api}, as it enables the most general way of
-defining task graphs. However, it is relatively rare for other tools to offer a comprehensive
-\gls{cli} that could be used to submit simple task graphs without the need to
-implement a script using (an imperative) programming language. \merlin{} and \autosubmit{} only
-allow defining task graphs using workflow files, which can also be quite verbose for simple
-use-cases. \hyperqueue{} offers both a terminal interface for simple use-cases, and a
-Python \gls{api} for more complex task graphs. It also supports workflow files.
-
-The second section, \emph{Task dependencies}, marks the ability to express dependencies between
-tasks. \emph{Explicit} dependencies are described by the user in the task graph definition,
-usually by mentioning a set of task identifiers on which a given task depends. \gnuparallel{}
-and \hypershell{} do not allow specifying task dependencies, as they are designed mostly for
-scenarios where users simply need to execute a large number of tasks in parallel. Most other
-tools allow expressing dependencies between tasks explicitly. \pegasus{} and \snakemake{} are also
-able to infer dependencies automatically based on input/output files consumed/produced by
-the individual tasks. For \snakemake{}, it is the only way to express dependencies, which can
-limit performance for task graphs with many tasks, as every dependency necessitates the creation
-of a file on a filesystem.
-
-The third section, \emph{Fault tolerance} describes what happens when after a worker or a
-server failure. Task runtimes that can automatically restart tasks after a worker failure are
-marked with \automaticft, those that require user action to recompute failed tasks are
-marked with \manualft. All the evaluated task runtimes provide support for at least some
-kind of resilience against worker failures; it is a truly fundamental feature without which it
-would be infeasible to execute task graphs. To be resilient against server failures,
-the task runtime should be able to restore the state of already computed tasks, and all the
-submitted task graphs, when the task submission command or the main server/scheduler component
-crashes (e.g.\ when it is executed on a login node that shuts down). This property is very useful
-for avoiding unnecessary re-execution of long-running task graphs. Resilience against server
-failures is supported so ubiquitously, although is is still a rather common feature. However, most
-task runtimes require an external service or a database instance to implement server
-persistence, which can complicate their deployment.
-
-The fourth section, \emph{Meta-scheduling}, specifies three properties related to executing tasks
-on top of allocations and general scheduling capabilities. The following list describes the
-individual columns:
-
-\begin{description}[wide=0pt]
-	\item[Graph partitioning] states whether
-	the task runtime can assign tasks to allocations fully automatically (\automaticmap) or if users
-	have to partition tasks into subgroups manually (\manualmap). As already mentioned
-	in~\Autoref{ch:sota}, tools such as \pegasus{}, \autosubmit{} or \snakemake{} require users
-	to manually specify how should tasks be grouped into allocations, which requires more work
-	from the user and can limit hardware utilization. Other task runtimes, such as \dask{}
-	or \balsam{}, are able to fully automatically assign tasks to allocations without any
-	intervention from the user, same as \hyperqueue{}.
-
-	\item[Automatic allocation] highlights task
-	runtimes that are able to automatically submit \emph{\gls{hpc} allocations}. There are
-	various levels of support for this feature. \snakemake{} or \autosubmit{} simply submit
-	allocations that are designed for executing a specific task (or a group of tasks), while
-	other task runtimes, such as \dask{}, \balsam{} or \hyperqueue{}, submit allocations
-	dynamically, based on the current computational load and task state; these allocations start
-	a generic worker that is not tied to any specific task or a subset of tasks.
-	Unlike \hyperqueue{}, \dask{} and \balsam{} support configuring only a single allocation
-	manager queue into which new allocations can be submitted.
-
-	\item[Generic workers] states whether the task runtime
-	supports provisioning of generic workers that can execute any tasks whose resource
-	requirements are compatible with it, without requiring users to preconfigure workers statically for
-	a specific subset of tasks (which makes load balancing less flexible). \merlin{} requires
-	preconfiguring queues that are used for executing specific tasks (such as a task that
-	requires exactly two nodes or sixteen \gls{cpu} cores to execute). A similar rigid approach
-	is used by \parsl{}. On the other hand, \dask{} or \hyperqueue{} make worker spawning very
-	easy, using a single generic command, since their workers are not tied to any specific task.
-\end{description}
-
-The following section, \emph{Resources}, deals with resource management. It shows which task
-runtimes are only able to specify basic (such as \gls{cpu}, \gls{gpu}
-or memory) task resource requirements and which are able to attach fully generic and arbitrary
-requirements to each task. Support for arbitrary resource requirements (and thus heterogeneous
-clusters) is not very common, apart from \hyperqueue{}, only \dask{}, \ray{} and \snakemake{}
-allow users to define their own resource kinds that are then used in task scheduling.
-The \emph{Resource pools} column describes the ability to specify (and
-take into account during scheduling) complex resource requirements, such as specifying
-relationships between resources (i.e.\ two cores in the same \gls{numa} node), fractional
-resources or resource variants. This functionality is unique to \hyperqueue{}.
-The \emph{Multi-node} column shows which programming models enable describing multi-node tasks.
-Note that the table only treats this feature as supported in task runtimes that provide the
-ability to assign the number of nodes \emph{per-task}, not just per task graph or per
-allocation. We can see that \snakemake{} is the only task runtime apart from \hyperqueue{} that
-supports both arbitrary resource requirements and multi-node tasks.
-
-The penultimate section, \emph{Data transfers}, states whether it is possible to exchange data
-outputs between tasks directly over the network, without going through the filesystem
-(\emph{Directly between tasks}) and if the task runtime offers the ability to stream standard (error)
-output of tasks over the network to overcome distributed filesystem limitations
-(\emph{Output streaming}). Direct data transfer of task outputs is supported by Python-first
-task runtimes, such as \dask{} or \ray{}. It is not supported by \hyperqueue{}.
-
-The last section, \emph{Deployment}, specifies which runtime
-dependencies and external services have to be available in order to use the task runtime. We can
-see that almost all evaluated task runtimes require Python, as it is a very popular technology for
-working with tasks. Some task runtimes, such as \merlin{} or \fireworks{}, additionally require
-an external service for managing persistence or task assignments, these can be challenging to
-deploy on \gls{hpc} clusters. Note that this column specifies the \emph{required} runtime
-dependencies, which are necessary for the task runtime to function. It does not mention optional
-dependencies; for example, \hyperqueue{}'s Python \gls{api} of course also requires a Python
-interpreter, but \hyperqueue{} itself can operate without it.
-
-% TODO: summary?
-
 %The individual task runtimes will be briefly discussed and compared with \hyperqueue{}
 %below.
 %
@@ -2502,6 +2216,291 @@ interpreter, but \hyperqueue{} itself can operate without it.
 %partitioning has to be specified manually by users. Other than that, it submits tasks as individual
 %allocations, which is not ideal for large workflows, because it can easily overload the target
 %cluster~\cite{nersc-snakemake}.
+
+\section{Comparison with other task runtimes}
+\label{hq:related-work}
+\Autoref{ch:sota} has described several existing task runtimes and their ability to cope
+with the mentioned challenges that affect task graph execution on \gls{hpc} clusters.
+Even within the particular area of task-based programming that was specified
+in~\Autoref{ch:distributed-computing}, there are dozens of tools designed for executing some
+kind of task graph, whose features and target use-cases partially overlap with \hyperqueue{}. We
+will focus on a smaller subset of task runtimes that enable performing some form of
+meta-scheduling on top of allocation managers and can therefore be more directly compared with
+\hyperqueue{}. Several representatives of these tools will be mentioned in this section.
+
+It should be noted that when comparing task runtimes, we compare not only the inherent properties
+of their design and programming model (such as how do they specify dependencies or manage resource
+requirements), but also their implementation details (such as what runtime dependencies are
+necessary to deploy the task runtime). As was shown in~\Autoref{subsec:estee-schedulers}
+and~\Autoref{sec:rsds-dask-overhead-analysis}, implementation details are crucial; they significantly
+affect both the efficiency and scalability of the task runtime, and they also dictate how easy it is
+to use and deploy it. We thus consider it important to compare actual implementations, rather than only
+theoretical designs without any implementation available.
+
+% !{\kern1em} - space
+% @{} - remove space
+%    \begin{tabular}{@{}lc GG !{\kern1em} GGG !{\kern1em} GG@{}}
+%    \multicolumn{3}{c|}{\makecell{Task\\interfaces}} &
+%    \multicolumn{p{4em}}{c|}{Task\newline{}interfaces} &
+% https://stackoverflow.com/questions/1357798/how-to-center-cell-contents-of-a-latex-table-whose-columns-have-fixed-widths
+
+% Inspiration taken from https://tex.stackexchange.com/a/377651/95679
+% tasks unrelated to allocations
+% map tasks to allocations
+% tasks pinned to a specific queue
+% task graph partitioning
+% load balancing
+% generic workers - Parsl no, Merlin no
+% auto-allocation
+% fault-tolerance - automatic, manual
+
+% Manual task graph partitioning
+\newcommand*\manualmap{\LEFTcircle}
+% Automatic task graph partitioning
+\newcommand*\automaticmap{\CIRCLE}
+% Manual fault tolerance
+\newcommand*\manualft{\LEFTcircle}
+% Automatic fault tolerance
+\newcommand*\automaticft{\CIRCLE}
+
+% \begin{noindent}
+\begin{table}[h]
+%	\aboverulesep=0ex
+%	\belowrulesep=0ex
+\footnotesize
+\newcommand*\rot[1]{\footnotesize\hbox to1em{\hss\rotatebox[origin=br]{-90}{#1}}}
+\newcommand*\rotheading[1]{\footnotesize\hbox to1em{\hss\rotatebox[origin=br]{-60}{#1}}}
+\newcommand*\feature[1]{\ifcase#1 -\or\LEFTcircle\or\CIRCLE\fi}
+\newcommand*\f[3]{\feature#1&\feature#2&\feature#3}
+\makeatletter
+\newcommand*\ex[9]{#1\tnote{#2}&#3&%
+\f#4&\f#5&\f#6&\f#7&\f#8&\f#9&\expandafter\f\@firstofone
+}
+% Features
+\newcommand*\yes{\faThumbsOUp}
+%	\newcommand*\no{\faThumbsODown}
+\newcommand*\no{-}
+\newcommand*\partially{\faThumbsOUp}
+% CLI for submitting tasks
+\newcommand*\cli{C}
+% Workflow files for submitting tasks
+\newcommand*\workflowfile{W}
+% Python API for submitting tasks
+\newcommand*\pythonapi{P}
+% Requires Python
+\newcommand*\python{Python}
+\makeatother
+\newcolumntype{A}{c@{}c}
+\newcolumntype{B}{c@{}c@{}c}
+\newcolumntype{C}{c@{}c@{}c@{}c}
+\begin{threeparttable}
+\begin{tabular}{|l|B|A|A|B|C|A|l|}
+\multicolumn{1}{c}{Task runtime} &
+\multicolumn{3}{c}{\rotheading{Task interfaces}} &
+\multicolumn{2}{c}{\rotheading{Task dependencies}} &
+\multicolumn{2}{c}{\rotheading{Fault tolerance}} &
+\multicolumn{3}{c}{\rotheading{Meta-scheduling}} &
+\multicolumn{4}{c}{Resources} &
+\multicolumn{2}{c}{\rotheading{Data transfers}} &
+\multicolumn{1}{c}{Deployment}\\
+\midrule
+& % tool
+\rot{CLI} & \rot{Workflow file} & \rot{Python API} & % interfaces
+\rot{Explicit} & \rot{Inferred from files} & % dependencies
+\rot{Worker failure} & \rot{Server failure} & % fault tolerance
+\rot{Graph partitioning} &
+\rot{Automatic allocation} & \rot{Generic workers} & % meta-scheduling
+\rot{Basic (CPU/GPU)} & \rot{Generic resources} & \rot{Resource pools} &
+\rot{Multi-node tasks} & %resources
+\rot{Directly between tasks} & \rot{Output streaming} & % data transfers
+Runtime dependencies \\ % deployment
+\midrule
+\gnuparallel{}\hfill\cite{parallel} & \yes & \no & \no & \no & \no & \manualft & \no & \no & \no & \no & \no & \no & \no & \no & \no & \yes & Perl \\
+%	\midrule
+\hypershell{}\hfill\cite{hypershell} & \yes & \no & \yes & \no & \no & \automaticft & \yes & \manualmap & \yes & \no & \no & \no & \no & \no & \no & \yes & \python \\
+%	\midrule
+\dask{}\hfill\cite{dask} & \no & \no & \yes{} & \yes{} & \no &
+\automaticft & \no & \automaticmap\textsuperscript{\dag} & \yes\textsuperscript{\dag} & \yes & \yes & \yes & \no & \no & \yes & \yes & \python \\
+%	\midrule
+\ray{}\hfill\cite{ray} & \no & \no & \yes & \yes & \no & \automaticft & \yes
+\textsuperscript{*} & \automaticmap & \no & \yes & \yes & \yes & \no & \no & \yes & \partially & \python \\
+%	\midrule
+\parsl{}\hfill\cite{parsl} & \no & \no & \yes & \yes & \no & \automaticft &
+\no & \automaticmap & \yes & \no & \yes & \no & \no & \yes & \yes & \no & \python \\
+%	\midrule
+\pycompss{}\hfill\cite{pycompss} & \yes & \no & \yes & \yes & \no & \automaticft &
+\yes\textsuperscript{*} & \manualmap & \no & \no & \yes & \no & \no & \yes & \yes & \yes & \python, Java \\
+%	\midrule
+\pegasus{}\hfill\cite{pegasus} & \no & \yes & \yes & \yes & \yes & \automaticft &
+\yes & \manualmap & \no & \no & \yes & \no & \no & \no & \no & \yes & \python, Java,
+HTCondor~\cite{htcondor} \\
+%	\midrule
+\balsam{}\hfill\cite{balsam} & \no & \no & \yes & \yes & \no & \automaticft &
+\yes & \automaticmap & \yes & \yes & \yes & \no & \no & \yes & \yes & \no & \python,
+PostgreSQL \\
+%	\midrule
+\autosubmit{}\hfill\cite{autosubmit} & \no & \yes & \no & \yes & \no & \automaticft &
+\yes & \manualmap & \yes & \no & \yes & \no & \no & \yes & \no & \no & \python \\
+%	\midrule
+\fireworks{}\hfill\cite{fireworks} & \no & \yes & \yes & \yes & \no & \manualft &
+\yes & \automaticmap & \yes & \yes & \no & \no & \no & \no & \no & \no & \python, MongoDB \\
+%	\midrule
+\merlin{}\hfill\cite{merlin} & \no & \yes & \no & \yes & \no & \manualft &
+\yes & \automaticmap & \no & \no & \yes & \no & \no & \yes & \no & \no & \python, RabbitMQ/Redis \\
+%	\midrule
+\snakemake{}\hfill\cite{snakemake} & \no & \yes & \yes & \no & \yes & \automaticft &
+\no & \manualmap & \yes\textsuperscript{\dag} & \no & \yes & \yes & \no & \yes & \no & \no & \python \\[2mm]
+%	\midrule
+\hyperqueue{}\hfill\cite{hyperqueue} & \yes & \yes & \yes & \yes & \no & \automaticft &
+\yes & \automaticmap & \yes & \yes & \yes & \yes & \yes & \yes & \no & \yes & \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\centering
+\item \yes{} supported; \no{} not supported; \automaticmap{} automatic; \manualmap{} manual;
+\item \textsuperscript{\dag}with an external plugin; \textsuperscript{*}with additional
+runtime dependencies
+\end{tablenotes}
+\caption{Comparison of task runtimes}
+\label{tab:hq-tools-comparison}
+\end{threeparttable}
+\end{table}
+% \end{noindent}
+
+%TODO: dynamic/interactive task graphs
+
+\Autoref{tab:hq-tools-comparison} provides a high-level comparison of \hyperqueue{} and twelve
+other task runtimes. It should be noted that there are also many important
+properties that are not mentioned in this table; it primarily compares meta-scheduling aspects
+described in this chapter and other features related to challenges described
+in~\Autoref{ch:sota}. Furthermore, there is no single universally best task runtime; each one has
+a different programming model, a different set of features, and makes various trade-offs based
+on which use-cases it was primarily designed for.
+
+The first section of the table, \emph{Task interfaces}, shows which interfaces can be used to
+submit tasks. \gls{cli} specifies that tasks can be submitted from the command-line,
+\emph{Workflow file} specifies that task graphs can be defined using e.g.\
+\gls{yaml} or \gls{toml} files and \emph{Python \gls{api}} marks runtimes
+that provide the option to specify tasks using Python. Note that the \gls{cli} column
+indicates that tasks and task graphs can be actually defined and submitted using the command-line,
+without requiring additional input files, not just that the runtime provides some form of a
+\gls{cli} (which is true for most of the runtimes).
+
+Most evaluated task runtimes provide a Python \gls{api}, as it enables the most general way of
+defining task graphs. However, it is relatively rare for other tools to offer a comprehensive
+\gls{cli} that could be used to submit simple task graphs without the need to
+implement a script using (an imperative) programming language. \merlin{} and \autosubmit{} only
+allow defining task graphs using workflow files, which can also be quite verbose for simple
+use-cases. \hyperqueue{} offers both a terminal interface for simple use-cases, and a
+Python \gls{api} for more complex task graphs. It also supports workflow files.
+
+The second section, \emph{Task dependencies}, marks the ability to express dependencies between
+tasks. \emph{Explicit} dependencies are described by the user in the task graph definition,
+usually by mentioning a set of task identifiers on which a given task depends. \gnuparallel{}
+and \hypershell{} do not allow specifying task dependencies, as they are designed mostly for
+scenarios where users simply need to execute a large number of tasks in parallel. Most other
+tools allow expressing dependencies between tasks explicitly. \pegasus{} and \snakemake{} are also
+able to infer dependencies automatically based on input/output files consumed/produced by
+the individual tasks. For \snakemake{}, it is the only way to express dependencies, which can
+limit performance for task graphs with many tasks, as every dependency necessitates the creation
+of a file on a filesystem.
+
+The third section, \emph{Fault tolerance} describes what happens when after a worker or a
+server failure. Task runtimes that can automatically restart tasks after a worker failure are
+marked with \automaticft, those that require user action to recompute failed tasks are
+marked with \manualft. All the evaluated task runtimes provide support for at least some
+kind of resilience against worker failures; it is a truly fundamental feature without which it
+would be infeasible to execute task graphs. To be resilient against server failures,
+the task runtime should be able to restore the state of already computed tasks, and all the
+submitted task graphs, when the task submission command or the main server/scheduler component
+crashes (e.g.\ when it is executed on a login node that shuts down). This property is very useful
+for avoiding unnecessary re-execution of long-running task graphs. Resilience against server
+failures is supported so ubiquitously, although is is still a rather common feature. However, most
+task runtimes require an external service or a database instance to implement server
+persistence, which can complicate their deployment.
+
+The fourth section, \emph{Meta-scheduling}, specifies three properties related to executing tasks
+on top of allocations and general scheduling capabilities. The following list describes the
+individual columns:
+
+\begin{description}[wide=0pt]
+\item[Graph partitioning] states whether
+the task runtime can assign tasks to allocations fully automatically (\automaticmap) or if users
+have to partition tasks into subgroups manually (\manualmap). As already mentioned
+in~\Autoref{ch:sota}, tools such as \pegasus{}, \autosubmit{} or \snakemake{} require users
+to manually specify how should tasks be grouped into allocations, which requires more work
+from the user and can limit hardware utilization. Other task runtimes, such as \dask{}
+or \balsam{}, are able to fully automatically assign tasks to allocations without any
+intervention from the user, same as \hyperqueue{}.
+
+\item[Automatic allocation] highlights task
+runtimes that are able to automatically submit \emph{\gls{hpc} allocations}. There are
+various levels of support for this feature. \snakemake{} or \autosubmit{} simply submit
+allocations that are designed for executing a specific task (or a group of tasks), while
+other task runtimes, such as \dask{}, \balsam{} or \hyperqueue{}, submit allocations
+dynamically, based on the current computational load and task state; these allocations start
+a generic worker that is not tied to any specific task or a subset of tasks.
+Unlike \hyperqueue{}, \dask{} and \balsam{} support configuring only a single allocation
+manager queue into which new allocations can be submitted.
+
+\item[Generic workers] states whether the task runtime
+supports provisioning of generic workers that can execute any tasks whose resource
+requirements are compatible with it, without requiring users to preconfigure workers statically for
+a specific subset of tasks (which makes load balancing less flexible). \merlin{} requires
+preconfiguring queues that are used for executing specific tasks (such as a task that
+requires exactly two nodes or sixteen \gls{cpu} cores to execute). A similar rigid approach
+is used by \parsl{}. On the other hand, \dask{} or \hyperqueue{} make worker spawning very
+easy, using a single generic command, since their workers are not tied to any specific task.
+\end{description}
+
+The following section, \emph{Resources}, deals with resource management. It shows which task
+runtimes are only able to specify basic (such as \gls{cpu}, \gls{gpu}
+or memory) task resource requirements and which are able to attach fully generic and arbitrary
+requirements to each task. Support for arbitrary resource requirements (and thus heterogeneous
+clusters) is not very common, apart from \hyperqueue{}, only \dask{}, \ray{} and \snakemake{}
+allow users to define their own resource kinds that are then used in task scheduling.
+The \emph{Resource pools} column describes the ability to specify (and
+take into account during scheduling) complex resource requirements, such as specifying
+relationships between resources (i.e.\ two cores in the same \gls{numa} node), fractional
+resources or resource variants. This functionality is unique to \hyperqueue{}.
+The \emph{Multi-node} column shows which programming models enable describing multi-node tasks.
+Note that the table only treats this feature as supported in task runtimes that provide the
+ability to assign the number of nodes \emph{per-task}, not just per task graph or per
+allocation. We can see that \snakemake{} is the only task runtime apart from \hyperqueue{} that
+supports both arbitrary resource requirements and multi-node tasks.
+
+The penultimate section, \emph{Data transfers}, states whether it is possible to exchange data
+outputs between tasks directly over the network, without going through the filesystem
+(\emph{Directly between tasks}) and if the task runtime offers the ability to stream standard (error)
+output of tasks over the network to overcome distributed filesystem limitations
+(\emph{Output streaming}). Direct data transfer of task outputs is supported by Python-first
+task runtimes, such as \dask{} or \ray{}. It is not supported by \hyperqueue{}.
+
+The last section, \emph{Deployment}, specifies which runtime
+dependencies and external services have to be available in order to use the task runtime. We can
+see that almost all evaluated task runtimes require Python, as it is a very popular technology for
+working with tasks. Some task runtimes, such as \merlin{} or \fireworks{}, additionally require
+an external service for managing persistence or task assignments, these can be challenging to
+deploy on \gls{hpc} clusters. Note that this column specifies the \emph{required} runtime
+dependencies, which are necessary for the task runtime to function. It does not mention optional
+dependencies; for example, \hyperqueue{}'s Python \gls{api} of course also requires a Python
+interpreter, but \hyperqueue{} itself can operate without it.
+
+Even though several existing task runtimes also leverage meta-scheduling, they do not offer a
+holistic set of features that would help resolve the most pressing issues of task graph execution
+on heterogeneous supercomputers all at once. Some of them are not focused primarily on \gls{hpc}
+problems, while others tie tasks to allocations too strongly, which reduces load-balancing
+opportunities and limits local prototyping. Some of them also require runtime dependencies that
+complicate their deployment.
+
+\hyperqueue{} treats \gls{hpc} as a first-class citizen, and provides a unified set of features
+that help task graph authors execute their task graphs in an easy way on \gls{hpc} clusters. It
+is also very efficient and can scale to a large number of hardware resources, while being
+trivial to deploy. Furthermore, \hyperqueue{} provides unique resource scheduling features in the
+form of fractional resources and primarily resource variants, which can help improve the achieved
+hardware utilization. On the other hand, in the current version, its programming model does not
+yet integrate direct data transfers between tasks, which can be limiting for use-cases that require
+this functionality.
 
 \section*{Summary}
 This chapter has presented a meta-scheduling design for executing task graphs on
