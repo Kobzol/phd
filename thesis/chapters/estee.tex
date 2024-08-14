@@ -53,13 +53,13 @@ follows:
 	\item We have created an extensible, open-source simulator of task graph execution, which allows users to
 	      easily implement their own scheduling algorithms and compare them, while taking into account
 	      various factors that affect task scheduling.
-	\item We have benchmarked several task schedulers from existing literature under various conditions, including
-	      factors affecting scheduling that have not been explored so far to our knowledge, like the minimum
-	      delay between invoking the scheduler or the amount of knowledge about task durations available to
-	      the scheduler, and evaluated the suitability of the individual algorithms for various types of task
-	      graphs. All parts of the benchmark suite, including the task graphs, all source code for the
-	      schedulers and the simulation environment and also all benchmark scripts, are provided in an open
-	      and reproducible form.
+	\item We have benchmarked several task schedulers from existing literature under various conditions,
+	      including factors affecting scheduling that have not been explored so far to our knowledge, like
+	      the minimum delay between invoking the scheduler or the amount of knowledge about task durations
+	      available to the scheduler, and evaluated the suitability of the individual algorithms for various
+	      types of task graphs. All parts of the benchmark suite, including the task graphs, all source code
+	      for the schedulers and the simulation environment and also all benchmark scripts, are provided in
+	      an open and reproducible form.
 \end{enumerate}
 
 Various descriptions of schedulers, task graphs and other parts of the simulator and the benchmark
@@ -90,14 +90,14 @@ reproduce it independently with the same performance characteristics. This makes
 compare results between different simulation environments.
 
 Apart from the environments used in existing surveys, there are also more general task simulation
-environments. DAGSim~\cite{dagsim} offers a framework for comparing scheduling
-algorithms, and compares the performance of a few algorithms, but does not provide its
-implementation, which makes it difficult to reproduce or extend its results.
-SimDAG~\cite{simdag} is a task graph simulator focused on \gls{hpc}
-use-cases built on top of the SimGrid~\cite{simgrid} framework. It allows relatively
-simple implementation of new task scheduling algorithms; however, it does not support any task
-resource requirements (e.g.\ the number of used \gls{cpu} cores), which are crucial
-for simulating heterogeneous task graphs.
+environments. DAGSim~\cite{dagsim} offers a framework for comparing scheduling algorithms,
+and compares the performance of a few algorithms, but does not provide its implementation, which
+makes it difficult to reproduce or extend its results. SimDAG~\cite{simdag} is a task
+graph simulator focused on \gls{hpc} use-cases built on top of the
+SimGrid~\cite{simgrid} framework. It allows relatively simple implementation of new task
+scheduling algorithms; however, it does not support any task resource requirements (e.g.\ the
+number of used \gls{cpu} cores), which are crucial for simulating heterogeneous task
+graphs.
 
 In addition to simply comparing the performance of different schedulers, our goal was also to test
 two factors that affect scheduling, which we have not seen explored in detail in existing works.
@@ -462,7 +462,8 @@ our benchmarks.
 
 \begin{description}[wide=0pt]
 	\item[Task graphs] The \estee{} graph generators were used to generate a collection of task graphs that
-		were used in the benchmarks. The properties of all used graphs are summarized in~\Autoref{tab:estee-graph-properties}. The generated task graph dataset is available as a reproducible
+		were used in the benchmarks. The properties of all used graphs are summarized
+		in~\Autoref{tab:estee-graph-properties}. The generated task graph dataset is available as a reproducible
 		artifact~\cite{estee_graphs}.
 	\item[Schedulers] We have benchmarked all schedulers described in~\Autoref{sec:estee-simulator}. Schedulers that use the
 		greedy transfer heuristic are labeled with a \emph{-gt} suffix in benchmark results.
@@ -550,8 +551,8 @@ graph execution cost. This will be described in more detail in~\Autoref{ch:rsds}
 	\label{fig:estee-chart-gt-scheduler}
 \end{figure}
 
-As was explained in~\Autoref{subsec:estee-schedulers}, the descriptions of several schedulers
-that we have implemented in~\estee{} do not specify the concrete strategy for selecting a worker
+As was explained in~\Autoref{subsec:estee-schedulers}, the descriptions of several schedulers that we have
+implemented in~\estee{} do not specify the concrete strategy for selecting a worker
 that can start executing a given task as soon as possible. Yet, as we can see
 in~\Autoref{fig:estee-chart-gt-scheduler}, this implementation detail is crucial. This chart shows the performance
 of two scheduling algorithms (\emph{blevel} and \emph{mcp}), each in two
@@ -600,8 +601,7 @@ The makespans of simulations with these two network models are sometimes up to a
 magnitude apart. This is quite significant, because the difference between the performance of
 schedulers (with a fixed network model) is otherwise usually within a factor of two, which was
 demonstrated both by our other results and in~\cite{wang2018list}. The gap between the two
-network models depends heavily on the used task graph.
-%For task graphs from the Pegasus dataset,
+network models depends heavily on the used task graph. %For task graphs from the Pegasus dataset,
 %the difference was much smaller, as can be seen in~\Autoref{fig:estee-chart-pegasus-netmodel}.
 
 \subsubsection*{Minimal scheduling delay}
