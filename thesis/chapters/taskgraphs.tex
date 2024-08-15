@@ -12,6 +12,13 @@ particular, it defines the most important terms related to tasks, including prop
 most relevant to task graph execution in \gls{hpc} environments, which will be further
 described in~\Autoref{ch:sota}.
 
+%TODO
+- nejsou reference
+	- proč nejsou využity
+- vstup je zadrátovaný
+- formálně špatně vstup
+- nepoužívané pojmy
+
 \section{Task graphs}
 A computational workflow in the task-based programming model is represented with a
 \gls{dag} that we will label as a \emph{task graph}. From a high-level
@@ -249,6 +256,8 @@ that optimizes some key metric. There are many metrics that we can optimize for,
 latency to execute specific critical tasks, but the most commonly used metric is
 \emph{makespan} -- the duration between the start of the execution of the first task to the
 completion of all tasks within the task graph.
+
+% TODO: sum of durations
 
 We will use the term \emph{scheduler} for a component of the task runtime that is responsible
 for assigning tasks to workers by creating \emph{schedules}. A schedule is a mapping that

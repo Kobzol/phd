@@ -105,10 +105,10 @@ work to further improve its ability to provide ergonomic and efficient task grap
 		communication or filesystem \gls{io}, or by adding support for stateful task
 		environments. These could help avoid the need to create a separate Linux process for each executed
 		task, which can have a non-trivial overhead on certain \gls{hpc} clusters, as was
-		demonstrated by our experiments. %TODO: reword if Ada manages to finish dynamic jobs in time? :)
+		demonstrated by our experiments.
 	\item[Iterative computation] While it is possible to express task graphs that need to be created in a dynamic fashion or that
 		leverage iterative computation using the Python \gls{api}, it is currently not
-		very ergonomic for the users, as separate \hq{} jobs need to be submitted in
+		fully ergonomic for the users, as separate \hq{} jobs need to be submitted in
 		this case. As a future extension, \hyperqueue{} could allow adding tasks to existing
 		jobs fully dynamically, which would make it much simpler to express use-cases where the structure
 		of the task graph is not fully known before its execution starts.

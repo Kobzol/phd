@@ -39,6 +39,9 @@ chapter,~\Autoref{ch:rsds} will provide a detailed analysis of \dask{}, a
 state-of-the-art task runtime, and~\Autoref{hq:related-work} will then compare several existing task
 runtimes with \hyperqueue{}, which will be the main topic of~\Autoref{ch:hyperqueue}.
 
+%TODO
+- list of issues
+
 \section{Allocation manager}
 \label{challenge:allocation-manager}
 Users of \gls{hpc} clusters are not typically allowed to directly perform arbitrary
@@ -272,8 +275,6 @@ allocations then have to be merged together to produce all the necessary data ou
 complete task graph. Another issue is that if some tasks fail and their corresponding allocation
 ends, the task runtime does not get a chance to recompute them. Users will thus need to identify
 such failed tasks and then selectively resubmit them into new allocations.
-
-% TODO: obrázky!
 
 \subsection*{Meta-scheduling}
 While the task graph partitioning approach is a general solution to the problem of running task
