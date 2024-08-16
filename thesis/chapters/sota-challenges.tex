@@ -6,13 +6,13 @@ to achieve maximum hardware utilization, how to make task graph execution scalab
 (how to make it easy for users to define and execute task graphs). Most of these challenges stem
 from the sheer scale of \gls{hpc} workloads and clusters and from the complexity and
 idiosyncrasies of supercomputers, which have historically been designed for different kinds of
-programming models.
+programming models than task graphs.
 
 We will also discuss how are existing task runtimes able to deal with these challenges and what
-approaches do they use. This is important because in order to achieve a seamless task graph
+approaches do they use. This is important, because in order to achieve a seamless task graph
 execution experience on supercomputers, one should use a task runtime that takes these
 \gls{hpc} pecularities in mind; using off-the-shelf tools that were not designed for
-\gls{hpc} use-cases will quickly run into various limitations.
+\gls{hpc} use-cases might be challenging.
 
 There is a large body of tools designed for executing batch-oriented task graphs on diverse
 computing platforms, ranging from consumer-grade laptops, through cloud deployments, to distributed
@@ -31,16 +31,46 @@ Examples of such task runtimes include e.g.\ \dask~\cite{dask},
 \autosubmit~\cite{autosubmit} or \fireworks~\cite{fireworks}. Each task runtime
 defines its own instance of a task-based programming model, and has a different set of trade-offs
 in areas such as performance and scalability, fault tolerance, ease-of-use, ease-of-deployment and
-others. Various representatives of task runtimes will be described in this chapter in the context
-of the individual task graph execution challenges.
+others.
 
-After the general overview of existing task runtimes presented in this
-chapter,~\Autoref{ch:rsds} will provide a detailed analysis of \dask{}, a
-state-of-the-art task runtime, and~\Autoref{hq:related-work} will then compare several existing task
-runtimes with \hyperqueue{}, which will be the main topic of~\Autoref{ch:hyperqueue}.
+Various representatives of task runtimes will be described in this chapter in the context
+of the individual task graph execution challenges. \Autoref{ch:rsds} will then provide a detailed
+analysis of \dask{}, a state-of-the-art task runtime, and~\Autoref{hq:related-work} will compare
+several existing task runtimes with \hyperqueue{}, which will be the main topic of~\Autoref{ch:hyperqueue}.
 
-%TODO
-- list of issues
+Below you can find a list of the most important challenges that were identified; these
+challenges are then described in detail in the rest of this chapter.
+
+\begin{description}[wide=0pt, itemsep=1pt]
+	\item[Allocation manager] Any computation that is to be executed on an \gls{hpc} cluster
+	shared by many users typically has to go through a queue managed by an
+	\emph{allocation manager} that performs computations in transient hardware allocations. This
+	complicates the execution of task graphs due to the need to assign tasks to individual
+	allocations in order to maximize hardware utilization and overcome various limits; task
+	runtimes should offer a way to automate this process.
+	\item[Cluster heterogeneity] Modern \gls{hpc} clusters are very heterogeneous and might
+	contain various kinds of accelerator devices. It is important for a task runtime to offer
+	complex support for arbitrary resource requirements in order to take advantage of complex
+	\gls{hpc} hardware.
+	\item[Performance and scalability] The large scale of \gls{hpc} computations and the vast
+	amount of available hardware resources introduces unique performance challenges. Task
+	runtimes should have minimal overhead in order to efficiently execute even very large task
+	graphs.
+	\item[Fault tolerance] The scale of \gls{hpc} task graphs and clusters and the transient
+	nature of allocations makes failures an ordinary occurrence, rather than a rare edge case.
+	This necessitates special considerations for the design of task runtimes.
+	\item[Multi-node tasks] Many \gls{hpc} applications are designed to run on multiple nodes in
+	parallel. This is an uncommon requirement for most task-based programming models; it
+	requires special support to make this use-case a first-class concept.
+	\item[Deployment] Supercomputers typically provide a severely locked-down user environment,
+	where it can be quite challenging to build and deploy software that requires non-trivial
+	build or runtime dependencies. Task runtimes should thus be trivial to deploy in order to
+	facilitate their usage on \gls{hpc} clusters.
+	\item[Programming model flexibility] \gls{hpc} task graphs can be very diverse, and
+	range from structurally simple task graphs that contain a large number of tasks to very
+	heterogeneous workflows with complex dependencies. Task runtimes should ideally provide
+	various programming interfaces to make multiple kinds of these use-cases ergonomic.
+\end{description}
 
 \section{Allocation manager}
 \label{challenge:allocation-manager}
@@ -459,47 +489,123 @@ executed in a distributed fashion, such as programs using \gls{mpi}, which are q
 common in \gls{hpc}. The use-case of tasks using multiple nodes is discussed in more
 detail later in~\Autoref{sec:multinode-tasks}.
 
-\section{Data transfers}
-After a task is computed, it can produce various outputs, such as standard error or output streams,
-files created on a filesystem or data objects that are then passed as inputs to dependent tasks.
-There are many approaches to storing and transferring these outputs.
+%Data outputs produced by tasks tend to be considered immutable in existing task runtimes, since a
+%single output can be used as an input to multiple tasks, and these might be executed on completely
+%different computational nodes; therefore, it would be challenging to synchronize concurrent
+%mutations of these objects. A problem that can arise with this approach is that if the data outputs
+%are large, but the computation of tasks that work with the data is short, then the serialization
+%overhead (or even memory copy overhead, if the dependent task is executed on the same node) can
+%dominate the execution time. Such use-cases can be solved with stateful data management, for
+%example in the form of \emph{actors}, which can be seen as stateful tasks that operate on
+%a single copy of some large piece of data, without the need to transfer or copy it. The actor model
+%is supported e.g.\ by \dask{} or \ray{}.
 
-Some task runtimes, such as \snakemake{}, store all task outputs on the filesystem,
-since it is relatively simple to implement and it provides support for basic data resiliency
-out-of-the-box. A lot of existing software (that might be executed by a task) also makes liberal
-use of the filesystem, which can make it challenging to avoid filesystem access altogether.
-However, \gls{hpc} nodes might not contain any local disks, but instead use shared
-filesystems that are accessed over a network. While this can be seen as an advantage, since with a
-shared filesystem it is much easier to share task outputs among different workers, it can also be a
-severe bottleneck. Shared networked filesystems can suffer from high latency and accessing them can
-consume precious network bandwidth that is also used e.g.\ for managing computation (sending
-commands to workers) or for direct worker-to-worker data exchange. Furthermore, data produced in
-\gls{hpc} computations can be large, and thus storing it to a disk can be a
-bottleneck even without considering networked filesystems.
+\section{Performance and scalability}
+The massive scale of \gls{hpc} hardware (node count, core count, network interconnect
+bandwidth) opens up opportunities for executing large-scale task graphs, but that in turn presents
+unique challenges for task runtimes. Below you can find several examples of bottlenecks that might
+not matter in a small computational scale, but that can become problematic in the context of
+\gls{hpc}-scale task graphs.
 
-These bottlenecks can be alleviated by transferring data directly over the network (preferably
-without accessing the filesystem in the fast path). Direct network transfer of task outputs between
-workers is implemented e.g.\ by \dask{}. Some runtimes (for example
-\textsc{HyperLoom}~\cite{hyperloom}) also leverage \gls{ram} disks, which
-provide support for tasks that need to interact with a filesystem, while avoiding the performance
-bottlenecks associated with disk accesses. Some task runtimes, such as \hypershell{} or
-\pegasus{}, allow streaming of standard output and error streams over the network to a
-centralized location, to reduce the pressure on the filesystem. For all of these approaches, it is
-also possible to use \gls{hpc} specific technologies, such as
-InfiniBand~\cite{infiniband} or \gls{mpi}, to improve data transfer performance
-by fully exploiting the incredibly fast interconnects available in \gls{hpc}
-clusters.
+\begin{description}[wide=0pt]
+	\item[Scheduling] Task scheduling is one of the most important responsibilities of a task runtime, and with large
+	task graphs, it can become a serious performance bottleneck. Existing task runtimes, such as
+	\dask{}, can have problems with keeping up with the scale of \gls{hpc}
+	task graphs. The scheduling performance of various task scheduling algorithms will be examined in
+	detail in~\Autoref{ch:estee}.
+	\item[Runtime overhead] Using a task runtime to execute a task graph will necessarily introduce some amount of overhead,
+	caused by scheduling, network communication and other processes. Task runtimes should be mindful of
+	the overhead they add, because it can severely affect the duration needed to execute a task graph.
+	For example, even with an overhead of just \SI{1}{\milli\second} per task, executing a task graph
+	with a million tasks would result in total accumulated overhead of more than fifteen minutes.
 
-Data outputs produced by tasks tend to be considered immutable in existing task runtimes, since a
-single output can be used as an input to multiple tasks, and these might be executed on completely
-different computational nodes; therefore, it would be challenging to synchronize concurrent
-mutations of these objects. A problem that can arise with this approach is that if the data outputs
-are large, but the computation of tasks that work with the data is short, then the serialization
-overhead (or even memory copy overhead, if the dependent task is executed on the same node) can
-dominate the execution time. Such use-cases can be solved with stateful data management, for
-example in the form of \emph{actors}, which can be seen as stateful tasks that operate on
-a single copy of some large piece of data, without the need to transfer or copy it. The actor model
-is supported e.g.\ by \dask{} or \ray{}.
+	Many task runtimes, e.g.\ \dask{}, \parsl{}, \balsam{},
+	\autosubmit{} or \snakemake{} are implemented in the Python programming
+	language. While Python provides a lot of benefits in terms of an ergonomic interface for defining
+	task graphs, using it for the actual implementation of scheduling, network communication and other
+	performance-critical parts of the task runtime can lead to severe bottlenecks, as Python programs
+	are infamously difficult to optimize well.
+
+	The performance and overhead introduced by \dask{}, a state-of-the-art task runtime
+	implemented of Python, will be examined in detail in~\Autoref{ch:rsds}.
+
+	\item[Architecture] A typical architecture of a task runtime consists of a centralized component that handles task
+	scheduling, and a set of workers that connect to it over the network and receive task assignments.
+	Even with a central server, the task runtime can achieve good performance, as we will show in
+	Chapters~\ref{ch:rsds} and~\ref{ch:hyperqueue}. However, the performance of the server
+	cannot be increased endlessly, and at some point, a centralized architecture will become a
+	bottleneck. Even if the workers exchange data outputs directly between themselves, the central
+	component might become overloaded simply by coordinating a vast number of workers.
+
+	In that case, a decentralized architecture could be leveraged to avoid the reliance on a central
+	component. Such a decentralized architecture can be found e.g.\ in
+	\ray{}~\cite{ray}. However, to realize the gains of a decentralized
+	architecture, task submission itself has to be decentralized in some way, which might not be a
+	natural fit for common task graph workflows. If all tasks are generated from a single location, the
+	bottleneck will most likely remain even in an otherwise fully decentralized system.
+	\item[Communication overhead] Scaling the number of tasks and workers will necessarily put a lot of pressure on the communication
+	network, both in terms of bandwidth (sending large task outputs between nodes) and latency (sending
+	small management messages between the scheduler and the workers). Using \gls{hpc}
+	technologies, such as \gls{mpi} or a lower-level interface like
+	\gls{rdma}, could provide a non-trivial performance boost in this regard. Some existing
+	runtimes, such as \dask{}, can make use of such technologies~\cite{dask-ucx}.
+
+	As we have demonstrated in~\cite{pspin, spin2}, in-network computing can be also used to
+	optimize various networking applications by offloading some computations to an accelerated
+	\gls{nic}. This approach could also be leveraged in task runtimes, for example to
+	reduce the latency of management messages between the scheduler and workers or to increase the
+	bandwidth of large data exchanges among workers, by moving these operations directly onto the
+	network card. This line of research is not pursued in this thesis, although it could serve as a
+	future research direction.
+	\item[Task graph materialization] Large computations might require building massive task graphs that contain millions of tasks. The
+	task graphs are typically defined and built outside of computational nodes, e.g.\ on login nodes of
+	computing clusters or on client devices (e.g.\ laptops), whose performance can be limited. It can
+	take a lot of time to build, serialize and transfer such graphs over the network to the task
+	runtime that runs on powerful computational nodes. This can create a bottleneck even before any
+	task is executed. This has been identified as an issue in some existing task
+	runtimes~\cite{dask-client-perf}.
+
+	In such case, it can be beneficial to provide an \gls{api} for defining task graphs in
+	a symbolic way by representing a potentially large group of similar tasks with a compressed
+	representation to reduce the amount of consumed memory. For example, if we want to express a
+	thousand tasks that all share the same configuration, and differ e.g.\ only in an input file that
+	they work with, we could represent this as a group of thousand tasks, rather than storing a
+	thousand individual task instances in memory. This could be seen as an example of the classical
+	Flyweight design pattern~\cite{gof}.
+
+	Such symbolic graphs could then be sent to the runtime in a compressed form and re-materialized
+	only at the last possible moment. In an extreme form, the runtime could operate on such graphs in a
+	fully symbolic way, without ever materializing them.
+	\item[Data transfers] After a task is computed, it can produce various outputs, such as standard error or output streams,
+	files created on a filesystem or data objects that are then passed as inputs to dependent tasks.
+	Managing these data streams can be a bottleneck if the number of tasks is large.
+
+	Some task runtimes, such as \snakemake{}, store all task outputs on the filesystem,
+	since it is relatively simple to implement and it provides support for basic data resiliency
+	out-of-the-box. A lot of existing software (that might be executed by a task) also makes liberal
+	use of the filesystem, which can make it challenging to avoid filesystem access altogether.
+	However, \gls{hpc} nodes might not contain any local disks, but instead use shared
+	filesystems that are accessed over a network. While this can be seen as an advantage, since with a
+	shared filesystem it is much easier to share task outputs among different workers, it can also be a
+	severe bottleneck. Shared networked filesystems can suffer from high latency and accessing them can
+	consume precious network bandwidth that is also used e.g.\ for managing computation (sending
+	commands to workers) or for direct worker-to-worker data exchange. Furthermore, data produced in
+	\gls{hpc} computations can be large, and thus storing it to a disk can be a
+	bottleneck even without considering networked filesystems.
+
+	These bottlenecks can be alleviated by transferring data directly over the network (preferably
+	without accessing the filesystem in the fast path). Direct network transfer of task outputs between
+	workers is implemented e.g.\ by \dask{}. Some runtimes (for example
+	\textsc{HyperLoom}~\cite{hyperloom}) also leverage \gls{ram} disks, which
+	provide support for tasks that need to interact with a filesystem, while avoiding the performance
+	bottlenecks associated with disk accesses. Some task runtimes, such as \hypershell{} or
+	\pegasus{}, allow streaming of standard output and error streams over the network to a
+	centralized location, to reduce the pressure on the filesystem. For all of these approaches, it is
+	also possible to use \gls{hpc} specific technologies, such as
+	InfiniBand~\cite{infiniband} or \gls{mpi}, to improve data transfer performance
+	by fully exploiting the incredibly fast interconnects available in \gls{hpc}
+	clusters.
+\end{description}
 
 \section{Fault tolerance}
 Fault tolerance is relevant in all distributed computing environments, but \gls{hpc}
@@ -523,6 +629,12 @@ existing task runtimes. The differences are mostly in the level of automation. F
 \fireworks{} or \merlin{} require users to manually restart failed tasks,
 while runtimes such as \dask{} or \balsam{} can restart them
 automatically, without user intervention.
+
+An additional aspect of fault tolerance is persistence of submitted tasks. It is very useful to
+have the ability to resume task graph computation if the whole task
+runtime infrastructure (e.g.\ its primary server) crashes, to avoid needless recomputations.
+Some task runtimes, such as \dask{}, do not support such fault tolerance at all, others support
+it optionally, such as \ray{}, while some task runtimes are persistent by default, such as \balsam{}.
 
 \section{Multi-node tasks}
 \label{sec:multinode-tasks}
@@ -582,110 +694,6 @@ combine these tasks with other single-node tasks.
 %built-in integration with \gls{mpi} or similar common \gls{hpc}
 %technologies.
 
-\section{Performance and scalability}
-The massive scale of \gls{hpc} hardware (node count, core count, network interconnect
-bandwidth) opens up opportunities for executing large-scale task graphs, but that in turn presents
-unique challenges for task runtimes. Below you can find several examples of bottlenecks that might
-not matter in a small computational scale, but that can become problematic in the context of
-\gls{hpc}-scale task graphs.
-
-\begin{description}[wide=0pt]
-	\item[Scheduling] Task scheduling is one of the most important responsibilities of a task runtime, and with large
-		task graphs, it can become a serious performance bottleneck. Existing task runtimes, such as
-		\dask{}, can have problems with keeping up with the scale of \gls{hpc}
-		task graphs. The scheduling performance of various task scheduling algorithms will be examined in
-		detail in~\Autoref{ch:estee}.
-	\item[Runtime overhead] Using a task runtime to execute a task graph will necessarily introduce some amount of overhead,
-		caused by scheduling, network communication and other processes. Task runtimes should be mindful of
-		the overhead they add, because it can severely affect the duration needed to execute a task graph.
-		For example, even with an overhead of just \SI{1}{\milli\second} per task, executing a task graph
-		with a million tasks would result in total accumulated overhead of more than fifteen minutes.
-
-		Many task runtimes, e.g.\ \dask{}, \parsl{}, \balsam{},
-		\autosubmit{} or \snakemake{} are implemented in the Python programming
-		language. While Python provides a lot of benefits in terms of an ergonomic interface for defining
-		task graphs, using it for the actual implementation of scheduling, network communication and other
-		performance-critical parts of the task runtime can lead to severe bottlenecks, as Python programs
-		are infamously difficult to optimize well.
-
-		The performance and overhead introduced by \dask{}, a state-of-the-art task runtime
-		implemented of Python, will be examined in detail in~\Autoref{ch:rsds}.
-
-	\item[Architecture] A typical architecture of a task runtime consists of a centralized component that handles task
-		scheduling, and a set of workers that connect to it over the network and receive task assignments.
-		Even with a central server, the task runtime can achieve good performance, as we will show in
-		Chapters~\ref{ch:rsds} and~\ref{ch:hyperqueue}. However, the performance of the server
-		cannot be increased endlessly, and at some point, a centralized architecture will become a
-		bottleneck. Even if the workers exchange data outputs directly between themselves, the central
-		component might become overloaded simply by coordinating a vast number of workers.
-
-		In that case, a decentralized architecture could be leveraged to avoid the reliance on a central
-		component. Such a decentralized architecture can be found e.g.\ in
-		\ray{}~\cite{ray}. However, to realize the gains of a decentralized
-		architecture, task submission itself has to be decentralized in some way, which might not be a
-		natural fit for common task graph workflows. If all tasks are generated from a single location, the
-		bottleneck will most likely remain even in an otherwise fully decentralized system.
-	\item[Communication overhead] Scaling the number of tasks and workers will necessarily put a lot of pressure on the communication
-		network, both in terms of bandwidth (sending large task outputs between nodes) and latency (sending
-		small management messages between the scheduler and the workers). Using \gls{hpc}
-		technologies, such as \gls{mpi} or a lower-level interface like
-		\gls{rdma}, could provide a non-trivial performance boost in this regard. Some existing
-		runtimes, such as \dask{}, can make use of such technologies~\cite{dask-ucx}.
-
-		As we have demonstrated in~\cite{pspin, spin2}, in-network computing can be also used to
-		optimize various networking applications by offloading some computations to an accelerated
-		\gls{nic}. This approach could also be leveraged in task runtimes, for example to
-		reduce the latency of management messages between the scheduler and workers or to increase the
-		bandwidth of large data exchanges among workers, by moving these operations directly onto the
-		network card. This line of research is not pursued in this thesis, although it could serve as a
-		future research direction.
-	\item[Task graph materialization] Large computations might require building massive task graphs that contain millions of tasks. The
-		task graphs are typically defined and built outside of computational nodes, e.g.\ on login nodes of
-		computing clusters or on client devices (e.g.\ laptops), whose performance can be limited. It can
-		take a lot of time to build, serialize and transfer such graphs over the network to the task
-		runtime that runs on powerful computational nodes. This can create a bottleneck even before any
-		task is executed. This has been identified as an issue in some existing task
-		runtimes~\cite{dask-client-perf}.
-
-		In such case, it can be beneficial to provide an \gls{api} for defining task graphs in
-		a symbolic way by representing a potentially large group of similar tasks with a compressed
-		representation to reduce the amount of consumed memory. For example, if we want to express a
-		thousand tasks that all share the same configuration, and differ e.g.\ only in an input file that
-		they work with, we could represent this as a group of thousand tasks, rather than storing a
-		thousand individual task instances in memory. This could be seen as an example of the classical
-		Flyweight design pattern~\cite{gof}.
-
-		Such symbolic graphs could then be sent to the runtime in a compressed form and re-materialized
-		only at the last possible moment. In an extreme form, the runtime could operate on such graphs in a
-		fully symbolic way, without ever materializing them.
-\end{description}
-
-\section{Iterative computation}
-There are various \gls{hpc} use-cases that are inherently iterative, which means that
-they perform some computation repeatedly, until some condition (which is often determined
-dynamically) is satisfied. For example, the training of a machine-learning model is typically
-performed in iterations (called epochs) that continue executing while the prediction error of the
-model keeps decreasing. Another example could be a molecular dynamics simulation that is repeated
-until a desired level of accuracy has been reached.
-
-One approach to model such iterative computations would be to run the whole iterative process
-inside a single task. While this is simple to implement, it might not be very practical, since such
-iterative processes can take a long time to execute, and performing them in a single task would
-mean that we could not leverage desirable properties offered by the task graph abstraction, for
-example fault tolerance. Since the computation \emph{within} a single task is typically
-opaque to the task runtime, if the task fails, it would then need to be restarted from scratch.
-
-A better approach might be to model each iteration as a separate task. In such case, the task
-runtime is able to restart the computation from the last iteration if a failure occurs. However,
-this approach can be problematic if the number of iterations is not known in advance, since some
-task runtimes expect that the structure of the task graph will be immutable once the graph has been
-submitted for execution. \dask{} and \ray{} are examples of task
-runtimes do not have this assumption, and allow adding tasks to an existing task graph dynamically.
-
-Alternatively, \textsc{L-DAG}~\cite{l-dag} suggests an approach for
-transforming iterative workflows into workflows without loops, to support this use-case on a wider
-range of task runtimes.
-
 \section{Deployment}
 \label{challenge:deployment}
 Even though it might sound trivial at first, an important aspect that can affect the ergonomics of
@@ -721,10 +729,10 @@ example, \merlin{} requires a message broker backend, such as RabbitMQ or Redis,
 configuring and deploying these complex runtime dependencies on \gls{hpc} clusters
 can be quite challenging.
 
-\section{Programming interface}
+\section{Programming model flexibility}
 One important aspect that affects the simplicity of defining task graphs is the programming
-interface used to describe the execution logic, resource requirements, dependencies and other
-properties of tasks and task graphs.
+model and interfaces used to describe the execution logic, resource requirements, dependencies and
+other properties of tasks and task graphs.
 
 Existing interfaces usually belong to one of three broad categories. Tools such as
 \gnuparallel{} or \hypershell{} offer a \gls{cli}, which enables
@@ -748,6 +756,32 @@ Although this aspect of task graph execution is not specific to \gls{hpc} use-ca
 their idiosyncracies can affect the suitability of certain interfaces. For example, workflow files
 might be less practical for large task graphs, while a \gls{cli} can be familiar to
 users of other \gls{hpc} technologies.
+
+Another important aspect of the programming model is its support for iterative computation.
+There are various \gls{hpc} use-cases that are inherently iterative, which means that
+they perform some computation repeatedly, until some condition (which is often determined
+dynamically) is satisfied. For example, the training of a machine-learning model is typically
+performed in iterations (called epochs) that continue executing while the prediction error of the
+model keeps decreasing. Another example could be a molecular dynamics simulation that is repeated
+until a desired level of accuracy has been reached.
+
+One approach to model such iterative computations would be to run the whole iterative process
+inside a single task. While this is simple to implement, it might not be very practical, since such
+iterative processes can take a long time to execute, and performing them in a single task would
+mean that we could not leverage desirable properties offered by the task graph abstraction, for
+example fault tolerance. Since the computation \emph{within} a single task is typically
+opaque to the task runtime, if the task fails, it would then need to be restarted from scratch.
+
+A better approach might be to model each iteration as a separate task. In such case, the task
+runtime is able to restart the computation from the last iteration if a failure occurs. However,
+this approach can be problematic if the number of iterations is not known in advance, since some
+task runtimes expect that the structure of the task graph will be immutable once the graph has been
+submitted for execution. \dask{} and \ray{} are examples of task
+runtimes do not have this assumption, and allow adding tasks to an existing task graph dynamically.
+
+\textsc{L-DAG}~\cite{l-dag} suggests an approach for
+transforming iterative workflows into workflows without loops, to support this use-case on a wider
+range of task runtimes.
 
 \section*{Summary}
 This chapter has described a set of challenges that can limit the usage ergonomics or efficiency of
