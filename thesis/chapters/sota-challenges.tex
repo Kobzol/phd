@@ -334,18 +334,19 @@ node utilization. Without using groups, \snakemake{} executes each task in a sep
 allocation, which is actively discouraged on some \gls{hpc}
 clusters~\cite{nersc-snakemake}.
 
-Task runtimes such as \pegasus{}~\cite{pegasus} or
-\autosubmit~\cite{autosubmit} slightly improve the partitioning process by allowing users to
-create partitions based on the structure of the task graph. Users can define on which level should
-the task graph be partitioned. For example, a ``horizontal'' partitioning groups tasks that do not
-have dependencies between each other and that can run parallel, while a ``vertical'' partitioning
-groups tasks that form a dependency chain. While this approach makes partitioning easier for users,
+An improved partitioning process has been described in~\cite{zhang_batch_scheduling}. It suggests
+to partition the graph based on its structure, by splitting it into levels that contain
+subgraphs of tasks that are somehow related. This approach is used by
+task runtimes such as \pegasus{}~\cite{pegasus} or
+\autosubmit~\cite{autosubmit} For example, a ``horizontal level'' partitioning groups tasks that
+do not have dependencies between each other and that can run parallel, while a ``vertical level''
+partitioning groups tasks that form a dependency chain. While this approach makes partitioning easier for users,
 they still need to decide which partitioning mode should be used for which tasks. Furthermore, a
 significant disadvantage is that the partitioning is performed statically, before the task graph is
 executed. This can lead to suboptimal hardware utilization, because it is not possible to load
 balance tasks across different allocations. It can also lead to resource waste, because allocations
 created to execute a group of tasks will typically be configured so that they ask for a sum of all
-the resource requirements of tasks within that group
+the resource requirements of tasks within that group.
 
 \textsc{E-HPC}~\cite{ehpc} tackles the issue of monolithic allocations that
 waste resources by asking for a union of resources required for the workflow. It does that by
