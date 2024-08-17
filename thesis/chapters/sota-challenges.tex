@@ -64,22 +64,23 @@ are then described in detail in the rest of this chapter.
 		challenging to build and deploy software that requires non-trivial build or runtime dependencies.
 		Task runtimes should thus be trivial to deploy in order to facilitate their usage on
 		\gls{hpc} clusters.
-	\item[Programming model flexibility] \gls{hpc} task graphs can be very diverse, and
+	\item[Programming model] \gls{hpc} task graphs can be very diverse, and
 		range from structurally simple task graphs that contain a large number of tasks to very
-		heterogeneous workflows with complex dependencies. Task runtimes should ideally provide various
-		programming interfaces to make multiple kinds of these use-cases ergonomic.
+		heterogeneous workflows with complex dependencies. Task runtimes should ideally provide a
+		programming model that is able to support these use-cases in an ergonomic way.
 \end{description}
 
 \section{Allocation manager}
 \label{challenge:allocation-manager}
 Users of \gls{hpc} clusters are not typically allowed to directly perform arbitrary
 computations on the computational nodes (machines designed to perform expensive computations) of
-the cluster. Instead, they connect to machines that are usually called \emph{login nodes}, from
-which they have to enqueue their desired computation into a queue handled by a submission system
-that manages the hardware resources of the cluster. We will use the term \emph{allocation manager} for
-these submission systems and the term \emph{allocation}\footnote{The term \emph{job} is also commonly used for the concept of \gls{hpc}
-computational requests.} for a
-computational request submitted by a user into these managers.
+the cluster. Instead, they connect to machines that are usually called \emph{login nodes},
+from which they have to enqueue their desired computation into a queue handled by a submission
+system that manages the hardware resources of the cluster. We will use the term
+\emph{allocation manager} for these submission systems and the term
+\emph{allocation}\footnote{The term \emph{job} is also commonly used for the concept of \gls{hpc}
+computational requests.} for a computational request submitted by a user into
+these managers.
 
 Allocation managers are required for providing fair access to the resources of the cluster, because
 \gls{hpc} clusters are typically used by many people at the same time. Without a
@@ -94,8 +95,8 @@ resources were consumed by individual users of the cluster.
 The majority of \gls{hpc} clusters~\cite{slurm-schedmd} use one of the two most
 popular allocation manager implementations, either Slurm~\cite{slurm} or
 \gls{pbs}~\cite{pbs}\footnote{Or some of its many derivatives,
-such as TORQUE~\cite{torque} or OpenPBS~\cite{openpbs}}. For simplicity, Slurm will be
-used as a default representative of allocation managers in the rest of this thesis (unless
+such as TORQUE~\cite{torque} or OpenPBS~\cite{openpbs}}. For simplicity, Slurm will
+be used as a default representative of allocation managers in the rest of this thesis (unless
 otherwise noted), since it shares essentially all the important described constraints with
 \gls{pbs}.
 
@@ -131,8 +132,8 @@ users first have to think about how to split their task graph into separate allo
 their submission and execution. While this is true of any computation executed on
 \gls{hpc} clusters in general, in the case of task graphs it is especially difficult
 due to their complex structure, and also because the concept of allocations was historically
-created with different programming models in mind. Mapping task workflows to \gls{hpc}
-allocations can thus be non-trivial~\cite{glume,slurm-workflow}.
+created with different programming models in mind. Mapping task workflows to
+\gls{hpc} allocations can thus be non-trivial~\cite{glume,slurm-workflow}.
 
 To execute a task graph using an allocation manager, it is desirable to find a way to map tasks to
 allocations in a way that efficiently utilizes \gls{hpc} resources and is as
@@ -728,59 +729,69 @@ example, \merlin{} requires a message broker backend, such as RabbitMQ or Redis,
 configuring and deploying these complex runtime dependencies on \gls{hpc} clusters
 can be quite challenging.
 
-\section{Programming model flexibility}
+\section{Programming model}
 One important aspect that affects the simplicity of defining task graphs is the programming model
 and interfaces used to describe the execution logic, resource requirements, dependencies and other
-properties of tasks and task graphs.
+properties of tasks and task graphs. Below is a list of areas that are important for ergonomic task
+graph definition.
 
-Existing interfaces usually belong to one of three broad categories. Tools such as
-\gnuparallel{} or \hypershell{} offer a \gls{cli}, which enables
-defining tasks that should be computed directly in the terminal. This provides a quick way to
-submit structurally simple task graphs, although it is not feasible to describe complex
-dependencies between tasks using this approach. A more general method of defining task graphs is to
-use a declarative workflow file, often using the \gls{yaml} format. This approach is
-used e.g.\ by \pegasus{}, \autosubmit{} or \merlin{}. Since
-they are declarative, workflow files make it easier to analyze the task graph description, for
-example for providing data provenance. However, they can also be incredibly verbose, and are not
-suited for task graphs with a large number of tasks (unless the workflow file is automatically
-generated or it supports some form of compressed representation for groups of tasks). The most
-general (and very popular) method for describing task graphs is using a general purpose programming
-language, very often Python. Many task runtimes provide a Python \gls{api} for
-defining tasks, e.g.\ \dask{}, \ray{}, \parsl{},
-\balsam{} or \pegasus{}. This approach allows users to create task
-graphs however they like, although it can be unnecessarily verbose and complex for simple
-use-cases.
+\begin{description}[wide=0pt]
+	\item[Task definition interfaces] The method used to define tasks affects how easy it is to work with the task runtime, and how
+		complex use-cases can be expressed with it. Existing interfaces usually belong to one of three
+		broad categories. Tools such as \gnuparallel{} or \hypershell{} offer a
+		\gls{cli}, which enables defining tasks that should be computed directly in the
+		terminal. This provides a quick way to submit structurally simple task graphs, although it is not
+		feasible to describe complex dependencies between tasks using this approach. A more general method
+		of defining task graphs is to use a declarative workflow file, often using the
+		\gls{yaml} format. This approach is used e.g.\ by \pegasus{},
+		\autosubmit{} or \merlin{}. Since they are declarative, workflow files make
+		it easier to analyze the task graph description, for example for providing data provenance.
+		However, they can also be incredibly verbose, and are not suited for task graphs with a large
+		number of tasks (unless the workflow file is automatically generated or it supports some form of
+		compressed representation for groups of tasks). The most general (and very popular) method for
+		describing task graphs is using a general purpose programming language, very often Python. Many
+		task runtimes provide a Python \gls{api} for defining tasks, e.g.\
+		\dask{}, \ray{}, \parsl{}, \balsam{} or
+		\pegasus{}. This approach allows users to create task graphs however they like,
+		although it can be unnecessarily verbose and complex for simple use-cases.
 
-Although this aspect of task graph execution is not specific to \gls{hpc} use-cases,
-their idiosyncracies can affect the suitability of certain interfaces. For example, workflow files
-might be less practical for large task graphs, while a \gls{cli} can be familiar to
-users of other \gls{hpc} technologies.
+		Although this aspect of task graph execution is not specific to \gls{hpc} use-cases,
+		their idiosyncracies can affect the suitability of certain interfaces. For example, workflow files
+		might be less practical for large task graphs, while a \gls{cli} can be familiar to
+		users of other \gls{hpc} technologies.
 
-Another important aspect of the programming model is its support for iterative computation. There
-are various \gls{hpc} use-cases that are inherently iterative, which means that they
-perform some computation repeatedly, until some condition (which is often determined dynamically)
-is satisfied. For example, the training of a machine-learning model is typically performed in
-iterations (called epochs) that continue executing while the prediction error of the model keeps
-decreasing. Another example could be a molecular dynamics simulation that is repeated until a
-desired level of accuracy has been reached.
+	\item[Data transfers] Data transfers have already been mentioned as a potential performance bottleneck, yet they also
+		affect the ease-of-use of a given programming model. Some use-cases are naturally expressed by
+		tasks passing their outputs directly to depending tasks. Support for this feature can make such
+		use-cases much simpler, by not forcing users to pass intermediate task outputs through the
+		filesystem.
 
-One approach to model such iterative computations would be to run the whole iterative process
-inside a single task. While this is simple to implement, it might not be very practical, since such
-iterative processes can take a long time to execute, and performing them in a single task would
-mean that we could not leverage desirable properties offered by the task graph abstraction, for
-example fault tolerance. Since the computation \emph{within} a single task is typically
-opaque to the task runtime, if the task fails, it would then need to be restarted from scratch.
+	\item[Iterative computation] Another important aspect of the programming model is its support for iterative computation. There
+		are various \gls{hpc} use-cases that are inherently iterative, which means that they
+		perform some computation repeatedly, until some condition (which is often determined dynamically)
+		is satisfied. For example, the training of a machine-learning model is typically performed in
+		iterations (called epochs) that continue executing while the prediction error of the model keeps
+		decreasing. Another example could be a molecular dynamics simulation that is repeated until a
+		desired level of accuracy has been reached.
 
-A better approach might be to model each iteration as a separate task. In such case, the task
-runtime is able to restart the computation from the last iteration if a failure occurs. However,
-this approach can be problematic if the number of iterations is not known in advance, since some
-task runtimes expect that the structure of the task graph will be immutable once the graph has been
-submitted for execution. \dask{} and \ray{} are examples of task
-runtimes do not have this assumption, and allow adding tasks to an existing task graph dynamically.
+		One approach to model such iterative computations would be to run the whole iterative process
+		inside a single task. While this is simple to implement, it might not be very practical, since such
+		iterative processes can take a long time to execute, and performing them in a single task would
+		mean that we could not leverage desirable properties offered by the task graph abstraction, for
+		example fault tolerance. Since the computation \emph{within} a single task is typically
+		opaque to the task runtime, if the task fails, it would then need to be restarted from scratch.
 
-\textsc{L-DAG}~\cite{l-dag} suggests an approach for
-transforming iterative workflows into workflows without loops, to support this use-case on a wider
-range of task runtimes.
+		A better approach might be to model each iteration as a separate task. In such case, the task
+		runtime is able to restart the computation from the last iteration if a failure occurs. However,
+		this approach can be problematic if the number of iterations is not known in advance, since some
+		task runtimes expect that the structure of the task graph will be immutable once the graph has been
+		submitted for execution. \dask{} and \ray{} are examples of task
+		runtimes do not have this assumption, and allow adding tasks to an existing task graph dynamically.
+
+		\textsc{L-DAG}~\cite{l-dag} suggests an approach for
+		transforming iterative workflows into workflows without loops, to support this use-case on a wider
+		range of task runtimes.
+\end{description}
 
 \section*{Summary}
 This chapter has described a set of challenges that can limit the usage ergonomics or efficiency of

@@ -617,12 +617,12 @@ tasks.
 
 \subsubsection*{Iterative computation}
 Iterative computation, such as running a simulation until it converges or training a
-machine-learning model, can be expressed using the concept of \emph{open jobs}. Such jobs allow
-users to dynamically add tasks to them, even if some tasks were already computed. This can be
+machine-learning model, can be expressed using the concept of \emph{open jobs}. Such jobs
+allow users to dynamically add tasks to them, even if some tasks were already computed. This can be
 used to perform several iterations until some condition is met within the same job, without
-unnecessarily creating a new task graph (job) for each iteration. This makes it easier to
-express arbitrarily dynamic task graph structures where the shape of the graph is not fully
-known before the computation starts.
+unnecessarily creating a new task graph (job) for each iteration. This makes it easier to express
+arbitrarily dynamic task graph structures where the shape of the graph is not fully known before
+the computation starts.
 
 \subsection{Task input and output}
 \label{hq:task-input-and-output}
@@ -2240,16 +2240,15 @@ set of features, and makes various trade-offs based on which use-cases it was pr
 for.
 
 The first section of the table, \emph{Task interfaces}, shows which interfaces can be used to
-submit tasks and if they support modifying task graphs dynamically. \gls{cli} specifies that tasks
-can be submitted from the command-line,
-\emph{Workflow file} specifies that task graphs can be defined using e.g.\
-\gls{yaml} or \gls{toml} files and \emph{Python \gls{api}} marks runtimes
-that provide the option to specify tasks using Python. Note that the \gls{cli} column
-indicates that tasks and task graphs can be actually defined and submitted using the command-line,
-without requiring additional input files, not just that the runtime provides some form of a
-\gls{cli} (which is true for most of the runtimes). The last column, \emph{Dynamic task graphs},
-states whether the task runtime supports adding to existing submitted task graphs dynamically,
-which is useful for expressing iterative workflows.
+submit tasks and if they support modifying task graphs dynamically. \gls{cli}
+specifies that tasks can be submitted from the command-line, \emph{Workflow file} specifies that
+task graphs can be defined using e.g.\ \gls{yaml} or \gls{toml} files and
+\emph{Python \gls{api}} marks runtimes that provide the option to specify tasks using Python. Note
+that the \gls{cli} column indicates that tasks and task graphs can be actually
+defined and submitted using the command-line, without requiring additional input files, not just
+that the runtime provides some form of a \gls{cli} (which is true for most of the runtimes). The last column,
+\emph{Dynamic task graphs}, states whether the task runtime supports adding to existing submitted task
+graphs dynamically, which is useful for expressing iterative workflows.
 
 Most evaluated task runtimes provide a Python \gls{api}, as it enables the most
 general way of defining task graphs. However, it is relatively rare for other tools to offer a

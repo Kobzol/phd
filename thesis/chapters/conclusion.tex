@@ -60,7 +60,7 @@ introduced by~\Autoref{ch:sota}, and also which improvements could be made to it
 work to further improve its ability to provide ergonomic and efficient task graph execution on
 \gls{hpc} clusters.
 \begin{description}[wide=0pt]
-	\item[Interaction with allocation manager] The used meta-scheduling approach removes the need for the workflow author to think about mapping
+	\item[Allocation manager] The used meta-scheduling approach removes the need for the workflow author to think about mapping
 		tasks to allocations or dealing with various allocation limits. And thanks to the automatic
 		allocator, users do not even need to submit any allocations by themselves. The automatic allocator
 		could be extended with task duration or allocation start time predictions in the future, to improve
@@ -73,23 +73,29 @@ work to further improve its ability to provide ergonomic and efficient task grap
 		which can deal with the most complex resource management scenarios. Workers also provide automatic
 		detection of available resources, which further improves the ergonomics of running workflows with
 		heterogeneous clusters.
-	\item[Data transfers] \hyperqueue{} does not currently support direct data transfers
-		between tasks, i.e.\ enabling tasks to pass their outputs as inputs to dependent tasks through
-		network communication. This limits its applicability (or at least its ergonomics) in scenarios that
-		need to exchange large amounts of outputs between tasks. Implementing data transfers would expand
-		the set of workflows that can be naturally executed with it, and it could also improve performance
-		by avoiding filesystem \gls{io}.
+	\item[Performance and scalability] Experiments presented in~\Autoref{hq:evaluation} demonstrate that \hyperqueue{} is
+		able to scale to \gls{hpc}-level workflows and that it does not introduce
+		significant overhead over executing tasks manually.
 
 		For use-cases that are limited by \gls{io} bandwidth due to creating too many
 		standard (error) output files on distributed filesystems, \hyperqueue{} offers
 		\emph{output streaming}, which is able to avoid filesystem limitations by streaming task output
 		to the server and storing it in a single file.
+
+		The performance of \hyperqueue{} could be further improved by integrating
+		\gls{hpc}-specific technologies, such as InfiniBand~\cite{infiniband} or
+		\gls{mpi}, to speed-up network communication or filesystem
+		\gls{io}, or by adding support for stateful task environments. These could help
+		avoid the need to create a separate Linux process for each executed task, which can have a
+		non-trivial overhead on certain \gls{hpc} clusters, as was demonstrated by our
+		experiments.
 	\item[Fault tolerance] \hyperqueue{} offers fault tolerance by default; tasks that do not
 		finish computing successfully due to reasons outside their control are automatically rescheduled to
 		a different worker, without requiring any manual user intervention. Workers are designed to be
 		ephemeral; because they are usually executed in relatively short-running allocations, their
 		failures are thus handled gracefully. The server itself is also fault-tolerant and can reload its
-		task database after being restarted.
+		task database after being restarted, which enables continuous execution of task graphs even in the
+		case of e.g.\ login node crashes.
 	\item[Multi-node tasks] \hyperqueue{} provides built-in support for multi-node tasks, and
 		can even combine them with standard single-node tasks within the same task graph. It also provides
 		basic integration with common multi-node technologies like \gls{mpi} to make their
@@ -97,21 +103,6 @@ work to further improve its ability to provide ergonomic and efficient task grap
 		so that a multi-node task would not necessarily require its whole node for execution, and for some
 		use-cases it would also be very useful to have the ability to combine multi-node tasks with data
 		transfers.
-	\item[Scalability] Experiments presented in~\Autoref{hq:evaluation} demonstrate that \hyperqueue{} is
-		able to scale to \gls{hpc}-level workflows and that it does not introduce
-		significant overhead over executing tasks manually. Its performance could be further improved by
-		integrating \gls{hpc}-specific technologies, such as
-		InfiniBand~\cite{infiniband} or \gls{mpi}, to speed-up network
-		communication or filesystem \gls{io}, or by adding support for stateful task
-		environments. These could help avoid the need to create a separate Linux process for each executed
-		task, which can have a non-trivial overhead on certain \gls{hpc} clusters, as was
-		demonstrated by our experiments.
-	\item[Iterative computation] While it is possible to express task graphs that need to be created in a dynamic fashion or that
-		leverage iterative computation using the Python \gls{api}, it is currently not
-		fully ergonomic for the users, as separate \hq{} jobs need to be submitted in
-		this case. As a future extension, \hyperqueue{} could allow adding tasks to existing
-		jobs fully dynamically, which would make it much simpler to express use-cases where the structure
-		of the task graph is not fully known before its execution starts.
 	\item[Deployment] In terms of ease-of-deployment, \hyperqueue{} is essentially optimal; it is
 		distributed as a single binary that runs fully in user-space and that does not have any
 		dependencies. Its users thus do not have to install any libraries or deploy complex services on the
@@ -122,6 +113,17 @@ work to further improve its ability to provide ergonomic and efficient task grap
 		\gls{api}, which is an optional component, is distributed as a standard Python
 		package that can be easily installed using standard Python package management tools, on a variety
 		of Python versions.
+	\item[Programming model] \hyperqueue{} supports task submission through a \gls{cli},
+		workflow files and also a Python \gls{api}, so that it can support a wide range of
+		use-cases. Its task graphs can also be modified even after being submitted, which allows expressing
+		dynamic use-cases, such as iterative computation.
+
+		\hyperqueue{} does not currently support direct data transfers
+		between tasks, i.e.\ enabling tasks to pass their outputs as inputs to dependent tasks through
+		network communication. This limits its applicability (or at least its ergonomics) in scenarios that
+		need to frequently exchange many outputs between tasks. Implementing data transfers would expand
+		the set of workflows that can be naturally executed with it, and it could also improve performance
+		by avoiding filesystem \gls{io}.
 \end{description}
 
 To summarize, this thesis makes the following contributions:

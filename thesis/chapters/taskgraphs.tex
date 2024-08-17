@@ -300,8 +300,7 @@ definitions are general and work for both approaches.
 	\item A worker schedule $S_w$ is a function that assigns each task to a specific worker:
 	      $S_w\colon T \rightarrow W$
 	\item An ordering schedule $S_o$ is a function that assigns a unique number to each
-	      task, to define an ordering in which tasks should be executed:
-	$S_o\colon T \rightarrow \mathbb{O}, \mathbb{O} = \{1,\ldots,|T|\},
+	      task, to define an ordering in which tasks should be executed: $S_o\colon T \rightarrow \mathbb{O}, \mathbb{O} = \{1,\ldots,|T|\},
 		      \alltaskpairs\colon S_o(t_1) = S_o(t_2) \Rightarrow t_1 = t_2$
 \end{itemize}
 
@@ -317,8 +316,8 @@ The properties defined above can be evaluated without actually executing the tas
 they are not sufficient to ensure that a schedule is valid. That has to be evaluated in the context
 of a specific execution of a task graph that uses this schedule. Assume that we want to evaluate a
 specific schedule $S_w$ and $S_o$ that was used to execute a task
-graph $(T \cup O, E)$ on a set of workers $W$ in some execution $X$. First, let use again
-define several auxiliary definitions:
+graph $(T \cup O, E)$ on a set of workers $W$ in some execution
+$X$. First, let use again define several auxiliary definitions:
 
 \newcommand{\timedomain}{\mathbb{R_{+}}}
 
@@ -328,7 +327,8 @@ define several auxiliary definitions:
 	\item Let us have a function $T_f$ that returns the point in time at which a specific
 	      task finished its executionin $X$: $T_f\colon T \rightarrow \timedomain$
 	\item Let us have a function $E_w$ that returns a set of tasks that were currently being
-	      executed on a specific worker at a given point in time in $X$: $E_w\colon W \times \timedomain \rightarrow \mathcal{P}(T)$
+	      executed on a specific worker at a given point in time in $X$:
+	      $E_w\colon W \times \timedomain \rightarrow \mathcal{P}(T)$
 \end{itemize}
 
 For a schedule to be valid in $X$, all the following properties must hold:
