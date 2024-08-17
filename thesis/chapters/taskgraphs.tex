@@ -43,7 +43,7 @@ execution.
 
 \newcommand{\alltaskpairs}{\forall t_1\in{}T, \forall t_2\in{}T}
 
-A task graph is a tuple $(T, O, E, RS, RS_t)$, where:
+A task graph is a tuple $(T, O, E, RS, RT)$, where:
 \begin{itemize}[itemsep=0pt]
 	\item $T$ is a set of \emph{tasks}.
 	\item $O$ is a set of \emph{data objects}.
@@ -51,11 +51,11 @@ A task graph is a tuple $(T, O, E, RS, RS_t)$, where:
 	\item $RS$ is a set of \emph{resource kinds}. Each resource kind describes some resource
 	      (e.g. \gls{cpu} cores or \glspl{gpu})
 	      that is required to execute a specific task.
-	\item $RS_t$ is a function that defines the \emph{resource requirement} of a task for
-	      a specific resource kind: \\ $RS_t\colon T \times RS \rightarrow \mathbb{Q}_{\geq{}0}$ \\ A resource requirement specifies what amount
+	\item $RT$ is a function that defines the \emph{resource requirement} of a task for
+	      a specific resource kind: \\ $RT\colon T \times RS \rightarrow \mathbb{Q}_{\geq{}0}$ \\ A resource requirement specifies what amount
 	      of the given resource kind is required to be present at a computational provider so that the task
 	      can be executed. Note that each task can specify its resources in the form of a rational number;
-	      tasks can request just a fraction of a resource. If $RS_t(t, r) = 0$, then task
+	      tasks can request just a fraction of a resource. If $RT(t, r) = 0$, then task
 	      $t$ does not require resource $r$ for its execution.
 \end{itemize}
 
@@ -213,14 +213,14 @@ once all of its inputs are ready, which means that the dependencies of the task 
 and their outputs have been transferred to the computational node of the worker. However, this
 depends on the semantics of each task runtime.
 
-We can formally define a \emph{computational environment} as a tuple $(W, RS, RS_w)$, where:
+We can formally define a \emph{computational environment} as a tuple $(W, RS, RW)$, where:
 \begin{itemize}[itemsep=0pt]
 	\item $W$ is a set of workers.
 	\item $RS$ is a set of \emph{resource kinds}. Each resource kind describes some
 	      resource (e.g. \gls{cpu} cores or \glspl{gpu})
 	      that can be provided a worker.
-	\item $RS_w$ is a function which defines how many resources are provided by a
-	      worker for a specific resource kind: \\ $RS_w\colon W \times RS \rightarrow \mathbb{Q}_{\geq{}0}$
+	\item $RW$ is a function which defines how many resources are provided by a
+	      worker for a specific resource kind: \\ $RW\colon W \times RS \rightarrow \mathbb{Q}_{\geq{}0}$
 \end{itemize}
 
 There are many existing task runtimes with varying architectures, features and trade-offs, which
@@ -286,7 +286,7 @@ executed or during its execution. The following definitions are general and work
 approaches.
 
 We can define a \emph{schedule} as a pair $(S_w, S_o)$ applied to a task graph
-$(T, O, E, RS, RS_t)$ and a computational environment $(W, RS, RS_w)$ as follows:
+$(T, O, E, RS, RT)$ and a computational environment $(W, RS, RW)$ as follows:
 
 \begin{itemize}[itemsep=0pt]
 	\item A worker schedule $S_w$ is a function that assigns each task to a specific worker:
@@ -308,10 +308,10 @@ respecting the dependencies and resource requirements of tasks in the task graph
 specifics of these properties differ in each task-based programming model, we can define a set of
 baseline properties that are desirable in almost all situations. In order to do that, we will need
 to consider a specific execution of a task graph that used a given schedule; we can then evaluate
-whether that schedule satistied these properties in the context of this execution.
+whether that schedule satisfied these properties in the context of this execution.
 
 Assume that we want to evaluate a specific schedule ($S_w$, $S_o$) that was used to execute a
-task graph $(T, O, E, RS, RS_t)$ in a computational environment $(W, RS, RS_w)$ in some execution $X$. For
+task graph $(T, O, E, RS, RT)$ in a computational environment $(W, RS, RW)$ in some execution $X$. For
 simplicity, we assume exactly one task instance executed for each task. In other words,
 tasks in this execution did not fail and each task was fully executed.
 First, let us define several auxiliary functions:
@@ -338,7 +338,7 @@ We will say that a schedule is \emph{valid} in $X$ when all the following proper
 	\item Resource requirements of all tasks must be fulfilled, and resources provided by
 	individual workers must not be oversubscribed, at any point in time: \\
 	      $\forall tp\in\timedomain, \forall w\in{}W, \forall r\in{}RS\colon
-		      \sum_{t\in{}E_w(w, tp)} RS_t(t, r) \leq RS_w(w, r)$
+		      \sum_{t\in{}E_w(w, tp)} RT(t, r) \leq RW(w, r)$
 \end{itemize}
 
 Since these properties form the bare minimum that a reasonable schedule should support, we will
