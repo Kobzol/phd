@@ -1,35 +1,25 @@
+%TODO: link to definitions
 The previous two chapters focused primarily on the performance aspects of task graph execution, by
 examining various task scheduling algorithms and also bottlenecks that can limit the scalability of
-existing task runtimes. Our experiments have provided us a guidance on how to implement efficient
-task scheduling and what sorts of bottlenecks to avoid in the implementation of the task runtime
-itself. However, while performance is naturally crucial for \gls{hpc}, it should not
+existing task runtimes. However, while performance is naturally crucial for \gls{hpc}, it should not
 be the only factor to focus on. \Autoref{ch:sota} discussed several other challenges
 affecting \gls{hpc} task graphs that are related to the second main focus of this
-thesis, namely the \emph{ergonomics} of task graph execution.
+thesis, namely the ergonomics of task graph execution.
 
-Execution ergonomics (in the context of task-based programming models) is a broad area that
-encompasses several aspects, such as providing an easy way to define the structure of the task
-graph, allowing its execution in an effortless manner (both on a local computer and a distributed
-cluster), handling fault tolerance without the user's intervention, allowing users to express
-complex resource requirements and many others. This thesis primarily focuses on analyzing and
-resolving ergonomic challenges that form a barrier for executing task graphs on
-\gls{hpc} clusters. As we will see in this chapter, ergonomics and performance do not
-have to contradict each other; approaches that increase ergonomics can also help with improving
-performance and hardware utilization.
+This chapter deals with these ergonomic challenges through a meta-scheduling design that provides a
+set of guiding principles for implementing task runtimes. It takes into account heterogeneous
+resource management, fault tolerance, dynamic load balancing, interaction with allocation managers
+and other aspects required to enable effortless execution of task graphs on supercomputers.
 
-This chapter introduces a meta-scheduling design that aims to tackle the most important
-\gls{hpc} task graph execution challenges with a unified solution, by providing a set
-of guiding principles for implementing task runtimes. It takes into account heterogeneous resource
-management, fault tolerance, dynamic load balancing, interaction with allocation managers and other
-aspects required to enable effortless and efficient execution of task graphs on supercomputers.
-
-Additionally, it describes a reference implementation of this design called
-\hyperqueue{}, an \gls{hpc}-tailored task runtime that was created with
-these guiding principles in mind in order to enable transparent, ergonomic and efficient execution
-of task graphs on \gls{hpc} clusters.  It is the culmination of the research and work
-presented in this thesis, which was made possible thanks to the experience gained from our work on
-\estee{} and \rsds{}, and also from interacting with many
-\gls{hpc} workflows and use-cases over the course of several years.
+This design is then combined with the performance-related insights about task scheduling and
+minimizing runtime overhead presented in Chapters~\ref{ch:estee}
+and~\ref{ch:rsds} in an implementation of an \gls{hpc}-tailored task
+runtime called \hyperqueue{}. This task runtime was created with the goal of enabling
+transparent, ergonomic and efficient execution of task graphs on \gls{hpc} clusters.
+It is the culmination of the research and work presented in this thesis, which was made possible
+thanks to the experience gained from our work on \estee{} and
+\rsds{}, and also from interacting with many \gls{hpc} workflows and
+use-cases over the course of several years.
 
 The work presented in this chapter makes the following contributions:
 \begin{enumerate}
@@ -37,10 +27,11 @@ The work presented in this chapter makes the following contributions:
 	      in the presence of allocation managers and allows load balancing across different allocations. It
 	      disentangles the definition of tasks and the hardware that executes them, which makes it possible
 	      to achieve high hardware utilization while also being easy to use.
-	\item We provide a comprehensive implementation of the meta-scheduling design in the
-	      \hyperqueue{} task runtime. Its task scheduler supports dynamic load balancing features
-	      that are not present in other state-of-the-art tools, such as fractional resources and resource
-	      variants.  %	      computational load, which further simplifies the execution of task graphs on supercomputers.%	\item We describe an approach for automatic submission of allocations on behalf of users in response to
+	\item We provide an implementation of the meta-scheduling design in the
+	      \hyperqueue{} task runtime, which enables efficient execution of task graphs on
+		  heterogeneous \gls{hpc} clusters. It also supports dynamic load balancing
+		  features that are not present in other state-of-the-art tools, such as fractional
+		  resources and resource variants.
 	\item We evaluate the performance, scalability and achieved hardware utilization of task graphs executed
 	      using \hyperqueue{} on several benchmarks and use-cases.
 \end{enumerate}

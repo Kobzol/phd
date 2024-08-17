@@ -8,6 +8,14 @@ from the sheer scale of \gls{hpc} workloads and clusters and from the complexity
 idiosyncrasies of supercomputers, which have historically been designed for different kinds of
 programming models than task graphs.
 
+Execution ergonomics (in the context of task-based programming models) is a broad area that
+encompasses several aspects, such as providing an easy way to define the structure of the task
+graph, allowing its execution in an effortless manner (both on a local computer and a distributed
+cluster), handling fault tolerance without the user's intervention, allowing users to express
+complex resource requirements and many others. In particular, we will focus on identifying
+ergonomic challenges that form a barrier for executing task graphs on \gls{hpc}
+clusters.
+
 We will also discuss how are existing task runtimes able to deal with these challenges and what
 approaches do they use. This is important, because in order to achieve a seamless task graph
 execution experience on supercomputers, one should use a task runtime that takes these
