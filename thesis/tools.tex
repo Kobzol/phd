@@ -202,16 +202,6 @@ numpy/pandas code.
 - weird metascheduling
 
 \subsection*{Merlin}
-Merlin~\cite{merlin} is a ...  - similar idea to% https://merlin.readthedocs.io/en/latest/tutorial/1_introduction/?h=many#how-can-merlin-run-so-many-simulations
-HyperQueue
-- wraps Maestro and Celery
-- workflows defined in files
-- does not have autoallocation
-- encrypts with per-user key, same as HQ
-- more high-level
-- resources: only CPUs and nodes, can be simulated with different Celery queues
-- dependencies: Python, Redis
-
 % architecture: centralized
 % encryption: yes
 % interfaces: workflow files
@@ -226,6 +216,16 @@ HyperQueue
 % Python: yes
 % external services: Redis
 % language: Python
+
+Merlin~\cite{merlin} is a ...  - similar idea to% https://merlin.readthedocs.io/en/latest/tutorial/1_introduction/?h=many#how-can-merlin-run-so-many-simulations
+HyperQueue
+- wraps Maestro and Celery
+- workflows defined in files
+- does not have autoallocation
+- encrypts with per-user key, same as HQ
+- more high-level
+- resources: only CPUs and nodes, can be simulated with different Celery queues
+- dependencies: Python, Redis
 
 \subsection*{SnakeMake}
 % architecture: centralized
