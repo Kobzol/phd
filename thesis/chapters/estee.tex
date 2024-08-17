@@ -10,12 +10,12 @@ single scheduling algorithm that could quickly provide an optimal schedule for a
 graph.
 
 There are many factors that affect the execution properties of task graphs and that pose some form
-of a challenge to task schedulers. The execution environment (e.g.\ a distributed cluster) can have
-varying amounts of nodes with heterogeneous hardware resources, and complex network topologies that
-can have a non-trivial effect on the latency and bandwidth of messages sent between the workers and
-the scheduler, and thus in turn also on the overall performance of the task graph execution. Task
-graphs can be structured arbitrarily, with large amounts of different kinds of tasks with diverse
-execution characteristics and resource requirements.
+of a challenge to task schedulers. The computational environment (e.g.\ a distributed cluster) can
+have varying amounts of nodes with heterogeneous hardware resources, and complex network topologies
+that can have a non-trivial effect on the latency and bandwidth of messages sent between the
+workers and the scheduler, and thus in turn also on the overall performance of the task graph
+execution. Task graphs can be structured arbitrarily, with large amounts of different kinds of
+tasks with diverse execution characteristics and resource requirements.
 
 Furthermore, task graph execution might not be deterministic, and the scheduler has to work with
 incomplete information and react to events that dynamically occur during task execution and that

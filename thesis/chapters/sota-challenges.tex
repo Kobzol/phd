@@ -451,7 +451,7 @@ be described in~\Autoref{ch:hyperqueue}.
 
 \section{Cluster heterogeneity}
 Even though task graphs are designed to be portable and ideally should not depend on any specific
-execution environment, for certain types of tasks, we need to be able to describe at least some
+computational environment, for certain types of tasks, we need to be able to describe at least some
 generic environment constraints. For example, when a task executes a program that leverages the
 CUDA programming framework~\cite{cuda}, which is designed to be executed on an NVIDIA
 graphics accelerator, it has to be executed on a node that has such a \gls{gpu}
@@ -630,6 +630,23 @@ disconnections gracefully, even if a task is being executed on a node that is di
 they should be able to restart previously interrupted tasks on newly arrived workers. In general,
 in \gls{hpc} scenarios, worker instability and frequent disconnects should be
 considered the normal mode of operation, rather than just a rare edge case.
+
+Tasks are usually considered to be atomic from the perspective of the runtime, i.e.\ they either
+execute completely (and successfully), or they fail, in which case they might be restarted from
+scratch. Task granularity thus plays an important role here, since when a task is large, then a lot
+of work might have to be redone if it fails and is re-executed. Some runtimes try to alleviate this
+cost by leveraging task checkpointing~\cite{task_checkpointing}, which is able to save the
+computational state of a task during its execution, and then restore it in case of a failure, thus
+avoiding the need to start from the beginning.
+
+%Fault tolerance is challenging in the presence of dependencies. When a task has inputs, the runtime
+%might have to store them (either in memory or in a serialized format on disk) even after the task
+%has started executing. Because there is always a possibility that it will have to restart the task
+%in case of a failure, and thus it needs to hold on to its inputs. In some cases, it can actually be
+%a better trade-off to avoid storing the inputs and instead re-execute the dependencies of the task
+%(even if they have been executed successfully before) to regenerate the inputs. This can help
+%reduce memory footprint, albeit at the cost of additional computation time, and it also might not
+%work well if the execution of dependencies are not deterministic.
 
 Because of its importance, fault-tolerant task execution is generally well-supported in most
 existing task runtimes. The differences are mostly in the level of automation. For example,

@@ -1,10 +1,10 @@
 %TODO: link to definitions
 The previous two chapters focused primarily on the performance aspects of task graph execution, by
 examining various task scheduling algorithms and also bottlenecks that can limit the scalability of
-existing task runtimes. However, while performance is naturally crucial for \gls{hpc}, it should not
-be the only factor to focus on. \Autoref{ch:sota} discussed several other challenges
-affecting \gls{hpc} task graphs that are related to the second main focus of this
-thesis, namely the ergonomics of task graph execution.
+existing task runtimes. However, while performance is naturally crucial for
+\gls{hpc}, it should not be the only factor to focus on. \Autoref{ch:sota}
+discussed several other challenges affecting \gls{hpc} task graphs that are related
+to the second main focus of this thesis, namely the ergonomics of task graph execution.
 
 This chapter deals with these ergonomic challenges through a meta-scheduling design that provides a
 set of guiding principles for implementing task runtimes. It takes into account heterogeneous
@@ -27,11 +27,10 @@ The work presented in this chapter makes the following contributions:
 	      in the presence of allocation managers and allows load balancing across different allocations. It
 	      disentangles the definition of tasks and the hardware that executes them, which makes it possible
 	      to achieve high hardware utilization while also being easy to use.
-	\item We provide an implementation of the meta-scheduling design in the
-	      \hyperqueue{} task runtime, which enables efficient execution of task graphs on
-		  heterogeneous \gls{hpc} clusters. It also supports dynamic load balancing
-		  features that are not present in other state-of-the-art tools, such as fractional
-		  resources and resource variants.
+	\item We provide an implementation of the meta-scheduling design in the \hyperqueue{} task
+	      runtime, which enables efficient execution of task graphs on heterogeneous \gls{hpc}
+	      clusters. It also supports dynamic load balancing features that are not present in other
+	      state-of-the-art tools, such as fractional resources and resource variants.
 	\item We evaluate the performance, scalability and achieved hardware utilization of task graphs executed
 	      using \hyperqueue{} on several benchmarks and use-cases.
 \end{enumerate}
