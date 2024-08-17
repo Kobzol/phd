@@ -652,7 +652,7 @@ and workers.
 
 Our modification changes the dynamic encoding of \dask{} messages into frames.
 We have modified it in a way that always keeps the original message structure, so that it is easier
-to deserialize. This modification is described in \Autoref{fig:rsds-dask-frame-encoding}, which contains a
+to deserialize. This modification is described in~\Autoref{fig:rsds-dask-frame-encoding}, which contains a
 simplified scheme that depicts a \dask{} message, and its encoding in
 \dask{} and in \rsds{}\footnote{Note that the message and the encoding is depicted using a \gls{json}
 notation, for improved readability. In reality, the data is encoded using MsgPack.}. On the

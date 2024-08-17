@@ -10,15 +10,12 @@ This chapter defines a set of concepts related to tasks, with a particular focus
 are important for task graph execution in \gls{hpc} environments, which will be
 further described in~\Autoref{ch:sota}. The definitions described in this chapter are
 specifically adapted to the needs and terminology of this thesis, as is usual for other research
-works. They form a lowest common denominator that can be applied to the specific task execution
+works. They form the lowest common denominator that can be applied to the specific task execution
 tools and their programming models discussed throughout this thesis. The presented terms are
 similar to definitions that can be found in existing works~\cite{task_scheduling,hagras2003static,wang2018list}. However, they
 differ in several aspects. In particular, we do not assume that task execution times nor output
 sizes are known in advance, and we use a very general definition of task resource requirements,
 which can be used to model heterogeneous \gls{hpc} cluster hardware.
-
-%TODO
-- nepoužívané pojmy (resource varianty?)
 
 \section{Task graphs}
 A computational workflow in the task-based programming model is represented with a
@@ -289,7 +286,7 @@ executed or during its execution. The following definitions are general and work
 approaches.
 
 We can define a \emph{schedule} as a pair $(S_w, S_o)$ applied to a task graph
-$(T, O, E, RS, RS_t)$ and a computational environment $(W, RS, RS_w)$ as follow:
+$(T, O, E, RS, RS_t)$ and a computational environment $(W, RS, RS_w)$ as follows:
 
 \begin{itemize}[itemsep=0pt]
 	\item A worker schedule $S_w$ is a function that assigns each task to a specific worker:
@@ -487,7 +484,8 @@ Optimal scheduling of tasks to workers is an NP-hard~\cite{Ullman1975} problem e
 most basic scenarios, when the exact execution duration of each task is known, and even if we do
 not consider the duration of transferring data between workers over a network. Task runtimes thus
 resort to various heuristics tailored to their users' needs. Some classic task scheduling
-heuristics and their comparisons can be found in~\cite{hlfet1974,kwok1998benchmarking,hagras2003static,wang2018list,estee}. \Autoref{ch:estee}
+heuristics and their comparisons can be found
+in~\cite{estee,hlfet1974,kwok1998benchmarking,hagras2003static,wang2018list}. \Autoref{ch:estee}
 provides a comprehensive survey of various task scheduling algorithms.
 
 %Scheduling heuristics have to take many factors into consideration when deciding on which worker
