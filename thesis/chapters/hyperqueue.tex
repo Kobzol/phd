@@ -617,18 +617,12 @@ tasks.
 
 \subsubsection*{Iterative computation}
 Iterative computation, such as running a simulation until it converges or training a
-machine-learning model, can be expressed using the \hyperqueue{} Python
-\gls{api}. It provides facilities for executing a task graph, waiting until it
-finishes computing and then submitting a new task graph based on the computed results. While this
-is enough for describing basic scenarios that require dynamic iteration, it is not fully ergonomic,
-as it only provides dynamic submission of new computation on the granularity level of jobs (task
-graphs), not individual tasks.
-
-A more general solution would be to allow adding new tasks to already submitted
-\hyperqueue{} jobs, which would enable tasks themselves to submit new tasks into their
-own task graph. This would make it easier to express arbitrarily dynamic task graph structures,
-where the shape of the graph is not fully known before their computation starts. We plan to
-implement support for this feature as a future extension.
+machine-learning model, can be expressed using the concept of \emph{open jobs}. Such jobs allow
+users to dynamically add tasks to them, even if some tasks were already computed. This can be
+used to perform several iterations until some condition is met within the same job, without
+unnecessarily creating a new task graph (job) for each iteration. This makes it easier to
+express arbitrarily dynamic task graph structures where the shape of the graph is not fully
+known before the computation starts.
 
 \subsection{Task input and output}
 \label{hq:task-input-and-output}
@@ -2164,9 +2158,9 @@ theoretical designs without any implementation available.
 \newcolumntype{B}{c@{}c@{}c}
 \newcolumntype{C}{c@{}c@{}c@{}c}
 \begin{threeparttable}
-\begin{tabular}{|l|B|A|A|B|C|A|l|}
+\begin{tabular}{|l|C|A|A|B|C|A|l|}
 \multicolumn{1}{c}{Task runtime} &
-\multicolumn{3}{c}{\rotheading{Task interfaces}} &
+\multicolumn{4}{c}{\rotheading{Task interfaces}} &
 \multicolumn{2}{c}{\rotheading{Task dependencies}} &
 \multicolumn{2}{c}{\rotheading{Fault tolerance}} &
 \multicolumn{3}{c}{\rotheading{Meta-scheduling}} &
@@ -2175,7 +2169,7 @@ theoretical designs without any implementation available.
 \multicolumn{1}{c}{Deployment}\\
 \midrule
 & % tool
-\rot{CLI} & \rot{Workflow file} & \rot{Python API} & % interfaces
+\rot{CLI} & \rot{Workflow file} & \rot{Python API} & \rot{Dynamic task graphs} & % interfaces
 \rot{Explicit} & \rot{Inferred from files} & % dependencies
 \rot{Worker failure} & \rot{Server failure} & % fault tolerance
 \rot{Graph partitioning} &
@@ -2185,43 +2179,43 @@ theoretical designs without any implementation available.
 \rot{Directly between tasks} & \rot{Output streaming} & % data transfers
 Runtime dependencies \\ % deployment
 \midrule
-\gnuparallel{}\hfill\cite{parallel} & \yes & \no & \no & \no & \no & \manualft & \no & \no & \no & \no & \no & \no & \no & \no & \no & \yes & Perl \\
+\gnuparallel{}\hfill\cite{parallel} & \yes & \no & \no & \no & \no & \no & \manualft & \no & \no & \no & \no & \no & \no & \no & \no & \no & \yes & Perl \\
 %	\midrule
-\hypershell{}\hfill\cite{hypershell} & \yes & \no & \yes & \no & \no & \automaticft & \yes & \manualmap & \yes & \no & \no & \no & \no & \no & \no & \yes & \python \\
+\hypershell{}\hfill\cite{hypershell} & \yes & \no & \yes & \no & \no & \no & \automaticft & \yes & \manualmap & \yes & \no & \no & \no & \no & \no & \no & \yes & \python \\
 %	\midrule
-\dask{}\hfill\cite{dask} & \no & \no & \yes{} & \yes{} & \no &
+\dask{}\hfill\cite{dask} & \no & \no & \yes & \yes & \yes & \no &
 \automaticft & \no & \automaticmap\textsuperscript{\dag} & \yes\textsuperscript{\dag} & \yes & \yes & \yes & \no & \no & \yes & \yes & \python \\
 %	\midrule
-\ray{}\hfill\cite{ray} & \no & \no & \yes & \yes & \no & \automaticft & \yes
+\ray{}\hfill\cite{ray} & \no & \no & \yes & \yes & \yes & \no & \automaticft & \yes
 \textsuperscript{*} & \automaticmap & \no & \yes & \yes & \yes & \no & \no & \yes & \partially & \python \\
 %	\midrule
-\parsl{}\hfill\cite{parsl} & \no & \no & \yes & \yes & \no & \automaticft &
+\parsl{}\hfill\cite{parsl} & \no & \no & \yes & \yes & \yes & \no & \automaticft &
 \no & \automaticmap & \yes & \no & \yes & \no & \no & \yes & \yes & \no & \python \\
 %	\midrule
-\pycompss{}\hfill\cite{pycompss} & \yes & \no & \yes & \yes & \no & \automaticft &
+\pycompss{}\hfill\cite{pycompss} & \yes & \no & \yes & \yes & \yes & \no & \automaticft &
 \yes\textsuperscript{*} & \manualmap & \no & \no & \yes & \no & \no & \yes & \yes & \yes & \python, Java \\
 %	\midrule
-\pegasus{}\hfill\cite{pegasus} & \no & \yes & \yes & \yes & \yes & \automaticft &
+\pegasus{}\hfill\cite{pegasus} & \no & \yes & \yes & \no & \yes & \yes & \automaticft &
 \yes & \manualmap & \no & \no & \yes & \no & \no & \no & \no & \yes & \python, Java,
 HTCondor~\cite{htcondor} \\
 %	\midrule
-\balsam{}\hfill\cite{balsam} & \no & \no & \yes & \yes & \no & \automaticft &
+\balsam{}\hfill\cite{balsam} & \no & \no & \yes & \yes & \yes & \no & \automaticft &
 \yes & \automaticmap & \yes & \yes & \yes & \no & \no & \yes & \yes & \no & \python,
 PostgreSQL \\
 %	\midrule
-\autosubmit{}\hfill\cite{autosubmit} & \no & \yes & \no & \yes & \no & \automaticft &
+\autosubmit{}\hfill\cite{autosubmit} & \no & \yes & \no & \no & \yes & \no & \automaticft &
 \yes & \manualmap & \yes & \no & \yes & \no & \no & \yes & \no & \no & \python \\
 %	\midrule
-\fireworks{}\hfill\cite{fireworks} & \no & \yes & \yes & \yes & \no & \manualft &
+\fireworks{}\hfill\cite{fireworks} & \no & \yes & \yes & \yes & \yes & \no & \manualft &
 \yes & \automaticmap & \yes & \yes & \no & \no & \no & \no & \no & \no & \python, MongoDB \\
 %	\midrule
-\merlin{}\hfill\cite{merlin} & \no & \yes & \no & \yes & \no & \manualft &
+\merlin{}\hfill\cite{merlin} & \no & \yes & \no & \no & \yes & \no & \manualft &
 \yes & \automaticmap & \no & \no & \yes & \no & \no & \yes & \no & \no & \python, RabbitMQ/Redis \\
 %	\midrule
-\snakemake{}\hfill\cite{snakemake} & \no & \yes & \yes & \no & \yes & \automaticft &
+\snakemake{}\hfill\cite{snakemake} & \no & \yes & \yes & \no & \no & \yes & \automaticft &
 \no & \manualmap & \yes\textsuperscript{\dag} & \no & \yes & \yes & \no & \yes & \no & \no & \python \\[2mm]
 %	\midrule
-\hyperqueue{}\hfill\cite{hyperqueue} & \yes & \yes & \yes & \yes & \no & \automaticft &
+\hyperqueue{}\hfill\cite{hyperqueue} & \yes & \yes & \yes & \yes & \yes & \no & \automaticft &
 \yes & \automaticmap & \yes & \yes & \yes & \yes & \yes & \yes & \no & \yes & \\
 \bottomrule
 \end{tabular}
@@ -2237,8 +2231,6 @@ runtime dependencies
 \end{table}
 % \end{noindent}
 
-%TODO: dynamic/interactive task graphs
-
 \Autoref{tab:hq-tools-comparison} provides a high-level comparison of \hyperqueue{} and twelve
 other task runtimes. It should be noted that there are also many important properties that are not
 mentioned in this table; it primarily compares meta-scheduling aspects described in this chapter
@@ -2248,13 +2240,16 @@ set of features, and makes various trade-offs based on which use-cases it was pr
 for.
 
 The first section of the table, \emph{Task interfaces}, shows which interfaces can be used to
-submit tasks. \gls{cli} specifies that tasks can be submitted from the command-line,
+submit tasks and if they support modifying task graphs dynamically. \gls{cli} specifies that tasks
+can be submitted from the command-line,
 \emph{Workflow file} specifies that task graphs can be defined using e.g.\
 \gls{yaml} or \gls{toml} files and \emph{Python \gls{api}} marks runtimes
 that provide the option to specify tasks using Python. Note that the \gls{cli} column
 indicates that tasks and task graphs can be actually defined and submitted using the command-line,
 without requiring additional input files, not just that the runtime provides some form of a
-\gls{cli} (which is true for most of the runtimes).
+\gls{cli} (which is true for most of the runtimes). The last column, \emph{Dynamic task graphs},
+states whether the task runtime supports adding to existing submitted task graphs dynamically,
+which is useful for expressing iterative workflows.
 
 Most evaluated task runtimes provide a Python \gls{api}, as it enables the most
 general way of defining task graphs. However, it is relatively rare for other tools to offer a
