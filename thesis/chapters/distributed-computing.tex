@@ -1,31 +1,22 @@
 There are many ways to design and implement applications for a distributed cluster, a set of
-computers (typically labeled as computing nodes) that have their own independent processors and
-memory and are connected together with a computer network so that they can cooperate on solving
+computers, typically labeled as (computational) nodes, that have their own independent processors
+and memory and are connected together with a computer network so that they can cooperate on solving
 difficult problems. In the context of \gls{hpc}, such distributed clusters are called
 \emph{supercomputers}, and one of their distinguishing features is that all the computers of the
 cluster reside within one physical location, and they are connected with a very high-speed and
-low-latency network connection. There are other kinds of distributed clusters, such as data centers
-or cloud-based distributed systems; however, this thesis focuses almost exclusively on
-\gls{hpc} systems and supercomputers. Therefore, the rest of the text will equate
-distributed clusters with \gls{hpc} clusters, unless noted otherwise.
+low-latency network. Even though there are other kinds of distributed clusters, such as data
+centers or cloud-based systems, this thesis focuses exclusively on \gls{hpc} systems
+and supercomputers; therefore, the term (distributed) cluster will denote an \gls{hpc}
+cluster in the rest of the text.
 
-Distributed applications are implemented using various \emph{programming models}, which should be able
-to provide a way to efficiently utilize the available computing resources of the cluster, and to
-allow expressing communication patterns that enable the individual cluster nodes to cooperate and
-exchange data. Communication between nodes is crucial, as that is what allows distributed clusters
-to offer unparalleled performance by distributing the computational load among multiple computers
-and thus achieving speedup through parallelization.
-
-There are many different programming models and tools for creating distributed applications, and it
-can be challenging to understand how they relate to one another. It is especially difficult to
-navigate the area of \emph{task-based programming}, which is the main focus of this thesis, because common
-umbrella terms like \emph{task}, \emph{task graph}, \emph{\gls{dag}},
-\emph{workflow} or \emph{pipeline} are used very liberally, and can represent vastly
-different concepts. It is thus possible to encounter two programming models or tools that both
-claim to use ``task-based programming'', even though they might have very little in common.
+Distributed applications are implemented using various \emph{programming models} that allow expressing
+communication patterns which enable individual cluster nodes to cooperate and exchange data, and
+thus efficiently utilize available computational resources. Communication between nodes is crucial,
+as that is what allows distributed clusters to offer unparalleled performance by distributing the
+computational load among multiple computers and thus achieving speedup through parallelization.
 
 This thesis is focused on a particular subset of task-based programming models and their
-interaction with \gls{hpc} clusters. The goal of this chapter is thus to specify this
+interaction with \gls{hpc} clusters. The goal of this chapter is to specify this
 subset. First, it provides a broad overview of the most popular approaches for implementing
 distributed and parallel applications (with particular focus on \gls{hpc} use-cases),
 and then it gradually concretizes which niches of this diverse area are most relevant to the topic
@@ -46,9 +37,10 @@ popular today~\cite{mpiusagestudy1,mpiusagestudy2,mpiusagestudy3}. Below are a f
 \begin{description}[wide=0pt]
 	\item[Message passing] has historically been the most popular method for implementing \gls{hpc} software. In
 		this model, a distributed computation is performed by a set of processes with separate memory
-		address spaces that run on independent computing nodes. The processes cooperate together to solve
-		complex problems by exchanging network messages (hence the term \emph{message passing}). Message
-		passing applications are commonly implemented using the
+		address spaces that are typically executed across multiple nodes. The processes
+	cooperate together to
+		solve complex problems by exchanging network messages (hence the term \emph{message passing}).
+		Message passing applications are commonly implemented using the
 		\gls{spmd}~\cite{spmd} programming model, where the implementation logic of
 		all the processes participating in the computation is embedded within a single program.
 
@@ -57,16 +49,17 @@ popular today~\cite{mpiusagestudy1,mpiusagestudy2,mpiusagestudy3}. Below are a f
 		existing \gls{hpc} applications~\cite{mpiusagestudy2}. It defines a set of
 		communication primitives, operators and data types, which can be used to perform computations,
 		exchange data and synchronize progress between either two (\emph{point-to-point communication}) or multiple
-		(\emph{collective communication}) processes running on distributed nodes. \Autoref{lst:mpi-example} shows a
-		simple \gls{mpi} program which is designed to execute on two (potentially distributed)
+		(\emph{collective communication}) processes running on remote nodes.
+	\Autoref{lst:mpi-example} shows a
+		simple \gls{mpi} program designed to be executed in two (potentially distributed)
 		processes. The first process sends a number to the second process, which waits until that number is
-		received, and then prints it to standard output. Notice how both network communication and
-		synchronization is expressed explicitly, by calling the \texttt{MPI\_Send} and
+		received, and then prints it. Notice how network communication and
+		process synchronization is expressed explicitly, by calling the \texttt{MPI\_Send} and
 		\texttt{MPI\_Recv} functions. We can also see the \gls{spmd} paradigm in practice,
 		because the code for both processes is interleaved within the same program.
 
 		\begin{listing}[h]
-			\begin{minted}[fontsize=\small]{c}
+			\begin{minted}[fontsize=\footnotesize]{c}
 #include <mpi.h>
 #include <stdio.h>
 
@@ -101,7 +94,7 @@ int main() {
 		paradigm. Where it differs from message passing is in the way it expresses communication between
 		processes. Message passing processes share their memory by communicating with other processes,
 		while PGAS provides an abstraction of a shared memory address space and allows processes to
-		communicate through it\footnote{To paraphrase the famous ``Do not communicate by sharing memory; instead, share memory by communicating'' quote coined by the \texttt{Go} programming language.}. \gls{pgas} provides an illusion of a
+		communicate through it\footnote{To paraphrase the famous ``Do not communicate by sharing memory; instead, share memory by communicating'' quote that originates from the \texttt{Go} programming language community.}. \gls{pgas} provides an illusion of a
 		global memory address space that is available to processes that participate in the communication,
 		which makes it slightly less explicit in terms of expressing the communication patterns within the
 		program, because it translates certain memory operations into network messages on behalf of the
@@ -111,15 +104,16 @@ int main() {
 		as \gls{rdma}, which allows a process to directly read or write a region of memory from
 		the address space of a different process (potentially located at a remote node).
 
-	\item[Shared-memory multiprocessing] is an approach that focuses on the parallelization within a single computing node, by leveraging
-		multithreading to achieve speedup. In the area of \gls{hpc}, it is common to use the
-		\gls{openmp}~\cite{openmp} framework to implement multi-threaded applications.
-		Apart from providing interfaces for parallelizing code, synchronizing threads through barriers or
-		various locks, and performing atomic operations, it is also able to offload computation to various
-		accelerators (like a \gls{gpu}) attached to the node. \gls{openmp} can be
-		used together with the two previously mentioned programming models (it is often combined especially
-		with \gls{mpi}~\cite{hybrid_openmp_mpi}), in order to achieve parallelization both
-		intra-node (via multithreading) and inter-node (via network communication).
+	\item[Shared-memory multiprocessing] is an approach that focuses on the parallelization within a single computational node, by
+		leveraging multithreading to achieve speedup. In the area of \gls{hpc}, it is common
+		to use the \gls{openmp}~\cite{openmp} framework to implement multi-threaded
+		applications. Apart from providing interfaces for parallelizing code, synchronizing threads through
+		barriers or various locks, and performing atomic operations, it is also able to offload computation
+		to various accelerators (like a \gls{gpu}) attached to a node.
+		\gls{openmp} can be used together with the two previously mentioned programming models
+		(it is often combined especially with \gls{mpi}~\cite{hybrid_openmp_mpi}), in order to
+		achieve parallelization both intra-node (via multithreading) and inter-node (via network
+		communication).
 
 		\gls{openmp} does not only offer an \gls{api}, but it can also be
 		integrated directly within a compiler, e.g.\ in \gls{gcc} for programs written in the
@@ -129,7 +123,7 @@ int main() {
 		where a loop is parallelized simply by adding a single annotation to the source code.
 
 		\begin{listing}
-			\begin{minted}[fontsize=\small]{c}
+			\begin{minted}[fontsize=\footnotesize]{c}
 void compute_parallel(int* items, int count) {
 	// This loop is executed in parallel
 	#pragma omp parallel for
@@ -144,7 +138,7 @@ void compute_parallel(int* items, int count) {
 \end{description}
 
 These explicit programming models share a lot of desirable properties. They give their users a lot
-of control over the exchange of data between individual cores and distributed nodes, which allows
+of control over the exchange of data between individual cores and remote nodes, which allows
 creating very performant programs. Having the option to explicitly describe how will the individual
 cores and nodes cooperate also enables expressing arbitrarily complex parallelization patterns and
 data distribution strategies. However, in order to fully exploit the performance potential of
@@ -152,7 +146,7 @@ explicit parallelization, the programmer must have advanced knowledge of the \gl
 or \gls{gpu} hardware micro-architecture~\cite{intel_developer_manual} and the memory model
 of the used programming language~\cite{cpp11_standard}.
 
-Even though explicitly parallelized programs can be incredibly efficient, implementing correct
+Even though explicitly parallelized programs can be very efficient, implementing correct
 applications using them is notoriously difficult. Multi-threaded and distributed programs are
 highly concurrent, which makes it easy to introduce various programming errors, such as deadlocks,
 race conditions or data races. Especially for distributed programs, debugging such issues can be
@@ -164,11 +158,10 @@ problematic in heavily concurrent programs, which further increases the difficul
 the speed of developing correct distributed programs.
 
 Apart from correctness, using explicit communication interfaces can also lead to over-dependence on
-a specific state of available computational resources. For example, \gls{mpi} programs
-typically assume a fixed number of processes participating in the computation, and
-\gls{mpi} itself struggles with situations where some of the processes participating
-in the computation crash or disappear, which infamously makes it challenging to implement fully
-fault-tolerant \gls{mpi} programs~\cite{fault_tolerant_mpi}.
+a specific structure of available computational resources. For example, the \gls{mpi} paradigm
+typically assumes that a fixed number of processes participate in the computation and might
+struggle with situations where some of these processes crash, which infamously
+makes it challenging to implement fully fault-tolerant \gls{mpi} programs~\cite{fault_tolerant_mpi}.
 
 \subsection*{Implicit parallelization}
 Since it can take a lot of effort to implement a correct and efficient distributed program using
@@ -191,19 +184,17 @@ structure from the program description. With an implicitly parallel model, the e
 \emph{how} to perform a distributed or parallelized computation (which is the essence
 of the explicit models) to \emph{what} should be computed and how the individual
 computational steps are related to each other, which is usually the main aspect that users actually
-want to focus on. Implicitly parallel programming models often combine aspects of two programming
-paradigms, declarative and imperative. The possible parallelization opportunities are expressed
-using declarative approaches, for example using various \glspl{dsl}, while sequential
-parts of code usually remain imperative.
+want to focus on.
 
-The primary benefit of the implicitly parallel approaches is that they make it easy to define a
+The primary benefit of implicitly parallel approaches is that they make it easy to define a
 computation that can be automatically parallelized, without forcing the user to think about how
 exactly the parallelization and network communication will be performed. Execution frameworks are
-then able to ingest programs implemented with implicitly parallel models and automatically execute
+then able to ingest programs implemented using these models and automatically execute
 them on a parallel machine or even a distributed cluster in a parallel fashion, thus making it much
-easier for the user to leverage available hardware resources. Implicit models are easier to use
-than the explicit models, and they facilitate rapid prototyping of parallelized programs.
+easier for the user to leverage available hardware resources.
 
+Implicit models are typically easier
+to use than the explicit models, and they facilitate rapid prototyping of parallelized programs.
 On the other hand, the main disadvantage of these models is the lack of control of how exactly is
 parallelization performed. Therefore, programs implemented using them might not be able to achieve
 the same performance as explicitly parallelized programs.
@@ -213,10 +204,10 @@ computations~\cite{stencil} or automatically parallelized functional
 languages~\cite{parallel_haskell}. But by far the most popular are the many tools and models based
 on tasks. Since task-based programming is a core topic of this thesis, the rest of the thesis will
 focus exclusively on programming models that leverage tasks. In particular, the following section
-will categorize these models based on several properties, and describe representative tools that
+will categorize these models based on several properties and describe representative tools that
 implement this paradigm.
 
-\section{Computational workflows}
+\section{Task-based programming models}
 In recent years, it has become very popular to define scientific computations running on
 distributed and \gls{hpc} clusters using
 \emph{task-based programming models}~\cite{pegasus,workflows1,workflows_at_scale}. These models allow their users to describe the
@@ -224,18 +215,18 @@ high-level structure of their computations using \emph{computational workflows} 
 is a \gls{dag} of \emph{tasks}, atomic and independent computational
 blocks with separate inputs and outputs that can depend on one another, which can be executed in a
 self-contained way. Such workflows can naturally express diverse scientific experiments, which
-typically need to execute and compose many independent steps with dependencies between themselves
-(for example data preprocessing, postprocessing and analysis computations, various simulations,
-etc.). They are also very flexible and easy to use, which is what makes them popular.
+typically need to execute and combine many independent steps with dependencies between themselves
+(for example preprocessing data, executing simulations, performing data postprocessing and
+analysis, etc.). They are also very flexible and easy to use, which makes them especially popular.
 
 Since task-based programming models are implicitly parallel, their users do not have to
 imperatively specify how their computation should be parallelized, or when and how data should be
-exchanged between distributed nodes. They merely declaratively describe the individual parts of the
-program that can theoretically be executed in parallel (the tasks) and then pass the task graph to
-a dedicated execution tool (that we will label as a \emph{task runtime}) that executes the
-tasks, typically on a distributed cluster. Since the program is represented with an explicit graph,
-the task runtime can effectively analyze its properties (or even optimize the structure of the
-graph) in an automated way, and extract the available parallelism from it without requiring the
+exchanged between remote nodes. They merely describe the individual parts of their
+program that can theoretically be executed in parallel (the tasks) and then pass the created task
+graph to a dedicated execution tool (that we will label as a \emph{task runtime}) that executes the
+tasks, typically on a distributed cluster. Because the program is represented with a
+graph, the task runtime can effectively analyze its properties (or even optimize the structure
+of the graph) in an automated way, and extract the available parallelism from it without requiring the
 user to explicitly define how the program should be parallelized.
 
 It is important to note that from the perspective of a task runtime, each task is opaque. The tool
@@ -247,8 +238,8 @@ parallel; however, this parallelization is not provided automatically by the tas
 often achieve internal parallelism using shared memory multiprocessing, for example using the
 \gls{openmp} framework.
 
-Since task-based programming models are quite popular, there are hundreds of different tools and
-technologies that leverage them. It can be challenging to understand how these tools relate to one
+Since task-based programming models are quite popular, there are hundreds of different tools
+that leverage them. It can be challenging to understand how these tools relate to one
 another, because umbrella terms like \emph{task}, \emph{task graph},
 \emph{\gls{dag}}, \emph{workflow} or \emph{pipeline} can represent vastly
 different concepts in different contexts. For example, the term task is used for many unrelated
@@ -269,33 +260,33 @@ that can arrive asynchronously and at irregular intervals, while typically focus
 A streaming computational workflow is executed every time a specific event arrives. The workflow
 can then analyze the event, and generate some output, which is then e.g.\ persisted in a database
 or sent to another stream processing system. As an example, a web application can stream its logs,
-which are being generated dynamically as users visit the website, to a stream processing tool,
-which then analyzes the logs and extracts information out of them in real-time. Popular
+which are being generated dynamically as users visit the website, to a stream processing tool that
+analyzes the logs and extracts information out of them in real time. Popular
 representatives of stream processing are for example Apache Flink~\cite{flink} or Apache
 Kafka~\cite{kafka}. Streaming-based tools can also be implemented using the
 \emph{dataflow} programming model~\cite{dataflow,timely_dataflow}.
 
 In contrast, \emph{batch processing} tools are designed to perform a specific computation over a
-set (batch) of input data that is fully available before the computation starts, while focusing
+set of input data (a batch) that is fully available before the computation starts, while focusing
 primarily on maximal throughput. Such workflows are usually triggered manually by a user once all
 the data is prepared, and the workflow stops executing once it has processed all of its inputs. In
-certain cases, parts of the computation can be generated dynamically, while the workflow is already
-executing. For example, iterative workflows perform a certain computation repeatedly in a loop,
-until some condition in met. Typical representatives of batch processing tools are for example
-\dask{}~\cite{dask}, \snakemake{}~\cite{snakemake} or
+certain cases, a part of the computation can be defined dynamically while the workflow is
+already executing. For example, iterative workflows perform a certain computation repeatedly in a loop
+until some condition in met. Popular representatives of batch processing task runtimes are for
+example \dask{}~\cite{dask}, \snakemake{}~\cite{snakemake} or
 \textsc{SciLuigi}~\cite{sciluigi}.
 
 Streaming processing is common in the area of cloud computing, and is useful especially for
-analyzing data that is being generated in real-time. However, it is not very common in the world of
+analyzing data that is being generated in real time. However, it is not very common in the world of
 supercomputing, because \gls{hpc} hardware resources are typically ephemeral, and are
 not designed to be available for a single user at all times, which limits their usefulness for
 handling real-time events that occur at unpredictable times. On the other hand, batch processing
 workflows are a better fit for \gls{hpc} clusters, since their execution time is
 bounded by the size of their input, which is often known in advance, and thus they can be more
 easily mapped to ephemeral, time-limited allocations of \gls{hpc} hardware resources.
-Therefore, this thesis focuses exclusively on batch processing.
+This thesis focuses exclusively on batch processing.
 
-\subsection{Task graph generality}
+\subsection{Programming model generality}
 Even though most workflow processing tools are designed to execute a \gls{dag} of
 tasks, not all of them support arbitrary task graphs. Some tools use programming models designed
 for specialized use-cases, which allows them to offer very high-level and easy-to-use
@@ -305,7 +296,7 @@ things well, but that do not allow expressing fully general task graphs.
 An example of such a constrained approach is the Bulk synchronous parallel~\cite{bulkparallel1}
 model, which models a distributed computation with a series of steps that are executed in order.
 Within each step, a specific computation is performed in parallel, potentially on multiple
-distributed nodes. At the end of each step, the nodes can exchange data among themselves, and they
+remote nodes. At the end of each step, the nodes can exchange data among themselves, and they
 are synchronized with a global barrier, to ensure that there are no cyclic communication patterns
 in the computation. Even though this model does not use fully arbitrary computational graphs, it is
 still possible to express many algorithms with it~\cite{bulkparallel2}.
@@ -320,7 +311,7 @@ operations, which correspond to individual bulk synchronous parallel steps:
 	      operation performs data transformation and filtering, associates some form of a
 	      \emph{key} to each data item and produces a key-value tuple.
 	\item A \emph{shuffle} operation (implemented by a MapReduce framework) redistributes the tuples
-	      among a set of distributed nodes, based on the key of each tuple, so that tuples with the same key
+	      among a set of remote nodes, based on the key of each tuple, so that tuples with the same key
 	      will end up at the same node.
 	\item A \emph{reduce} operation (provided by the user) is performed on each node. The reduction
 	      typically performs some aggregation operation (such as sum) on batches of tuples, where each batch
@@ -334,7 +325,7 @@ to each chunk in parallel (this corresponds to the \emph{map} operation) and the
 \emph{combine} the results (this corresponds to the \emph{reduce} operation).
 
 \begin{listing}
-	\begin{minted}[fontsize=\small, tabsize=4]{python}
+	\begin{minted}[fontsize=\footnotesize, tabsize=4]{python}
 def word_count(context):
 	file = context.textFile("shakespeare.txt")
 	counts = file.flatMap(lambda line: line.split(" ")) \
@@ -372,17 +363,17 @@ However, this is also the main limitation of this model. If a computation cannot
 expressed using the \emph{map} and \emph{reduce} operations, it can be
 challenging, or even impossible, to implement it with the MapReduce paradigm. In particular,
 MapReduce assumes forward data-flow, where data is being sent through the computational pipeline in
-one direction. This can be problematic for iterative computations that have to execute repeatedly,
-e.g.\ until some condition is reached, and which typically use the output of a previous iteration
+one direction. This is problematic especially for iterative computations that have to be executed
+repeatedly until some condition is met, which typically use the output of a previous iteration
 as an input for the next iteration, thus creating a loop in the flow of data.
 
-An additional potential disadvantage, which is shared by most implicitly parallel models, is that
-MapReduce programs might not be able to achieve performance comparable to programs implemented
-using explicit parallelism. This is especially problematic for certain implementations of MapReduce
-that are known to be very inefficient, such as Apache Hadoop~\cite{hadoop}. In general,
-when executing distributed computations, it is always a good idea to first make sure that it is not
-possible to solve the same problem faster with a single-threaded program running on consumer-grade
-hardware~\cite{cost}.
+%An additional potential disadvantage, which is shared by most implicitly parallel models, is that
+%MapReduce programs might not be able to achieve performance comparable to programs implemented
+%using explicit parallelism. This is especially problematic for certain implementations of MapReduce
+%that are known to be very inefficient, such as Apache Hadoop~\cite{hadoop}. In general,
+%when executing distributed computations, it is always a good idea to first make sure that it is not
+%possible to solve the same problem faster with a single-threaded program running on consumer-grade
+%hardware~\cite{cost}.
 
 \begin{listing}[h]
 	\begin{minipage}{.4\linewidth}
@@ -406,53 +397,54 @@ Specialized types of task graphs are also commonly used to parallelize \emph{dat
 processing, which is a popular approach for performing exploratory data analytics and
 \gls{olap} queries over two-dimensional tabular datasets (dataframes). Tools such as
 \dask{} DataFrame~\cite{dask}, Modin~\cite{modin},
-Vaex~\cite{vaex} or CuDF~\cite{cudf} offer e.g.\ Python
-\glspl{api} or \gls{sql} interfaces for expressing queries over
+Vaex~\cite{vaex} or CuDF~\cite{cudf} offer Python or \gls{sql} interfaces for expressing queries over
 dataframes, and then translate these queries into task graphs that are executed on parallel
 machines, distributed clusters or \gls{gpu} accelerators. Users of these tools do not
 even necessarily have to know that they are interacting with task graphs, since their usage is
-mostly an internal implementation detail. \Autoref{lst:dask-dataframe-example-1} shows a short Python program that
-leverages the \dask{} DataFrame \gls{api} for performing a query on a
+mostly an internal implementation detail. \Autoref{lst:dask-dataframe-example-1} shows a short Python program that leverages the \dask{} DataFrame \gls{api} for performing a query on a
 dataframe loaded from a \gls{csv} file. The query is internally translated by
 \dask{} to the task graph shown on the right side of the figure, which can then be
 executed e.g.\ on a distributed cluster.
 
+DataFrame processing is often used in scientific workflows. However, it typically represents only a
+certain part of the workflow (e.g.\ a single task or a set of tasks), and it is typically not
+used to define the structure of the whole workflow.
+
 While MapReduce, DataFrame processing or other similar models are useful for computations that have
 a predictable structure, they are not always general enough to express complex
 \gls{hpc} scientific workflows. We will thus further only consider tools and models
-that allow executing arbitrary task graphs. Note that while DataFrame processing is often used
-inside scientific workflows, it typically represents only a certain part of the workflow (e.g.\ a
-single task or a set of tasks), and it is not used to define the structure of the whole workflow.
+that allow executing arbitrary task graphs.
 
 \subsection{Task granularity}
 \label{sec:task-granularity}
-Another important aspect of tasks is their \emph{granularity}. It is based on how much work
-the task performs, and it also determines into how many subtasks it could be potentially divided.
-In the extreme case, a \emph{coarse-grained} (low granularity) task could represent the whole computation that we
-want to perform, while a \emph{fine-grained} (high granularity) task could represent only the execution of a
-single \gls{cpu} instruction. With an increasing granularity, the task performs less
-work, and the whole computation will thus have to be divided into a larger number of tasks. This
-makes it easier to parallelize the computational workflow, yet it also increases the overall
+An important aspect of tasks is their \emph{granularity}, which determines how much work
+the task performs and into how many subtasks it could be potentially divided to achieve more
+parallelization opportunities.
+In an extreme case, a \emph{coarse-grained} (low granularity) task could represent the whole
+computation that we
+want to perform, while a \emph{fine-grained} (high granularity) task could represent merely the
+execution of a single \gls{cpu} instruction. With an increasing granularity, each task performs
+less work, and the whole workflow will thus have to be divided into a larger number of tasks. This
+makes it easier to parallelize the workflow; however, it also increases the overall
 overhead introduced by the task runtime, which has to manage and schedule more tasks. The same
 properties also apply inversely for a decreasing granularity of tasks.
 
-Since tasks can represent arbitrary computations, it is not always straightforward to determine how
-they could be subdivided into multiple tasks based on their structure, and therefore how granular
-they are. Usually, it is much simpler to use a proxy metric for task granularity, based on the
-duration that it takes to execute a task. Therefore, if a task is very fast to execute, we will
+Since tasks represent arbitrary computations, it is not always straightforward to determine
+how granular they are. Usually it is much simpler to use a proxy metric for task granularity based on the
+duration it takes to execute the task. Therefore, if a task executes very quickly, we will
 consider that it is highly granular, while if a task takes a long time to execute, we will consider
 that it has low granularity.
 
 Task granularity is important primarily because it determines how efficiently a task graph can be
 parallelized and if it even makes sense to distribute it to multiple nodes at all. For example, if
 certain tasks would take mere nanoseconds to execute, there would be no point in dynamically load
-balancing them across multiple distributed nodes, because the overhead of doing so would dwarf the
+balancing them across multiple remote nodes, because the overhead of doing so would dwarf the
 execution time of the tasks themselves, due to the latency induced by the network communication. In
 other words, it would be faster to just execute all such tasks on the local node, rather than
 sending them across the network. It could still be worth it to distribute a large number of such
 extremely granular tasks to multiple nodes, but the distribution would need to happen in an
-amortized way, for example only once at the beginning of the computation, to avoid the excessive
-overhead.
+amortized way, for example only once at the beginning of the computation, to avoid excessive
+communication overhead.
 
 Some task-based programming models focus primarily on high granularity tasks, for example
 StarPU~\cite{starpu}, Cilk~\cite{cilk}, HPX~\cite{hpx},
@@ -460,8 +452,8 @@ PaRSEC~\cite{parsec}, Legion~\cite{legion}, TBB~\cite{tbb} or
 \gls{openmp}~\cite{openmp}\footnote{Note that even though \gls{openmp} has been previously presented as an example of an
 explicitly parallel model, it also offers a task system that provides facilities for implicit parallelization.}. In these models, which are
 sometimes called \emph{task-parallel}~\cite{task_based_taxonomy}, tasks usually represent either
-functions or blocks of code that contain a handful of instructions, and are typically relatively
-quick to execute (they can run e.g.\ for milliseconds or seconds). While some of these tools also
+functions or blocks of code that contain only a few instructions, and are typically
+relatively quick to execute (they can run e.g.\ for milliseconds or seconds). While some of these tools also
 support distributed computing, their main use-case is to provide intra-node parallelization on
 multicore systems with shared memory, and often also to offload computation to attached
 accelerators, such as \glspl{gpu} or \glspl{fpga}.
@@ -473,7 +465,7 @@ shows a program implemented in the Cilk programming language, which calculates t
 number using a task-parallel approach.
 
 \begin{listing}
-	\begin{minted}[fontsize=\small, tabsize=4]{c}
+	\begin{minted}[fontsize=\footnotesize, tabsize=4]{c}
 cilk int fibonacci(int n)
 {
 	if (n < 2) {
@@ -490,13 +482,15 @@ cilk int fibonacci(int n)
 	}
 }
 	\end{minted}
-	\caption{Task-parallel Fibonacci calculation using Cilk\\Example adapted from~\cite{cilk}.}
+	\caption{Task-parallel Fibonacci calculation using Cilk}
+	\centering Source code snippet adapted from~\cite{cilk}.
 	\label{lst:cilk-fibonacci}
 \end{listing}
 
-Task-parallel models definitely have their place in \gls{hpc}; however, they have a
-different set of challenges and constraints, and they are not primarily designed to execute more
-coarse-grained scientific workflows. Therefore, they are not the primary focus of this thesis.
+Task-parallel models definitely have their place in \gls{hpc}; however, they are not primarily
+designed to execute high-level scientific workflows, as they deal with a
+different set of challenges and constraints. Therefore, they are not the primary focus of this
+thesis and will not be considered in the rest of the text.
 
 There is also a set of task-based tools that reside at the other end of the granularity spectrum,
 for example Apache Airflow~\cite{airfow}, Dagster~\cite{dagster},
@@ -506,7 +500,7 @@ that would separate these tools from other task runtimes, from my point of view 
 separate category. They are primarily designed for very coarse-grained workflows with a relatively
 small number of tasks, they put strong emphasis on workflow reproducibility, data provenance,
 execution monitoring (typically through a web interface) and support scheduled execution (i.e.\
-``run this workflow every hour''). They are also typically being applied in cloud environments,
+``execute this workflow every hour''). They are also typically being applied in cloud environments,
 moreso than on supercomputers. This thesis will thus not consider these tools in great detail, as
 they are not primarily designed for \gls{hpc} use-cases.
 
@@ -519,9 +513,9 @@ It has also specified the subset of distributed computing that is most relevant 
 particular, this thesis focuses on batch processing task programming models that define
 computations using fully general \glspl{dag} and that are designed for distributed
 execution on an \gls{hpc} cluster, with tasks whose granularity (duration) typically
-spans from milliseconds to hours.
+spans from (tens of) milliseconds to hours.
 
 These programming models are being commonly used for defining scientific workflows using tools that
 will be described in~\Autoref{ch:sota}, which will also discuss various challenges faced by
 these tools on \gls{hpc} systems. But before that, the following chapter will first
-define a vocabulary of task related terms.
+define a vocabulary of task related terms so that we can refer to them in the rest of the thesis.

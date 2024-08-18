@@ -34,7 +34,7 @@ requiring changes to the software. The increasing complexity and heterogeneity o
 \gls{hpc} hardware has caused the ``\gls{hpc} software stack'' and the
 corresponding programming models to become more complex, making it far from trivial to leverage the
 available performance offered by supercomputers. Individual computers of \gls{hpc}
-clusters (called \emph{computing nodes}) can consist of hundreds of \gls{cpu} cores
+clusters (called \emph{computational nodes}) can consist of hundreds of \gls{cpu} cores
 each, yet it is challenging to write programs that can scale to such high core counts. The
 \gls{ram} of each node contains multiple levels of complex cache hierarchies, and it
 has such a large capacity that it has to be split into multiple physical locations with varying
@@ -66,28 +66,26 @@ have a quick way of prototyping these applications, because their requirements c
 it would be infeasible to develop them using only very low-level technologies.
 
 The growing complexity of \gls{hpc} hardware, software and use-cases has given rise to
-the popularity of (distributed) task-based programming models and paradigms. Task-oriented
-programming models allow users to focus on their problem domain and quickly prototype, while still
-being able to describe complicated computations with a large number of individual steps and to
-efficiently utilize the available computational resources. Using a task-based approach, a
-computational workflow is described using a set of atomic computational blocks
-(\emph{tasks}) that are composed together in a \emph{task graph} which captures
-dependencies between the individual tasks. Task graphs abstract away most of the complexity of
-network communication and parallelization, and they are general enough to describe a large set of
-programs in a practical and simple way. At the same time, they remain amenable to compiler-driven
-optimization and automatic parallelization, which helps to bring the performance of programs
-described by a task graph close to manually parallelized and distributed programs, at a fraction of
-the development cost for the application developer. They are also relatively portable by default,
-as the task graph programming model typically does not make many assumptions about the target
-platform; therefore, the same task graph can be executed on various systems and clusters, provided
-the individual tasks can be ported to them and there is a task execution runtime implemented for
-that cluster.
+the popularity of task-based programming models and paradigms. Task-oriented programming models
+allow users to focus on their problem domain and quickly prototype, while still being able to
+describe complicated computations with a large number of individual steps and to efficiently
+utilize the available computational resources. With a task-based approach, a complex computation is
+described using a set of atomic computational blocks (\emph{tasks}) that are composed
+together in a \emph{task graph} which captures dependencies between the individual tasks. Task
+graphs abstract away most of the complexity of network communication and parallelization, and they
+are general enough to describe a large set of programs in a practical and simple way. At the same
+time, they remain amenable to compiler-driven optimization and automatic parallelization, which
+helps to bring the performance of programs described by a task graph close to manually parallelized
+and distributed programs, at a fraction of the development cost for the application developer. They
+are also relatively portable by default, as the task graph programming model typically does not
+make many assumptions about the target platform; therefore, the same task graph can be executed on
+various systems and clusters, if the tasks and a task graph execution tool can run on that cluster.
 
 Combined with the fact that task-based tools often allow users to implement their workflows in very
 high-level languages, such as Python or various \glspl{dsl}, it makes them an ideal tool
 for rapid scientific prototyping. However, this does not mean that low-level high-performance
-kernels are not being used anymore; a common approach is to describe the high-level structure of
-the computational workflow using a task graph where the individual tasks execute the low-level
+kernels are not being used anymore; a common approach is to describe the high-level communication
+structure of the workflow using a task graph where the individual tasks execute the low-level
 kernels, rather than implementing a monolithic application that performs all the network
 communication explicitly.
 
@@ -105,17 +103,17 @@ of those challenges could lower the barrier of entry, make task graph execution 
 various \gls{hpc} use-cases and turn it into an actual first-class citizen in the
 world of supercomputing\@.
 
-To achieve the goal of making it easier and more efficient to execute task graphs on
-heterogeneous supercomputers, this thesis sets out the following objectives:
+To achieve the goal of making it easier and more efficient to execute task graphs on heterogeneous
+supercomputers, this thesis sets out the following objectives:
 
 \begin{itemize}
 	\item Identify and analyze existing challenges and bottlenecks of task graph execution on
 	      \gls{hpc} clusters, particularly in the areas of efficient hardware utilization and
 	      usage ergonomics, and examine how are existing tools able to deal with them.
-	\item Describe a set of guidelines for overcoming these challenges and enabling effortless execution of
-	      task graphs on modern heterogeneous clusters, which should be usable as a guidance for implementing
-	      \gls{hpc}-optimized task graph execution tools.
-	\item Implement a task graph execution tool using these guidelines and validate it on
+	\item Describe a set of guidelines for overcoming these challenges that would enable effortless execution
+	      of task graphs on modern heterogeneous clusters. These guidelines should serve as a template for
+	      implementing \gls{hpc}-optimized task graph execution tools.
+	\item Implement a task graph execution tool using these guidelines and evaluate it on
 	      \gls{hpc} use-cases.
 \end{itemize}
 
@@ -134,12 +132,12 @@ aspects.~\Autoref{ch:estee} evaluates the quality of various task scheduling alg
 are important for achieving good performance when executing task workflows, and introduces
 \estee{}, a task graph execution simulator that can be used to prototype new
 scheduling algorithms.~\Autoref{ch:rsds} analyzes the runtime performance of
-\dask{}, a state-of-the-art task runtime, and proposes an alternative implementation
+\dask{}, a state-of-the-art task runtime, and provides an alternative implementation
 of its server that is able to outperform it in various \gls{hpc}
 use-cases.~\Autoref{ch:hyperqueue} then focuses on improving both the ergonomic and performance
-aspects of task execution using a meta-scheduling approach designed to facilitate task graph
-execution on \gls{hpc} clusters. This approach has been implemented in the
-\hyperqueue{} task runtime, which is also described and evaluated in this chapter in
+aspects of task execution using a meta-scheduling and resource managemet approach designed to
+facilitate task graph execution on heterogeneous clusters. This approach has been implemented in
+the \hyperqueue{} task runtime, which is also described and evaluated in this chapter in
 detail. Finally,~\Autoref{ch:conclusion} summarizes the thesis and outlines future work.
 
 %\begin{figure}
