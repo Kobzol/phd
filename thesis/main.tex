@@ -60,10 +60,9 @@
     acronym,        % enable acronyms
     nomain,         % disable main glossary, we only use acronyms
     notranslate     % enable overriding \acronymname without involving babel
-]{glossaries}
+]{glossaries-extra}
 
 %\glsdisablehyper    % disable hyperlinks
-\input{acronyms}
 \renewcommand*{\acronymname}{List of Abbreviations}
 
 \usemintedstyle{vs}
@@ -213,6 +212,9 @@ projects.
 \addbibresource{publications.bib}
 
 \makeglossaries
+\setabbreviationstyle[acronym]{short-long}
+\input{acronyms}
+
 \begin{document}
 \MakeTitlePages
 
