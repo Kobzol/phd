@@ -161,12 +161,9 @@ které umožňuje jednoduché experimentování a měření různých plánovac�
 použito pro provedení rozsáhlé studie kvality různých plánovačů úloh. Dále práce analyzuje
 výkonnostní charakteristiku moderního nástroje pro spouštění úloh \dask{}, a poskytuje alternativní
 implementaci \dask{} serveru, která výrazně zvyšuje jeho efektivitu v případech, které vyžadují vysoký výkon.
-Hlavním přínosem práce je metoda pro plánování úloh, která umožňuje jednoduché spouštění úloh na superpočítačích,
-které zároveň maximalizuje využití dostupných výpočetních zdrojů. Práce také poskytuje referenční implementaci
-využívající této metody v rámci nástroje \hyperqueue{}, který usnadňuje spouštění grafů úloh na heterogenních
-vysoce výkonných distribuovaných systémech. \hyperqueue{} je dostupné jako software s otevřeným zdrojovým kódem
-pod licencí MIT (Massachusetts Institute of Technology) na adrese \url{https://github.com/it4innovations/hyperqueue}.}
-\CzechKeywords{distribuované výpočty, výpočetní grafy, vysoce výkonné počítání}
+Hlavním přínosem práce je metoda pro plánování úloh a správu zdrojů, která umožňuje jednoduché spouštění grafů úloh na heterogenních superpočítačích, které zároveň maximalizuje využití dostupných výpočetních zdrojů. Práce také poskytuje referenční implementaci
+využívající této metody v rámci nástroje \hyperqueue{}, který je dostupný jako software s otevřeným zdrojovým kódem pod licencí MIT (Massachusetts Institute of Technology) na adrese \url{https://github.com/it4innovations/hyperqueue}.}
+\CzechKeywords{distribuované výpočty, výpočetní grafy, heterogenní zdroje, vysoce výkonné počítání}
 
 \EnglishAbstract{This thesis deals with the execution of task graphs on High-performance Computing
 (HPC) clusters (supercomputers), with a focus on efficient usage of hardware resources and ergonomic interfaces for
@@ -182,13 +179,8 @@ that enables prototyping and benchmarking of various task scheduling algorithms,
 study of the performance of various task schedulers using this environment. Secondly, it analyzes the
 bottlenecks and overall performance of a state-of-the-art task runtime \dask{} and provides an implementation
 of an alternative \dask{} server which significantly improves its performance in HPC use-cases. And
-primarily, it introduces a meta-scheduling design for effortless execution of task graphs on HPC clusters
-that facilitates efficient usage of hardware resources. It also provides a reference implementation
-of this design within an HPC-tailored task runtime called \hyperqueue{}, which offers an ergonomic
-way of executing task graphs while achieving high hardware utilization on heterogeneous HPC clusters.
-\hyperqueue{} is available as open-source software under the MIT (Massachusetts Institute of Technology) license at
-\url{https://github.com/it4innovations/hyperqueue}.}
-\EnglishKeywords{distributed computing, task graphs, hpc}
+primarily, it introduces a unified meta-scheduling and resource management design for effortless execution of task graphs on heterogeneous HPC clusters that facilitates efficient usage of hardware resources. It also provides a reference implementation of this design within an HPC-tailored task runtime called \hyperqueue{}, which is available as open-source software under the MIT (Massachusetts Institute of Technology) license at \url{https://github.com/it4innovations/hyperqueue}.}
+\EnglishKeywords{distributed computing, task graphs, heterogeneous resources, hpc}
 
 \Acknowledgement{I would like to thank my supervisor, Jan Martinovič, for his advice.
 I would also like to thank Ada Böhm, Vojtěch Cima and Martin Šurkovský, who have co-authored several
