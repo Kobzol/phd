@@ -188,6 +188,7 @@ projects.
 \begin{document}
 \MakeTitlePages
 
+\begin{spacing}{1}
 %\glsaddall     % Automatically add all defined acronyms
 %\addcontentsline{toc}{chapter}{List of Abbreviations}
 \printglossaries
@@ -201,6 +202,7 @@ projects.
 \lstlistoflistings
 %\addcontentsline{toc}{chapter}{List of Source Code Listings}
 \clearpage
+\end{spacing}
 
 % Make sure that related publications are first in the bibliography list
 \nocite{estee, rsds, hyperqueue, ligate}
@@ -243,6 +245,7 @@ projects.
 %\label{ch:conclusion-czech}
 %\input{chapters/conclusion-czech}
 
+\begin{spacing}{1}
 \chapter*{List of own publication activities}
 \label{ch:listofstudentsownpublicationactivities}
 \addcontentsline{toc}{chapter}{\nameref{ch:listofstudentsownpublicationactivities}}
@@ -256,6 +259,7 @@ projects.
 % Bibliography
 \renewcommand*{\bibfont}{\small}
 \printbibliography[heading=bibintoc, title={Bibliography}]
+\end{spacing}
 
 \appendix
 \input{chapters/appendix}
