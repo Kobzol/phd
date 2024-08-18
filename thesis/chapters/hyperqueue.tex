@@ -26,10 +26,13 @@ The work presented in this chapter makes the following contributions:
 	      in the presence of allocation managers and allows load balancing across different allocations. It
 	      disentangles the definition of tasks and the hardware that executes them, which makes it possible
 	      to achieve high hardware utilization while also being easy to use.
+	\item We describe a novel resource management scheme designed to improve hardware
+		  utilization of complex use-cases.
 	\item We provide an implementation of the meta-scheduling design in the \hyperqueue{} task
 	      runtime, which enables efficient execution of task graphs on heterogeneous \gls{hpc}
-	      clusters. It also supports dynamic load balancing features that are not present in other
-	      state-of-the-art tools, such as fractional resources and resource variants.
+	      clusters.
+%		  It also supports dynamic load balancing features that are not present in other
+%	      state-of-the-art tools, such as fractional resources, resource variants and identity resources.
 	\item We evaluate the performance, scalability and achieved hardware utilization of task graphs executed
 	      using \hyperqueue{} on several benchmarks and use-cases.
 \end{enumerate}
@@ -153,7 +156,7 @@ submitted in allocations. Instead of making allocations execute tasks or task gr
 should execute generic computational providers, which will then be dynamically assigned work (tasks
 to execute) based on the current computational load. This both improves the achievable hardware
 utilization and simplifies the allocation submission process. The following principles describe a
-meta-scheduling approach based on this idea.
+meta-scheduling approach based on this idea, along with several additional guidelines designed for ergonomic task execution.
 
 \begin{description}[wide=0pt]
 	\item[Task runtime runs outside of allocations] In order to allow fully dynamic load balancing, the task runtime should not be tied to a specific
@@ -242,19 +245,208 @@ executed, and non-optimal load balancing and hardware utilization. In combinatio
 resource system, automatic allocations and automatic re-execution of failed tasks by default, this
 design should provide an ergonomic experience for task graph authors.
 
-Of course, as with any approach, there are certain trade-offs associated with these guidelines. For
+As with any approach, there are certain trade-offs associated with these guidelines. For
 example, running the task runtime on a login node might be problematic if the login nodes are
 severely computationally constrained or if they are not even able to connect to compute nodes of
 the \gls{hpc} cluster through the network. Performance and security aspects of this
-deployment method also need to be considered.
+deployment method also need to be considered. These trade-offs will depend on a specific implementation of a task runtime that will leverage the described guidelines.
 
-These trade-offs will depend on a specific implementation of a task runtime that will leverage the
-described guidelines. To evaluate how the proposed approach works in practice, what its performance
-and usage implications are and how it compares to existing meta-schedulers, we have implemented
-this general design in a task runtime called \hyperqueue{}, which will be described in
-the rest of this chapter.
+In addition to these general guidelines, we will also describe a novel approach for managing heterogeneous
+resources.
+
+\section{Heterogeneous resource management}
+\label{sec:heterogeneous-resources}
+As was already discussed in~\Autoref{challenge:heterogeneity}, support for heterogeneous
+resource management in existing task runtimes is relatively limited. Most tools support
+defining task resource requirements for a known set of resources (such as \gls{cpu} cores or \glspl{gpu}),
+some task runtimes like \dask{} or \snakemake{} allow defining arbitrary resource kinds.
+
+However, there are various use-cases that would benefit from a more comprehensive resource
+management support. Below, we describe four such use-cases, along with resource management
+approaches that should improve hardware utilization on heterogeneous clusters and make it more
+flexible to define heterogeneous task graphs.
+
+\subsection{Non-fungible resources}
+Existing task runtimes treat resources as sets of fungible elements without an identity. For
+example, if we specify that a \dask{} worker provides two \glspl{gpu}, the \dask{} scheduler will
+make sure (in accordance with~\defref{def:worker_resource_constraint}) that it executes a single
+task that requires two \glspl{gpu} or at most two tasks that require a single \gls{gpu} on that
+worker at any given time. However, it does not provide the task with information about \emph{which}
+specific resource was assigned to it, because resources are treated merely as numbers.
+
+Yet in some cases, it would be quite useful to make resources non-fungible, by assigning
+identities to them, so that tasks could leverage knowledge about which specific resource item was
+assigned to them. As an example, assume that we have a worker that provides two \glspl{gpu} with
+separate identities; $A$ and $B$, and a task that requires a single \gls{gpu}. If a task runtime
+would track the identities of the individual resources, it could tell the task that it assigned
+it e.g.\ the \gls{gpu} $B$. It would then be much easier for the task to execute on the specific
+resource that it was assigned; in the case of an NVIDIA \gls{gpu}, it could leverage the
+\texttt{CUDA\_VISIBLE\_DEVICES=B} environment variable to make sure that it executes on the
+\gls{gpu} $B$. Without support for resources with identities, the task would need to use a
+different method to determine which specific \gls{gpu} it should use.
+
+We can formally define non-fungible resources by
+modifying~\defref{def:worker_resources}
+and~\defref{def:worker_resource_constraint} to add support for resources
+with identities.
+
+\begin{itemize}[itemsep=0pt]
+	\item Let $\setresourceelements$ be a set of \emph{resource elements}, non-fungible resources
+	that can be provided by workers.
+	\item In the original definition, the $\fnworkerres$ function assigned a numerical amount to
+	each resource kind (\defref{def:worker_resources}). To support non-fungible resources, we
+	can modify it to return a specific set of resource elements instead.
+	Let $\fnworkerresident$ be a function which defines a set of non-fungible resource elements	provided by a worker for a specific resource kind: \\
+	$\fnworkerresident\colon W \times \setresourcekinds \rightarrow \powerset{\setresourceelements}$ \\
+	For the definitions below, assume that we have
+	task graph $(T, O, E, \setresourcekinds, \fntaskres)$ in a computational environment $(W, \setresourcekinds, \fnworkerresident)$ and some concrete task graph execution $X$.
+	\item Let $\fntaskresassigned$ be a function which returns a set of specific resource elements
+	of a given resource kind that
+	were assigned to a task running on a specific worker at a given point in time in $X$: \\
+	$\fntaskresassigned\colon T \times W \times \setresourcekinds \times \timedomain \rightarrow \powerset{\setresourceelements}$ \\
+	Note that in the previous definitions we did not need the $\fntaskresassigned$ function, because it
+	would be identical to the $\fntaskres$ function (\defref{def:task_resreq}).
+	\item Now we can redefine the \emph{worker resource constraint} (\defref{def:worker_resource_constraint}) in terms of non-fungible resources: \\
+	$\forall tp\in\timedomain, \forall w\in{}W, \forall r\in{}\setresourcekinds\colon
+	\bigcup_{t\in{}T} \fntaskresassigned(t, w, r, tp) 	\subseteq \fnworkerresident(w, r)$
+	\item If we want to ensure that a given resource element is used by at most a single task at
+	any given point in time, we could add an additional constraint: \\
+	$\forall tp\in\timedomain, \forall w\in{}W, \forall r\in{}\setresourcekinds, \forall t_1\in{}T, \forall t_2\in{}T\colon \\t_1 \neq t_2 \Rightarrow \fntaskresassigned(t_1, w, r, tp) \cap \fntaskresassigned(t_2, w, r, tp) = \emptyset$ \\
+	However, in a following section about fractional resource requirements, we will see that there
+	are some situations where this constraint might not be desirable.
+	\item[\makedef{def:task_resource_constraint}] In addition to the modified
+	\emph{worker resource constraint}, we also need to define a new property that ensures that
+	all task resource requirements were satisfied in a given execution. We will call this
+	property \emph{task resource constraint}. Note that with fungible resources, this property was a
+	trivial consequence of~\defref{def:worker_resource_constraint}; however, that is no longer
+	the case with non-fungible resources. For all task resource requirements to be satisfied in
+	$X$, the following property must hold: \\
+	$\forall tp\in\timedomain, \forall w\in{}W, \forall t\in{}\fnworkertaskassigned(w, tp), \forall r\in{}\setresourcekinds\colon \\
+	tp \in \{\fntaskstart(t),\ldots,\fntaskfinish(t)\} \Rightarrow \fntaskres(t, r) = |\fntaskresassigned(t, w, r, tp)|$ \\
+%	Recall that our original assumption was that all tasks were executed exactly once in $X$;
+%	therefore, it is enough to make sure that
+\end{itemize}
+
+Taking resource identity into account makes it easier for tasks to correctly use the exact
+resources assigned to it by a scheduler, especially when
+combined with fractional resource requirements, which are described later below.
+
+\subsection{Related resources}
+It is important to note that even with non-fungible resources, tasks should still express their
+resource requirements using numerical amounts of required resources,
+as defined by~\defref{def:task_resreq}, rather than asking for specific resource elements (e.g.\
+a task requiring a single specific \gls{gpu} by its identifier). This is necessary to keep the
+task graph more portable, but crucially also to provide the scheduler with more opportunities for
+load balancing. If tasks required specific resource elements to execute, it would limit the
+scheduler's ability to choose resources dynamically in response to computational load.
+
+However, in certain cases it can be useful for a task to ask for a set resource elements that
+are somehow \emph{related} to each other, primarily for performance reasons. Assume that there is a
+computational node with $128$ \gls{cpu} cores and we want to execute a task that requires four
+cores. It might seem that it does not matter which specific four cores are assigned to that task by
+the scheduler. However, modern processors are divided into so-called \gls{numa} nodes, where
+each such node contains a subset of cores and a subset of \gls{ram} that they can access very
+quickly. On the other hand, accessing memory across different \gls{numa} nodes introduces a
+performance penalty~\cite{numa_effect}. Assigning four cores that belong to the same \gls{numa}
+node to a task could thus significantly improve its performance, while assigning cores from
+different \gls{numa} nodes could inversely reduce its performance.
+
+In order to support this use-case, a task runtime should allow tasks to define certain relations
+between resource elements. Ideally, it should be possible to express these relations in a
+generic way, because they can affect performance in other situations than just with \gls{numa},
+e.g.\ \gls{gpu} accelerators can have similar characteristics.
+
+We will not provide a formal definition for this concept, as it is very general and could be
+designed and implemented in various ways.~\Autoref{sec:hq-resource-management} will describe how
+is it implemented in \hyperqueue{}.
+
+\subsection{Fractional resource requirements}
+As you may recall from~\Autoref{sec:task-graphs} and~\defref{def:task_resreq}, we have defined a resource
+requirement of a task to be a function that specifies the amount of resources required for a
+task in the form of an integer. However, in some situations this might be too coarse-grained. To
+support a more fine-grained resource specification, we can leverage a
+\emph{fractional resource requirement}, which would allow a task to require only a fraction of some
+resource. We can introduce a modified resource requirement definition that supports fractions
+\defref{def:task_resreq} as follows:
+
+\resourcerequirement{\fntaskresfrac}{Q}
+
+%TODO: generalize theory
+
+Support for fractional resource requirements can be useful to express situations
+where a task is not able to make full use of a resource. As an example, for some programs it can be
+challenging to achieve full utilization of a \gls{gpu} accelerator. If the used software can
+utilize e.g.\ only 25\% of a single \gls{gpu}, a part of that accelerator's hardware would sit idle
+while the task is executing, which would lead to resource waste. With fractional resource
+requirements, we could instead state that the task $t$ requires only a fraction of a \gls{gpu}: $\fntaskresfrac(t) = 0.25$. A task runtime that supports fractional resource requirements should then be able to schedule up to four such tasks on a single \gls{gpu} in order to improve its utilization.
+
+Note that in theory, fractional resources could be simulated in a task runtime without explicit
+support for them. If we would like to use e.g.\ a fractional resource requirement $\frac{1}{n}$, we could
+simply multiply all other resource requirements and resource amounts provided by workers by $n$.
+However, this would not work in combination with non-fungible resources, as ideally we would
+like to assign multiple tasks to the exact same resource (e.g.\ a single specific \gls{gpu}),
+and thus have a one-to-one mapping between physical hardware devices and the corresponding
+resource elements that represent them.
+
+Slurm supports \emph{resource sharding}~\cite{slurm-sharding}, which allows sharing a specific
+resource by multiple tasks. However, this only works for a known set of resources (notably \glspl{gpu}) and
+the resource has to be specially preconfigured by its administrators for it to work. It also
+works mostly on the level of individual allocations; as was already discussed
+in~\Autoref{challenge:allocation-manager}, using Slurm allocations directly as tasks causes
+several issues.
+
+\subsection{Dynamic resource selection}
+\label{sec:dynamic-resource-selection}
+Existing task runtimes allow specifying a specific amount of a given resource kind that is
+required by each task, as was defined by~\defref{def:task_resreq}. This resource requirement is
+determined before the task graph is executed by the task graph author, and it does not change
+during the execution of the workflow. However, there are situations where it could be beneficial to
+postpone the choice of the resource requirement, and let it be determined dynamically by the
+task runtime, based on the current computational load.
+
+As an example, assume that we have a typical modern \gls{hpc} cluster that has several powerful \gls{gpu} accelerators along with tens of \gls{cpu} cores per computational node, and we want to execute some tasks on its accelerators, so we assign a resource requirement that requires a \gls{gpu} to them. When these tasks will be executing, the available \gls{cpu} cores might remain idle if there are no other tasks to compute at the same time. However, software frameworks that are \gls{gpu}-accelerated also
+commonly support execution on a \gls{cpu}, albeit at a reduced
+speed~\cite{gromacs,tensorflow}. Computing some of these tasks on the \gls{cpu} while others
+are being computed on the accelerators could improve achieved hardware utilization and reduce
+the total makespan of the task graph.
+
+The question then becomes how to determine which tasks to run on the \gls{cpu} and which on
+the \gls{gpu}. We could determine this statically before executing the workflow, by dividing the
+tasks into two groups. However, we usually do not know exact task durations in advance, and it is
+thus infeasible to estimate the ideal fraction of tasks that should run on the accelerators in order
+to achieve optimal hardware utilization. What we could do instead is to leverage
+\emph{dynamic resource selection}. For example, we could specify that a task needs either
+a single \gls{gpu} and a single \gls{cpu} or that it needs
+$16$ \gls{cpu} cores in the case that a \gls{gpu} is not currently available, and let the scheduler
+decide whether to execute that task using \gls{cpu} or \gls{gpu} resources dynamically during
+task graph execution. This allows the scheduler to react to
+computational load in a flexible way, and thus potentially improve its load balancing capabilities.
+
+To support this use-case, we can generalize task resource requirements so that each task can
+specify multiple \emph{variants} of resource requirements. Each variant determines the
+required amount of resources required for each resource kind for a given task. The task runtime can then
+choose which variant to use for a task dynamically, based on computational load and current
+worker resource usage. We can define this concept formally:
+
+\begin{itemize}[itemsep=0pt]
+	\item Let $Res_v$ be a function that determines how many variants a given task uses: \\
+	$Res_v\colon T \rightarrow \mathbb{N}_{\geq{}0}$
+	\item Let us define a modified function $\fntaskresvariant{i}$ that specifies the resource
+	requirements of a task for a given variant $i$: \\
+	\resourcerequirement{\fntaskresvariant{i}}{Q}
+	\item We can now define a modified version of the \emph{task resource constraint}
+	(\defref{def:task_resource_constraint}) that takes resource variants into account: \\
+	$\forall w\in{}W, \forall t\in{}T, \forall tp\in\{\fntaskstart(t),\ldots,\fntaskfinish(t)\}, \exists i\colon \forall r\in{}\setresourcekinds\colon \fntaskresvariant{i}(t, r) = |\fntaskresassigned(t, w, r, tp)|$
+\end{itemize}
+
+%TODO: combine all the features together in a single theory?
 
 \section{\hyperqueue{}}
+To evaluate how the proposed meta-scheduling and heterogeneous resource management approaches works
+in practice, what their performance and usage implications are and how they compare to existing
+meta-schedulers, we have implemented them in a task runtime called \hyperqueue{}, which will be
+described in the rest of this chapter.
+
 \hyperqueue{} (\hq{}) is a distributed task runtime that aims to make task graph execution a
 first-class concept on supercomputers. It does that by implementing the meta-scheduling design
 described in the previous section and leveraging insights gained from our task scheduling
@@ -673,17 +865,12 @@ tasks between workers to balance the computational load. Scheduling is performed
 tasks, regardless of which job they belong to. In fact, the scheduler does not even know anything
 about jobs.
 
-What makes the scheduler different from \rsds{} is its support for complex resource
-management. It takes into account various resource requirements requested by tasks, and also the
-state of currently available resources on each worker, and uses this information to drive its
-scheduling decisions. The most important responsibility of this resource management is to uphold
-the invariant that each task will be executed on a worker that is able to provide the corresponding
-amount of each resource requested by the task at the time of the task's execution. When a task is
-being scheduled, the scheduler looks for a worker that can satisfy the resource requirements of the
-task, based on the amount of resources provided by the worker in general, and also the amount of
-resources that the worker currently has available. When a task is scheduled onto a worker, the
-scheduler \emph{allocates} a specific subset of the worker's resources to that task, which
-will not be available for other tasks until the scheduled tasks finished executing.
+What makes the scheduler different from \rsds{} is its support for the complex resource
+management scenarios that were described in~\Autoref{sec:heterogeneous-resources}.
+It supports non-fungible resources, fractional resource requirements, resource variants and
+related resources in a single unified resource system. When a task is
+being scheduled, the scheduler looks for a worker that can satisfy all resource requirements
+of that task, based on the amount of resources that the worker currently has available. When a task is scheduled onto a worker, the scheduler \emph{allocates} a specific subset of the worker's resources to that task, which will not be available for other tasks until the scheduled tasks finished executing.
 
 \hyperqueue{} resources are \emph{generic}, as users can define their own
 arbitrary resources for both tasks and workers, although \hq{} also recognizes
@@ -712,11 +899,11 @@ two kinds of resource pools:
 	      resource will not be assigned to any other task until $t$ has finished executing.
 
 	      Individual resources of an indexed pool can be further subdivided into \emph{groups},
-	      which mark some form of relationship between specific resources. This can be used e.g.\ to
-	      represent \gls{numa} domains and \gls{cpu} sockets; a worker might provide
-	      a single indexed pools of \glspl{cpu}, with a separate group for each
+	      which mark some form of relationship between specific resources. This can be used to
+	represent \emph{related resources}, e.g.\ \gls{numa} domains and \gls{cpu} sockets; a worker
+		  might provide a single indexed pools of \glspl{cpu}, with a separate group for each
 	      \gls{numa} socket present on the worker's node. Tasks can then specify if they want to
-	      prioritize drawing resources that belong to the same group. This will be described later.
+	      prioritize drawing resources that belong to the same group; this will be described later.
 	\item [Sum pool] is designed for resources that are fungible. Such resources are typically
 	      numerous, and it would not be practical to track each individual resource separately. A sum pool
 	      thus does not define its individual resources through indices, but only defines a single number
@@ -756,26 +943,30 @@ requirements are defined for each task separately. By default, each task require
 \gls{cpu} core, but users can specify a different \gls{cpu}
 requirement, and also add additional arbitrary requirements.
 
-A resource requirement consists of a name of the resource that the task needs, and an amount
-specifying how many such resources are needed. For example, a task might specify that it requires
-two \glspl{gpu} for its execution. The resource requirement always specifies the amount
+A resource requirement consists of a name of the resource that the task needs (the resource kind),
+and an amount specifying how many such resources are needed. For example, a task might specify that it requires two \glspl{gpu} for its execution. The resource requirement always specifies the amount
 of required resources, regardless of whether the given resource is taken from an indexed or a sum
-pool. Therefore, tasks cannot ask for specific instances of resources based on their identity; the
-scheduler decides which specific resources will be assigned to individual tasks, which makes
-scheduling more flexible. For example, assume that a worker has $128$ cores (each
-with their own identity), and there is a task that requires two cores. It would not be very
-practical if the task had to specify that it specifically requires cores with ID
-$0$ and $1$ or $5$ and
-$8$, etc. Instead, it just specifies the number of \gls{cpu} cores
-it needs, and lets the scheduler decide which specific cores it will assign to the task, based on
-what cores will be available on the given worker at the time the task is about to start executing.
+pool.
 
-In addition to the basic system described above, resource requirements can also leverage a few
-additional parameters that allow tasks to describe more complex use-cases related to resource
-management.
+Task resource requirements in \hyperqueue{} also support fractional resources, dynamic resource
+selection (resource variants) and related resources. These allow tasks to describe more complex
+use-cases related to resource management. The implementation specifics of these resource management
+features are described below.
 
-A \emph{group allocation strategy} can be used to affect which specific resources from an indexed pool will
-be used for the task. It is not relevant for indexed pools with a single group nor for sum pools. A
+\textbf{Fractional resource requirements} Tasks can specify
+their resource requirements in the form of a fraction. The scheduler uses fixed-point arithmetic to manage fractional resource requirements, in order to avoid issues associated with floating-point arithmetic, most notably rounding errors.
+
+\textbf{Resource variants} \hyperqueue{} allows each task to define a list of resource
+requirement sets (resource variants), and lets the scheduler use the first one that can be
+satisfied by a worker at the time of scheduling. The order of variants in the list decides their
+priority. The load-balancing improvements that can be achieved
+using resource variants will be evaluated in~\Autoref{sec:hq-exp-resource-variants}.
+
+\textbf{Related resources}
+Relations between resource elements can be modelled using a combination of indexed pool
+groups and a \emph{group allocation strategy}, which can be used to affect which specific
+resource elements from an indexed pool will be used for a given task. This strategy is not
+relevant for indexed pools with a single group nor for sum pools. A
 typical example where indexed pool groups are useful are \gls{numa} nodes, where tasks
 might want to be executed on cores that belong to the same \gls{numa} node (group). There are three
 different strategies that can be selected:
@@ -792,43 +983,12 @@ different strategies that can be selected:
 	      for the task from as many groups as possible.
 \end{description}
 
-Resource requirements can also be specified without an upper bound, i.e.\ a task can specify that
-it wants to consume all available resources of the specified pool. If a worker has at least a
+Furthermore, resource requirements can also be specified without an upper bound, i.e.\ a task can
+specify that it wants to consume all available resources of the specified pool. If a worker has at least a
 single resource of the given pool available, and the scheduler assigns a task with this kind of
 resource requirement to it, that task will be allocated all the worker resources that are available
-when the task starts to execute.
-
-In some cases, requesting whole resources can still be too coarse-grained for some tasks. For
-example, a task might execute software that is able to leverage \gls{gpu}
-acceleration, but it cannot utilize a whole \gls{gpu} device by itself. If such task
-has requested a whole \gls{gpu}, part of that accelerator's hardware might sit idle
-while the task is executed. To avoid this situation, \hyperqueue{} allows tasks to define
-\emph{fractional resources}, which allow multiple tasks to share a single resource at the same time.
-For example, the mentioned task could ask for only $0.5$ of a
-\gls{gpu}, in which case the scheduler would allocate the same
-\gls{gpu} device to up to two tasks at once. The scheduler uses fixed-point
-arithmetic to manage fractional resources, in order to avoid common issues associated with
-floating-point arithmetic, rounding errors.
-
-An even more complex resource management use-case supported by \hyperqueue{} is the
-ability to specify \emph{resource variants}. Normally, each resource requirement specified by a task
-is additive; all the requested resources have to be available in order for the task to start
-executing. However, \hq{} also allows tasks to define a list of resource
-requirement sets (called resource variants), and lets the scheduler use the first one that can be
-satisfied by a worker at the time of scheduling (the order of the list elements decides the
-priority of the individual requirement sets). Resource variants allow tasks to define multiple
-situations under which it makes sense to execute the task, and let the scheduler decide which
-variant to select, based on dynamic information about the current worker resource. As an example,
-many \gls{hpc} software tools can run either on a \gls{cpu} or on a
-\gls{gpu} device. A task using such software might specify e.g.\ that it needs either
-a single \gls{gpu} and a single \gls{cpu}, or that it needs
-$16$ \gls{cpu} cores (in the case that a \gls{gpu} is
-not available). In this case, the scheduler could decide to execute the task purely using
-\gls{cpu} resources, if there are no \gls{gpu} resources currently
-available. Without support for resource variants, the scheduler would need to wait for a
-\gls{gpu} to become available, even if there were free \gls{cpu}
-resources that could be used in the meantime. The load-balancing improvements that can be achieved
-with resource variants will be evaluated in~\Autoref{sec:hq-exp-resource-variants}.
+when the task starts to execute. This can be used for software that is scalable w.r.t.\ to the
+amount of resources provided to it.
 
 There is also one additional special resource that is relevant for scheduling, called a
 \emph{time request}. If a task specifies a time request (a duration) $t$, it
@@ -1621,24 +1781,21 @@ when multiple workers per node are used.
 
 \subsection{Resource variants}
 \label{sec:hq-exp-resource-variants}
-This experiment evaluates the load-balancing benefits of \emph{resource variants}. We simulate a
-task graph with a computation that can run either on a \gls{gpu} or on a
-\gls{cpu}. Assume that there is a limited number of accelerators on a node , but
-there are also additional \gls{cpu} cores that can be used for the computation. The
-simplest approach is to configure all tasks to run on the \gls{gpu}. However, this
-means that the \gls{cpu} resources will be wasted. To avoid that, we can assign a
-fixed portion of the tasks to run on the \gls{cpu}; however, deciding this up front
-will not allow \hyperqueue{} to execute such tasks on a \gls{gpu} even if
-one was available at the given moment. Using resource variants, we can state that a task should be
-executed primarily on a \gls{gpu}, but if one is not currently available, then it can
-also run on the \gls{cpu}.
-
-In this experiment, we evaluate the simple workflow with $300$ tasks, on a node
-with $8$ virtual \glspl{gpu} and same number of
-\glspl{cpu}. To emulate the performance difference between the \gls{gpu}
+This experiment evaluates the load-balancing benefits of \emph{resource variants}, which were
+described in~\Autoref{sec:dynamic-resource-selection}. For evaluation, we use the simple workflow
+with $300$ tasks, on a single node with $8$ virtual \glspl{gpu} and the same number of
+\glspl{cpu}. Tasks in this experiment simulate a computation that can run either on a \gls{gpu}
+or on a \gls{cpu}. To emulate the performance difference between the \gls{gpu}
 and the \gls{cpu}, tasks executed on the accelerator will sleep for
 \SI{1}{\second}, and tasks executed on the \gls{cpu} will sleep for a
 multiple of this duration, according to a given ratio (which is a benchmark parameter).
+
+Our goal was to determine how will the resulting makespan differ for the following three situations:
+\begin{itemize}[itemsep=0pt]
+	\item Tasks are executed only on the \gls{gpu}.
+	\item A fixed fraction of tasks is executed on the \gls{gpu}, the rest runs on the \gls{cpu}.
+	\item The fraction of tasks that execute on the \gls{gpu} is determined dynamically by \hyperqueue{} using resource variants.
+\end{itemize}
 
 \begin{figure}[h]
 	\centering
@@ -1651,8 +1808,8 @@ The results of the experiment can be observed in~\Autoref{fig:hq-resource-varian
 displays the makespan; the five bars represent different configurations of resources. In the
 \emph{\gls{gpu} only} mode, all tasks were configured to run on a single \gls{gpu}.
 In the \emph{\gls{gpu} or \gls{cpu}} mode, tasks were configured to run either on the
-\gls{gpu} or on the \gls{cpu}, using resource variants. The remaining
-three modes assigned a specific fraction of tasks to run on the \gls{gpu}; the rest
+\gls{gpu} or on the \gls{cpu} using resource variants. The remaining
+three modes assign a specific fraction of tasks to run on the \gls{gpu}; the rest
 was executed on the \gls{cpu}. The three charts show results for different values of
 the \gls{gpu} vs \gls{cpu} performance ratio, i.e.\ how much faster was
 the task running on a \gls{gpu}.

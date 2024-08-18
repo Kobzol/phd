@@ -27,6 +27,8 @@
 \usepackage{hyperref}
 \usepackage{todonotes}
 \usepackage{amsmath}
+% \mathlarger
+\usepackage{relsize}
 % \mathbb
 \usepackage{amssymb}
 \usepackage{tikz}
@@ -98,6 +100,32 @@
 \newcommand{\fireworks}{\textsc{FireWorks}}
 \newcommand{\merlin}{\textsc{Merlin}}
 \newcommand{\snakemake}{\textsc{SnakeMake}}
+
+% Definitions
+\newcounter{taskdefinition}
+
+% #1 = label
+\newcommand{\makedef}[1]
+{\refstepcounter{taskdefinition}%
+[Def.~\thetaskdefinition{}]\label{#1}}
+\newcommand{\defref}[1]{\hyperref[#1]{Def.~\ref*{#1}}}
+
+% Specific definitions
+\newcommand{\fntaskres}{Res_t}
+\newcommand{\fntaskresfrac}{\fntaskres^{frac}}
+\newcommand{\fntaskresvariant}[1]{\fntaskres^{#1}}
+\newcommand{\fnworkerres}{Res_w}
+\newcommand{\fnworkerresident}{\fnworkerres^{id}}
+\newcommand{\fntaskresassigned}{Res_a}
+\newcommand{\fnworkertaskassigned}{E_w}
+\newcommand{\fntaskstart}{T_s}
+\newcommand{\fntaskfinish}{T_f}
+\newcommand{\scheduleworker}{S_w}
+\newcommand{\scheduleorder}{S_o}
+\newcommand{\setresourcekinds}{R_k}
+\newcommand{\setresourceelements}{R_e}
+\newcommand{\powerset}[1]{\mathcal{P}(#1)}
+\newcommand{\resourcerequirement}[2]{$#1\colon T \times \setresourcekinds \rightarrow \mathbb{#2}_{\geq{}0}$}
 
 \graphicspath{{./imgs/}}
 

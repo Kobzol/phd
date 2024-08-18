@@ -18,6 +18,7 @@ sizes are known in advance, and we use a very general definition of task resourc
 which can be used to model heterogeneous \gls{hpc} cluster hardware.
 
 \section{Task graphs}
+\label{sec:task-graphs}
 A computational workflow in the task-based programming model is represented with a
 \gls{dag} that we will label as a \emph{task graph}. From a high-level
 perspective, it describes which individual computational steps should be performed, what are the
@@ -43,19 +44,20 @@ execution.
 
 \newcommand{\alltaskpairs}{\forall t_1\in{}T, \forall t_2\in{}T}
 
-A task graph is a tuple $(T, O, E, RS, RT)$, where:
+A task graph is a tuple $(T, O, E, \setresourcekinds, \fntaskres)$, where:
 \begin{itemize}[itemsep=0pt]
 	\item $T$ is a set of \emph{tasks}.
 	\item $O$ is a set of \emph{data objects}.
 	\item $E \subseteq ((T\times{}O) \cup (O\times{}T))$ is a set of arcs.
-	\item $RS$ is a set of \emph{resource kinds}. Each resource kind describes some resource
+	\item $\setresourcekinds$ is a set of \emph{resource kinds}. Each resource kind describes some resource
 	      (e.g. \gls{cpu} cores or \glspl{gpu})
 	      that is required to execute a specific task.
-	\item $RT$ is a function that defines the \emph{resource requirement} of a task for
-	      a specific resource kind: \\ $RT\colon T \times RS \rightarrow \mathbb{Q}_{\geq{}0}$ \\ A resource requirement specifies what amount
+	\item[\makedef{def:task_resreq}] $\fntaskres$ is a function that defines the
+	\emph{resource requirement} of a task for a specific resource kind: \\
+	\resourcerequirement{\fntaskres}{N} \\
+	A resource requirement specifies what amount
 	      of the given resource kind is required to be present at a computational provider so that the task
-	      can be executed. Note that each task can specify its resources in the form of a rational number;
-	      tasks can request just a fraction of a resource. If $RT(t, r) = 0$, then task
+	      can be executed. If $\fntaskres(t, r) = 0$, then task
 	      $t$ does not require resource $r$ for its execution.
 \end{itemize}
 
@@ -213,14 +215,15 @@ once all of its inputs are ready, which means that the dependencies of the task 
 and their outputs have been transferred to the computational node of the worker. However, this
 depends on the semantics of each task runtime.
 
-We can formally define a \emph{computational environment} as a tuple $(W, RS, RW)$, where:
+We can formally define a \emph{computational environment} as a tuple $(W, \setresourcekinds, \fnworkerres)$,
+where:
 \begin{itemize}[itemsep=0pt]
 	\item $W$ is a set of workers.
-	\item $RS$ is a set of \emph{resource kinds}. Each resource kind describes some
+	\item $\setresourcekinds$ is a set of \emph{resource kinds}. Each resource kind describes some
 	      resource (e.g. \gls{cpu} cores or \glspl{gpu})
 	      that can be provided a worker.
-	\item $RW$ is a function which defines how many resources are provided by a
-	      worker for a specific resource kind: \\ $RW\colon W \times RS \rightarrow \mathbb{Q}_{\geq{}0}$
+	\item[\makedef{def:worker_resources}] $\fnworkerres$ is a function which defines how many resources are
+	provided by a worker for a specific resource kind: \\ $\fnworkerres\colon W \times \setresourcekinds \rightarrow \mathbb{N}_{\geq{}0}$
 \end{itemize}
 
 There are many existing task runtimes with varying architectures, features and trade-offs, which
@@ -285,23 +288,24 @@ are executed. As mentioned earlier, a schedule can be produced either before the
 executed or during its execution. The following definitions are general and work for both
 approaches.
 
-We can define a \emph{schedule} as a pair $(S_w, S_o)$ applied to a task graph
-$(T, O, E, RS, RT)$ and a computational environment $(W, RS, RW)$ as follows:
+We can define a \emph{schedule} as a pair $(\scheduleworker, \scheduleorder)$ applied to a task graph
+$(T, O, E, \setresourcekinds, \fntaskres)$ and a computational environment $(W, \setresourcekinds, \fnworkerres)$ as
+follows:
 
 \begin{itemize}[itemsep=0pt]
-	\item A worker schedule $S_w$ is a function that assigns each task to a specific worker:
-	      \\ $S_w\colon T \rightarrow W$
-	\item An ordering schedule $S_o$ is a function that assigns a unique number to each
+	\item A worker schedule $\scheduleworker$ is a function that assigns each task to a specific worker:
+	      \\ $\scheduleworker\colon T \rightarrow W$
+	\item An ordering schedule $\scheduleorder$ is a function that assigns a unique number to each
 	      task, to define an (approximate) ordering in which tasks should be executed: \\
-	      $S_o\colon T \rightarrow \mathbb{O}, \mathbb{O} = \{1,\ldots,|T|\},
-		      \alltaskpairs\colon S_o(t_1) = S_o(t_2) \Rightarrow t_1 = t_2$
+	      $\scheduleorder\colon T \rightarrow \mathbb{O}, \mathbb{O} = \{1,\ldots,|T|\},
+		      \alltaskpairs\colon \scheduleorder(t_1) = \scheduleorder(t_2) \Rightarrow t_1 = t_2$
 \end{itemize}
 
 This definition supports only single-node tasks, i.e.\ tasks that are always executed on exactly
 a single node. It could be generalized for other use-cases that have a more complex programming
 model. For example, we could add support for multi-node tasks by generalizing the worker schedule
 to be a mapping of tasks to a non-empty set of workers: \\
-$S_w\colon T \rightarrow \mathcal{P}(W), \forall t\in{}T\colon |S_w(t)| > 0$
+$\scheduleworker\colon T \rightarrow \powerset{W}, \forall t\in{}T\colon |\scheduleworker(t)| > 0$
 
 Usually, we will want the produced schedules to have additional desirable properties, such as
 respecting the dependencies and resource requirements of tasks in the task graph. Even though the
@@ -310,37 +314,41 @@ baseline properties that are desirable in almost all situations. In order to do 
 to consider a specific execution of a task graph that used a given schedule; we can then evaluate
 whether that schedule satisfied these properties in the context of this execution.
 
-Assume that we want to evaluate a specific schedule ($S_w$, $S_o$) that was used to execute a
-task graph $(T, O, E, RS, RT)$ in a computational environment $(W, RS, RW)$ in some execution $X$. For
-simplicity, we assume exactly one task instance executed for each task. In other words,
+Assume that we want to evaluate a specific schedule ($\scheduleworker$, $\scheduleorder$) that was used to execute a
+task graph $(T, O, E, \setresourcekinds, \fntaskres)$ in a computational environment
+$(W, \setresourcekinds, \fnworkerres)$ in some
+execution $X$. For simplicity, we assume exactly one task instance executed for each task. In other words,
 tasks in this execution did not fail and each task was fully executed.
 First, let us define several auxiliary functions:
 
 \newcommand{\timedomain}{\mathbb{R}_{\geq{}0}}
 
 \begin{itemize}
-	\item Let us have a function $T_s$ that returns the point in time at which a specific
-	      task started its execution in $X$: $T_s\colon T \rightarrow \timedomain$
-	\item Let us have a function $T_f$ that returns the point in time at which a specific
-	      task finished its execution in $X$: $T_f\colon T \rightarrow \timedomain$
-	\item Let us have a function $E_w$ that returns a set of tasks that were currently being
+	\item Let us have a function $\fntaskstart$ that returns the point in time at which a specific
+	      task started its execution in $X$: $\fntaskstart\colon T \rightarrow \timedomain$
+	\item Let us have a function $\fntaskfinish$ that returns the point in time at which a specific
+	      task finished its execution in $X$: $\fntaskfinish\colon T \rightarrow \timedomain$
+	\item Let us have a function $\fnworkertaskassigned$ that returns a set of tasks that were currently being
 	      executed on a specific worker at a given point in time in $X$:
-	      $E_w\colon W \times \timedomain \rightarrow \mathcal{P}(T)$
+	      $\fnworkertaskassigned\colon W \times \timedomain \rightarrow \powerset{T}$
 \end{itemize}
 
 We will say that a schedule is \emph{valid} in $X$ when all the following properties hold:
 
 \begin{itemize}
-	\item The ordering of task execution defined by $S_o$ has to be upheld: \\
-	      $\alltaskpairs\colon S_o(t_1) < S_o(t_2) \Rightarrow T_s(t_1) \leq T_s(t_2)$
+	\item The ordering of task execution defined by $\scheduleorder$ has to be upheld: \\
+	      $\alltaskpairs\colon \scheduleorder(t_1) < \scheduleorder(t_2) \Rightarrow \fntaskstart(t_1) \leq \fntaskstart(t_2)$
 	\item If a task $t_2$ depends on a task $t_1$, it cannot begin to
-	      execute until $t_1$ has finished executing: \\ $\alltaskpairs\colon D(t_1, t_2) \Rightarrow T_f(t_1) \leq T_s(t_2)$
-	\item Resource requirements of all tasks must be fulfilled, and resources provided by
-	individual workers must not be oversubscribed, at any point in time: \\
-	      $\forall tp\in\timedomain, \forall w\in{}W, \forall r\in{}RS\colon
-		      \sum_{t\in{}E_w(w, tp)} RT(t, r) \leq RW(w, r)$
+	      execute until $t_1$ has finished executing: \\ $\alltaskpairs\colon D(t_1, t_2) \Rightarrow \fntaskfinish(t_1) \leq \fntaskstart(t_2)$
+	\item[\makedef{def:worker_resource_constraint}] Resource requirements of all tasks
+	must be fulfilled and resources provided by individual workers must not be oversubscribed
+	at any point in time: \\
+	      $\forall tp\in\timedomain, \forall w\in{}W, \forall r\in{}\setresourcekinds\colon
+		  \mathlarger{\sum}_{t\in{}\fnworkertaskassigned(w, tp)} \fntaskres(t, r) \leq \fnworkerres(w, r)$ \\
+	We will label this property as \emph{worker resource constraint}.
 \end{itemize}
 
+% TODO: generalize ``validness'' to executions? Use it more?
 Since these properties form the bare minimum that a reasonable schedule should support, we will
 assume that all further schedules discussed in this thesis are \emph{valid}.
 
@@ -350,7 +358,7 @@ critical tasks, but the most commonly used metric is \emph{makespan} -- the dura
 between the start of the execution of the first task to the completion of all tasks within the task
 graph. We can formally define the makespan $M$ of a specific task graph
 execution as follows: \\
-$M = \max\limits_{t \in T}(T_f(t)) - \min\limits_{t \in T}(T_s(t))$
+$M = \max\limits_{t \in T}(\fntaskfinish(t)) - \min\limits_{t \in T}(\fntaskstart(t))$
 
 \begin{figure}[h]
 	\centering
@@ -388,8 +396,8 @@ $M = \max\limits_{t \in T}(T_f(t)) - \min\limits_{t \in T}(T_s(t))$
 			\tikzset{shift={(4,2)}}
 
 			\node[anchor=west,align=left] at (0, 0) {
-				$S_w^1(t_1) = w_1, S_w^1(t_2) = w_1, S_w^1(t_3) = w_2, S_w^1(t_4) = w_3$ \\
-				$S_o^1(t_1) = 1, S_o^1(t_2) = 2, S_o^1(t_3) = 3, S_o^1(t_4) = 4$
+				$\scheduleworker^1(t_1) = w_1, \scheduleworker^1(t_2) = w_1, \scheduleworker^1(t_3) = w_2, \scheduleworker^1(t_4) = w_3$ \\
+				$\scheduleorder^1(t_1) = 1, \scheduleorder^1(t_2) = 2, \scheduleorder^1(t_3) = 3, \scheduleorder^1(t_4) = 4$
 			};
 
 			\tikzset{shift={(0,-1)}}
@@ -424,8 +432,8 @@ $M = \max\limits_{t \in T}(T_f(t)) - \min\limits_{t \in T}(T_s(t))$
 			\tikzset{shift={(0,-4)}}
 
 			\node[anchor=west,align=left] at (0, 0) {
-				$S_w^2(t_1) = w_1, S_w^2(t_2) = w_2, S_w^2(t_3) = w_3, S_w^2(t_4) = w_1$ \\
-				$S_o^2(t_1) = 1, S_o^2(t_2) = 3, S_o^2(t_3) = 4, S_o^2(t_4) = 2$
+				$\scheduleworker^2(t_1) = w_1, \scheduleworker^2(t_2) = w_2, \scheduleworker^2(t_3) = w_3, \scheduleworker^2(t_4) = w_1$ \\
+				$\scheduleorder^2(t_1) = 1, \scheduleorder^2(t_2) = 3, \scheduleorder^2(t_3) = 4, \scheduleorder^2(t_4) = 2$
 			};
 
 			\tikzset{shift={(0,-1)}}
