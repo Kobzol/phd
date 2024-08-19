@@ -938,7 +938,6 @@ two kinds of resource pools:
 	      When a worker is started, by default it automatically divides \gls{cpu} cores into
 	      groups according to their \gls{numa} nodes. However, the concept of groups is general;
 	      they can be used for any indexed pool, not only specifically for \gls{numa}.
-	      %TODO: unlike in other tools?
 	\item [Sum pool] is designed for resources that are fungible. Such resources are typically
 	      numerous, and it would not be practical to track each individual resource separately. A sum pool
 	      thus does not define its individual resources through indices, but only defines a single number
@@ -2374,8 +2373,6 @@ theoretical designs without any implementation available.
 % Automatic fault tolerance
 \newcommand*\automaticft{\CIRCLE}
 
-%TODO: separate complex resource management features?
-
 % \begin{noindent}
 \begin{table}[h]
 %	\aboverulesep=0ex
@@ -2406,14 +2403,15 @@ theoretical designs without any implementation available.
 \newcolumntype{A}{c@{}c}
 \newcolumntype{B}{c@{}c@{}c}
 \newcolumntype{C}{c@{}c@{}c@{}c}
+\newcolumntype{D}{c@{}c@{}c@{}c@{}c@{}c@{}c}
 \begin{threeparttable}
-\begin{tabular}{|l|C|A|A|B|C|A|l|}
+\begin{tabular}{|l|C|A|A|B|D|A|l|}
 \multicolumn{1}{c}{Task runtime} &
 \multicolumn{4}{c}{\rotheading{Task interfaces}} &
 \multicolumn{2}{c}{\rotheading{Task dependencies}} &
 \multicolumn{2}{c}{\rotheading{Fault tolerance}} &
 \multicolumn{3}{c}{\rotheading{Meta-scheduling}} &
-\multicolumn{4}{c}{Resources} &
+\multicolumn{7}{c}{Resources} &
 \multicolumn{2}{c}{\rotheading{Data transfers}} &
 \multicolumn{1}{c}{Deployment}\\
 \midrule
@@ -2423,49 +2421,50 @@ theoretical designs without any implementation available.
 \rot{Worker failure} & \rot{Server failure} & % fault tolerance
 \rot{Graph partitioning} &
 \rot{Automatic allocation} & \rot{Generic workers} & % meta-scheduling
-\rot{Basic (CPU/GPU)} & \rot{Generic resources} & \rot{Resource pools} &
+\rot{Basic (CPU/GPU)} & \rot{Generic resources} & \rot{Non-fungible resources} &
+\rot{Related resources} & \rot{Fractional resources} & \rot{Resource variants} &
 \rot{Multi-node tasks} & %resources
 \rot{Directly between tasks} & \rot{Output streaming} & % data transfers
 Runtime dependencies \\ % deployment
 \midrule
-\gnuparallel{}\hfill\cite{parallel} & \yes & \no & \no & \no & \no & \no & \manualft & \no & \no & \no & \no & \no & \no & \no & \no & \no & \yes & Perl \\
+\gnuparallel{}\hfill\cite{parallel} & \yes & \no & \no & \no & \no & \no & \manualft & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \no & \yes & Perl \\
 %	\midrule
-\hypershell{}\hfill\cite{hypershell} & \yes & \no & \yes & \no & \no & \no & \automaticft & \yes & \manualmap & \yes & \no & \no & \no & \no & \no & \no & \yes & \python \\
+\hypershell{}\hfill\cite{hypershell} & \yes & \no & \yes & \no & \no & \no & \automaticft & \yes & \manualmap & \yes & \no & \no & \no & \no & \no & \no & \no & \no & \no & \yes & \python \\
 %	\midrule
 \dask{}\hfill\cite{dask} & \no & \no & \yes & \yes & \yes & \no &
-\automaticft & \no & \automaticmap\textsuperscript{\dag} & \yes\textsuperscript{\dag} & \yes & \yes & \yes & \no & \no & \yes & \yes & \python \\
+\automaticft & \no & \automaticmap\textsuperscript{\dag} & \yes\textsuperscript{\dag} & \yes & \yes & \yes & \no & \no & \no & \no & \no & \yes & \yes & \python \\
 %	\midrule
 \ray{}\hfill\cite{ray} & \no & \no & \yes & \yes & \yes & \no & \automaticft & \yes
-\textsuperscript{*} & \automaticmap & \no & \yes & \yes & \yes & \no & \no & \yes & \partially & \python \\
+\textsuperscript{*} & \automaticmap & \no & \yes & \yes & \yes & \no & \yes & \yes & \no & \no & \yes & \partially & \python \\
 %	\midrule
 \parsl{}\hfill\cite{parsl} & \no & \no & \yes & \yes & \yes & \no & \automaticft &
-\no & \automaticmap & \yes & \no & \yes & \no & \no & \yes & \yes & \no & \python \\
+\no & \automaticmap & \yes & \no & \yes & \no & \no & \no & \no & \no & \yes & \yes & \no & \python \\
 %	\midrule
 \pycompss{}\hfill\cite{pycompss} & \yes & \no & \yes & \yes & \yes & \no & \automaticft &
-\yes\textsuperscript{*} & \manualmap & \no & \no & \yes & \no & \no & \yes & \yes & \yes & \python, Java \\
+\yes\textsuperscript{*} & \manualmap & \no & \no & \yes & \no & \no & \yes\textsuperscript{\dag} & \no & \no & \yes & \yes & \yes & \python, Java \\
 %	\midrule
 \pegasus{}\hfill\cite{pegasus} & \no & \yes & \yes & \no & \yes & \yes & \automaticft &
-\yes & \manualmap & \no & \no & \yes & \no & \no & \no & \no & \yes & \python, Java,
+\yes & \manualmap & \no & \no & \yes & \no & \no & \no & \no & \no & \no & \no & \yes & \python, Java,
 HTCondor~\cite{htcondor} \\
 %	\midrule
 \balsam{}\hfill\cite{balsam} & \no & \no & \yes & \yes & \yes & \no & \automaticft &
-\yes & \automaticmap & \yes & \yes & \yes & \no & \no & \yes & \yes & \no & \python,
+\yes & \automaticmap & \yes & \yes & \yes & \no & \no & \no & \no & \no & \yes & \yes & \no & \python,
 PostgreSQL \\
 %	\midrule
 \autosubmit{}\hfill\cite{autosubmit} & \no & \yes & \no & \no & \yes & \no & \automaticft &
-\yes & \manualmap & \yes & \no & \yes & \no & \no & \yes & \no & \no & \python \\
+\yes & \manualmap & \yes & \no & \yes & \no & \no & \no & \no & \no & \yes & \no & \no & \python \\
 %	\midrule
 \fireworks{}\hfill\cite{fireworks} & \no & \yes & \yes & \yes & \yes & \no & \manualft &
-\yes & \automaticmap & \yes & \yes & \no & \no & \no & \no & \no & \no & \python, MongoDB \\
+\yes & \automaticmap & \yes & \yes & \no & \no & \no & \no & \no & \no & \no & \no & \no & \python, MongoDB \\
 %	\midrule
 \merlin{}\hfill\cite{merlin} & \no & \yes & \no & \no & \yes & \no & \manualft &
-\yes & \automaticmap & \no & \no & \yes & \no & \no & \yes & \no & \no & \python, RabbitMQ/Redis \\
+\yes & \automaticmap & \no & \no & \yes & \no & \no & \no & \no & \no & \yes & \no & \no & \python, RabbitMQ/Redis \\
 %	\midrule
 \snakemake{}\hfill\cite{snakemake} & \no & \yes & \yes & \no & \no & \yes & \automaticft &
-\no & \manualmap & \yes\textsuperscript{\dag} & \no & \yes & \yes & \no & \yes & \no & \no & \python \\[2mm]
+\no & \manualmap & \yes\textsuperscript{\dag} & \no & \yes & \yes & \no & \no & \no & \no & \yes & \no & \no & \python \\[2mm]
 %	\midrule
 \hyperqueue{}\hfill\cite{hyperqueue} & \yes & \yes & \yes & \yes & \yes & \no & \automaticft &
-\yes & \automaticmap & \yes & \yes & \yes & \yes & \yes & \yes & \no & \yes & \\
+\yes & \automaticmap & \yes & \yes & \yes & \yes & \yes & \yes & \yes & \yes & \yes & \no & \yes & \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
@@ -2482,11 +2481,11 @@ runtime dependencies
 
 \Autoref{tab:hq-tools-comparison} provides a high-level comparison of \hyperqueue{} and twelve
 other task runtimes. It should be noted that there are also many important properties that are not
-mentioned in this table; it primarily compares meta-scheduling aspects described in this chapter
-and other features related to challenges described in~\Autoref{ch:sota}. Furthermore, there
-is no single universally best task runtime; each one has a different programming model, a different
-set of features, and makes various trade-offs based on which use-cases it was primarily designed
-for.
+mentioned in this table; it primarily compares meta-scheduling and resource management aspects
+described in this chapter and other features related to challenges described in~\Autoref{ch:sota}.
+Furthermore, there is no single universally best task runtime; each one has a different programming
+model and a different set of features and trade-offs based on which use-cases it
+was primarily designed for.
 
 The first section of the table, \emph{Task interfaces}, shows which interfaces can be used to
 submit tasks and if they support modifying task graphs dynamically. \gls{cli}
@@ -2571,15 +2570,17 @@ The following section, \emph{Resources}, deals with resource management. It show
 task runtimes are only able to specify basic (such as \gls{cpu},
 \gls{gpu} or memory) task resource requirements and which are able to attach fully
 generic and arbitrary requirements to each task. Support for arbitrary resource requirements (and
-thus heterogeneous clusters) is not very common, apart from \hyperqueue{}, only
+thus heterogeneous clusters) is not very common; apart from \hyperqueue{}, only
 \dask{}, \ray{} and \snakemake{} allow users to
-define their own resource kinds that are then used in task scheduling. The \emph{Resource pools}
-column describes the ability to specify (and take into account during scheduling) complex resource
-requirements, such as specifying relationships between resources (i.e.\ two cores in the same
-\gls{numa} node), fractional resources or resource variants. This functionality is
-unique to \hyperqueue{}. The \emph{Multi-node} column shows which programming
-models enable describing multi-node tasks. Note that the table only treats this feature as
-supported in task runtimes that provide the ability to assign the number of nodes
+define their own resource kinds that are then used in task scheduling.
+The following four columns describe the ability to specify the complex resource management
+features that were described in~\Autoref{sec:heterogeneous-resources}. As was already noted,
+support for these features is not prevalent in existing task runtimes. One notable exception
+is \ray{}, which supports both related resources and fractional resources.
+
+The \emph{Multi-node} column then shows which programming
+models enable describing multi-node tasks. Note that the table only considers this feature as
+being supported in task runtimes that provide the ability to assign the number of nodes
 \emph{per-task}, not just per task graph or per allocation. We can see that
 \snakemake{} is the only task runtime apart from \hyperqueue{} that supports
 both arbitrary resource requirements and multi-node tasks.

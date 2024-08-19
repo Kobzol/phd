@@ -13,6 +13,10 @@
 % Python: no
 % external services: no
 % language: Perl
+% non-fungible resources: no
+% fractional resources: no
+% resource variants: no
+% resource groups: no
 
 - basic functionality of HQ
 
@@ -33,6 +37,10 @@
 % Python: yes
 % external services: no (SQLite)
 % language: Python
+% non-fungible resources: no
+% fractional resources: no
+% resource variants: no
+% resource groups: no
 
 \subsection*{Dask}
 % architecture: centralized
@@ -49,6 +57,10 @@
 % Python: yes
 % external services: no
 % language: Python
+% non-fungible resources: no
+% fractional resources: no
+% resource variants: no
+% resource groups: no
 
 \dask{} was already extensively decribed in~\Autoref{sec:rsds-dask}. It is a distributed task
 runtime written in Python, which allows parallelizing and distributing Python code in an easy
@@ -75,6 +87,10 @@ numpy/pandas code.
 % Python: yes
 % external services: yes
 % language: C++/Python
+% non-fungible resources: no
+% fractional resources: yes
+% resource variants: no
+% resource groups: yes
 
 - distributed scheduling
 - useful for ML
@@ -95,6 +111,10 @@ numpy/pandas code.
 % Python: yes
 % external services: no
 % language: Python
+% non-fungible resources: no
+% fractional resources: no
+% resource variants: no
+% resource groups: no
 
 - very Python centric
 - executors have to be fine-tuned per workflow
@@ -116,6 +136,11 @@ numpy/pandas code.
 % Python: yes
 % external services:
 % language: Java, Python
+% non-fungible resources: no
+% fractional resources: no
+% resource variants: no
+% resource groups: paper (Executing linear algebra kernels in heterogeneous distributed
+%%infrastructures with PyCOMPSs)
 
 \subsection*{Pegasus}
 % architecture: centralized
@@ -132,6 +157,10 @@ numpy/pandas code.
 % Python: no, Java
 % external services: yes (HTCondor)
 % language: Python, Java
+% non-fungible resources: no
+% fractional resources: no
+% resource variants: no
+% resource groups: no
 
 - hard-coded clustering
 - level-based clustering
@@ -159,8 +188,10 @@ numpy/pandas code.
 % Python: yes
 % external services: PostgreSQL
 % language: Python
-
-%TODO: benchmark
+% non-fungible resources: no
+% fractional resources: no
+% resource variants: no
+% resource groups: no
 
 \subsection*{AutoSubmit}
 % architecture: centralized
@@ -177,6 +208,10 @@ numpy/pandas code.
 % Python: yes
 % external services: no
 % language: Python
+% non-fungible resources: no
+% fractional resources: no
+% resource variants: no
+% resource groups: no
 
 - focuses on experiment tracking and provenance
 
@@ -198,6 +233,10 @@ numpy/pandas code.
 % Python: yes
 % external services: MongoDB
 % language: Python
+% non-fungible resources: no
+% fractional resources: no
+% resource variants: no
+% resource groups: no
 
 - weird metascheduling
 
@@ -216,6 +255,10 @@ numpy/pandas code.
 % Python: yes
 % external services: Redis
 % language: Python
+% non-fungible resources: no
+% fractional resources: no
+% resource variants: no
+% resource groups: no
 
 Merlin~\cite{merlin} is a ...  - similar idea to% https://merlin.readthedocs.io/en/latest/tutorial/1_introduction/?h=many#how-can-merlin-run-so-many-simulations
 HyperQueue
@@ -243,6 +286,10 @@ HyperQueue
 % external services: no
 % language: Python
 % fault-tolerance: https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html#retries-or-trying-again-when-a-job-failed
+% non-fungible resources: no
+% fractional resources: no
+% resource variants: no
+% resource groups: no
 
 - lot of additional functionality
 - useful for bash workflows
