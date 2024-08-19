@@ -525,7 +525,7 @@ managers. This adheres to the first principle of the meta-scheduling design desc
 previous section.
 
 The server itself does not execute any tasks, and it consumes a relatively modest amount of
-resources, and therefore it is not computationally demanding.~\Autoref{sec:hq-exp-server-cpu-consumption} evaluates how
+resources, and thus it is not computationally demanding.~\Autoref{sec:hq-exp-server-cpu-consumption} evaluates how
 many \gls{cpu} resources the server consumes in extreme scenarios.
 
 Apart from basic responsibilities related to worker management and task scheduling, the server also
@@ -1374,7 +1374,7 @@ A single task of the workflow estimates the stability of an individual pose of a
 complex (a drug candidate). It leverages the GROMACS~\cite{gromacs}
 \gls{md} framework for simulating a short (\SI{100}{\pico\second}) trajectory for
 each pose, from which a final \gls{abfe} value is calculated. Because this computation
-is relatively lightweight (it only lasts for a few minutes), it was possible to run it on a large
+is relatively lightweight (it only lasts for a couple of minutes), it was possible to run it on a large
 dataset of inputs. It was executed for more than four thousand complexes from the
 PDBbind~\cite{pdbbind} v2020 database; for each complex, up to $256$
 different poses were evaluated, and for each pose, $8$ simulation replicas were
@@ -1508,6 +1508,7 @@ tools, rather than manually by cluster users. It provides a machine-readable
 \gls{json} output mode for its \gls{cli} commands that facilitates this
 kind of usage.
 
+%TODO: compare overhead per task with Dask
 \section{Evaluation}
 \label{hq:evaluation}
 This section evaluates the performance and scalability of \hyperqueue{} and its ability
@@ -1785,7 +1786,7 @@ any manual worker tuning.
 Note that this benchmark actually presents a sort of a best-case scenario for
 \dask{}. It executes its tasks as Python functions; therefore, it does not need to
 start a new Linux process per task, unlike \hyperqueue{}. Furthermore, since each task
-simply sleeps for a specified duration, it releases the \gls{gil} and therefore does
+simply sleeps for a specified duration, it releases the \gls{gil} and thus does
 not block other Python threads of the worker, which can thus perform other work concurrently.
 
 \begin{figure}[h]
@@ -2121,7 +2122,7 @@ It should be noted that even though output streaming is slower in this case, it 
 benefit of generating only a single file on the filesystem. It can thus help alleviate disk quota
 limits without any user effort.
 
-With the PROJECT filesystem, output streaming is $4-8$ times faster than writing
+With the PROJECT filesystem, output streaming is $4--8$ times faster than writing
 to files directly. The performance benefit of output streaming thus depends heavily on the used
 filesystem, it seems to be particularly helpful on slower filesystems. One interesting result is
 that output streaming is generally faster on the PROJECT filesystem than on the SCRATCH filesystem
@@ -2332,7 +2333,7 @@ requirements), but also their implementation details (such as what runtime depen
 necessary to deploy the task runtime). As was shown in~\Autoref{subsec:estee-schedulers}
 and~\Autoref{sec:rsds-dask-overhead-analysis}, implementation details are crucial; they significantly affect both
 the efficiency and scalability of the task runtime, and they also dictate how easy it is to use and
-deploy it. We thus consider it important to compare actual implementations, rather than only
+deploy it. Therefore, we consider it important to compare actual implementations rather than only
 theoretical designs without any implementation available.
 
 % !{\kern1em} - space

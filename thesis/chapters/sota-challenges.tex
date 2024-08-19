@@ -232,7 +232,7 @@ Even though there is still probably room for reducing the overhead of contempora
 limitations are inherent. Allocation managers have to (among other things) provide accurate
 accounting, handle robust and secure provisioning and cleanup of hardware resources provided to
 allocations, manage user and process isolation on computational nodes and ensure user fairness.
-These responsibilities are out of scope for most task runtimes, and therefore it is not surprising
+These responsibilities are out of scope for most task runtimes, and thus it is not surprising
 that they can usually achieve much higher performance. While in theory, it could be possible to
 design an allocation manager that can also act as a (performant) task runtime at the same time
 (some efforts have been made on this front e.g.\ by Flux~\cite{flux}, which will be
@@ -258,14 +258,14 @@ as well, and thus even the array approach might not be enough to encompass all t
 task graphs.
 
 Apart from the maximum allocation count, there are other limitations that can be imposed by
-allocation managers. Some tasks of scientific workflows can be granular, and require only a handful
-of resources, e.g.\ a single \gls{cpu} core. To avoid wasting resources, an
+allocation managers. Some tasks of scientific workflows can be granular, and require only few
+resources, e.g.\ a single \gls{cpu} core. To avoid wasting resources, an
 allocation mapped to such a task should thus ask only for the exact set of resources needed by it.
 However, allocation managers are sometimes configured in a way that only offers node-level
 granularity of hardware resources, and thus does not allow users to request less than a whole
 computational node~\cite{it4i_node_scheduling_policy}. In these cases, it would be wasteful if we had to
-request a whole computational node e.g.\ for a simple task that runs for just a few seconds and
-requires only a few cores.
+request a whole computational node e.g.\ for a simple task that runs for just a couple of seconds and
+requires only a couple of cores.
 
 There are two primary reasons why allocation managers limit the granularity of allocations. First,
 reducing the granularity of allocations lessens the overall overhead. If users are able to ask

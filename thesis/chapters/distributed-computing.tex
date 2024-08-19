@@ -107,7 +107,7 @@ int main() {
 		leveraging multithreading to achieve speedup. In the area of \gls{hpc}, it is common
 		to use the \gls{openmp}~\cite{openmp} framework to implement multi-threaded
 		applications. Apart from providing interfaces for parallelizing code, synchronizing threads through
-		barriers or various locks, and performing atomic operations, it is also able to offload computation
+		barriers or various locks and performing atomic operations, it is also able to offload computation
 		to various accelerators (like a \gls{gpu}) attached to a node. \gls{openmp}
 		can be used together with the two previously mentioned programming models (it is often combined
 		especially with \gls{mpi}~\cite{hybrid_openmp_mpi}), in order to achieve parallelization
@@ -450,7 +450,7 @@ PaRSEC~\cite{parsec}, Legion~\cite{legion}, TBB~\cite{tbb} or
 \gls{openmp}~\cite{openmp}\footnote{Note that even though \gls{openmp} has been previously presented as an example of an
 explicitly parallel model, it also offers a task system that provides facilities for implicit parallelization.}. In these models, which are
 sometimes called \emph{task-parallel}~\cite{task_based_taxonomy}, tasks usually represent either
-functions or blocks of code that contain only a few instructions, and are typically relatively
+functions or blocks of code that contain only a couple of instructions, and are typically relatively
 quick to execute (they can run e.g.\ for milliseconds or seconds). While some of these tools also
 support distributed computing, their main use-case is to provide intra-node parallelization on
 multicore systems with shared memory, and often also to offload computation to attached
