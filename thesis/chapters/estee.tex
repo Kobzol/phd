@@ -775,13 +775,12 @@ not open-source, it is difficult (even nigh impossible) to accurately reproduce 
 results. We have tried our best to make all available source-code, benchmark datasets and the
 results of our experiments public, to make them easy to reproduce and thus avoid this issue.
 
-%TODO: uncomment?
 %Our analysis has shown that despite its simplicity, the foundational \gls{hlfet}
 %algorithm~\cite{hlfet1974} (\emph{b-level}) produces high quality schedules in various scenarios and should
 %thus serve as a good baseline scheduler for task runtimes. It can be complemented with
 %work-stealing, which is able to dynamically react to load imbalances of individual workers.
 
-We have also demonstrated that even a completely random scheduler can be competitive with other
+We have demonstrated that even a completely random scheduler can be competitive with other
 scheduling approaches for certain task graphs and cluster configurations.
 This supports the conclusion made in~\cite{wang2018list}, where the authors have also observed
 that relatively simple scheduling algorithms can be competitive, and more complex algorithms are
@@ -801,11 +800,10 @@ The implemented \estee{} simulator enables simple prototyping of task schedulers
 also allows simulating execution of various task graphs. We hope that it could have further
 potential to simplify the development and evaluation of novel task schedulers.
 
-%TODO: uncomment?
-%Through our experiments that were presented in this chapter, we have learned more about the effect
-%of scheduling algorithms on the performance of task graphs. Most importantly, we have identified a
-%performant baseline scheduling approach, work-stealing combined with the \emph{b-level heuristic},
-%which we have further leveraged in work described in the following two chapters.
+Through our experiments presented in this chapter, we have learned more about the effect
+of scheduling algorithms on the performance of task graphs. We have identified a
+performant baseline scheduling approach, work-stealing combined with the \emph{b-level} heuristic,
+which we have further leveraged in work described in the following two chapters.
 
 Although task scheduling is an important factor, it is not the only aspect that contributes to the
 overall overhead and performance of task runtimes. The following chapter will examine
