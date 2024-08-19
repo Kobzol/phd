@@ -1899,7 +1899,7 @@ or $8$ threads (cores). Each task is configured so that \hyperqueue{}
 limits threads created by the program to the specific set of cores assigned to that task by the
 scheduler using the \texttt{taskset} Linux utility. Each group allocation strategy was
 examined; \emph{Compact}, which tries to allocate cores belonging to the same group,
-\emph{Force compact}, which always draws cores from a single group and \emph{Scatter},
+\emph{Strict compact}, which always draws cores from a single group and \emph{Scatter},
 which attempts to allocate cores across different groups. As you may recall,
 \hyperqueue{} workers separate cores into groups according to their
 \gls{numa} node. We also evaluate another option, \emph{No strategy}, which
@@ -1920,7 +1920,7 @@ We can observe the results in~\Autoref{fig:hq-numa}. The vertical axis displays 
 the executed task graph and the four bars represent results of individual strategies. We can see
 that the best performance for $4$ cores per task was achieved with the
 \emph{Compact} strategy, because the threads were able to achieve the highest possible
-memory throughput. In this case, the \emph{Force compact} strategy achieved the same result;
+memory throughput. In this case, the \emph{Strict compact} strategy achieved the same result;
 because the task durations were very uniform, these two strategies resulted in very similar
 placements of cores to tasks. On the other hand, the \emph{Scatter} strategy resulted in
 the worst possible performance, as expected. The results of the \emph{No strategy}
