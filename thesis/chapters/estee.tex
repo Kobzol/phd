@@ -505,7 +505,7 @@ the absolute makespan durations.
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{imgs/estee/charts/random-scheduler}\\
-	{\small x axis: bandwidth [MiB/s]; y axis: makespan [s]; row: cluster}
+	{\small horizontal axis: bandwidth [MiB/s]; vertical axis: makespan [s]; row: cluster}
 	\caption{Performance of the \emph{random} scheduler}
 	\label{fig:estee-chart-random-scheduler}
 \end{figure}
@@ -537,7 +537,7 @@ graph execution cost. This will be described in more detail in~\Autoref{ch:rsds}
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{imgs/estee/charts/gt-scheduler}\\
-	{\small x axis: bandwidth [MiB/s]; y axis: makespan [s]; row: cluster}
+	{\small horizontal axis: bandwidth [MiB/s]; vertical axis: makespan [s]; row: cluster}
 	\caption{Comparison of worker selection strategy}
 	\label{fig:estee-chart-gt-scheduler}
 \end{figure}
@@ -562,8 +562,8 @@ important detail of list-scheduling algorithms that should not be omitted from t
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{imgs/estee/charts/irw-32x4-netmodel-score}\\
-	{\small x axis: bandwidth [MiB/s]; y axis: makespan normalized to average
-	of makespan of \emph{simple} model; row: scheduler; cluster $32x4$}
+	{\small horizontal axis: bandwidth [MiB/s]; vertical axis: makespan normalized to average
+	of the \emph{simple} model; row: scheduler; cluster $32x4$}
 	\caption{Comparison of \emph{max-min} and \emph{simple} network models
 	(\emph{irw} dataset)} \label{fig:estee-chart-irw-netmodel}
 \end{figure}
@@ -571,8 +571,8 @@ important detail of list-scheduling algorithms that should not be omitted from t
 %\begin{figure}
 %	\centering
 %	\includegraphics[width=\textwidth]{imgs/estee/charts/pegasus-32x4-netmodel-score}
-%	\\ {\small x axis: bandwidth [MiB/s]; y axis: execution makespan normalized
-%	to average of makespan of \emph{simple} model; row: scheduler, cluster
+%	\\ {\small horizontal axis: bandwidth [MiB/s]; vertical axis: execution makespan normalized
+%	to average of the \emph{simple} model; row: scheduler, cluster
 %	$32x4$} \caption{Comparison of \emph{maxmin} and \emph{simple} network models
 %	(\emph{pegasus} dataset)} \label{fig:estee-chart-pegasus-netmodel}
 %\end{figure}
@@ -601,7 +601,7 @@ between the two network models depends heavily on the used task graph.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{imgs/estee/charts/irw-32x4-schedtime-score}\\
-	{\small x axis: bandwidth [MiB/s]; y axis: makespan normalized to
+	{\small horizontal axis: bandwidth [MiB/s]; vertical axis: makespan normalized to
 	$\gls{msd}=0$}
 	\caption{Comparison of \acrshort{msd}; cluster 32x4}
 	\label{fig:estee-chart-irw-msd}
@@ -627,7 +627,7 @@ scheduler implementation and the task graph that it executes.
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{imgs/estee/charts/irw-32x4-imode-score}\\
-	{\small x axis: bandwidth [MiB/s]; y axis: makespan normalized to
+	{\small horizontal axis: bandwidth [MiB/s]; vertical axis: makespan normalized to
 	\emph{exact}
 	imode; row: scheduler; cluster $32x4$} \caption{Comparison of information modes (\emph{irw} dataset)}
 	\label{fig:estee-chart-irw-imode}
@@ -636,7 +636,7 @@ scheduler implementation and the task graph that it executes.
 %\begin{figure}
 %	\centering
 %	\includegraphics[width=0.8\textwidth]{imgs/estee/charts/elementary-32x4-imode-score}\\
-%	{\small x axis: bandwidth [MiB/s]; y axis: makespan normalized to
+%	{\small horizontal axis: bandwidth [MiB/s]; vertical axis: makespan normalized to
 %	\emph{exact} average; row: scheduler; cluster $32x4$}
 %   \caption{Comparison of information modes (\emph{elementary} dataset)}
 %   \label{fig:estee-chart-elementary-imode}
@@ -722,7 +722,6 @@ Each actual execution and simulation was performed three times.
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{imgs/estee/charts/estee-validation}\\
-	{\small x axis: scheduler; y axis: performance relative to \emph{blevel}}
 	\caption{Scheduler performance relative to \emph{blevel} in \dask{} and \estee}
 	\label{fig:estee-validation}
 \end{figure}
@@ -753,8 +752,8 @@ To summarize the average error of the simulated results, we took the relative ma
 individual schedulers w.r.t.\ the reference \emph{bevel} scheduler, and calculated the
 difference between the executed and simulated relative makespan. The geometric mean of these
 differences across all measured benchmarks was $0.0347$, which suggests that the
-differences between the execution and simulation were relatively small, and the simulated makespans
-were usually within just a few percentage points of the actual makespan duration.
+differences between the execution and simulation were relatively small; the simulated makespans
+were usually within just a few percent off the actual makespan duration.
 
 \section*{Summary}
 We have implemented a set of well known scheduling heuristics, prepared a benchmark dataset
@@ -776,10 +775,11 @@ not open-source, it is difficult (even nigh impossible) to accurately reproduce 
 results. We have tried our best to make all available source-code, benchmark datasets and the
 results of our experiments public, to make them easy to reproduce and thus avoid this issue.
 
-Our analysis has shown that despite its simplicity, the foundational \gls{hlfet}
-algorithm~\cite{hlfet1974} (\emph{b-level}) produces high quality schedules in various scenarios and should
-thus serve as a good baseline scheduler for task runtimes. It can be complemented with
-work-stealing, which is able to dynamically react to load imbalances of individual workers.
+%TODO: uncomment?
+%Our analysis has shown that despite its simplicity, the foundational \gls{hlfet}
+%algorithm~\cite{hlfet1974} (\emph{b-level}) produces high quality schedules in various scenarios and should
+%thus serve as a good baseline scheduler for task runtimes. It can be complemented with
+%work-stealing, which is able to dynamically react to load imbalances of individual workers.
 
 We have also demonstrated that even a completely random scheduler can be competitive with other
 scheduling approaches for certain task graphs and cluster configurations.
@@ -787,10 +787,6 @@ This supports the conclusion made in~\cite{wang2018list}, where the authors have
 that relatively simple scheduling algorithms can be competitive, and more complex algorithms are
 useful mostly for special situations and edge cases, where the simple heuristics might fail to
 produce reasonable results.
-
-%Our results indicate that the worker selection strategy used by list-based schedulers is crucial
-%for the performance of the scheduler, and it can have a larger effect on the overall makespan than
-%the task selection method itself.
 
 The \acrlong{msd} had a smaller effect in our simulations than we have expected. This
 hints that it might be possible to reduce the scheduling overhead (by invoking the scheduler less
@@ -805,13 +801,12 @@ The implemented \estee{} simulator enables simple prototyping of task schedulers
 also allows simulating execution of various task graphs. We hope that it could have further
 potential to simplify the development and evaluation of novel task schedulers.
 
-Through our experiments that were presented in this chapter, we have learned more about the effect
-of scheduling algorithms on the performance of task graphs. Most importantly, we have identified a
-performant baseline scheduling approach, work-stealing combined with the \emph{b-level heuristic},
-which we have further leveraged in work described in the following two chapters.
-
 %TODO: uncomment?
-%Although task
-%scheduling is an important factor, it is not the only aspect that contributes to the overall
-%overhead and performance of task runtimes. The following chapter will holistically examine the
-%performance aspects of a state-of-the-art task runtime in more detail.
+%Through our experiments that were presented in this chapter, we have learned more about the effect
+%of scheduling algorithms on the performance of task graphs. Most importantly, we have identified a
+%performant baseline scheduling approach, work-stealing combined with the \emph{b-level heuristic},
+%which we have further leveraged in work described in the following two chapters.
+
+Although task scheduling is an important factor, it is not the only aspect that contributes to the
+overall overhead and performance of task runtimes. The following chapter will examine
+the runtime overhead and scalability of a state-of-the-art task runtime in more detail.
