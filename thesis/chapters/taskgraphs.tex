@@ -62,8 +62,7 @@ A task graph is a tuple $(T, O, E, \setresourcekinds, \fntaskres)$, where:
 
 $(T \cup O, E)$ forms a finite directed acyclic graph (a graph without cycles). The graph is
 structured in a way so that for every data object, there is exactly one task that produces it: \\
-$\forall o\in{}O: (\exists t_1\in{}T: (t_1, o) \in E \land
-	(\forall t_2\in{}T: (t_2, o) \in E \Rightarrow t_1 = t_2))$.
+$\forall o \in O: |E \cap (T \times \{o\})| = 1$
 
 \vspace{2mm}Below we will define several terms that will be useful for describing task
 graphs and their properties:
