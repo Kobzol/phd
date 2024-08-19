@@ -504,15 +504,16 @@ the absolute makespan durations.
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{imgs/estee/charts/random-scheduler}\\
-	{\small horizontal axis: bandwidth [MiB/s]; vertical axis: makespan [s]; row: cluster}
+	{\small horizontal axis: bandwidth [MiB/s]; vertical axis:
+	makespan [s]; row: cluster}
 	\caption{Performance of the \emph{random} scheduler}
 	\label{fig:estee-chart-random-scheduler}
 \end{figure}
 
 Given the fact that task scheduling is an NP-hard problem, it would seem that a random scheduling
-approach should produce unsatisfying results. Therefore, we wanted to examine how a completely random
-scheduler holds up against more sophisticated approaches. \Autoref{fig:estee-chart-random-scheduler} compares the
-simulated makespan durations of the \emph{random} scheduler vs. two other competitive
+approach should produce unsatisfying results. Therefore, we wanted to examine how a completely
+random scheduler holds up against more sophisticated approaches. \Autoref{fig:estee-chart-random-scheduler} compares
+the simulated makespan durations of the \emph{random} scheduler vs. two other competitive
 schedulers (\emph{blevel-gt} and the work-stealing \emph{ws} scheduler) on
 several task graphs.
 
@@ -536,7 +537,8 @@ graph execution cost. This will be described in more detail in~\Autoref{ch:rsds}
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{imgs/estee/charts/gt-scheduler}\\
-	{\small horizontal axis: bandwidth [MiB/s]; vertical axis: makespan [s]; row: cluster}
+	{\small horizontal axis: bandwidth [MiB/s]; vertical axis:
+	makespan [s]; row: cluster}
 	\caption{Comparison of worker selection strategy}
 	\label{fig:estee-chart-gt-scheduler}
 \end{figure}
@@ -561,7 +563,8 @@ important detail of list-scheduling algorithms that should not be omitted from t
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{imgs/estee/charts/irw-32x4-netmodel-score}\\
-	{\small horizontal axis: bandwidth [MiB/s]; vertical axis: makespan normalized to average
+	{\small horizontal axis: bandwidth [MiB/s]; vertical axis: makespan normalized to
+	average
 	of the \emph{simple} model; row: scheduler; cluster $32x4$}
 	\caption{Comparison of \emph{max-min} and \emph{simple} network models
 	(\emph{irw} dataset)} \label{fig:estee-chart-irw-netmodel}
@@ -593,7 +596,7 @@ magnitude apart. This is quite significant, because the difference between the p
 schedulers (with a fixed network model) is otherwise usually within a factor of two, which was
 demonstrated both in~\cite{wang2018list} and by results of our other experiments. The gap
 between the two network models depends heavily on the used task graph.
- %the difference was much smaller, as can be seen in~\Autoref{fig:estee-chart-pegasus-netmodel}.%For task graphs from the Pegasus dataset,
+%the difference was much smaller, as can be seen in~\Autoref{fig:estee-chart-pegasus-netmodel}.%For task graphs from the Pegasus dataset,
 
 \subsubsection*{\acrlong{msd}}
 
@@ -713,10 +716,11 @@ the other direction. We have executed several task graphs in \dask{}, and record
 their execution traces, so that we would have a completely accurate representation of all the
 executed task durations and data object sizes, which we could then accurately replicate in the
 simulated \estee{} environment. The recorded task graphs will be described
-in~\Autoref{sec:rsds-dask-overhead-analysis} and they can also be found in~\cite{rsds}. We have
-executed these workflows with a $24x2$ cluster ($24$ cores on two nodes), which corresponds
-to two nodes of the Salomon~\cite{salomon} cluster, on which were the \dask{} workflows executed.
-Each actual execution and simulation was performed three times.
+in~\Autoref{sec:rsds-dask-overhead-analysis} and they can also be found in~\cite{rsds}. We have executed
+these workflows with a $24x2$ cluster ($24$ cores on two nodes),
+which corresponds to two nodes of the Salomon~\cite{salomon} cluster, on which were the
+\dask{} workflows executed. Each actual execution and simulation was performed
+three times.
 
 \begin{figure}
 	\centering
@@ -730,22 +734,23 @@ task graphs\footnote{Extended validation results can be found in~\cite{estee}.}.
 makespan of the \emph{blevel} scheduler within the same environment (either
 \estee{} or \dask{}). Note that the relative ratios were centered
 around zero by subtracting $1$ from them, to focus on the relative differences.
-For example, if a task graph execution had a makespan of \SI{100}{\second} with the \emph{blevel} scheduler, but \SI{110}{\second} with the \emph{ws} scheduler, the ratio of the \emph{ws} scheduler would be
-$0.1$. If the simulation was perfect, the two columns for each scheduler would
-have the same height.
+For example, if a task graph execution had a makespan of \SI{100}{\second} with the
+\emph{blevel} scheduler, but \SI{110}{\second} with the \emph{ws}
+scheduler, the ratio of the \emph{ws} scheduler would be $0.1$. If
+the simulation was perfect, the two columns for each scheduler would have the same height.
 
 The first chart shows a situation where changing the scheduler resulted in large changes in
-makespans, and \estee{} was able to simulate these changes relatively accurately, and reflect
-the results measured in \dask{}. The second chart demonstrates a situation where
-all schedulers produce similar makespans; therefore, in this case the scheduling algorithm does not
-seem to be that important. \estee{} was again able to estimate that the differences
-between schedulers will be small. In the third chart, we see that \estee{} was
-systematically overestimating the makespans of all three schedulers (with respect to the reference
-scheduler). The most important difference was in the \emph{ws} scheduler, where the
-simulated result claims that it is slower than \emph{blevel}, while in reality it was
-slightly faster. The work-stealing implementation in \dask{} is complex, and in
-this case it was able to outperform \emph{blevel} in a way that \estee{}
-was not able to simulate.
+makespans, and \estee{} was able to simulate these changes relatively accurately,
+and reflect the results measured in \dask{}. The second chart demonstrates a
+situation where all schedulers produce similar makespans; therefore, in this case the scheduling
+algorithm does not seem to be that important. \estee{} was again able to estimate
+that the differences between schedulers will be small. In the third chart, we see that
+\estee{} was systematically overestimating the makespans of all three schedulers
+(with respect to the reference scheduler). The most important difference was in the
+\emph{ws} scheduler, where the simulated result claims that it is slower than
+\emph{blevel}, while in reality it was slightly faster. The work-stealing implementation
+in \dask{} is complex, and in this case it was able to outperform
+\emph{blevel} in a way that \estee{} was not able to simulate.
 
 To summarize the average error of the simulated results, we took the relative makespans of the
 individual schedulers w.r.t.\ the reference \emph{bevel} scheduler, and calculated the
@@ -780,11 +785,11 @@ results of our experiments public, to make them easy to reproduce and thus avoid
 %work-stealing, which is able to dynamically react to load imbalances of individual workers.
 
 We have demonstrated that even a completely random scheduler can be competitive with other
-scheduling approaches for certain task graphs and cluster configurations.
-This supports the conclusion made in~\cite{wang2018list}, where the authors have also observed
-that relatively simple scheduling algorithms can be competitive, and more complex algorithms are
-useful mostly for special situations and edge cases, where the simple heuristics might fail to
-produce reasonable results.
+scheduling approaches for certain task graphs and cluster configurations. This supports the
+conclusion made in~\cite{wang2018list}, where the authors have also observed that relatively
+simple scheduling algorithms can be competitive, and more complex algorithms are useful mostly for
+special situations and edge cases, where the simple heuristics might fail to produce reasonable
+results.
 
 The \acrlong{msd} had a smaller effect in our simulations than we have expected. This
 hints that it might be possible to reduce the scheduling overhead (by invoking the scheduler less
@@ -799,11 +804,11 @@ The implemented \estee{} simulator enables simple prototyping of task schedulers
 also allows simulating execution of various task graphs. We hope that it could have further
 potential to simplify the development and evaluation of novel task schedulers.
 
-Through our experiments presented in this chapter, we have learned more about the effect
-of scheduling algorithms on the performance of task graphs. We have identified a
-performant baseline scheduling approach, work-stealing combined with the \emph{b-level} heuristic,
-which we have further leveraged in work described in the following two chapters.
+Through our experiments presented in this chapter, we have learned more about the effect of
+scheduling algorithms on the performance of task graphs. We have identified a performant baseline
+scheduling approach, work-stealing combined with the \emph{b-level} heuristic, which we
+have further leveraged in work described in the following two chapters.
 
 Although task scheduling is an important factor, it is not the only aspect that contributes to the
-overall overhead and performance of task runtimes. The following chapter will examine
-the runtime overhead and scalability of a state-of-the-art task runtime in more detail.
+overall overhead and performance of task runtimes. The following chapter will examine the runtime
+overhead and scalability of a state-of-the-art task runtime in more detail.

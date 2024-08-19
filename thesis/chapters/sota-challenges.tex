@@ -180,17 +180,17 @@ Even when a task graph can be reasonably executed within a single allocation, th
 lead to hardware underutilization and resource waste~\cite{ehpc}. Consider a typical
 data analysis or a machine learning workflow that works in several stages. First, it loads a
 dataset from disk and preprocesses it, then it trains a machine-learning model, and finally it
-performs some postprocessing step, which e.g.\ analyzes the resulting model. The preprocessing
-and postprocessing steps are usually not very resource intensive and run on
-\glspl{cpu} only, while the training step typically consumes a lot of resources and is
-usually executed on a \gls{gpu} accelerator. To execute such a workflow in a single
-allocation, we will need to ask for a set of resources that contain such an accelerator. The issue
-is that all resources of an allocation are reserved for its whole duration; therefore, we will have
-to pay the price for the expensive accelerated nodes (and prevent others from using them) even
-during the execution of workflow steps in which these nodes will be underutilized or completely
-idle. This is caused by the fact that all allocated resources are tied to the lifetime of the whole
-allocation, and using this approach we have to ask for a set of resources that form a union of the
-resource requirements of all tasks of the workflow.
+performs some postprocessing step, which e.g.\ analyzes the resulting model. The preprocessing and
+postprocessing steps are usually not very resource intensive and run on \glspl{cpu}
+only, while the training step typically consumes a lot of resources and is usually executed on a
+\gls{gpu} accelerator. To execute such a workflow in a single allocation, we will
+need to ask for a set of resources that contain such an accelerator. The issue is that all
+resources of an allocation are reserved for its whole duration; therefore, we will have to pay the
+price for the expensive accelerated nodes (and prevent others from using them) even during the
+execution of workflow steps in which these nodes will be underutilized or completely idle. This is
+caused by the fact that all allocated resources are tied to the lifetime of the whole allocation,
+and using this approach we have to ask for a set of resources that form a union of the resource
+requirements of all tasks of the workflow.
 
 One additional disadvantage of this approach is queuing latency. Large allocations that require a
 long wall-time duration or request many computational nodes typically spend a much longer time in
@@ -232,13 +232,13 @@ Even though there is still probably room for reducing the overhead of contempora
 limitations are inherent. Allocation managers have to (among other things) provide accurate
 accounting, handle robust and secure provisioning and cleanup of hardware resources provided to
 allocations, manage user and process isolation on computational nodes and ensure user fairness.
-These responsibilities are out of scope for most task runtimes, and thus it is not surprising
-that they can usually achieve much higher performance. While in theory, it could be possible to
-design an allocation manager that can also act as a (performant) task runtime at the same time
-(some efforts have been made on this front e.g.\ by Flux~\cite{flux}, which will be
-described later below), it is probably infeasible to modify the two most prominent allocation
-managers that are used almost ubiquitously in the current \gls{hpc} ecosystem to
-support this use-case.
+These responsibilities are out of scope for most task runtimes, and thus it is not surprising that
+they can usually achieve much higher performance. While in theory, it could be possible to design
+an allocation manager that can also act as a (performant) task runtime at the same time (some
+efforts have been made on this front e.g.\ by Flux~\cite{flux}, which will be described
+later below), it is probably infeasible to modify the two most prominent allocation managers that
+are used almost ubiquitously in the current \gls{hpc} ecosystem to support this
+use-case.
 
 Due to this overhead, allocation managers usually limit the number of allocations that can be
 enqueued by a single user at any given time (e.g.\ to a few hundred or a thousand), to ensure that
@@ -259,13 +259,13 @@ task graphs.
 
 Apart from the maximum allocation count, there are other limitations that can be imposed by
 allocation managers. Some tasks of scientific workflows can be granular, and require only few
-resources, e.g.\ a single \gls{cpu} core. To avoid wasting resources, an
-allocation mapped to such a task should thus ask only for the exact set of resources needed by it.
-However, allocation managers are sometimes configured in a way that only offers node-level
-granularity of hardware resources, and thus does not allow users to request less than a whole
-computational node~\cite{it4i_node_scheduling_policy}. In these cases, it would be wasteful if we had to
-request a whole computational node e.g.\ for a simple task that runs for just a couple of seconds and
-requires only a couple of cores.
+resources, e.g.\ a single \gls{cpu} core. To avoid wasting resources, an allocation
+mapped to such a task should thus ask only for the exact set of resources needed by it. However,
+allocation managers are sometimes configured in a way that only offers node-level granularity of
+hardware resources, and thus does not allow users to request less than a whole computational
+node~\cite{it4i_node_scheduling_policy}. In these cases, it would be wasteful if we had to request a whole
+computational node e.g.\ for a simple task that runs for just a couple of seconds and requires only
+a couple of cores.
 
 There are two primary reasons why allocation managers limit the granularity of allocations. First,
 reducing the granularity of allocations lessens the overall overhead. If users are able to ask
@@ -456,7 +456,7 @@ be described in~\Autoref{ch:hyperqueue}.
 \label{challenge:heterogeneity}
 Even though task graphs are designed to be portable and ideally should not depend on any specific
 computational environment, for certain types of tasks, we need to be able to describe at least some
-generic execution environment constraints. For example, when a task executes a program that
+generic computational environment constraints. For example, when a task executes a program that
 leverages the CUDA programming framework~\cite{cuda}, which is designed to be executed
 on an NVIDIA graphics accelerator, it has to be executed on a node that has such a
 \gls{gpu} available, otherwise it will not work properly.
@@ -466,7 +466,7 @@ that have to be provided by an environment that will execute such a task. For ex
 requirement could be the number of cores (some tasks can use only a single core, some can be
 multi-threaded), the amount of available main memory, a minimum duration required to execute the
 task or (either optional or required) presence of an accelerator like a \gls{gpu} or
-an \gls{fpga}. In order to remain portable and independent of a specific execution
+an \gls{fpga}. In order to remain portable and independent of a specific computational
 environment, these requirements should be abstract and describe general, rather than specific,
 types of resources.
 

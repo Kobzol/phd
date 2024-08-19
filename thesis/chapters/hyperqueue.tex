@@ -368,11 +368,12 @@ We will not provide a formal definition for this concept, as it is very general 
 designed and implemented in various ways.~\Autoref{sec:hq-resource-management} will describe how is it
 implemented in \hyperqueue{}.
 
-While it is always possible to configure the \gls{cpu} or \gls{numa} affinity of workers,
-most existing task runtimes do not allow configuring resource relations for individual tasks.
-The \ray{}~\cite{ray} task runtime supports a general mechanism called \emph{placement groups} that
-allows specifying groups of related resources, and the \pycompss{} was extended in~\cite{pycompss_numa}
-to support \gls{numa} placement of tasks.
+While it is always possible to configure the \gls{cpu} or \gls{numa}
+affinity of workers, most existing task runtimes do not allow configuring resource relations for
+individual tasks. The \ray{}~\cite{ray} task runtime supports a
+general mechanism called \emph{placement groups} that allows specifying groups of related
+resources, and the \pycompss{} was extended in~\cite{pycompss_numa} to support
+\gls{numa} placement of tasks.
 
 \subsection{Fractional resource requirements}
 As you may recall from~\Autoref{sec:task-graphs} and~\defref{def:task_resreq}, we have defined a
@@ -404,10 +405,10 @@ with non-fungible resources, as ideally we would like to assign multiple tasks t
 resource (e.g.\ a single specific \gls{gpu}), and thus have a one-to-one mapping
 between physical hardware devices and the corresponding resource elements that represent them.
 
-Fractional resources are not supported by most task runtimes, although they are present in \ray{}, which
-allows assigning fractional resources to individual tasks.
-The Slurm allocation manager supports \emph{resource sharding}~\cite{slurm-sharding}, which allows
-sharing a specific resource by multiple tasks. However, this only works for a known set of resources (notably
+Fractional resources are not supported by most task runtimes, although they are present in
+\ray{}, which allows assigning fractional resources to individual tasks. The Slurm
+allocation manager supports \emph{resource sharding}~\cite{slurm-sharding}, which allows sharing a
+specific resource by multiple tasks. However, this only works for a known set of resources (notably
 \glspl{gpu}) and the resource has to be specially preconfigured by its administrators
 for it to work. It also works mostly on the level of individual allocations; as was already
 discussed in~\Autoref{challenge:allocation-manager}, using Slurm allocations directly as tasks causes several
@@ -465,8 +466,8 @@ worker resource usage. We can define this concept formally:
 \end{itemize}
 
 To our knowledge, there are no existing task runtimes that support all the described advanced
-resource management concepts, which could improve the flexibility of task graph
-execution on heterogeneous clusters.
+resource management concepts, which could improve the flexibility of task graph execution on
+heterogeneous clusters.
 
 \section{\hyperqueue{}}
 To evaluate how the proposed meta-scheduling and heterogeneous resource management approaches works
@@ -533,8 +534,8 @@ managers. This adheres to the first principle of the meta-scheduling design desc
 previous section.
 
 The server itself does not execute any tasks, and it consumes a relatively modest amount of
-resources, and thus it is not computationally demanding.~\Autoref{sec:hq-exp-server-cpu-consumption} evaluates how
-many \gls{cpu} resources the server consumes in extreme scenarios.
+resources, and thus it is not computationally demanding.~\Autoref{sec:hq-exp-server-cpu-consumption} evaluates how many
+\gls{cpu} resources the server consumes in extreme scenarios.
 
 Apart from basic responsibilities related to worker management and task scheduling, the server also
 provides additional functionality. For example, it can submit allocations fully automatically on
@@ -1381,8 +1382,8 @@ A single task of the workflow estimates the stability of an individual pose of a
 complex (a drug candidate). It leverages the GROMACS~\cite{gromacs}
 \gls{md} framework for simulating a short (\SI{100}{\pico\second}) trajectory for
 each pose, from which a final \gls{abfe} value is calculated. Because this computation
-is relatively lightweight (it only lasts for a couple of minutes), it was possible to run it on a large
-dataset of inputs. It was executed for more than four thousand complexes from the
+is relatively lightweight (it only lasts for a couple of minutes), it was possible to run it on a
+large dataset of inputs. It was executed for more than four thousand complexes from the
 PDBbind~\cite{pdbbind} v2020 database; for each complex, up to $256$
 different poses were evaluated, and for each pose, $8$ simulation replicas were
 executed to reduce statistical error (since the computation is randomized). This resulted in more
@@ -1670,11 +1671,11 @@ in~\Autoref{sec:task-granularity}, which are operating on a very different level
 throughput measured for the \parsl{}, \fireworks{} and
 \dask{} task runtimes, as reported in~\cite{parsl}.
 
-As you may recall from~\Autoref{dask:evaluation}, the overhead per task of \dask{} for a task
-graph with $50$ thousand tasks and a single node (using the \emph{zero worker} mode) was
-approximately \SI{0.3}{\milli\second}. The per-task overhead of \hyperqueue{} (calculated as an
-inverted value of the number of tasks executed per second) for a similar
-configuration evaluated in this experiment is approximately
+As you may recall from~\Autoref{dask:evaluation}, the overhead per task of \dask{}
+for a task graph with $50$ thousand tasks and a single node (using the
+\emph{zero worker} mode) was approximately \SI{0.3}{\milli\second}. The per-task overhead of
+\hyperqueue{} (calculated as an
+inverted value of the number of tasks executed per second) for a similar configuration evaluated in this experiment is approximately
 \SI{0.01}{\milli\second}, an order of magnitude lower.
 
 \subsection{Strong scaling}
@@ -1799,8 +1800,8 @@ any manual worker tuning.
 Note that this benchmark actually presents a sort of a best-case scenario for
 \dask{}. It executes its tasks as Python functions; therefore, it does not need to
 start a new Linux process per task, unlike \hyperqueue{}. Furthermore, since each task
-simply sleeps for a specified duration, it releases the \gls{gil} and thus does
-not block other Python threads of the worker, which can thus perform other work concurrently.
+simply sleeps for a specified duration, it releases the \gls{gil} and thus does not
+block other Python threads of the worker, which can thus perform other work concurrently.
 
 \begin{figure}[h]
 	\centering
@@ -1896,16 +1897,17 @@ We have benchmarked the \emph{simple workflow} with $100$ tasks on a single
 Karolina node, where each task executes the described program with either $4$
 or $8$ threads (cores). Each task is configured so that \hyperqueue{}
 limits threads created by the program to the specific set of cores assigned to that task by the
-scheduler using the \texttt{taskset} Linux utility. Each group allocation strategy was examined;
-\emph{Compact}, which tries to allocate cores belonging to the same group,
+scheduler using the \texttt{taskset} Linux utility. Each group allocation strategy was
+examined; \emph{Compact}, which tries to allocate cores belonging to the same group,
 \emph{Force compact}, which always draws cores from a single group and \emph{Scatter},
 which attempts to allocate cores across different groups. As you may recall,
 \hyperqueue{} workers separate cores into groups according to their
 \gls{numa} node. We also evaluate another option, \emph{No strategy}, which
 emulates the behavior of task runtimes that do not provide support for managing groups or
-\gls{numa} nodes. In this strategy, workers are configured with a flat set of \gls{cpu}
-cores without any groups. The order of the available cores is also randomized, so that the
-scheduler cannot use any knowledge of which tasks belong to the same \gls{numa} node.
+\gls{numa} nodes. In this strategy, workers are configured with a flat set of
+\gls{cpu} cores without any groups. The order of the available cores is also
+randomized, so that the scheduler cannot use any knowledge of which tasks belong to the same
+\gls{numa} node.
 
 \begin{figure}[h]
 	\centering
@@ -1915,20 +1917,20 @@ scheduler cannot use any knowledge of which tasks belong to the same \gls{numa} 
 \end{figure}
 
 We can observe the results in~\Autoref{fig:hq-numa}. The vertical axis displays the makespan of
-the executed task graph and the four bars represent results of individual strategies. We can
-see that the best performance for $4$ cores per task was achieved with the
+the executed task graph and the four bars represent results of individual strategies. We can see
+that the best performance for $4$ cores per task was achieved with the
 \emph{Compact} strategy, because the threads were able to achieve the highest possible
 memory throughput. In this case, the \emph{Force compact} strategy achieved the same result;
 because the task durations were very uniform, these two strategies resulted in very similar
 placements of cores to tasks. On the other hand, the \emph{Scatter} strategy resulted in
-the worst possible performance, as expected. The results of the \emph{No strategy} configuration
-are perhaps the most interesting. When cores were assigned to tasks essentially at random,
-without taking \gls{numa} effects into account, the performance was
-better than with the \emph{Scatter} strategy, because in some cases the tasks received multiple
-cores belonging to the same \gls{numa} node. However, it was still almost twice as slow than
-with the \emph{Compact} strategy. This suggests that for memory-sensitive programs, using a
-\gls{numa}-aware task allocation strategy can significantly improve the achieved
-performance. The results were similar with $16$ cores per task.
+the worst possible performance, as expected. The results of the \emph{No strategy}
+configuration are perhaps the most interesting. When cores were assigned to tasks essentially at
+random, without taking \gls{numa} effects into account, the performance was better
+than with the \emph{Scatter} strategy, because in some cases the tasks received multiple
+cores belonging to the same \gls{numa} node. However, it was still almost twice as
+slow than with the \emph{Compact} strategy. This suggests that for memory-sensitive
+programs, using a \gls{numa}-aware task allocation strategy can significantly improve
+the achieved performance. The results were similar with $16$ cores per task.
 
 \subsection{Worker \acrshort{cpu} utilization}
 \label{sec:hq-cpu-utilization}
@@ -1994,7 +1996,8 @@ standard Linux process monitoring tools.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.6\textwidth]{imgs/hq/charts/server-utilization-tasks}
-	\caption{\hyperqueue{} server \acrshort{cpu} time consumption with an increasing number of tasks}
+	\caption{\hyperqueue{} server \acrshort{cpu} time consumption with an increasing number
+	of tasks}
 	\label{fig:hq-server-cpu-consumption-tasks}
 \end{figure}
 
@@ -2017,7 +2020,8 @@ thousand tasks in the task graph, the server consumed approximately \SI{0.3}{\mi
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.6\textwidth]{imgs/hq/charts/server-utilization-workers}
-	\caption{\hyperqueue{} server \acrshort{cpu} time consumption with an increasing number of workers}
+	\caption{\hyperqueue{} server \acrshort{cpu} time consumption with an increasing number
+	of workers}
 	\label{fig:hq-server-cpu-consumption-workers}
 \end{figure}
 
@@ -2139,9 +2143,10 @@ filesystem, it seems to be particularly helpful on slower filesystems. One inter
 that output streaming is generally faster on the PROJECT filesystem than on the SCRATCH filesystem
 (even though the PROJECT filesystem itself should be much slower). Our conjecture is that this
 might be caused by the network topology of the cluster. The SCRATCH filesystem uses the
-InfiniBand~\cite{infiniband} network connection, which is also used for network communication
-between the server and the workers; therefore, performing file \gls{io} on scratch
-while also sending many network packets might cause network contention.
+InfiniBand~\cite{infiniband} network connection, which is also used for network
+communication between the server and the workers; therefore, performing file
+\gls{io} on scratch while also sending many network packets might cause network
+contention.
 
 \begin{table}[h]
 	\centering
@@ -2160,17 +2165,17 @@ while also sending many network packets might cause network contention.
 Using output streaming has one additional advantage; it can reduce the total amount of consumed
 disk space, because it creates only a single file on disk. On most filesystems, every file occupies
 at least a single disk block (which typically consumes several KiB of space), therefore creating a
-large number of files also increases disk usage in general.~\Autoref{tab:hq-io-streaming-size} shows the total
-size of the output of all tasks of the benchmarked task graphs on disk. The \emph{Size (stream)}
-column shows the final size of the sequential log file (in this case, output streaming was used),
-the \emph{Size (stdout)} column displays the total size of a directory containing all files with
-outputs of individual tasks (in this case, output streaming was not used) and the
-\emph{Ratio} column shows how much larger was the output in the case where streaming was
-not used. In the case where each task has outputted \SI{10}{\kibi\byte} of data, writing the
-output to individual files on disk resulted in around $23\%$ higher disk usage. In
-the second configuration, where each task has outputted \SI{100}{\kibi\byte} of data, this
-difference was reduced to $3\%$, because the disk space overhead of the files
-became dwarfed by the size of their content.
+large number of files also increases disk usage in general.~\Autoref{tab:hq-io-streaming-size} shows the
+total size of the output of all tasks of the benchmarked task graphs on disk. The
+\emph{Size (stream)} column shows the final size of the sequential log file (in this case,
+output streaming was used), the \emph{Size (stdout)} column displays the total size of a
+directory containing all files with outputs of individual tasks (in this case, output streaming was
+not used) and the \emph{Ratio} column shows how much larger was the output in the case
+where streaming was not used. In the case where each task has outputted \SI{10}{\kibi\byte} of
+data, writing the output to individual files on disk resulted in around $23\%$
+higher disk usage. In the second configuration, where each task has outputted
+\SI{100}{\kibi\byte} of data, this difference was reduced to $3\%$, because
+the disk space overhead of the files became dwarfed by the size of their content.
 
 Output streaming can help users avoid disk quota limits, reduce consumed disk space, and in certain
 situations also help with \gls{io} performance. However, it is also clear that
@@ -2482,10 +2487,10 @@ runtime dependencies
 \Autoref{tab:hq-tools-comparison} provides a high-level comparison of \hyperqueue{} and twelve
 other task runtimes. It should be noted that there are also many important properties that are not
 mentioned in this table; it primarily compares meta-scheduling and resource management aspects
-described in this chapter and other features related to challenges described in~\Autoref{ch:sota}.
-Furthermore, there is no single universally best task runtime; each one has a different programming
-model and a different set of features and trade-offs based on which use-cases it
-was primarily designed for.
+described in this chapter and other features related to challenges described
+in~\Autoref{ch:sota}. Furthermore, there is no single universally best task runtime; each
+one has a different programming model and a different set of features and trade-offs based on which
+use-cases it was primarily designed for.
 
 The first section of the table, \emph{Task interfaces}, shows which interfaces can be used to
 submit tasks and if they support modifying task graphs dynamically. \gls{cli}
@@ -2572,18 +2577,18 @@ task runtimes are only able to specify basic (such as \gls{cpu},
 generic and arbitrary requirements to each task. Support for arbitrary resource requirements (and
 thus heterogeneous clusters) is not very common; apart from \hyperqueue{}, only
 \dask{}, \ray{} and \snakemake{} allow users to
-define their own resource kinds that are then used in task scheduling.
-The following four columns describe the ability to specify the complex resource management
-features that were described in~\Autoref{sec:heterogeneous-resources}. As was already noted,
-support for these features is not prevalent in existing task runtimes. One notable exception
-is \ray{}, which supports both related resources and fractional resources.
+define their own resource kinds that are then used in task scheduling. The following four columns
+describe the ability to specify the complex resource management features that were described
+in~\Autoref{sec:heterogeneous-resources}. As was already noted, support for these features is not prevalent in
+existing task runtimes. One notable exception is \ray{}, which supports both
+related resources and fractional resources.
 
-The \emph{Multi-node} column then shows which programming
-models enable describing multi-node tasks. Note that the table only considers this feature as
-being supported in task runtimes that provide the ability to assign the number of nodes
-\emph{per-task}, not just per task graph or per allocation. We can see that
-\snakemake{} is the only task runtime apart from \hyperqueue{} that supports
-both arbitrary resource requirements and multi-node tasks.
+The \emph{Multi-node} column then shows which programming models enable describing
+multi-node tasks. Note that the table only considers this feature as being supported in task
+runtimes that provide the ability to assign the number of nodes \emph{per-task}, not just
+per task graph or per allocation. We can see that \snakemake{} is the only task runtime
+apart from \hyperqueue{} that supports both arbitrary resource requirements and
+multi-node tasks.
 
 The penultimate section, \emph{Data transfers}, states whether it is possible to exchange data
 outputs between tasks directly over the network, without going through the filesystem

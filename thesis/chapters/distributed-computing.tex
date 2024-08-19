@@ -450,11 +450,11 @@ PaRSEC~\cite{parsec}, Legion~\cite{legion}, TBB~\cite{tbb} or
 \gls{openmp}~\cite{openmp}\footnote{Note that even though \gls{openmp} has been previously presented as an example of an
 explicitly parallel model, it also offers a task system that provides facilities for implicit parallelization.}. In these models, which are
 sometimes called \emph{task-parallel}~\cite{task_based_taxonomy}, tasks usually represent either
-functions or blocks of code that contain only a couple of instructions, and are typically relatively
-quick to execute (they can run e.g.\ for milliseconds or seconds). While some of these tools also
-support distributed computing, their main use-case is to provide intra-node parallelization on
-multicore systems with shared memory, and often also to offload computation to attached
-accelerators, such as \glspl{gpu} or \glspl{fpga}.
+functions or blocks of code that contain only a couple of instructions, and are typically
+relatively quick to execute (they can run e.g.\ for milliseconds or seconds). While some of these
+tools also support distributed computing, their main use-case is to provide intra-node
+parallelization on multicore systems with shared memory, and often also to offload computation to
+attached accelerators, such as \glspl{gpu} or \glspl{fpga}.
 
 They can be used e.g.\ to implement high-performance numerically intensive computational kernels,
 such as matrix multiplication or QR factorization~\cite{qr_factorization}, or to parallelize
