@@ -928,7 +928,7 @@ two kinds of resource pools:
 	      want to prioritize drawing resources that belong to the same group; this will be described later.
 
 	      When a worker is started, by default it automatically divides \gls{cpu} cores into
-	      groups according to their \gls{numa} nodes. Howver, the concept of groups is general;
+	      groups according to their \gls{numa} nodes. However, the concept of groups is general;
 	      they can be used for any indexed pool, not only specifically for \gls{numa}.
 	      %TODO: unlike in other tools?
 	\item [Sum pool] is designed for resources that are fungible. Such resources are typically
@@ -1508,7 +1508,6 @@ tools, rather than manually by cluster users. It provides a machine-readable
 \gls{json} output mode for its \gls{cli} commands that facilitates this
 kind of usage.
 
-%TODO: compare overhead per task with Dask
 \section{Evaluation}
 \label{hq:evaluation}
 This section evaluates the performance and scalability of \hyperqueue{} and its ability
@@ -1663,6 +1662,13 @@ in~\Autoref{sec:task-granularity}, which are operating on a very different level
 \hyperqueue{} was designed for. This task throughput is orders of magnitude higher than
 throughput measured for the \parsl{}, \fireworks{} and
 \dask{} task runtimes, as reported in~\cite{parsl}.
+
+As you may recall from~\Autoref{dask:evaluation}, the overhead per task of \dask{} for a task
+graph with $50$ thousand tasks and a single node (using the \emph{zero worker} mode) was
+approximately \SI{0.3}{\milli\second}. The per-task overhead of \hyperqueue{} (calculated as an
+inverted value of the number of tasks executed per second) for a similar
+configuration evaluated in this experiment is approximately
+\SI{0.01}{\milli\second}, an order of magnitude lower.
 
 \subsection{Strong scaling}
 \label{sec:hq-exp-scalability}
@@ -1916,8 +1922,6 @@ cores belonging to the same \gls{numa} node. However, it was still almost twice 
 with the \emph{Compact} strategy. This suggests that for memory-sensitive programs, using a
 \gls{numa}-aware task allocation strategy can significantly improve the achieved
 performance. The results were similar with $16$ cores per task.
-
-%TODO: results with a parallel execution?
 
 \subsection{Worker \acrshort{cpu} utilization}
 \label{sec:hq-cpu-utilization}
