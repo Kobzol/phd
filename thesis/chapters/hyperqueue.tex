@@ -368,7 +368,11 @@ We will not provide a formal definition for this concept, as it is very general 
 designed and implemented in various ways.~\Autoref{sec:hq-resource-management} will describe how is it
 implemented in \hyperqueue{}.
 
-%TODO: SOTA
+While it is always possible to configure the \gls{cpu} or \gls{numa} affinity of workers,
+most existing task runtimes do not allow configuring resource relations for individual tasks.
+The \ray{}~\cite{ray} task runtime supports a general mechanism called \emph{placement groups} that
+allows specifying groups of related resources, and the \pycompss{} was extended in~\cite{pycompss_numa}
+to support \gls{numa} placement of tasks.
 
 \subsection{Fractional resource requirements}
 As you may recall from~\Autoref{sec:task-graphs} and~\defref{def:task_resreq}, we have defined a
@@ -400,8 +404,10 @@ with non-fungible resources, as ideally we would like to assign multiple tasks t
 resource (e.g.\ a single specific \gls{gpu}), and thus have a one-to-one mapping
 between physical hardware devices and the corresponding resource elements that represent them.
 
-Slurm supports \emph{resource sharding}~\cite{slurm-sharding}, which allows sharing a specific
-resource by multiple tasks. However, this only works for a known set of resources (notably
+Fractional resources are not supported by most task runtimes, although they are present in \ray{}, which
+allows assigning fractional resources to individual tasks.
+The Slurm allocation manager supports \emph{resource sharding}~\cite{slurm-sharding}, which allows
+sharing a specific resource by multiple tasks. However, this only works for a known set of resources (notably
 \glspl{gpu}) and the resource has to be specially preconfigured by its administrators
 for it to work. It also works mostly on the level of individual allocations; as was already
 discussed in~\Autoref{challenge:allocation-manager}, using Slurm allocations directly as tasks causes several
@@ -458,7 +464,9 @@ worker resource usage. We can define this concept formally:
 		      r\in{}\setresourcekinds\colon \fntaskresvariant{i}(t, r) = |\fntaskresassigned(t, w, r, tp)|$
 \end{itemize}
 
-%TODO: combine all the features together in a single theory?
+To our knowledge, there are no existing task runtimes that support all the described advanced
+resource management concepts, which could improve the flexibility of task graph
+execution on heterogeneous clusters.
 
 \section{\hyperqueue{}}
 To evaluate how the proposed meta-scheduling and heterogeneous resource management approaches works
