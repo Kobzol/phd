@@ -179,9 +179,9 @@ possible to execute all such task graphs inside a single allocation.
 Even when a task graph can be reasonably executed within a single allocation, this approach might
 lead to hardware underutilization and resource waste~\cite{ehpc}. Consider a typical
 data analysis or a machine learning workflow that works in several stages. First, it loads a
-dataset from disk and pre-processes it, then it trains a machine-learning model, and finally it
-performs some post-processing step, which e.g.\ analyzes the resulting model. The pre-processing
-and post-processing steps are usually not very resource intensive and run on
+dataset from disk and preprocesses it, then it trains a machine-learning model, and finally it
+performs some postprocessing step, which e.g.\ analyzes the resulting model. The preprocessing
+and postprocessing steps are usually not very resource intensive and run on
 \glspl{cpu} only, while the training step typically consumes a lot of resources and is
 usually executed on a \gls{gpu} accelerator. To execute such a workflow in a single
 allocation, we will need to ask for a set of resources that contain such an accelerator. The issue
@@ -738,7 +738,7 @@ or choose from a limited set of precompiled dependencies available on the cluste
 precompiled dependencies can be outdated or incompatible with one another.
 
 Deploying any kind of software (including task runtimes) that has non-trivial runtime dependencies
-or non-trivial installation steps (if it is not available in a pre-compiled form for the target
+or non-trivial installation steps (if it is not available in a precompiled form for the target
 cluster) can serve as a barrier for using it on an \gls{hpc} cluster. Many existing
 task runtimes are not trivial to deploy. For example, several task runtimes, such as
 \dask{}, \snakemake{} or \pycompss{}, are implemented in
