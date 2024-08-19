@@ -926,6 +926,11 @@ two kinds of resource pools:
 	      worker might provide a single indexed pools of \glspl{cpu}, with a separate group for
 	      each \gls{numa} socket present on the worker's node. Tasks can then specify if they
 	      want to prioritize drawing resources that belong to the same group; this will be described later.
+
+	      When a worker is started, by default it automatically divides \gls{cpu} cores into
+	      groups according to their \gls{numa} nodes. Howver, the concept of groups is general;
+	      they can be used for any indexed pool, not only specifically for \gls{numa}.
+	      %TODO: unlike in other tools?
 	\item [Sum pool] is designed for resources that are fungible. Such resources are typically
 	      numerous, and it would not be practical to track each individual resource separately. A sum pool
 	      thus does not define its individual resources through indices, but only defines a single number
@@ -1006,6 +1011,8 @@ same \gls{numa} node (group). There are three different strategies that can be s
 	\item [Scatter] is the opposite of the \emph{compact} mode. It tries to allocate resources
 	      for the task from as many groups as possible.
 \end{description}
+
+The effect of group allocation strategies will be evaluated in~\Autoref{sec:hq-exp-numa}.
 
 Furthermore, resource requirements can also be specified without an upper bound, i.e.\ a task can
 specify that it wants to consume all available resources of the specified pool. If a worker has at
@@ -1856,7 +1863,60 @@ best result achieved with a predetermined fraction of tasks running on the \gls{
 This shows that resource variants can help achieve better hardware utilization without requiring
 the user to fine-tune resource configurations of individual tasks in the task graph.
 
-%TODO: Stream NUMA benchmark
+\subsection{Group allocation strategies}
+\label{sec:hq-exp-numa}
+In this experiment, we examine the effect of resource group allocation strategies on the
+performance of a program that is sensitive to memory latency. Each Karolina \gls{cpu} (non-accelerated)
+computational node has $128$ cores and \SI{256}{\gibi\byte} of memory, divided
+into $8$ \gls{numa} nodes. Accessing memory across these
+\gls{numa} nodes is slower than accessing memory within the same node, which can
+affect the performance of programs that are very sensitive to memory throughput or latency. We have
+created a simple program inspired by the STREAM benchmark~\cite{stream} that exerts this
+behavior; it is very sensitive to \gls{numa} memory placement. First, it allocates and
+initializes \SI{4}{\gibi\byte} of memory stored in a single \gls{numa} node.
+Then, a number of threads pinned to individual cores repeatedly read from this memory. When these
+threads are running on cores from a different \gls{numa} node than where the memory is
+allocated, the program takes longer to execute due to memory transfers being slower.
+
+We have benchmarked the \emph{simple workflow} with $100$ tasks on a single
+Karolina node, where each task executes the described program with either $4$
+or $8$ threads (cores). Each task is configured so that \hyperqueue{}
+limits threads created by the program to the specific set of cores assigned to that task by the
+scheduler using the \texttt{taskset} Linux utility. Each group allocation strategy was examined;
+\emph{Compact}, which tries to allocate cores belonging to the same group,
+\emph{Force compact}, which always draws cores from a single group and \emph{Scatter},
+which attempts to allocate cores across different groups. As you may recall,
+\hyperqueue{} workers separate cores into groups according to their
+\gls{numa} node. We also evaluate another option, \emph{No strategy}, which
+emulates the behavior of task runtimes that do not provide support for managing groups or
+\gls{numa} nodes. In this strategy, workers are configured with a flat set of \gls{cpu}
+cores without any groups. The order of the available cores is also randomized, so that the
+scheduler cannot use any knowledge of which tasks belong to the same \gls{numa} node.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{imgs/hq/charts/numa}
+	\caption{Effect of different group allocation strategies}
+	\label{fig:hq-numa}
+\end{figure}
+
+We can observe the results in~\Autoref{fig:hq-numa}. The vertical axis displays the makespan of
+the executed task graph and the four bars represent results of individual strategies. We can
+see that the best performance for $4$ cores per task was achieved with the
+\emph{Compact} strategy, because the threads were able to achieve the highest possible
+memory throughput. In this case, the \emph{Force compact} strategy achieved the same result;
+because the task durations were very uniform, these two strategies resulted in very similar
+placements of cores to tasks. On the other hand, the \emph{Scatter} strategy resulted in
+the worst possible performance, as expected. The results of the \emph{No strategy} configuration
+are perhaps the most interesting. When cores were assigned to tasks essentially at random,
+without taking \gls{numa} effects into account, the performance was
+better than with the \emph{Scatter} strategy, because in some cases the tasks received multiple
+cores belonging to the same \gls{numa} node. However, it was still almost twice as slow than
+with the \emph{Compact} strategy. This suggests that for memory-sensitive programs, using a
+\gls{numa}-aware task allocation strategy can significantly improve the achieved
+performance. The results were similar with $16$ cores per task.
+
+%TODO: results with a parallel execution?
 
 \subsection{Worker \gls{cpu} utilization}
 \label{sec:hq-cpu-utilization}
@@ -2130,8 +2190,8 @@ this step is beneficial; up to the number of available cores. On the other hand,
 invocation of LiGen for a file has a non-trivial cost, it needs to perform some preprocessing and a
 part of the computation is performed serially. Therefore, for the scoring part, using fewer files
 is generally a better choice. Yet, with fewer files, there will also be less opportunities for load
-balancing performed by \hq{}, and there might not be enough tasks to saturate the
-available computational resources.
+balancing performed by \hq{}, and there might not be enough tasks to saturate
+the available computational resources.
 
 We examine the effect of these two parameters on makespan and hardware utilization on an input
 containing $200$ thousand ligands. The computation duration varies significantly
@@ -2243,9 +2303,9 @@ the results for idle timeout being configured to \SI{5}{\second}. We can observe
 this case, the allocations are scaled down during the expansion part of the workflow, as not that
 many resources are required towards the end of expansion. Furthermore, towards the end of the
 computation, the number of allocations is being scaled down even before the task graph has finished
-computing. In the right chart, where the idle timeout is much longer (\SI{30}{\second}), the
-allocations are active for the whole duration of the task graph execution, except for short periods
-of time where new allocations have to be spawned due to wall-time being exhausted. All four
+computing. In the right chart, where the idle timeout is much longer (\SI{30}{\second}),
+the allocations are active for the whole duration of the task graph execution, except for short
+periods of time where new allocations have to be spawned due to wall-time being exhausted. All four
 allocations are also active up until the very end of the task graph computation, which results in
 more allocation time being wasted.
 
@@ -2260,8 +2320,8 @@ timeout of \SI{5}{\second}.
 \section{Comparison with other task runtimes}
 \label{hq:related-work}
 \Autoref{ch:sota} has described several existing task runtimes and their ability to cope
-with the mentioned challenges that affect task graph execution on \gls{hpc} clusters.
-Even within the particular area of task-based programming that was specified
+with the mentioned challenges that affect task graph execution on \gls{hpc}
+clusters. Even within the particular area of task-based programming that was specified
 in~\Autoref{ch:distributed-computing}, there are dozens of tools designed for executing some kind of task
 graph, whose features and target use-cases partially overlap with \hyperqueue{}. We will
 focus on a smaller subset of task runtimes that enable performing some form of meta-scheduling on
@@ -2272,8 +2332,8 @@ It should be noted that when comparing task runtimes, we compare not only the in
 of their design and programming model (such as how do they specify dependencies or manage resource
 requirements), but also their implementation details (such as what runtime dependencies are
 necessary to deploy the task runtime). As was shown in~\Autoref{subsec:estee-schedulers}
-and~\Autoref{sec:rsds-dask-overhead-analysis}, implementation details are crucial; they significantly affect both the
-efficiency and scalability of the task runtime, and they also dictate how easy it is to use and
+and~\Autoref{sec:rsds-dask-overhead-analysis}, implementation details are crucial; they significantly affect both
+the efficiency and scalability of the task runtime, and they also dictate how easy it is to use and
 deploy it. We thus consider it important to compare actual implementations, rather than only
 theoretical designs without any implementation available.
 
