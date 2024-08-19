@@ -637,7 +637,7 @@ $ hq worker start &
 # Submit a HQ job (task graph) with a single task
 $ hq submit ./my-program
 	\end{minted}
-	\caption{Examples of \hyperqueue{} \gls{cli} commands}
+	\caption{Examples of \hyperqueue{} \acrshort{cli} commands}
 	\label{lst:hq-cli-commands}
 \end{listing}
 
@@ -758,7 +758,7 @@ $ hq submit --each-line=inputs.txt ./my-script.sh
 # Each task will receive a single item from a JSON array stored in the given file
 $ hq submit --from-json=items.json ./my-script.sh
 	\end{minted}
-	\caption{Creating task arrays using the \hyperqueue{} \gls{cli}}
+	\caption{Creating task arrays using the \hyperqueue{} \acrshort{cli}}
 	\label{lst:hq-cli-task-arrays}
 \end{listing}
 
@@ -857,7 +857,7 @@ $ hq log log.bin cat --task 1-10 stdout
 # Export the log into a JSON format
 $ hq log log.bin export
 	\end{minted}
-	\caption{\hyperqueue{} \gls{cli} commands for working with output streaming}
+	\caption{\hyperqueue{} \acrshort{cli} commands for working with output streaming}
 	\label{lst:hq-cli-log}
 \end{listing}
 
@@ -958,7 +958,7 @@ $ hq worker start \
 	--resource 'gpus/nvidia=[0,1,2,3]' \
 	--resource 'memory=sum(1024)'
 	\end{minted}
-	\caption{Configuring worker resources using the \hyperqueue{} \gls{cli}}
+	\caption{Configuring worker resources using the \hyperqueue{} \acrshort{cli}}
 	\label{lst:hq-cli-worker-resources}
 \end{listing}
 
@@ -1062,7 +1062,7 @@ $ hq submit --cpus=2 --pin=omp ./my-program
 # Submit a task that requires 2 FPGA devices and needs at least 10 minutes to execute
 $ hq submit --resource 'fpga=2' --time-request 10m ./my-program
 	\end{minted}
-	\caption{Configuring task resource requirements using the \hyperqueue{} \gls{cli}}
+	\caption{Configuring task resource requirements using the \hyperqueue{} \acrshort{cli}}
 	\label{lst:hq-cli-task-resources}
 \end{listing}
 
@@ -1133,7 +1133,7 @@ $ FAILED_TASKS=$(hq job task-ids last --filter=failed)
 # Resubmit only the failed tasks
 $ hq submit --array=${FAILED_TASKS} ./my-computation
 	\end{minted}
-	\caption{Handling task failure using the \hyperqueue{} \gls{cli}}
+	\caption{Handling task failure using the \hyperqueue{} \acrshort{cli}}
 	\label{lst:hq-cli-fault-tolerance}
 \end{listing}
 
@@ -1241,7 +1241,7 @@ $ hq alloc add pbs --resource "gpus/nvidia=range(1-2)" ...
 # Display information about (in)active allocations from the given queue
 $ hq alloc info 1
 	\end{minted}
-	\caption{Handling task failure using the \hyperqueue{} \gls{cli}}
+	\caption{Handling task failure using the \hyperqueue{} \acrshort{cli}}
 	\label{lst:hq-cli-autoalloc}
 \end{listing}
 
@@ -1918,7 +1918,7 @@ performance. The results were similar with $16$ cores per task.
 
 %TODO: results with a parallel execution?
 
-\subsection{Worker \gls{cpu} utilization}
+\subsection{Worker \acrshort{cpu} utilization}
 \label{sec:hq-cpu-utilization}
 One of the primary metrics that task graph users care about is hardware utilization -- how well can
 a task graph (executed with a given task runtime) make use of available resources? This experiment
@@ -1935,7 +1935,7 @@ sleeping). This task graph was executed on $4$ workers, whose
 	\includegraphics[width=\textwidth]{imgs/hq/charts/scalability-stress-utilization}
 
 	In the bottom row, 75\% of tasks last \SI{5}{\second}, 25\% of tasks last
-	\SI{30}{\second} \caption{\gls{cpu} utilization of \hyperqueue{} worker nodes} \label{fig:hq-cpu-utilization}
+	\SI{30}{\second} \caption{\acrshort{cpu} utilization of \hyperqueue{} worker nodes} \label{fig:hq-cpu-utilization}
 \end{figure}
 
 The results are shown in~\Autoref{fig:hq-cpu-utilization}. The horizontal axis shows the progress of the
@@ -1959,7 +1959,7 @@ workflow execution, where approximately $30$ seconds before the end, the
 utilization starts to drop. However, even for this skewed task graph, the average
 \gls{cpu} utilization was kept at almost $90\%$.
 
-\subsection{Server \gls{cpu} consumption}
+\subsection{Server \acrshort{cpu} consumption}
 \label{sec:hq-exp-server-cpu-consumption}
 The \hyperqueue{} server component is primarily designed to be executed on login nodes
 when deployed on supercomputers. This could pose a problem if it consumed too many system
@@ -1982,7 +1982,7 @@ standard Linux process monitoring tools.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.6\textwidth]{imgs/hq/charts/server-utilization-tasks}
-	\caption{\gls{cpu} time consumption of the \hyperqueue{} server with an increasing
+	\caption{\acrshort{cpu} time consumption of the \hyperqueue{} server with an increasing
 	number of tasks}
 	\label{fig:hq-server-cpu-consumption-tasks}
 \end{figure}
@@ -2006,7 +2006,7 @@ thousand tasks in the task graph, the server consumed approximately \SI{0.3}{\mi
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.6\textwidth]{imgs/hq/charts/server-utilization-workers}
-	\caption{\gls{cpu} time consumption of the \hyperqueue{} server with an increasing
+	\caption{\acrshort{cpu} time consumption of the \hyperqueue{} server with an increasing
 	number of workers}
 	\label{fig:hq-server-cpu-consumption-workers}
 \end{figure}
