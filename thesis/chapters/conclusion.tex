@@ -142,18 +142,16 @@ To summarize, this thesis makes the following contributions:
 This final section summarizes the impact that \rsds{} and
 \hyperqueue{} had on several real-world projects.
 
-\subsection*{\rsds{}}
+\vspace{-2mm}\subsection*{\rsds{}}
 After we had an indication that \rsds{} could be leveraged to improve the
-efficiency of existing \dask{} workflows, we contacted the authors and
-maintainers of \dask{} and presented them our research and
-\rsds{}. Although replacing their server implementation or switching from Python
+efficiency of existing \dask{} workflows, we presented our \rdsd{} research to maintainers of \dask{}. Although replacing their server implementation or switching from Python
 to a different implementation language was not a feasible approach for them, some of the ideas
 implemented in \rsds{} have since been adapted in the \dask{}
 project. This helped to alleviate some of the bottlenecks that we have discovered with our
 experiments and improved the performance of \dask{} in
 general\footnoteurl{https://github.com/dask/distributed/issues/3139}\footnoteurl{https://github.com/dask/distributed/issues/3783}\footnoteurl{https://github.com/dask/distributed/issues/3872}.
 
-\subsection*{\hyperqueue{}}
+\vspace{-2mm}\subsection*{\hyperqueue{}}
 \hyperqueue{} has already been adopted in several projects and it is also actively
 being used by various researchers and teams across several European \gls{hpc}
 centers. It has been proposed as one of the designated ways for executing
@@ -162,7 +160,6 @@ LUMI~\cite{it4i-lumi}, CSC-FI~\cite{puhti-hq,puhti-hq-2},
 IT4Innovations~\cite{it4i-hq} or CINECA~\cite{cineca}. It is also
 available in a precompiled form on several clusters managed by these centers.
 
-In addition to being used directly by \gls{hpc} users and scientists,
 \hyperqueue{} can also be integrated as a general task execution system into other
 tools, thanks to its sophisticated resource management and task scheduling capabilities. This has
 been leveraged by several workflow management systems that have integrated
