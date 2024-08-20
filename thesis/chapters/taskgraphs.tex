@@ -46,7 +46,8 @@ data outputs between tasks, and also the resources needed for the execution of i
 
 \newcommand{\alltaskpairs}{\forall t_1\in{}T, \forall t_2\in{}T}
 
-\vspace{2mm}\makedef{def:task_graph} A task graph is a tuple $G = \taskgraphinner{\setresourcekindstaskgraph}$, where:
+\vspace{2mm}\makedef{def:task_graph}{Task graph} A task graph is a tuple
+$G = \taskgraphinner{\setresourcekindstaskgraph}$, where:
 \begin{itemize}[itemsep=0pt]
 	\item $T$ is a set of \emph{tasks}.
 	\item $O$ is a set of \emph{data objects}.
@@ -260,8 +261,8 @@ Below, we will provide a basic definition of task graph execution (and other con
 describe it), which should be applicable to most existing task runtimes. First, we will formally
 define a computational environment (e.g.\ a cluster) where tasks can be executed.
 
-\vspace{2mm}\makedef{def:cluster} A \emph{computational environment} is a tuple
-$C = (W, \setresourcekindscluster, \fnworkerres)$, where:
+\vspace{2mm}\makedef{def:cluster}{Computational environment} A \emph{computational environment}
+is a tuple $C = (W, \setresourcekindscluster, \fnworkerres)$, where:
 \begin{itemize}[itemsep=0pt]
 	\item $W$ is a set of workers (computational providers).
 	\item $\setresourcekindscluster$ is a set of \emph{resource kinds}. Each resource kind
@@ -284,8 +285,8 @@ it is still useful to provide a general definition that will allow us to define 
 properties and rules that should hold in most task graph executions; these will be defined
 later below.
 
-\vspace{2mm}\makedef{def:task_graph_execution} A \emph{task graph execution} is a tuple
-\taskgraphexecution, where:
+\vspace{2mm}\makedef{def:task_graph_execution}{Task graph execution} A \emph{task graph execution}
+is a tuple \taskgraphexecution, where:
 \begin{itemize}[itemsep=0pt]
 	\item $G = \taskgraphinner{\setresourcekinds}$ forms a \emph{task graph}.
 	\item $C = (W, \setresourcekinds, \fnworkerres)$ forms a \emph{computational environment}.
@@ -325,16 +326,16 @@ Unless a task runtime provides some special semantics, then each execution
 should also uphold at least the following three basic constraints, which ensure a reasonable
 behavior w.r.t\ dependencies, task resource requirements and worker resources:
 
-\vspace{2mm}\makedef{def:dependency_constraint} A \emph{dependency constraint} in the context
-of execution \\
+\vspace{2mm}\makedef{def:dependency_constraint}{Dependency constraint} A
+\emph{dependency constraint} in the context of execution \\
 $E = (\taskgraphinner{\setresourcekinds}, C, X)$ is defined as follows: \vspace{1mm}\\
 $\alltaskpairs\colon (t_1, t_2) \in D_G \Rightarrow \fntaskfinish_E(t_1) \leq \fntaskstart_E(t_2)$
 
 \vspace{1mm}Informally, if a task $t_2$ depends on a task $t_1$, then it cannot begin executing
 until $t_1$ has finished executing.
 
-\vspace{2mm}\makedef{def:worker_resource_constraint} A \emph{worker resource constraint} and a
-\emph{task resource constraint} in the context of execution
+\vspace{2mm}\makedef{def:worker_resource_constraint}{Worker and task resource constraint} A
+\emph{worker resource constraint} and a \emph{task resource constraint} in the context of execution
 $E = (\taskgraphinner{\setresourcekinds}, (W, \setresourcekinds, \fnworkerres), X)$
 are defined as follows: \vspace{1mm}\\
 $\forall tp\in\timedomain, \forall w\in{}W, \forall
@@ -373,7 +374,8 @@ task runtime, which is typically affected by the behavior of its scheduler. Ther
 that a scheduler can optimize for, such as the latency to execute specific critical tasks, but the
 most commonly used metric is \emph{makespan}:
 
-\vspace{2mm}\makedef{def:makespan} The \emph{makespan} $M_E$ of execution $E = ((T, O, E, \setresourcekinds, \fntaskres), C, \fntaskworkerassigned)$
+\vspace{2mm}\makedef{def:makespan}{Makespan} The \emph{makespan} $M_E$ of execution
+$E = ((T, O, E, \setresourcekinds, \fntaskres), C, \fntaskworkerassigned)$
 is defined as follows: $M_E = \max\limits_{t \in T}(\fntaskfinish_E(t)) - \min\limits_{t \in T}(\fntaskstart_E(t))$
 
 \vspace{1mm}Informally, makespan is the duration between the start of the execution of the first task to the

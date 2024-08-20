@@ -289,7 +289,9 @@ specific \gls{gpu} it should use.
 We can formally define non-fungible resources by modifying~\defref{def:cluster} and
 also~\defref{def:worker_resource_constraint} to add support for resources with identities.
 
-\vspace{2mm}\makedef{def:cluster_ident} A \emph{computational environment with support for non-fungible resources} is a tuple
+\vspace{2mm}
+\makedef{def:cluster_ident}{Computational environment with non-fungible resources} A
+\emph{computational environment with non-fungible resources} is a tuple
 $C^{id} = (W, \setresourcekindsident, \fnworkerresident)$, where:
 \begin{itemize}[itemsep=0pt]
 	\item $\setresourcekindsident$ is a set of resource kinds; each resource kind is a set of
@@ -303,8 +305,9 @@ $C^{id} = (W, \setresourcekindsident, \fnworkerresident)$, where:
 		  of resource elements instead.
 \end{itemize}
 
-\vspace{2mm}\makedef{def:task_graph_execution_ident} A \emph{task graph execution with support for
-non-fungible resources} is a tuple $E^{id} = (G, C^{id}, \fntaskworkerassigned,
+\vspace{2mm}
+\makedef{def:task_graph_execution_ident}{Task graph execution with non-fungible resources} A
+\emph{task graph execution with non-fungible resources} is a tuple $E^{id} = (G, C^{id}, \fntaskworkerassigned,
 	\fntaskresassigned)$, where:
 
 \begin{itemize}[itemsep=0pt]
@@ -327,8 +330,9 @@ worker and task resource constraints (originally defined
 in~\defref{def:worker_resource_constraint}) for non-fungible
 resources.
 
-\vspace{2mm}\makedef{def:worker_resource_constraint_ident} A
-\emph{worker non-fungible resource constraint} in the context of execution $E^{id} = (\taskgraphinner{\setresourcekindsident}, (W, \setresourcekindsident, \fnworkerresident), \fntaskworkerassigned,
+\vspace{2mm}
+\makedef{def:worker_resource_constraint_ident}{Worker resource constraint with non-fungible resources} A
+\emph{worker resource constraint with non-fungible resources} in the context of execution $E^{id} = (\taskgraphinner{\setresourcekindsident}, (W, \setresourcekindsident, \fnworkerresident), \fntaskworkerassigned,
 \fntaskresassigned)$ is
 defined as follows: \vspace{1mm}\\ $\forall tp\in\timedomain, \forall w\in{}W, \forall
 	r\in{}\setresourcekindsident\colon \bigcup_{t\in{}T}
@@ -350,8 +354,10 @@ the \emph{task resource constraint}, which ensures that all task resource requir
 given execution. Note that with fungible resources, this property was a trivial consequence
 of~\defref{def:worker_resource_constraint}; however, that is no longer the case with non-fungible resources.
 
-\vspace{2mm}\makedef{def:task_resource_constraint_ident} A
-\emph{task non-fungible resource constraint} in the context of execution $E^{id} = (\taskgraphinner{\setresourcekindsident}, (W, \setresourcekindsident, \fnworkerresident), \fntaskworkerassigned,
+\vspace{2mm}
+\makedef{def:task_resource_constraint_ident}{Task resource constraint with non-fungible resources} A
+\emph{task resource constraint with non-fungible resources} in the context of execution
+$E^{id} = (\taskgraphinner{\setresourcekindsident}, (W, \setresourcekindsident, \fnworkerresident), \fntaskworkerassigned,
 \fntaskresassigned)$ is defined as
 follows: \vspace{1mm}\\
 $\forall tp\in\timedomain, \forall w\in{}W, \forall
@@ -423,8 +429,8 @@ However, in some situations this might be too coarse-grained. To support a more 
 resource specification, we can leverage a \emph{fractional resource requirement}, which would allow a task to
 require only a fraction of some resource.
 
-\vspace{2mm}\makedef{def:task_graph_frac} A
-\emph{task graph with support for fractional resources} is a tuple \\
+\vspace{2mm}\makedef{def:task_graph_frac}{Task graph with fractional resources} A
+\emph{task graph with fractional resources} is a tuple \\
 $G^{fr} = (T, O, E, \setresourcekindstaskgraph, \fntaskresfrac)$, where:
 \begin{itemize}[itemsep=0pt]
 	\item $T$ is a set of \emph{tasks}.
@@ -513,8 +519,8 @@ required amount of resources required for each resource kind for a given task. T
 then choose which variant to use for a task dynamically, based on computational load and current
 worker resource usage.
 
-\vspace{2mm}\makedef{def:task_graph_var} A
-\emph{task graph with support for resource variants} is a tuple \\
+\vspace{2mm}\makedef{def:task_graph_var}{Task graph with resource variants} A
+\emph{task graph with resource variants} is a tuple \\
 $G^{var} = (T, O, E, \setresourcekindstaskgraph, \fntaskresvar)$, where:
 \begin{itemize}[itemsep=0pt]
 	\item $T$ is a set of \emph{tasks}.
@@ -537,8 +543,9 @@ $G^{var} = (T, O, E, \setresourcekindstaskgraph, \fntaskresvar)$, where:
 The remaining properties of $G^{var}$ are identical to the properties of the
 \emph{task graph} defined in~\defref{def:task_graph}.
 
-\vspace{2mm}\makedef{def:task_graph_execution_var} A \emph{task graph execution with support for
-resource variants} is a tuple $E^{var} = (G^{var}, C, \fntaskworkerassigned,
+\vspace{2mm}
+\makedef{def:task_graph_execution_var}{Task graph execution with resource variants} A
+\emph{task graph execution with resource variants} is a tuple $E^{var} = (G^{var}, C, \fntaskworkerassigned,
 \fntaskvarassigned)$, where:
 \begin{itemize}[itemsep=0pt]
 	\item $G^{var} = (T, O, E, \setresourcekinds, \fntaskresvar)$ forms a
@@ -562,9 +569,11 @@ resource variants} is a tuple $E^{var} = (G^{var}, C, \fntaskworkerassigned,
 Using the two previous definitions, we can now also define a modified version of the
 \emph{task resource constraint}:
 
-\vspace{2mm}\makedef{def:worker_resource_constraint_var} A \emph{task resource variant constraint}
+\vspace{2mm}
+\makedef{def:worker_resource_constraint_var}{Worker and task constraint with resource variants} A
+\emph{task resource variant constraint}
 and a \emph{worker resource variant constraint} in the context of an execution $E^{var} = (G^{var}, C, \fntaskworkerassigned, \fntaskvarassigned)$, where $G^{var} = (T, O, E, \setresourcekinds, \fntaskresvar)$ is
-a \emph{task graph with support for resource variants} and $C = (W, \setresourcekinds, \fnworkerres)$ is a
+a \emph{task graph with resource variants} and $C = (W, \setresourcekinds, \fnworkerres)$ is a
 \emph{computational environment}, are defined as follows: \vspace{1mm}\\
 $\forall tp\in\timedomain, \forall w\in{}W, \forall
 r\in{}\setresourcekinds\colon \sum_{t\in{}\fnworkertaskassigned_{E^{var}}(w, tp)} \fntaskresvar(t, r, \fntaskvarassigned(t, tp)) \leq

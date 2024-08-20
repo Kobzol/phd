@@ -107,12 +107,12 @@
 \newcommand{\listdefname}{List of Definitions}
 \newlistof{taskdefinition}{def}{\listdefname}
 
-% Add a new definition (#1 = label)
-\newcommand{\makedef}[1]
+% Add a new definition (#1 = label, #2 = name)
+\newcommand{\makedef}[2]
 {\refstepcounter{taskdefinition}%
 [\textbf{Definition~\thetaskdefinition{}}]\label{#1}
 \addcontentsline{def}{taskdefinition}{\protect
-\numberline{\thesection}Definition \thetaskdefinition{}}\par}
+\numberline{\thesection}Definition \thetaskdefinition{} (#2)}\par}
 % Move labels to the right of the section in the list
 \addtolength{\cfttaskdefinitionnumwidth}{10pt}
 
