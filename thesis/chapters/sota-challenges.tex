@@ -468,7 +468,7 @@ multi-threaded), the amount of available main memory, a minimum duration require
 task or (either optional or required) presence of an accelerator like a \gls{gpu} or
 an \gls{fpga}. In order to remain portable and independent of a specific computational
 environment, these requirements should be abstract and describe general, rather than specific,
-types of resources.
+kinds of resources.
 
 The challenge related to resource requirements of \gls{hpc} tasks specifically is the
 diverse kinds of hardware present in modern \gls{hpc} clusters, which have started to
@@ -486,7 +486,7 @@ allow configuring at least a known set of resources per task, most often the num
 heterogeneous clusters with e.g.\ \gls{fpga} devices or multiple kinds of
 \glspl{gpu} from different vendors. Some tools, such as \dask{} or
 \snakemake{}, allow users to define their own resource kinds, which can be used to
-describe completely arbitrary types of resources. However, they do not support more complex
+describe completely arbitrary kinds of resources. However, they do not support more complex
 use-cases, such as specifying that a task requires only a fraction of a resource, that some
 resources can have relations between them (for example cores residing in the same
 \gls{numa} node) or that a task could support multiple sets of resource requirements.
