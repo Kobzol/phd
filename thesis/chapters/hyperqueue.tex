@@ -1313,13 +1313,13 @@ to execute task graphs on \gls{hpc} systems. Apart from these selected case stud
 it has also been used in other projects and scenarios; these will be enumerated
 in~\Autoref{ch:conclusion}.
 
-The presented use-cases originate from the LIGATE (LIgand Generator and portable drug discovery
+The firs two use-cases originate from the LIGATE (LIgand Generator and portable drug discovery
 platform AT Exascale)~\cite{ligate} project, whose goal was to integrate state-of-the-art
 \gls{cadd} tools into a unified platform designed for executing drug design
 experiments on petascale and exascale \gls{hpc} clusters. This project provided
 funding for the development of \hyperqueue{}, and its use-cases also served as one of the
 main driving forces behind the design of this task runtime. The usage of \hyperqueue{}
-within the LIGATE project is briefly described in~\cite{ligate}.
+within the LIGATE project is also briefly described in~\cite{ligate}.
 
 \subsection{Virtual screening and free-energy calculations}
 \label{sec:hq-usecase-ligen}
@@ -1329,16 +1329,18 @@ screening. Virtual screening is a computational method for identifying molecules
 drug candidates, which is used for computer-driven drug discovery.
 
 LiGen was used to implement a high-throughput virtual screening pipeline, whose goal was to assign
-scores to a large number of input ligands, and then perform molecular docking for the most
-promising ligand candidates. The primary input for the workflow is a set of ligands in the
+scores to a large number of input ligands and then perform molecular docking for the most promising
+ligand candidates. The primary input for the workflow is a set of ligands in the
 SMILES~\cite{smiles} format, where each line represents a single ligand. LiGen then
-expands each ligand into a 3D representation stored in a Mol2~\cite{mol2} format, and
+expands each ligand into a 3D representation stored in a Mol2~\cite{mol2} format and
 performs virtual screening to assign a score to it. The resulting ligand-score pairs are then
-stored in a \gls{csv} file. After that, the most promising $N$
-candidates are selected, based on their scores, and molecular docking is then performed on them.
+stored in a \gls{csv} file. Finally, the most promising $N$
+candidates (where $N$ is a configurable parameter) are selected based on their
+scores and molecular docking is then performed on them.
 
-The virtual screening workflow has been implemented using the \hyperqueue{} Python
-\gls{api}, due to its support for task dependencies, and also because it was natural
+The virtual screening workflow has been implemented using \hyperqueue{}, in order to
+leverage its heterogeneous resource management capabilities. It was designed using the Python
+\gls{api}, due to its support for task dependencies and also because it was natural
 to implement several utility tasks within the workflow in Python rather than e.g.\ in Bash. The
 workflow consists of both very short running tasks (such as ligand expansion) and also more
 computationally demanding tasks (such as scoring and docking). The scoring and docking stages can
@@ -1357,11 +1359,12 @@ simplicity of porting \hyperqueue{} workflows between different supercomputers.
 The output of the scoring and docking stages of the virtual screening workflow then serve as input
 for a more complex \gls{cadd} workflow that is designed for performing free-energy
 calculations that estimate the \gls{rbfe} of ligands and protein-hybrid ligand
-complexes using \gls{awh} computation. The \gls{cadd} workflow uses the
-GROMACS \gls{md} framework, along with tens of other bioinformatics tools and
-packages, and is structurally quite complex, as it consists of tens of different Bash and Python
-scripts that depend on the outputs of one another. This workflow has been also implemented using
-the \hyperqueue{} Python \gls{api}.
+complexes using \gls{awh} calculations~\cite{awh}. The
+\gls{cadd} workflow uses the GROMACS \gls{md}
+framework~\cite{gromacs} along with tens of other bioinformatics tools and packages and is
+structurally quite complex, as it consists of tens of different Bash and Python scripts that depend
+on the outputs of one another. This workflow has been also implemented using the
+\hyperqueue{} Python \gls{api}.
 
 The source code of the LiGen virtual screening and the \gls{cadd} workflows is
 publicly available~\cite{cadd-workflow}.
@@ -1373,15 +1376,15 @@ models designed to improve the accuracy of protein-ligand complex pose scoring a
 performed by the LiGen virtual screening tool suite.
 
 A single task of the workflow estimates the stability of an individual pose of a protein-ligand
-complex (a drug candidate). It leverages the GROMACS~\cite{gromacs}
-\gls{md} framework for simulating a short (\SI{100}{\pico\second}) trajectory for
-each pose, from which a final \gls{abfe} value is calculated. Because this computation
-is relatively lightweight (it only lasts for a couple of minutes), it was possible to run it on a
-large dataset of inputs. It was executed for more than four thousand complexes from the
-PDBbind~\cite{pdbbind} v2020 database; for each complex, up to $256$
-different poses were evaluated, and for each pose, $8$ simulation replicas were
-executed to reduce statistical error (since the computation is randomized). This resulted in more
-than $6.5$ million GROMACS simulations that had to be performed in total.
+complex (a drug candidate). It also leverages GROMACS~\cite{gromacs} for simulating a
+short (\SI{100}{\pico\second}) trajectory for each pose, from which a final
+\gls{abfe} value is calculated. Because this computation is relatively lightweight (it
+only lasts for a couple of minutes), it was possible to run it on a large dataset of inputs. It was
+executed for more than four thousand complexes from the PDBbind~\cite{pdbbind} v2020
+database; for each complex, up to $256$ different poses were evaluated, and for
+each pose, $8$ simulation replicas were executed to reduce statistical error
+(since the computation is randomized). This resulted in more than $6.5$ million
+GROMACS simulations that had to be performed in total.
 
 The workflow itself is not structurally complex; each task is independent and there are no
 dependencies between tasks. However, due to the sheer amount of simulations that needed to be
@@ -1395,22 +1398,22 @@ allocator took care of automatically submitting Slurm allocations, users of the 
 not need to concern themselves with creating them manually.
 
 Another benefit of using \hyperqueue{} for this workflow was its built-in support for
-fault-tolerance. With such a large number of tasks, some of them necessarily failed, either because
-of a Slurm allocation ending in the middle of a computation, or because of an instability of the
-used \gls{hpc} cluster. Thanks to \hyperqueue{}, such failed tasks were
-transparently rescheduled to different computational nodes, without any user intervention. This was
-possible due to the fact that the \hq{} server was executed on a login node, and
-thus kept the state of the submitted tasks in a persistent database that was not affected by
-shutdowns or failures of Slurm allocations.
+fault-tolerance. With such a large number of tasks, some of them have not finished successfully,
+either because of a Slurm allocation ending in the middle of a computation or because of an
+instability of the used \gls{hpc} cluster. Thanks to \hyperqueue{}, such
+failed tasks were transparently rescheduled to different computational nodes without any user
+intervention. This was possible due to the fact that the \hq{} server was
+executed on a login node and thus it kept the state of the submitted tasks in a persistent database
+that was not affected by shutdowns or failures of Slurm allocations.
 
-This workflow has been executed over the course of four months, and has consumed a non-trivial
-amount of both \gls{cpu} and \gls{gpu} computational time. Concretely,
-its execution has used $240$ thousand \gls{gpu} hours on
-\emph{LUMI-G}
-(the \gls{gpu} partition of the LUMI~\cite{lumi} cluster) and $2$ million \gls{cpu} core hours on
-the MeluXina~\cite{meluxina} cluster. This demonstrates that \hyperqueue{} is
-able to scale to large use-cases and enables robust execution using a significant amount of
-computational resources. To our knowledge, the execution of this workflow was among the largest
+The execution of this workflow has consumed a non-trivial amount of both \gls{cpu}
+and \gls{gpu} computational time. Concretely, its execution has used
+$240$ thousand \gls{gpu} hours on \emph{LUMI-G}
+(the \gls{gpu} partition of the LUMI~\cite{lumi} cluster) and
+$2$ million \gls{cpu} core hours on the
+MeluXina~\cite{meluxina} cluster. This demonstrates that \hyperqueue{} is able to
+scale to large use-cases and enables robust execution using a significant amount of computational
+resources. To our knowledge, the execution of this workflow was among the largest
 \gls{md} campaigns that were ever computed on \gls{hpc}
 resources\footnote{This claim can also be found in LIGATE Deliverable D7.1, which has not been published yet at the time of writing of this thesis.}.
 
@@ -1440,8 +1443,9 @@ can then automatically build the workflow.~\Autoref{lst:hq-exa4mind-hyperparamet
 to use \hq{} in this case. The user simply starts the server, configures
 automatic allocation, so that it starts allocations on their behalf, and then submits a job that is
 automatically generated from a \gls{json} file containing the hyperparameter
-configurations. The executed script does not know anything about \hyperqueue{}, apart
-from reading its assigned configuration from the \texttt{HQ\_ENTRY} environment variable.
+configurations. The executed script does not know anything about \hyperqueue{} apart from
+reading its assigned input configuration from an environment variable set by the corresponding
+worker.
 
 \begin{listing}[h]
 	\begin{minted}[fontsize=\small, tabsize=4]{bash}
@@ -1470,40 +1474,41 @@ a higher priority can run at the same time.
 
 Originally, \gls{arcce} was submitting simulation computations directly as
 \gls{pbs} allocations\footnote{Note that the IT4Innovations clusters originally used \gls{pbs} as their allocation
-manager; they have switched to Slurm in 2023.}. While this approach worked, it also
-ran into some of the challenges presented in~\Autoref{challenge:allocation-manager}; notably the submission system
-was hitting the limits of the maximum allowed number of allocations that could be submitted by a
-single user. Furthermore, it encountered problems caused by communicating with the allocation
-manager too frequently~\cite{atlas-it4i-2}, which we have also noticed during the
-implementation of the \hyperqueue{} automatic allocator, described
+manager; they have switched to Slurm in 2023.}. While this approach was working, it
+was also running into some of the challenges presented in~\Autoref{challenge:allocation-manager}; notably, the
+submission system was hitting the limits of the maximum allowed number of allocations that could be
+submitted by a single user. Furthermore, it was encountering problems caused by communicating with
+the allocation manager too frequently~\cite{atlas-it4i-2}, which we also had to deal with
+during the implementation of the \hyperqueue{} automatic allocator, as was described
 in~\Autoref{hq:automatic-allocation}. In order to resolve issues with allocation manager communication and to
 improve hardware utilization, the users of \gls{arcce} have switched to using
-\hyperqueue{}. This has provided two primary benefits.
+\hyperqueue{}, which has provided two primary benefits.
 
 The first benefit is that computation submission becomes much easier for \gls{arcce}.
-It simply submits its computations into a \hyperqueue{} running on the login node of
-Karolina, without having to deal with Slurm allocation count or communication frequency limits. It
-also configures the automatic allocator to submit allocations into several Slurm queues, and the
+It simply submits its computations into a \hyperqueue{} server running on the login node
+of Karolina, without having to deal with Slurm allocation count or communication frequency limits.
+It also configures the automatic allocator to submit allocations into several Slurm queues; the
 rest is handled fully automatically by \hyperqueue{}.
 
-The second advantage of using \hyperqueue{} is improved utilization of nodes. Previously,
-the computations were performed on the Salomon supercomputer~\cite{salomon}, which had
-$24$ \gls{cpu} cores per node. This was a reasonable amount of
-cores for computing a single simulation per each node. However, once Salomon has been
+The second advantage of using \hyperqueue{} is an improved utilization of nodes.
+Previously, the computations were performed on the Salomon supercomputer~\cite{salomon},
+which had $24$ \gls{cpu} cores per node. This was a reasonable
+amount of cores for computing a single simulation per each node. However, once Salomon has been
 decommissioned, \gls{arcce} started submitting computations to
-Karolina~\cite{karolina}, which has $128$ cores per node. This resulted in
-a decrease of \gls{cpu} utilization, because each simulation spends a non-trivial
-amount of time performing either serial computation or \gls{io}, during which only a
-few cores were utilized. And with so many cores available on the node, this resulted in lower
-hardware utilization, as many cores remained idle. A simple method of improving utilization is to
-split the computation into smaller parts that each use a smaller number of cores. However, on the
-Karolina \gls{cpu} partition it is not possible to ask for less than a whole node
-using Slurm directly. This is where \hyperqueue{} came in; once \gls{arcce}
-switched to it, the computations were configured for $32$ cores, and
-\hyperqueue{} then took care of packing four such computations to each allocated Karolina
-node. This change resulted in an improvement of the average \gls{cpu} utilization of
-the submitted computations on Karolina from $70\%$ to $90\%$, which
-saves tens of thousands of computational node hours each year~\cite{cern-hq}.
+Karolina~\cite{karolina}, which has $128$ cores per node instead. This
+resulted in a decrease of \gls{cpu} utilization, because each simulation spends a
+non-trivial amount of time performing either serial computation or \gls{io}, during
+which only a few cores were utilized. And with so many cores available on the node, this resulted
+in lower hardware utilization, as many cores remained idle. A simple method of improving
+utilization is to split the computation into smaller parts that each use a smaller number of cores.
+However, on the Karolina \gls{cpu} partition, it is not possible to ask for less than
+a whole node directly using Slurm. This is where \hyperqueue{} came in; once
+\gls{arcce} switched to it, the computations were configured for $32$
+cores and \hyperqueue{} then took care of packing four such computations to each
+allocated Karolina node. This change resulted in an improvement of the average
+\gls{cpu} utilization of the submitted computations on Karolina from
+$70\%$ to $90\%$, which saves tens of thousands of computational
+node hours each year~\cite{cern-hq}.
 
 This use-case shows that \hyperqueue{} can also be used programmatically by automated
 tools, not only manually by cluster users. It provides a machine-readable \gls{json}
@@ -1528,15 +1533,16 @@ In selected experiments, \hq{} was benchmarked in a so-called
 benchmark the overhead of \rsds{}, described in~\Autoref{sec:dask-overhead-per-task}. In this
 mode, workers do not actually execute any tasks; when a task is about to be executed on a worker,
 it instead finishes immediately. This mode can be used to benchmark the inner overhead of
-\hyperqueue{}, without it being affected by external factors, such as task execution.
-Experiments performed with this mode will be marked explicitly.
+\hyperqueue{}, without it being affected by external factors, such as the actual
+execution of tasks. Experiments performed with this mode will be marked explicitly.
 
 Unless otherwise noted, each benchmark was executed and measured three times. In all experiments,
 the server and the workers of \hyperqueue{} (and \dask{}) were executed on separate nodes. Many
 experiments use the term \emph{makespan}, which describes the duration from submitting a
 task graph (a \hyperqueue{} \emph{job}) until all tasks of that task graph
-are finished computing. We will also use the term \emph{simple workflow}, which is a task graph
-without any dependencies, where each task has a resource requirement of a single
+are finished computing (as defined in~\defref{def:makespan}). We will also use the term
+\emph{simple workflow}, which denotes a task graph without any dependencies. Unless stated
+otherwise, each task of such a workflow has a resource requirement of a single
 \gls{cpu} core and runs for a fixed duration by executing the \texttt{sleep}
 UNIX program.
 
@@ -1687,8 +1693,8 @@ three task graphs with increasing task counts, to examine how the scalability of
 computational workload stays the same. The task duration of each task was scaled accordingly for
 each graph, so that the total makespan on a single worker would be $5$ minutes.
 The benchmarked worker counts were $1$, $2$,
-$4$, $8$, $16$, $32$ and
-$64$.
+$4$, $8$, $16$, $32$
+and $64$.
 
 \begin{figure}[h]
 	\centering

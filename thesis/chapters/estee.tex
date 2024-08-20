@@ -356,8 +356,8 @@ in~\Autoref{sec:estee-benchmarks}.}:
 		This is an implementation of a simple work-stealing algorithm. The default policy is that each task
 		that is ready to be executed (all its dependencies are already computed) is always assigned to a
 		worker where it can be started with a minimal transfer cost. The scheduler then continuously
-		monitors the load of workers. When a worker starts to starve (it does not have enough tasks
-		to compute), a portion of tasks assigned to other workers is rescheduled to the starving worker.
+		monitors the load of workers. When a worker starts to starve (it does not have enough tasks to
+		compute), a portion of tasks assigned to other workers is rescheduled to the starving worker.
 \end{description}
 
 In addition to these schedulers, we have also implemented several naive schedulers, which serve as
