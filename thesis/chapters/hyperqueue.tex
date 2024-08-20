@@ -1593,539 +1593,539 @@ output mode for its \gls{cli} commands that facilitates this kind of usage.
 
 \section{Evaluation}
 \label{hq:evaluation}
-%This section evaluates the performance and scalability of \hyperqueue{} and its ability
-%to maximize hardware utilization of workers on a series of experiments. All experiments were
-%performed on the \gls{cpu} partition of the Karolina
-%supercomputer~\cite{karolina} located at the IT4Innovations supercomputing
-%center~\cite{it4i}. Each non-accelerated computational node of Karolina has two AMD
-%EPYC\texttrademark{} 7H12 2.6 GHz 64 core \glspl{cpu}, for a total of 128 cores
-%per node (hyper-threading is disabled), and \SI{256}{\gibi\byte} of DDR4
-%\gls{ram}. It runs on the RockyOS 8 operating system with Linux kernel
-%$4.18.0$ and \texttt{glibc} (GNU \texttt{C} standard library implementation) $2.28$. All experiments were
-%performed with \hyperqueue{} version $0.18$, compiled with Rust
-%$1.79.0$.
-%
-%In selected experiments, \hq{} was benchmarked in a so-called
-%\emph{zero worker} mode, which is very similar to the zero worker mode that has been used to
-%benchmark the overhead of \rsds{}, described in~\Autoref{sec:dask-overhead-per-task}. In this
-%mode, workers do not actually execute any tasks; when a task is about to be executed on a worker,
-%it instead finishes immediately. This mode can be used to benchmark the inner overhead of
-%\hyperqueue{}, without it being affected by external factors, such as the actual
-%execution of tasks. Experiments performed with this mode will be marked explicitly.
-%
-%Unless otherwise noted, each benchmark was executed and measured three times. In all experiments,
-%the server and the workers of \hyperqueue{} (and \dask{}) were executed on separate nodes. Many
-%experiments use the term \emph{makespan}, which describes the duration from submitting a
-%task graph (a \hyperqueue{} \emph{job}) until all tasks of that task graph
-%are finished computing (as defined in~\defref{def:makespan}). We will also use the term
-%\emph{simple workflow}, which denotes a task graph without any dependencies. Unless stated
-%otherwise, each task of such a workflow has a resource requirement of a single
-%\gls{cpu} core and runs for a fixed duration by executing the \texttt{sleep}
-%UNIX program.
-%
-%\subsection{Total overhead}
-%\label{sec:hq-exp-total-overhead}
-%In this experiment we evaluate the total \emph{overhead} of \hyperqueue{}. Under
-%an ideal scenario, there exists a minimal makespan in which a given task graph can be executed on a
-%fixed set of computational resources, assuming an infinitely fast communication network and no
-%delays between executing individual tasks. We define overhead as any additional time on top of this
-%ideal makespan, which is induced by the task runtime (in this case \hyperqueue{}). This
-%overhead is caused by network communication, scheduling and various forms of bookkeeping
-%performed by a task runtime.
-%
-%The overhead will of course depend on the task graph that is executed and the computational
-%resources (workers) used for its execution. Nevertheless, it is interesting to examine the minimum
-%overhead introduced by the task runtime on a trivial task graph, in particular to gain insight into
-%the smallest duration of tasks that can be used without the overhead becoming too limiting.
-%
-%We have benchmarked the \emph{simple workflow} in two sizes ($10$ and
-%$50$ thousand tasks) with three different worker counts ($1$,
-%$2$ and $4$ workers) and four different task durations
-%(\SI{1}{\milli\second}, \SI{10}{\milli\second}, \SI{100}{\milli\second} and
-%\SI{250}{\milli\second}). The \emph{ideal duration} for each task graph was estimated by taking
-%the total time to execute all the tasks sequentially (task count $\times$ task duration) and
-%dividing it by the total number of cores available (worker count $\times$ $128$). This estimates a
-%perfect scenario without any overhead, where all tasks are perfectly parallelized across all
-%available \gls{cpu} cores.
-%
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=\textwidth]{imgs/hq/charts/total-overhead-vs-ideal}
-%	\caption{Total overhead of \hyperqueue{} (ratio vs theoretically ideal makespan)}
-%	\label{fig:hq-overhead-vs-ideal}
-%\end{figure}
-%
-%The results of this experiment can be observed in~\Autoref{fig:hq-overhead-vs-ideal}. Each chart column shows
-%a different task duration; the rows separate different task counts. Within each chart, the
-%horizontal axis represents the number of used workers, while the vertical axis shows the duration
-%needed to execute the task graph in \hyperqueue{}, normalized to the theoretical ideal
-%duration. The ideal duration is marked with a red horizontal dotted line. For example, the value
-%$1.05$ specifies that the \hyperqueue{} execution was
-%$5\%$ slower than the ideal duration.
-%
-%We can see that for tasks that last for \SI{100}{\milli\second} or more, the overhead of
-%\hyperqueue{} is within $5\%$ of the ideal makespan; with the larger
-%task graph that contains $50$ thousand tasks, the overhead stays within
-%$3\%$. The overhead increases slightly with an added number of workers, which is
-%expected; the scheduler needs to perform more work and the server also communicates with more
-%workers over the network.
-%
-%The situation becomes more interesting in the case where the task duration is only
-%\SI{1}{\milli\second}. Here the overhead of \hyperqueue{} seemingly becomes very large.
-%We have examined this situation in detail and found out that the issue is caused mostly by slow
-%command execution performance on Karolina. Our calculation of the theoretically ideal makespan
-%assumes that the executed command will last for exactly \SI{1}{\milli\second}. However, through
-%several benchmarks, we found out that running even the shortest possible process (that
-%immediately exits) on Karolina
-%takes \emph{at least}
-%\SI{500}{\micro\second}, and executing a program that is supposed to sleep for
-%\SI{1}{\milli\second} can take several milliseconds. Because the overhead of actually executing
-%the command is so large, it skews the total overhead of \hyperqueue{}, as it is not able
-%to reach the theoretically ideal makespan, because the execution of commands takes more time than
-%expected. Note that this would be an issue for any task runtime that executes a command in each
-%task, and there is not that much that \hyperqueue{} could do to avoid this overhead. We
-%eventually found out that the slow process spawning performance is caused primarily by an old
-%version of the \texttt{glibc} \texttt{C} standard library implementation used on Karolina; there
-%is not much that we could do about that.
-%
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=\textwidth]{imgs/hq/charts/total-overhead-vs-manual}
-%	\caption{Total overhead of \hyperqueue{} (ratio vs manual process execution)}
-%	\label{fig:hq-overhead-vs-manual}
-%\end{figure}
-%
-%To provide a fairer evaluation of the overhead of \hyperqueue{} for short tasks, we have
-%also evaluated it against a different baseline, which is not based on a theoretical calculation,
-%but on the actual performance of command execution on Karolina. We have implemented a simple
-%program that executes the same tasks (\texttt{sleep} processes) as
-%\hyperqueue{}, in parallel on all $128$ available cores. This provides a
-%more reasonable baseline that takes into account the overhead of command execution on Karolina. The
-%results of this experiments can be seen in~\Autoref{fig:hq-overhead-vs-manual}. The baseline is marked with a
-%horizontal red line; it represents the fastest measured time to execute the given number of
-%processes. We have performed this experiment only with a single worker, because our baseline
-%program did not implement multi-node distribution. Based on these results, we can see that for the
-%\emph{simple workflow}, the actual overhead of \hyperqueue{} (when compared to manually
-%running the commands without a task runtime) stays within $10\%$ even for very short tasks.
-%
-%\subsection{Task throughput}
-%\label{sec:hq-exp-task-throughput}
-%The previous experiment has evaluated the total overhead of \hyperqueue{} while taking
-%into account the time to execute tasks. To further examine the inner overhead of scheduling and
-%network communication, in this experiment we evaluate the possible task throughput (number of tasks
-%processed per second) using the \emph{zero worker} mode. In this mode, \hq{}
-%performs all operations that it does normally (managing tasks and workers, scheduling, sending
-%network packets), but it does not actually execute the tasks; the corresponding worker immediately
-%marks each task as completed instead. This allows us to examine the overhead of
-%\hyperqueue{} without it being affected by process spawning, which can have severe
-%overhead, as was demonstrated in the previous experiment. We have benchmarked the
-%\emph{simple workflow} containing from $10$ thousand to $1$
-%million tasks with varying worker counts (up to $16$ workers and thus
-%$2048$ \gls{cpu} cores).
-%
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=0.8\textwidth]{imgs/hq/charts/task-per-s}
-%	\caption{Tasks processed per second with \emph{zero worker} mode}
-%	\label{fig:hq-tasks-per-s}
-%\end{figure}
-%
-%The results can be observed in~\Autoref{fig:hq-tasks-per-s}. The horizontal axis displays the number of
-%workers in the task graph, while the vertical axis displays the achieved throughput measured in
-%tasks processed per second. In theory, the throughput should be increasing with more added workers. For
-%the smallest task graph with $10$ thousand tasks, the throughput increases up to
-%four workers ($512$ cores), then it decreases; the task graph is too small and the
-%constant overhead factors start dominating over the available parallelism. For task graphs with up
-%to $100$ thousand tasks, the throughput also increases up to four workers, where it
-%saturates. For even larger task graphs, the throughput once again starts decreasing with more than
-%four workers; the overhead of network communication and scheduling starts to dominate.
-%
-%The absolute numbers of the achieved throughput demonstrate that \hyperqueue{} has very
-%little baseline overhead, and can in theory execute hundreds of thousands of tasks per second. The
-%tasks would have to be shorter than approximately \SI{5}{\micro\second} to fully saturate the
-%throughput achievable by \hyperqueue{}. Such a task duration is uncommon for scientific
-%workflows (indeed, on Karolina even starting a new process takes a hundred times longer); it is
-%more common for task-parallel programming models that have been described
-%in~\Autoref{sec:task-granularity}, which are operating on a very different level of granularity than what
-%\hyperqueue{} was designed for. This task throughput is orders of magnitude higher than
-%throughput measured for the \parsl{}, \fireworks{} and
-%\dask{} task runtimes, as reported in~\cite{parsl}.
-%
-%As you may recall from~\Autoref{dask:evaluation}, the overhead per task of \dask{}
-%for a task graph with $50$ thousand tasks and a single node (using the
-%\emph{zero worker} mode) was approximately \SI{0.3}{\milli\second}. The per-task overhead of
-%\hyperqueue{} (calculated as an
-%inverted value of the number of tasks executed per second) for a similar configuration evaluated in this experiment is approximately
-%\SI{0.01}{\milli\second}, an order of magnitude lower.
-%
-%\subsection{Strong scaling}
-%\label{sec:hq-exp-scalability}
-%This experiment evaluates the ability of \hyperqueue{} to scale to many computational
-%resources, by executing the same task graph with increasing worker counts (up to
-%$64$ workers and thus $8192$ cores in total). Note that each
-%benchmark configuration in this experiment was measured only once because of the large amount of
-%computational resources required to allocate tens of worker nodes.
-%
-%We have designed two separate scenarios for this experiment. In the first one, we have selected a
-%fixed target makespan, so that the \emph{simple workflow} would be executed in approximately $5$
-%minutes ($300$ seconds) on a single worker, and benchmarked
-%three task graphs with increasing task counts. This allowed us to examine how the
-%scalability of \hyperqueue{} changes based on the number of tasks in the task graph when the total
-%computational workload stays the same. The task duration of each task was scaled accordingly for
-%each graph, so that the total makespan on a single worker would be $5$ minutes.
-%The benchmarked worker counts were $1$, $2$,
-%$4$, $8$, $16$, $32$
-%and $64$.
-%
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=\textwidth]{imgs/hq/charts/scalability-fixed-makespan}
-%	\caption{Strong scalability of \hyperqueue{} with a fixed target makespan
-%	(\SI{300}{\second})}
-%	\label{fig:hq-scalability-fixed-makespan}
-%\end{figure}
-%
-%The results of the benchmark with a fixed makespan can be observed in~\Autoref{fig:hq-scalability-fixed-makespan}. The
-%horizontal axis displays the number of workers used for executing the task graph. In the top row,
-%the vertical axis shows the measured makespan; in the bottom row, the vertical axis shows speedup
-%against the measured makespan on a single worker. We can see that for all three measured task
-%durations, \hyperqueue{} was able to scale reasonably well up to $64$
-%workers, where it was able to compute the whole task graph in approximately $5$
-%seconds. In the best case, with tasks that took \SI{2.5}{\second} to execute, it provided a
-%$59.2$x speedup over a single worker using $64$ workers. In the worst case, with
-%tasks that lasted \SI{100}{\milli\second}, it provided a $54.4$x speedup over a single worker using
-%$64$ workers. With task duration \SI{0.1}{\second} and
-%$64$ workers, \hyperqueue{} was able to dispatch almost
-%$70$ thousand tasks per second.
-%
-%In the second scenario, we fixed the task duration of each task to $1$ second
-%and then varied the task count. This allowed us to examine how the strong scalability of
-%\hyperqueue{} changes with an increasing number of tasks.
-%
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=\textwidth]{imgs/hq/charts/scalability-fixed-task-duration}
-%	\caption{Strong scalability of \hyperqueue{} with a fixed task duration (\SI{1}{\second})}
-%	\label{fig:hq-scalability-fixed-task-duration}
-%\end{figure}
-%
-%We can observe the results in~\Autoref{fig:hq-scalability-fixed-task-duration}. We can see that the scalability improves
-%with the number of tasks; with $100$ thousand tasks, \hyperqueue{} is
-%able to provide a $59$x speedup with $64$ workers. On the
-%other hand, with only $10000$ tasks, the speedup in this case reaches only
-%$38.8$x, because there are not enough tasks to saturate all workers. With
-%$64$ workers that each have $128$ cores, the total number of
-%cores managed by \hq{} is $8192$. Therefore, each worker barely gets a single task to compute in
-%this small task graph.
-%
-%In general, the results of our scalability and overhead experiments indicate that \hyperqueue{}
-%introduces very little overhead and is able to scale to a large amount of computational
-%resources (tens of nodes and thousands of cores) and also to large amounts of tasks
-%(hundreds of thousands) without an issue.
-%
-%\subsection{Performance comparison of \dask{} and \hq{}}
-%\label{sec:hq-exp-dask}
-%This experiment evaluates basic performance differences between the \dask{} task
-%runtime and \hyperqueue{}. We have evaluated \emph{dask/distributed}
-%$2024.7.0$ running under CPython $3.10.8$ with a disabled monitoring
-%dashboard for improved performance. All measurements in this experiment were performed only once,
-%to reduce the required computational resources.
-%
-%We have evaluated the scalability of both runtimes on the \emph{simple workflow} with a target
-%makespan set to \SI{30}{\second} on a single worker, with an increasing number of workers
-%and a varying number of tasks. In this scenario, \dask{} was benchmarked in three
-%separate worker configurations, with $1$ process per node and
-%$128$ threads per process ($1p/128t$), with $8$
-%processes per node and $16$ threads per process ($8p/16t$) and
-%with $128$ processes per node and $1$ thread per process
-%($128p/1t$). The reason for choosing different process/thread combinations has been
-%extensively explained in~\Autoref{dask:evaluation}; we chose two extremes ($1$
-%process and $128$ processes) and then a compromise with $8$
-%processes per node, according to recommendations in the \dask{}
-%documentation~\cite{dask-thread-recommendation}.
-%
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=0.8\textwidth]{imgs/hq/charts/dask-vs-hq-sleep}
-%	\caption{Scalability of \hyperqueue{} vs \dask{} with a fixed target makespan
-%	(\SI{30}{\second})}
-%	\label{fig:hq-dask-sleep}
-%\end{figure}
-%
-%The results of this experiment are displayed in~\Autoref{fig:hq-dask-sleep}. The individual charts
-%display separate task graphs with varying task counts (in each case, the task graph should have a
-%makespan of $30$ seconds on a single node). The horizontal axis shows the amount
-%of used nodes and the vertical axis displays the makespan. Note that we are using the term
-%\emph{node count} instead of \emph{worker count} here, because each
-%\dask{} process spawned per node is technically a separate worker. We can see that
-%the in the case of \dask{}, the performance depends a lot on the number of tasks in
-%the task graph and also on the task duration. With only $1000$ tasks and task
-%duration in the range of seconds, \dask{} is able to scale relatively well in all
-%three configurations, although it is still slightly slower than \hyperqueue{}. However,
-%with a larger number of tasks (tens of thousands), and tasks that last only hundreds or tens of
-%milliseconds, the performance of \dask{} decreases very quickly.
-%
-%We can also see differences between the three \dask{} configurations, particularly
-%in the benchmark with $50000$ tasks. With a single node, \dask{} is
-%unable to keep up with the number of tasks, and it has a twice longer makespan than when multiple
-%worker processes are used. On the other hand, once the number of nodes is increased, the situation
-%reverses, and the configuration with a single worker per node becomes the fastest one, because
-%\dask{} starts being overwhelmed by the number of connected workers. This suggests
-%that some amount of manual tuning based on the number of used nodes and workers might be required
-%to achieve optimal performance of \dask{} workflows. Conversely,
-%\hyperqueue{} was able to keep a consistent performance profile in this experiment
-%without being heavily affected by the number of tasks or the task duration. And because each
-%\hq{} worker manages all resources of its node, it does not require
-%any manual worker tuning.
-%
-%Note that this benchmark actually presents a sort of a best-case scenario for
-%\dask{}. It executes its tasks as Python functions; therefore, it does not need to
-%start a new Linux process per task, unlike \hyperqueue{}. Furthermore, since each task
-%simply sleeps for a specified duration, it releases the \gls{gil} and thus does not
-%block other Python threads of the worker, which can thus perform other work concurrently.
-%
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=0.8\textwidth]{imgs/hq/charts/dask-vs-hq-empty}
-%	\caption{Scalability of \hyperqueue{} vs \dask{} with an empty task}
-%	\label{fig:hq-dask-empty}
-%\end{figure}
-%
-%We have further examined the baseline overhead of \dask{} by executing an empty
-%task (an empty Python function), which emulates the \emph{zero worker} mode of
-%\hyperqueue{}, as it shows how the task runtime scales with the fastest possible task
-%execution. We have compared this empty task execution with running the fastest possible task in
-%\hyperqueue{} (by spawning a process that immediately exits) and also with the \emph{zero worker} mode of \hyperqueue{}.
-%
-%The results of this experiment can be seen in~\Autoref{fig:hq-dask-empty}. The horizontal axis shows
-%the node count and the vertical axis displays the makespan. Here we can observe a large difference
-%between the inner overhead of \hyperqueue{} and \dask{}, which struggles
-%to keep up with large amounts of very short tasks. This is of course an artificial scenario because
-%the tasks are empty; however, it does demonstrate that \dask{} can have
-%performance issues with large or very granular task graphs. It is also clear that the overhead of
-%\dask{} increases quickly with multiple added workers, which is further exacerbated
-%when multiple workers per node are used.
-%
-%\subsection{Resource variants}
-%\label{sec:hq-exp-resource-variants}
-%This experiment evaluates the load-balancing benefits of \emph{resource variants}, which were
-%described in~\Autoref{sec:dynamic-resource-selection}. For evaluation, we use the simple workflow with
-%$300$ tasks executed on a single node with $8$ virtual
-%\glspl{gpu} and the same number of \glspl{cpu}. Tasks in this experiment
-%simulate a computation that can run either on a \gls{gpu} or on a
-%\gls{cpu}. To emulate the performance difference between the \gls{gpu}
-%and the \gls{cpu}, tasks executed on the accelerator will sleep for
-%\SI{1}{\second} and tasks executed on the \gls{cpu} will sleep for a
-%multiple of this duration, according to a given ratio (which is a benchmark parameter).
-%Note that we could also use a larger number of \gls{cpu} cores and reduce the benchmarked values
-%of this ratio; the result should be approximately the same.
-%
-%Our goal was to determine how will the resulting makespan differ for the following three
-%situations:
-%\begin{itemize}[itemsep=0pt,topsep=2pt]
-%	\item Tasks are executed only on the \gls{gpu}.
-%	\item A fixed fraction of tasks is executed on the \gls{gpu}, the rest runs on the
-%	      \gls{cpu}.
-%	\item The fraction of tasks that is executed on the \gls{gpu} is determined dynamically by
-%	      \hyperqueue{} using resource variants.
-%\end{itemize}
-%
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=\textwidth]{imgs/hq/charts/alternative-resources}
-%	\caption{Load-balancing effect of resource variants}
-%	\label{fig:hq-resource-variants}
-%\end{figure}
-%
-%\vspace{1mm}The results of the experiment can be observed in~\Autoref{fig:hq-resource-variants}.
-%The vertical axis displays the makespan; the five bars represent different configurations of resources. In the
-%\emph{\gls{gpu} only} mode, all tasks were configured to run on a single
-%\gls{gpu}. In the \emph{\gls{gpu} or \gls{cpu}} mode, tasks were configured to run either
-%on the \gls{gpu} or on the \gls{cpu} using resource variants. The
-%remaining three modes assign a specific fraction of tasks to run on the \gls{gpu};
-%the rest was executed on the \gls{cpu}. The three charts show results for different
-%values of the \gls{gpu} vs \gls{cpu} performance ratio, i.e.\ how much
-%faster was the task running on a \gls{gpu} thatn on the \gls{cpu}.
-%
-%We can see that unless the \gls{gpu} ratio is too high or we assign too many tasks to
-%the \gls{cpu}, it is beneficial to also leverage the \gls{cpu}
-%resources rather than using only \glspl{gpu}. With \gls{cpu} fractions
-%determined manually in advance, the result depends heavily on the \emph{\gls{gpu} ratio}, and in
-%certain configurations it can make the makespan significantly longer. This would thus be both less
-%efficient and more laborious to configure for the user. On the other hand, when the resources for
-%each task are configured using two resource variants (either \gls{gpu} or
-%\gls{cpu}), \hyperqueue{} is able to dynamically adapt to all three
-%\gls{gpu} ratios. In all three scenarios, the makespan with resource variants is
-%strictly smaller than with \glspl{gpu} only, and it either surpasses or matches the
-%best result achieved with a predetermined fraction of tasks running on the \gls{cpu}.
-%This shows that resource variants can help achieve better hardware utilization without requiring
-%the user to fine-tune resource configurations of individual tasks in the task graph.
-%
-%\subsection{Group allocation strategies}
-%\label{sec:hq-exp-numa}
-%This experiment examines the effect of resource group allocation strategies on the
-%performance of programs that are sensitive to memory latency. Each Karolina
-%\gls{cpu} (non-accelerated)
-%computational node has $128$ cores and \SI{256}{\gibi\byte} of memory, divided
-%into $8$ \gls{numa} nodes. Accessing memory across these
-%\gls{numa} nodes is slower than accessing memory within the same node, which can
-%affect the performance of programs that are very sensitive to memory throughput or latency. We have
-%created a simple program inspired by the STREAM benchmark~\cite{stream} that exerts this
-%behavior; it is very sensitive to \gls{numa} memory placement. First, it allocates and
-%initializes \SI{4}{\gibi\byte} of memory stored in a single \gls{numa} node.
-%Then, a number of threads pinned to individual cores repeatedly read from this memory in turn. When
-%these threads are running on cores from a different \gls{numa} node than where the memory was
-%allocated, the program takes longer to execute due to memory transfers being slower.
-%
-%We have benchmarked the \emph{simple workflow} with $100$ tasks on a single
-%Karolina node, where each task executes the described program with either $4$
-%or $8$ threads (cores). Each task is configured so the spawned threads are
-%pinned to the specific set of cores assigned to that task by the
-%scheduler. Each available group allocation strategy was
-%examined; \emph{Compact}, which tries to allocate cores using the smallest possible
-%number of groups, \emph{Strict compact}, which always draws cores from the smallest possible
-%number of groups and \emph{Scatter}, which attempts to allocate cores across different groups.
-%As you may recall,
-%\hyperqueue{} workers by default separate available cores into groups according to their
-%\gls{numa} node. We also evaluate another option, \emph{No strategy}, which
-%emulates the behavior of task runtimes that do not provide support for managing groups or
-%\gls{numa} nodes. In this strategy, workers are configured with a flat set of
-%\gls{cpu} cores without any groups. The order of the available cores is also
-%randomized so that the scheduler cannot use any knowledge of which tasks belong to the same
-%\gls{numa} node.
-%
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=0.8\textwidth]{imgs/hq/charts/numa}
-%	\caption{Effect of different group allocation strategies}
-%	\label{fig:hq-numa}
-%\end{figure}
-%
-%We can observe the results of this experiment in~\Autoref{fig:hq-numa}. The vertical axis displays
-%the makespan of the executed task graph and the four bars represent results of individual
-%strategies. For both evaluated core counts per task, the best performance was achieved using the
-%\emph{Compact} strategy, because the threads were able to achieve the highest possible
-%memory throughput. The \emph{Strict compact} strategy achieved essentially the same result;
-%because the task durations were quite uniform, these two strategies resulted in very similar
-%placements of cores to tasks. On the other hand, the \emph{Scatter} strategy resulted in
-%the worst possible performance, as expected. The results of the \emph{No strategy}
-%configuration are perhaps the most interesting. When cores were assigned to tasks essentially at
-%random, without taking \gls{numa} effects into account, the performance was better
-%than with the \emph{Scatter} strategy, because in some cases the tasks received multiple
-%cores belonging to the same \gls{numa} node. However, it was still almost twice as
-%slow than with the \emph{Compact} strategy. This suggests that for memory-sensitive
-%programs, using a \gls{numa}-aware task allocation strategy can significantly improve
-%the achieved performance.
-%
-%\subsection{Worker \acrshort{cpu} utilization}
-%\label{sec:hq-cpu-utilization}
-%One of the primary metrics that task graph users care about is hardware utilization -- how well can
-%a task graph (executed with a given task runtime) make use of available resources? This experiment
-%examines the average \gls{cpu} utilization of worker nodes while executing a task
-%graph with \hyperqueue{}, both for tasks with a uniform duration and also for tasks with
-%a skewed distribution of durations. We have benchmarked the \emph{simple workflow} with
-%$10$ thousand tasks, where each task fully utilizes a full
-%\gls{cpu} core by executing the \texttt{stress} UNIX utility (instead of just
-%sleeping). This task graph was executed on four workers whose
-%\gls{cpu} utilization was periodically measured over the course of the computation.
-%
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=\textwidth]{imgs/hq/charts/scalability-stress-utilization}
-%
-%	In the bottom row, 75\% of tasks last \SI{5}{\second}, 25\% of tasks last
-%	\SI{30}{\second} \caption{\acrshort{cpu} utilization of \hyperqueue{} worker nodes} \label{fig:hq-cpu-utilization}
-%\end{figure}
-%
-%The results are shown in~\Autoref{fig:hq-cpu-utilization}. The horizontal axis shows the progress of the
-%computation in seconds, the vertical axis displays the average \gls{cpu} utilization
-%over all $128$ cores for each separate worker. The red horizontal dotted line marks the
-%total average utilization of each worker over the course of the whole computation. The top row
-%displays a situation where all tasks in the task graph have a uniform duration of
-%$5$ seconds. In this case, \hyperqueue{} workers kept their average
-%utilization at or above $92\%$. Note that it takes some amount of time for each
-%\texttt{stress} invocation to fully reach full core utilization, and since all tasks have
-%the same duration, the tasks perform this ramp-up process in a mostly synchronized fashion. This
-%causes the ``teeth'' in the utilization chart. Therefore, it is not realistic to reach full
-%$100\%$ node utilization with this task graph.
-%
-%The second row displays a situation where the workload is skewed. Most ($75\%$) of
-%the tasks still have a duration of \SI{5}{\second}; the remainder simulates a ``long tail''
-%of slower tasks that take \SI{30}{\second} to execute. This is a more difficult situation
-%for achieving high utilization; because some tasks are longer, they might get stuck executing at a
-%time when other resources can no longer be utilized. We can observe this towards the end of the
-%workflow execution, where approximately $30$ seconds before the end, the
-%utilization starts to drop. However, even for this skewed task graph, the average
-%\gls{cpu} utilization of all four workers was kept at almost $90\%$.
-%
-%\subsection{Server \acrshort{cpu} consumption}
-%\label{sec:hq-exp-server-cpu-consumption}
-%When deployed on supercomputers, the \hyperqueue{} server is primarily designed to be
-%executed on their login nodes. This could pose a problem if it consumed too many system
-%resources, because login nodes are shared by multiple users and they are not designed for
-%computationally intensive tasks. Some clusters even forcefully limit the total amount of
-%\gls{cpu} time that can be consumed by processes running on login
-%nodes~\cite{leonardo_time_limit} and terminate the process if it exceeds the maximum allowed time.
-%
-%To evaluate how many resources the server consumes, we have performed an experiment where the
-%server had to schedule a large number of tasks in a short time period (which acts as a sort of a
-%stress test); we have measured its total \gls{cpu} time consumption across all cores over this
-%period. The server was running on a login node and it was managing up to $12$ workers
-%($1536$ cores) and up to $200$ thousand tasks. Each worker was
-%deployed on a computational node, so that the server had to communicate with the workers over the
-%network. The benchmark was executed with a fixed makespan; the duration of each task was scaled so
-%that the whole task graph would finish computing in one minute. We measured the total amount of
-%\gls{cpu} time consumed by the server (both in user-space and in the kernel), using
-%standard Linux process monitoring tools.
-%
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=0.6\textwidth]{imgs/hq/charts/server-utilization-tasks}
-%	\caption{\hyperqueue{} server \acrshort{cpu} time consumption with an increasing number
-%	of tasks}
-%	\label{fig:hq-server-cpu-consumption-tasks}
-%\end{figure}
-%
-%\Autoref{fig:hq-server-cpu-consumption-tasks} shows how the \gls{cpu} utilization of the
-%server changes with a fixed number of workers ($12$) and an increasing number of
-%tasks. In this case, the server had to schedule the \emph{simple workflow} with the number of tasks
-%ranging from $10$ to $200$ thousand. The horizontal axis shows
-%the number of tasks that were used for the given benchmark run and the vertical axis shows the
-%\gls{cpu} time consumed by the server over the measured one-minute period. We can see that the
-%amount of \gls{cpu} resources scales approximately linearly with the number of tasks
-%scheduled by the server. In the worst case, the server has consumed less than five seconds of
-%\gls{cpu} time over one minute of real time, even though it had to schedule
-%$200$ thousand tasks within this short period, which is an extreme stress test
-%that far exceeds the rate of scheduled tasks in most scientific workflows. Over all the benchmarked
-%task counts, the average \gls{cpu} consumption of the server per second and per
-%$1000$ tasks was approximately \SI{0.0003}{\second}. In other words, for every
-%thousand tasks in the task graph, the server consumed approximately \SI{0.3}{\milli\second}
-%\gls{cpu} time every second.
-%
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=0.6\textwidth]{imgs/hq/charts/server-utilization-workers}
-%	\caption{\hyperqueue{} server \acrshort{cpu} time consumption with an increasing number
-%	of workers}
-%	\label{fig:hq-server-cpu-consumption-workers}
-%\end{figure}
-%
-%\Autoref{fig:hq-server-cpu-consumption-workers} displays a situation where the number of tasks
-%is fixed ($50000$), but the number of workers increases from
-%$2$ to $12$. The horizontal axis shows the number of workers
-%that were used for the given benchmark run and the vertical axis shows the \gls{cpu}
-%time consumed by the server over the one-minute period. In this case, the consumption of the server
-%does not increase by a large amount with more added workers.
-%
-%In terms of memory consumption, in the largest evaluated case with a task graph containing
-%$200$k tasks, the memory consumption of the server, measured using the Linux
-%\gls{rss} metric, was approximately \SI{120}{\mebi\byte}, which shows that the server
-%also does not consume large amounts of memory.
-%
-%The amount of used resources will of course vary based on the executed workflow. However, this
-%experiment shows that the server consumes very few resources in general and that it still has a
-%lot of leeway available even if some task graphs proved to be more computationally demanding than
-%the benchmarked stress test.
+This section evaluates the performance and scalability of \hyperqueue{} and its ability
+to maximize hardware utilization of workers on a series of experiments. All experiments were
+performed on the \gls{cpu} partition of the Karolina
+supercomputer~\cite{karolina} located at the IT4Innovations supercomputing
+center~\cite{it4i}. Each non-accelerated computational node of Karolina has two AMD
+EPYC\texttrademark{} 7H12 2.6 GHz 64 core \glspl{cpu}, for a total of 128 cores
+per node (hyper-threading is disabled), and \SI{256}{\gibi\byte} of DDR4
+\gls{ram}. It runs on the RockyOS 8 operating system with Linux kernel
+$4.18.0$ and \texttt{glibc} (GNU \texttt{C} standard library implementation) $2.28$. All experiments were
+performed with \hyperqueue{} version $0.18$, compiled with Rust
+$1.79.0$.
+
+In selected experiments, \hq{} was benchmarked in a so-called
+\emph{zero worker} mode, which is very similar to the zero worker mode that has been used to
+benchmark the overhead of \rsds{}, described in~\Autoref{sec:dask-overhead-per-task}. In this
+mode, workers do not actually execute any tasks; when a task is about to be executed on a worker,
+it instead finishes immediately. This mode can be used to benchmark the inner overhead of
+\hyperqueue{}, without it being affected by external factors, such as the actual
+execution of tasks. Experiments performed with this mode will be marked explicitly.
+
+Unless otherwise noted, each benchmark was executed and measured three times. In all experiments,
+the server and the workers of \hyperqueue{} (and \dask{}) were executed on separate nodes. Many
+experiments use the term \emph{makespan}, which describes the duration from submitting a
+task graph (a \hyperqueue{} \emph{job}) until all tasks of that task graph
+are finished computing (as defined in~\defref{def:makespan}). We will also use the term
+\emph{simple workflow}, which denotes a task graph without any dependencies. Unless stated
+otherwise, each task of such a workflow has a resource requirement of a single
+\gls{cpu} core and runs for a fixed duration by executing the \texttt{sleep}
+UNIX program.
+
+\subsection{Total overhead}
+\label{sec:hq-exp-total-overhead}
+In this experiment we evaluate the total \emph{overhead} of \hyperqueue{}. Under
+an ideal scenario, there exists a minimal makespan in which a given task graph can be executed on a
+fixed set of computational resources, assuming an infinitely fast communication network and no
+delays between executing individual tasks. We define overhead as any additional time on top of this
+ideal makespan, which is induced by the task runtime (in this case \hyperqueue{}). This
+overhead is caused by network communication, scheduling and various forms of bookkeeping
+performed by a task runtime.
+
+The overhead will of course depend on the task graph that is executed and the computational
+resources (workers) used for its execution. Nevertheless, it is interesting to examine the minimum
+overhead introduced by the task runtime on a trivial task graph, in particular to gain insight into
+the smallest duration of tasks that can be used without the overhead becoming too limiting.
+
+We have benchmarked the \emph{simple workflow} in two sizes ($10$ and
+$50$ thousand tasks) with three different worker counts ($1$,
+$2$ and $4$ workers) and four different task durations
+(\SI{1}{\milli\second}, \SI{10}{\milli\second}, \SI{100}{\milli\second} and
+\SI{250}{\milli\second}). The \emph{ideal duration} for each task graph was estimated by taking
+the total time to execute all the tasks sequentially (task count $\times$ task duration) and
+dividing it by the total number of cores available (worker count $\times$ $128$). This estimates a
+perfect scenario without any overhead, where all tasks are perfectly parallelized across all
+available \gls{cpu} cores.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/hq/charts/total-overhead-vs-ideal}
+	\caption{Total overhead of \hyperqueue{} (ratio vs theoretically ideal makespan)}
+	\label{fig:hq-overhead-vs-ideal}
+\end{figure}
+
+The results of this experiment can be observed in~\Autoref{fig:hq-overhead-vs-ideal}. Each chart column shows
+a different task duration; the rows separate different task counts. Within each chart, the
+horizontal axis represents the number of used workers, while the vertical axis shows the duration
+needed to execute the task graph in \hyperqueue{}, normalized to the theoretical ideal
+duration. The ideal duration is marked with a red horizontal dotted line. For example, the value
+$1.05$ specifies that the \hyperqueue{} execution was
+$5\%$ slower than the ideal duration.
+
+We can see that for tasks that last for \SI{100}{\milli\second} or more, the overhead of
+\hyperqueue{} is within $5\%$ of the ideal makespan; with the larger
+task graph that contains $50$ thousand tasks, the overhead stays within
+$3\%$. The overhead increases slightly with an added number of workers, which is
+expected; the scheduler needs to perform more work and the server also communicates with more
+workers over the network.
+
+The situation becomes more interesting in the case where the task duration is only
+\SI{1}{\milli\second}. Here the overhead of \hyperqueue{} seemingly becomes very large.
+We have examined this situation in detail and found out that the issue is caused mostly by slow
+command execution performance on Karolina. Our calculation of the theoretically ideal makespan
+assumes that the executed command will last for exactly \SI{1}{\milli\second}. However, through
+several benchmarks, we found out that running even the shortest possible process (that
+immediately exits) on Karolina
+takes \emph{at least}
+\SI{500}{\micro\second}, and executing a program that is supposed to sleep for
+\SI{1}{\milli\second} can take several milliseconds. Because the overhead of actually executing
+the command is so large, it skews the total overhead of \hyperqueue{}, as it is not able
+to reach the theoretically ideal makespan, because the execution of commands takes more time than
+expected. Note that this would be an issue for any task runtime that executes a command in each
+task, and there is not that much that \hyperqueue{} could do to avoid this overhead. We
+eventually found out that the slow process spawning performance is caused primarily by an old
+version of the \texttt{glibc} \texttt{C} standard library implementation used on Karolina; there
+is not much that we could do about that.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/hq/charts/total-overhead-vs-manual}
+	\caption{Total overhead of \hyperqueue{} (ratio vs manual process execution)}
+	\label{fig:hq-overhead-vs-manual}
+\end{figure}
+
+To provide a fairer evaluation of the overhead of \hyperqueue{} for short tasks, we have
+also evaluated it against a different baseline, which is not based on a theoretical calculation,
+but on the actual performance of command execution on Karolina. We have implemented a simple
+program that executes the same tasks (\texttt{sleep} processes) as
+\hyperqueue{}, in parallel on all $128$ available cores. This provides a
+more reasonable baseline that takes into account the overhead of command execution on Karolina. The
+results of this experiments can be seen in~\Autoref{fig:hq-overhead-vs-manual}. The baseline is marked with a
+horizontal red line; it represents the fastest measured time to execute the given number of
+processes. We have performed this experiment only with a single worker, because our baseline
+program did not implement multi-node distribution. Based on these results, we can see that for the
+\emph{simple workflow}, the actual overhead of \hyperqueue{} (when compared to manually
+running the commands without a task runtime) stays within $10\%$ even for very short tasks.
+
+\subsection{Task throughput}
+\label{sec:hq-exp-task-throughput}
+The previous experiment has evaluated the total overhead of \hyperqueue{} while taking
+into account the time to execute tasks. To further examine the inner overhead of scheduling and
+network communication, in this experiment we evaluate the possible task throughput (number of tasks
+processed per second) using the \emph{zero worker} mode. In this mode, \hq{}
+performs all operations that it does normally (managing tasks and workers, scheduling, sending
+network packets), but it does not actually execute the tasks; the corresponding worker immediately
+marks each task as completed instead. This allows us to examine the overhead of
+\hyperqueue{} without it being affected by process spawning, which can have severe
+overhead, as was demonstrated in the previous experiment. We have benchmarked the
+\emph{simple workflow} containing from $10$ thousand to $1$
+million tasks with varying worker counts (up to $16$ workers and thus
+$2048$ \gls{cpu} cores).
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{imgs/hq/charts/task-per-s}
+	\caption{Tasks processed per second with \emph{zero worker} mode}
+	\label{fig:hq-tasks-per-s}
+\end{figure}
+
+The results can be observed in~\Autoref{fig:hq-tasks-per-s}. The horizontal axis displays the number of
+workers in the task graph, while the vertical axis displays the achieved throughput measured in
+tasks processed per second. In theory, the throughput should be increasing with more added workers. For
+the smallest task graph with $10$ thousand tasks, the throughput increases up to
+four workers ($512$ cores), then it decreases; the task graph is too small and the
+constant overhead factors start dominating over the available parallelism. For task graphs with up
+to $100$ thousand tasks, the throughput also increases up to four workers, where it
+saturates. For even larger task graphs, the throughput once again starts decreasing with more than
+four workers; the overhead of network communication and scheduling starts to dominate.
+
+The absolute numbers of the achieved throughput demonstrate that \hyperqueue{} has very
+little baseline overhead, and can in theory execute hundreds of thousands of tasks per second. The
+tasks would have to be shorter than approximately \SI{5}{\micro\second} to fully saturate the
+throughput achievable by \hyperqueue{}. Such a task duration is uncommon for scientific
+workflows (indeed, on Karolina even starting a new process takes a hundred times longer); it is
+more common for task-parallel programming models that have been described
+in~\Autoref{sec:task-granularity}, which are operating on a very different level of granularity than what
+\hyperqueue{} was designed for. This task throughput is orders of magnitude higher than
+throughput measured for the \parsl{}, \fireworks{} and
+\dask{} task runtimes, as reported in~\cite{parsl}.
+
+As you may recall from~\Autoref{dask:evaluation}, the overhead per task of \dask{}
+for a task graph with $50$ thousand tasks and a single node (using the
+\emph{zero worker} mode) was approximately \SI{0.3}{\milli\second}. The per-task overhead of
+\hyperqueue{} (calculated as an
+inverted value of the number of tasks executed per second) for a similar configuration evaluated in this experiment is approximately
+\SI{0.01}{\milli\second}, an order of magnitude lower.
+
+\subsection{Strong scaling}
+\label{sec:hq-exp-scalability}
+This experiment evaluates the ability of \hyperqueue{} to scale to many computational
+resources, by executing the same task graph with increasing worker counts (up to
+$64$ workers and thus $8192$ cores in total). Note that each
+benchmark configuration in this experiment was measured only once because of the large amount of
+computational resources required to allocate tens of worker nodes.
+
+We have designed two separate scenarios for this experiment. In the first one, we have selected a
+fixed target makespan, so that the \emph{simple workflow} would be executed in approximately $5$
+minutes ($300$ seconds) on a single worker, and benchmarked
+three task graphs with increasing task counts. This allowed us to examine how the
+scalability of \hyperqueue{} changes based on the number of tasks in the task graph when the total
+computational workload stays the same. The task duration of each task was scaled accordingly for
+each graph, so that the total makespan on a single worker would be $5$ minutes.
+The benchmarked worker counts were $1$, $2$,
+$4$, $8$, $16$, $32$
+and $64$.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/hq/charts/scalability-fixed-makespan}
+	\caption{Strong scalability of \hyperqueue{} with a fixed target makespan
+	(\SI{300}{\second})}
+	\label{fig:hq-scalability-fixed-makespan}
+\end{figure}
+
+The results of the benchmark with a fixed makespan can be observed in~\Autoref{fig:hq-scalability-fixed-makespan}. The
+horizontal axis displays the number of workers used for executing the task graph. In the top row,
+the vertical axis shows the measured makespan; in the bottom row, the vertical axis shows speedup
+against the measured makespan on a single worker. We can see that for all three measured task
+durations, \hyperqueue{} was able to scale reasonably well up to $64$
+workers, where it was able to compute the whole task graph in approximately $5$
+seconds. In the best case, with tasks that took \SI{2.5}{\second} to execute, it provided a
+$59.2$x speedup over a single worker using $64$ workers. In the worst case, with
+tasks that lasted \SI{100}{\milli\second}, it provided a $54.4$x speedup over a single worker using
+$64$ workers. With task duration \SI{0.1}{\second} and
+$64$ workers, \hyperqueue{} was able to dispatch almost
+$70$ thousand tasks per second.
+
+In the second scenario, we fixed the task duration of each task to $1$ second
+and then varied the task count. This allowed us to examine how the strong scalability of
+\hyperqueue{} changes with an increasing number of tasks.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/hq/charts/scalability-fixed-task-duration}
+	\caption{Strong scalability of \hyperqueue{} with a fixed task duration (\SI{1}{\second})}
+	\label{fig:hq-scalability-fixed-task-duration}
+\end{figure}
+
+We can observe the results in~\Autoref{fig:hq-scalability-fixed-task-duration}. We can see that the scalability improves
+with the number of tasks; with $100$ thousand tasks, \hyperqueue{} is
+able to provide a $59$x speedup with $64$ workers. On the
+other hand, with only $10000$ tasks, the speedup in this case reaches only
+$38.8$x, because there are not enough tasks to saturate all workers. With
+$64$ workers that each have $128$ cores, the total number of
+cores managed by \hq{} is $8192$. Therefore, each worker barely gets a single task to compute in
+this small task graph.
+
+In general, the results of our scalability and overhead experiments indicate that \hyperqueue{}
+introduces very little overhead and is able to scale to a large amount of computational
+resources (tens of nodes and thousands of cores) and also to large amounts of tasks
+(hundreds of thousands) without an issue.
+
+\subsection{Performance comparison of \dask{} and \hq{}}
+\label{sec:hq-exp-dask}
+This experiment evaluates basic performance differences between the \dask{} task
+runtime and \hyperqueue{}. We have evaluated \emph{dask/distributed}
+$2024.7.0$ running under CPython $3.10.8$ with a disabled monitoring
+dashboard for improved performance. All measurements in this experiment were performed only once,
+to reduce the required computational resources.
+
+We have evaluated the scalability of both runtimes on the \emph{simple workflow} with a target
+makespan set to \SI{30}{\second} on a single worker, with an increasing number of workers
+and a varying number of tasks. In this scenario, \dask{} was benchmarked in three
+separate worker configurations, with $1$ process per node and
+$128$ threads per process ($1p/128t$), with $8$
+processes per node and $16$ threads per process ($8p/16t$) and
+with $128$ processes per node and $1$ thread per process
+($128p/1t$). The reason for choosing different process/thread combinations has been
+extensively explained in~\Autoref{dask:evaluation}; we chose two extremes ($1$
+process and $128$ processes) and then a compromise with $8$
+processes per node, according to recommendations in the \dask{}
+documentation~\cite{dask-thread-recommendation}.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{imgs/hq/charts/dask-vs-hq-sleep}
+	\caption{Scalability of \hyperqueue{} vs \dask{} with a fixed target makespan
+	(\SI{30}{\second})}
+	\label{fig:hq-dask-sleep}
+\end{figure}
+
+The results of this experiment are displayed in~\Autoref{fig:hq-dask-sleep}. The individual charts
+display separate task graphs with varying task counts (in each case, the task graph should have a
+makespan of $30$ seconds on a single node). The horizontal axis shows the amount
+of used nodes and the vertical axis displays the makespan. Note that we are using the term
+\emph{node count} instead of \emph{worker count} here, because each
+\dask{} process spawned per node is technically a separate worker. We can see that
+the in the case of \dask{}, the performance depends a lot on the number of tasks in
+the task graph and also on the task duration. With only $1000$ tasks and task
+duration in the range of seconds, \dask{} is able to scale relatively well in all
+three configurations, although it is still slightly slower than \hyperqueue{}. However,
+with a larger number of tasks (tens of thousands), and tasks that last only hundreds or tens of
+milliseconds, the performance of \dask{} decreases very quickly.
+
+We can also see differences between the three \dask{} configurations, particularly
+in the benchmark with $50000$ tasks. With a single node, \dask{} is
+unable to keep up with the number of tasks, and it has a twice longer makespan than when multiple
+worker processes are used. On the other hand, once the number of nodes is increased, the situation
+reverses, and the configuration with a single worker per node becomes the fastest one, because
+\dask{} starts being overwhelmed by the number of connected workers. This suggests
+that some amount of manual tuning based on the number of used nodes and workers might be required
+to achieve optimal performance of \dask{} workflows. Conversely,
+\hyperqueue{} was able to keep a consistent performance profile in this experiment
+without being heavily affected by the number of tasks or the task duration. And because each
+\hq{} worker manages all resources of its node, it does not require
+any manual worker tuning.
+
+Note that this benchmark actually presents a sort of a best-case scenario for
+\dask{}. It executes its tasks as Python functions; therefore, it does not need to
+start a new Linux process per task, unlike \hyperqueue{}. Furthermore, since each task
+simply sleeps for a specified duration, it releases the \gls{gil} and thus does not
+block other Python threads of the worker, which can thus perform other work concurrently.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{imgs/hq/charts/dask-vs-hq-empty}
+	\caption{Scalability of \hyperqueue{} vs \dask{} with an empty task}
+	\label{fig:hq-dask-empty}
+\end{figure}
+
+We have further examined the baseline overhead of \dask{} by executing an empty
+task (an empty Python function), which emulates the \emph{zero worker} mode of
+\hyperqueue{}, as it shows how the task runtime scales with the fastest possible task
+execution. We have compared this empty task execution with running the fastest possible task in
+\hyperqueue{} (by spawning a process that immediately exits) and also with the \emph{zero worker} mode of \hyperqueue{}.
+
+The results of this experiment can be seen in~\Autoref{fig:hq-dask-empty}. The horizontal axis shows
+the node count and the vertical axis displays the makespan. Here we can observe a large difference
+between the inner overhead of \hyperqueue{} and \dask{}, which struggles
+to keep up with large amounts of very short tasks. This is of course an artificial scenario because
+the tasks are empty; however, it does demonstrate that \dask{} can have
+performance issues with large or very granular task graphs. It is also clear that the overhead of
+\dask{} increases quickly with multiple added workers, which is further exacerbated
+when multiple workers per node are used.
+
+\subsection{Resource variants}
+\label{sec:hq-exp-resource-variants}
+This experiment evaluates the load-balancing benefits of \emph{resource variants}, which were
+described in~\Autoref{sec:dynamic-resource-selection}. For evaluation, we use the simple workflow with
+$300$ tasks executed on a single node with $8$ virtual
+\glspl{gpu} and the same number of \glspl{cpu}. Tasks in this experiment
+simulate a computation that can run either on a \gls{gpu} or on a
+\gls{cpu}. To emulate the performance difference between the \gls{gpu}
+and the \gls{cpu}, tasks executed on the accelerator will sleep for
+\SI{1}{\second} and tasks executed on the \gls{cpu} will sleep for a
+multiple of this duration, according to a given ratio (which is a benchmark parameter).
+Note that we could also use a larger number of \gls{cpu} cores and reduce the benchmarked values
+of this ratio; the result should be approximately the same.
+
+Our goal was to determine how will the resulting makespan differ for the following three
+situations:
+\begin{itemize}[itemsep=0pt,topsep=2pt]
+	\item Tasks are executed only on the \gls{gpu}.
+	\item A fixed fraction of tasks is executed on the \gls{gpu}, the rest runs on the
+	      \gls{cpu}.
+	\item The fraction of tasks that is executed on the \gls{gpu} is determined dynamically by
+	      \hyperqueue{} using resource variants.
+\end{itemize}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/hq/charts/alternative-resources}
+	\caption{Load-balancing effect of resource variants}
+	\label{fig:hq-resource-variants}
+\end{figure}
+
+\vspace{1mm}The results of the experiment can be observed in~\Autoref{fig:hq-resource-variants}.
+The vertical axis displays the makespan; the five bars represent different configurations of resources. In the
+\emph{\gls{gpu} only} mode, all tasks were configured to run on a single
+\gls{gpu}. In the \emph{\gls{gpu} or \gls{cpu}} mode, tasks were configured to run either
+on the \gls{gpu} or on the \gls{cpu} using resource variants. The
+remaining three modes assign a specific fraction of tasks to run on the \gls{gpu};
+the rest was executed on the \gls{cpu}. The three charts show results for different
+values of the \gls{gpu} vs \gls{cpu} performance ratio, i.e.\ how much
+faster was the task running on a \gls{gpu} thatn on the \gls{cpu}.
+
+We can see that unless the \gls{gpu} ratio is too high or we assign too many tasks to
+the \gls{cpu}, it is beneficial to also leverage the \gls{cpu}
+resources rather than using only \glspl{gpu}. With \gls{cpu} fractions
+determined manually in advance, the result depends heavily on the \emph{\gls{gpu} ratio}, and in
+certain configurations it can make the makespan significantly longer. This would thus be both less
+efficient and more laborious to configure for the user. On the other hand, when the resources for
+each task are configured using two resource variants (either \gls{gpu} or
+\gls{cpu}), \hyperqueue{} is able to dynamically adapt to all three
+\gls{gpu} ratios. In all three scenarios, the makespan with resource variants is
+strictly smaller than with \glspl{gpu} only, and it either surpasses or matches the
+best result achieved with a predetermined fraction of tasks running on the \gls{cpu}.
+This shows that resource variants can help achieve better hardware utilization without requiring
+the user to fine-tune resource configurations of individual tasks in the task graph.
+
+\subsection{Group allocation strategies}
+\label{sec:hq-exp-numa}
+This experiment examines the effect of resource group allocation strategies on the
+performance of programs that are sensitive to memory latency. Each Karolina
+\gls{cpu} (non-accelerated)
+computational node has $128$ cores and \SI{256}{\gibi\byte} of memory, divided
+into $8$ \gls{numa} nodes. Accessing memory across these
+\gls{numa} nodes is slower than accessing memory within the same node, which can
+affect the performance of programs that are very sensitive to memory throughput or latency. We have
+created a simple program inspired by the STREAM benchmark~\cite{stream} that exerts this
+behavior; it is very sensitive to \gls{numa} memory placement. First, it allocates and
+initializes \SI{4}{\gibi\byte} of memory stored in a single \gls{numa} node.
+Then, a number of threads pinned to individual cores repeatedly read from this memory in turn. When
+these threads are running on cores from a different \gls{numa} node than where the memory was
+allocated, the program takes longer to execute due to memory transfers being slower.
+
+We have benchmarked the \emph{simple workflow} with $100$ tasks on a single
+Karolina node, where each task executes the described program with either $4$
+or $8$ threads (cores). Each task is configured so the spawned threads are
+pinned to the specific set of cores assigned to that task by the
+scheduler. Each available group allocation strategy was
+examined; \emph{Compact}, which tries to allocate cores using the smallest possible
+number of groups, \emph{Strict compact}, which always draws cores from the smallest possible
+number of groups and \emph{Scatter}, which attempts to allocate cores across different groups.
+As you may recall,
+\hyperqueue{} workers by default separate available cores into groups according to their
+\gls{numa} node. We also evaluate another option, \emph{No strategy}, which
+emulates the behavior of task runtimes that do not provide support for managing groups or
+\gls{numa} nodes. In this strategy, workers are configured with a flat set of
+\gls{cpu} cores without any groups. The order of the available cores is also
+randomized so that the scheduler cannot use any knowledge of which tasks belong to the same
+\gls{numa} node.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{imgs/hq/charts/numa}
+	\caption{Effect of different group allocation strategies}
+	\label{fig:hq-numa}
+\end{figure}
+
+We can observe the results of this experiment in~\Autoref{fig:hq-numa}. The vertical axis displays
+the makespan of the executed task graph and the four bars represent results of individual
+strategies. For both evaluated core counts per task, the best performance was achieved using the
+\emph{Compact} strategy, because the threads were able to achieve the highest possible
+memory throughput. The \emph{Strict compact} strategy achieved essentially the same result;
+because the task durations were quite uniform, these two strategies resulted in very similar
+placements of cores to tasks. On the other hand, the \emph{Scatter} strategy resulted in
+the worst possible performance, as expected. The results of the \emph{No strategy}
+configuration are perhaps the most interesting. When cores were assigned to tasks essentially at
+random, without taking \gls{numa} effects into account, the performance was better
+than with the \emph{Scatter} strategy, because in some cases the tasks received multiple
+cores belonging to the same \gls{numa} node. However, it was still almost twice as
+slow than with the \emph{Compact} strategy. This suggests that for memory-sensitive
+programs, using a \gls{numa}-aware task allocation strategy can significantly improve
+the achieved performance.
+
+\subsection{Worker \acrshort{cpu} utilization}
+\label{sec:hq-cpu-utilization}
+One of the primary metrics that task graph users care about is hardware utilization -- how well can
+a task graph (executed with a given task runtime) make use of available resources? This experiment
+examines the average \gls{cpu} utilization of worker nodes while executing a task
+graph with \hyperqueue{}, both for tasks with a uniform duration and also for tasks with
+a skewed distribution of durations. We have benchmarked the \emph{simple workflow} with
+$10$ thousand tasks, where each task fully utilizes a full
+\gls{cpu} core by executing the \texttt{stress} UNIX utility (instead of just
+sleeping). This task graph was executed on four workers whose
+\gls{cpu} utilization was periodically measured over the course of the computation.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/hq/charts/scalability-stress-utilization}
+
+	In the bottom row, 75\% of tasks last \SI{5}{\second}, 25\% of tasks last
+	\SI{30}{\second} \caption{\acrshort{cpu} utilization of \hyperqueue{} worker nodes} \label{fig:hq-cpu-utilization}
+\end{figure}
+
+The results are shown in~\Autoref{fig:hq-cpu-utilization}. The horizontal axis shows the progress of the
+computation in seconds, the vertical axis displays the average \gls{cpu} utilization
+over all $128$ cores for each separate worker. The red horizontal dotted line marks the
+total average utilization of each worker over the course of the whole computation. The top row
+displays a situation where all tasks in the task graph have a uniform duration of
+$5$ seconds. In this case, \hyperqueue{} workers kept their average
+utilization at or above $92\%$. Note that it takes some amount of time for each
+\texttt{stress} invocation to fully reach full core utilization, and since all tasks have
+the same duration, the tasks perform this ramp-up process in a mostly synchronized fashion. This
+causes the ``teeth'' in the utilization chart. Therefore, it is not realistic to reach full
+$100\%$ node utilization with this task graph.
+
+The second row displays a situation where the workload is skewed. Most ($75\%$) of
+the tasks still have a duration of \SI{5}{\second}; the remainder simulates a ``long tail''
+of slower tasks that take \SI{30}{\second} to execute. This is a more difficult situation
+for achieving high utilization; because some tasks are longer, they might get stuck executing at a
+time when other resources can no longer be utilized. We can observe this towards the end of the
+workflow execution, where approximately $30$ seconds before the end, the
+utilization starts to drop. However, even for this skewed task graph, the average
+\gls{cpu} utilization of all four workers was kept at almost $90\%$.
+
+\subsection{Server \acrshort{cpu} consumption}
+\label{sec:hq-exp-server-cpu-consumption}
+When deployed on supercomputers, the \hyperqueue{} server is primarily designed to be
+executed on their login nodes. This could pose a problem if it consumed too many system
+resources, because login nodes are shared by multiple users and they are not designed for
+computationally intensive tasks. Some clusters even forcefully limit the total amount of
+\gls{cpu} time that can be consumed by processes running on login
+nodes~\cite{leonardo_time_limit} and terminate the process if it exceeds the maximum allowed time.
+
+To evaluate how many resources the server consumes, we have performed an experiment where the
+server had to schedule a large number of tasks in a short time period (which acts as a sort of a
+stress test); we have measured its total \gls{cpu} time consumption across all cores over this
+period. The server was running on a login node and it was managing up to $12$ workers
+($1536$ cores) and up to $200$ thousand tasks. Each worker was
+deployed on a computational node, so that the server had to communicate with the workers over the
+network. The benchmark was executed with a fixed makespan; the duration of each task was scaled so
+that the whole task graph would finish computing in one minute. We measured the total amount of
+\gls{cpu} time consumed by the server (both in user-space and in the kernel), using
+standard Linux process monitoring tools.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\textwidth]{imgs/hq/charts/server-utilization-tasks}
+	\caption{\hyperqueue{} server \acrshort{cpu} time consumption with an increasing number
+	of tasks}
+	\label{fig:hq-server-cpu-consumption-tasks}
+\end{figure}
+
+\Autoref{fig:hq-server-cpu-consumption-tasks} shows how the \gls{cpu} utilization of the
+server changes with a fixed number of workers ($12$) and an increasing number of
+tasks. In this case, the server had to schedule the \emph{simple workflow} with the number of tasks
+ranging from $10$ to $200$ thousand. The horizontal axis shows
+the number of tasks that were used for the given benchmark run and the vertical axis shows the
+\gls{cpu} time consumed by the server over the measured one-minute period. We can see that the
+amount of \gls{cpu} resources scales approximately linearly with the number of tasks
+scheduled by the server. In the worst case, the server has consumed less than five seconds of
+\gls{cpu} time over one minute of real time, even though it had to schedule
+$200$ thousand tasks within this short period, which is an extreme stress test
+that far exceeds the rate of scheduled tasks in most scientific workflows. Over all the benchmarked
+task counts, the average \gls{cpu} consumption of the server per second and per
+$1000$ tasks was approximately \SI{0.0003}{\second}. In other words, for every
+thousand tasks in the task graph, the server consumed approximately \SI{0.3}{\milli\second}
+\gls{cpu} time every second.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\textwidth]{imgs/hq/charts/server-utilization-workers}
+	\caption{\hyperqueue{} server \acrshort{cpu} time consumption with an increasing number
+	of workers}
+	\label{fig:hq-server-cpu-consumption-workers}
+\end{figure}
+
+\Autoref{fig:hq-server-cpu-consumption-workers} displays a situation where the number of tasks
+is fixed ($50000$), but the number of workers increases from
+$2$ to $12$. The horizontal axis shows the number of workers
+that were used for the given benchmark run and the vertical axis shows the \gls{cpu}
+time consumed by the server over the one-minute period. In this case, the consumption of the server
+does not increase by a large amount with more added workers.
+
+In terms of memory consumption, in the largest evaluated case with a task graph containing
+$200$k tasks, the memory consumption of the server, measured using the Linux
+\gls{rss} metric, was approximately \SI{120}{\mebi\byte}, which shows that the server
+also does not consume large amounts of memory.
+
+The amount of used resources will of course vary based on the executed workflow. However, this
+experiment shows that the server consumes very few resources in general and that it still has a
+lot of leeway available even if some task graphs proved to be more computationally demanding than
+the benchmarked stress test.
 
 \subsection{Encryption overhead}
 \label{sec:hq-exp-encryption-overhead}
