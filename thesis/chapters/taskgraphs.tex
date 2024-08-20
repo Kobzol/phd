@@ -291,8 +291,7 @@ executions; these will also be defined below.
 	      executing a specific task at a given point in time, or $\bot$ if that task was not
 	      being executed at the given time: \\ $\fntaskworkerassigned\colon T \times \timedomain \rightarrow W \cup \{\bot\}$
 
-		  We assume that each task was executed at least once:
-		  $\forall t\in{}T, \exists tp\in\timedomain\colon \fntaskworkerassigned(t, tp) \neq \bot$
+	      We assume that each task was executed at least once: $\forall t\in{}T, \exists tp\in\timedomain\colon \fntaskworkerassigned(t, tp) \neq \bot$
 	\item Let $\fnworkertaskassigned_E$ be a function that returns the set of tasks that were currently being
 	      executed on a given worker at a given point in time in $E$: \\
 	      $\fnworkertaskassigned_E(w, tp) = \{t \in{} T \mid \fntaskworkerassigned(t, tp) = w \}$
@@ -305,9 +304,9 @@ executions; these will also be defined below.
 \end{itemize}
 
 Note that this definition assumes that each task is executed on at most a single worker at a time.
-It could be generalized for tasks that can execute on multiple workers at once; however, that
-would have to be performed in the context of a specific task runtime, as the semantics of \emph{multi-node}
-execution can vary significantly between runtimes.
+It could be generalized for tasks that can execute on multiple workers at once; however, that would
+have to be performed in the context of a specific task runtime, as the semantics of
+\emph{multi-node} execution can vary significantly between runtimes.
 
 The described semantics capture a basic form of fault tolerance; tasks can be executed repeatedly
 (through multiple instances), even on different workers. However, each task must eventually
@@ -324,9 +323,9 @@ should also uphold at least the following two basic properties:
 		must not be oversubscribed at any point in time: \\ $\forall tp\in\timedomain, \forall w\in{}W, \forall
 			r\in{}\setresourcekinds\colon \sum_{t\in{}\fnworkertaskassigned_E(w, tp)} \fntaskres(t, r) \leq
 			\fnworkerres(w, r)$ \vspace{2mm}\\
-		This definition both satisfies all task resource requirements (which we will label as
-	the \emph{task resource constraint}) and it makes sure that resources of workers are not
-	oversubscribed at any given time (which we will label as the \emph{worker resource constraint}).
+		This definition both satisfies all task resource requirements (which we will label as the
+		\emph{task resource constraint}) and it makes sure that resources of workers are not oversubscribed at any
+		given time (which we will label as the \emph{worker resource constraint}).
 \end{itemize}
 
 \section{Task scheduling}
@@ -358,10 +357,8 @@ that a scheduler can optimize for, such as the latency to execute specific criti
 most commonly used metric is \emph{makespan}:
 
 \vspace{2mm}\makedef{def:makespan} The makespan $M_E$ of a specific
-task graph execution
-$E = ((T, O, E, \setresourcekinds, \fntaskres), C, \fntaskworkerassigned)$ is the
-duration between the start of the execution of the first task to the completion of all tasks: \\
-$M_E = \max\limits_{t \in T}(\fntaskfinish_E(t)) - \min\limits_{t \in T}(\fntaskstart_E(t))$
+task graph execution $E = ((T, O, E, \setresourcekinds, \fntaskres), C, \fntaskworkerassigned)$ is the duration between the start of the execution of
+the first task to the completion of all tasks: \\ $M_E = \max\limits_{t \in T}(\fntaskfinish_E(t)) - \min\limits_{t \in T}(\fntaskstart_E(t))$
 
 \begin{figure}[h]
 	\centering

@@ -490,8 +490,8 @@ the $merge\_slow$ benchmark. The three charts demonstrate how it scales with tas
 that take \SI{1000}{\milli\second}, \SI{100}{\milli\second} and \SI{10}{\milli\second},
 respectively. With tasks that take one second, \dask{} is able to scale
 relatively well up to $1512$ workers. However, when tasks take one tenth of the
-time, it only scales up to around $360$ workers, and when tasks take only
-\SI{10}{\milli\second}, \dask{} scales to approx.
+time, it only scales up to approximately $360$ workers, and when tasks take
+only \SI{10}{\milli\second}, \dask{} scales to approx.
 $168$ workers ($7$ nodes); adding more workers makes
 the makespan longer.
 
@@ -932,7 +932,7 @@ scaling, even when executing very short tasks.
 
 \subsubsection*{Overhead per task}
 In~\Autoref{sec:dask-overhead-per-task}, we have seen that the average overhead of
-\dask{} for each task is around \SI{0.3}{\milli\second}. In this
+\dask{} for each task is approximately \SI{0.3}{\milli\second}. In this
 experiment, we have measured the per-task overhead of \rsds{}, so that we could
 qualify how much its overhead was reduced, relative to the previously measured baseline. All the
 benchmarks in this experiment were performed with the \emph{zero worker} implementation.

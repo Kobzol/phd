@@ -106,25 +106,32 @@
 % #1 = label
 \newcommand{\makedef}[1]
 {\refstepcounter{taskdefinition}%
-[Def.~\thetaskdefinition{}]\label{#1}}
-\newcommand{\defref}[1]{\hyperref[#1]{Def.~\ref*{#1}}}
+[\textbf{Definition~\thetaskdefinition{}}]\label{#1}}
+\newcommand{\defref}[1]{\hyperref[#1]{Definition~\ref*{#1}}}
 
 % Specific definitions
 \newcommand{\fntaskres}{Res_t}
-\newcommand{\fntaskresfrac}{\fntaskres^{frac}}
-\newcommand{\fntaskresvariant}[1]{\fntaskres^{#1}}
+\newcommand{\fntaskresfrac}{\fntaskres^{fr}}
+\newcommand{\fntaskresvar}{\fntaskres^{var}}
 \newcommand{\fnworkerres}{Res_w}
 \newcommand{\fnworkerresident}{\fnworkerres^{id}}
-\newcommand{\fntaskresassigned}{Res_a}
-\newcommand{\fnworkertaskassigned}{E_w}
-\newcommand{\fntaskstart}{T_s}
-\newcommand{\fntaskfinish}{T_f}
+\newcommand{\fntaskresassigned}{RA}
+\newcommand{\fnworkertaskassigned}{WX}
+\newcommand{\fntaskworkerassigned}{X}
+\newcommand{\fntaskstart}{S}
+\newcommand{\fntaskfinish}{F}
+\newcommand{\fntaskresvarcount}{RC}
 \newcommand{\scheduleworker}{S_w}
 \newcommand{\scheduleorder}{S_o}
-\newcommand{\setresourcekinds}{R_k}
-\newcommand{\setresourceelements}{R_e}
+\newcommand{\setresourcekinds}{RK}
+\newcommand{\setresourcekindstaskgraph}{RK_t}
+\newcommand{\setresourcekindscluster}{RK_w}
+\newcommand{\setresourcekindsident}{RK_w^{id}}
+\newcommand{\setresourceelements}{RE}
 \newcommand{\powerset}[1]{\mathcal{P}(#1)}
-\newcommand{\resourcerequirement}[2]{$#1\colon T \times \setresourcekinds \rightarrow \mathbb{#2}_{\geq{}0}$}
+\newcommand{\resourcerequirement}[2]{$#1\colon T \times \setresourcekindstaskgraph \rightarrow \mathbb{#2}_{\geq{}0}$}
+\newcommand{\timedomain}{\mathbb{R}_{\geq{}0}}
+\newcommand{\taskgraphexecution}{$E = (G, C, \fntaskworkerassigned)$}
 
 \graphicspath{{./imgs/}}
 
@@ -211,75 +218,73 @@ projects.
 \MakeTitlePages
 
 \begin{spacing}{1}
-%\glsaddall     % Automatically add all defined acronyms
-%\addcontentsline{toc}{chapter}{List of Abbreviations}
-\printglossaries
+	%\glsaddall     % Automatically add all defined acronyms
+	%\addcontentsline{toc}{chapter}{List of Abbreviations}
+	\printglossaries
 
-\listoffigures
-\clearpage
+	\listoffigures
+	\clearpage
 
-\listoftables
-\clearpage
+	\listoftables
+	\clearpage
 
-\lstlistoflistings
-%\addcontentsline{toc}{chapter}{List of Source Code Listings}
-\clearpage
+	\lstlistoflistings
+	%\addcontentsline{toc}{chapter}{List of Source Code Listings}
+	\clearpage
 \end{spacing}
 
 % Make sure that related publications are first in the bibliography list
 \nocite{estee, rsds, hyperqueue, ligate}
 
-\begin{spacing}{1.05}
+\begin{spacing}{1.1}
+	\chapter{Introduction}
+	\label{ch:Introduction}
+	\input{chapters/introduction}
 
-\chapter{Introduction}
-\label{ch:Introduction}
-\input{chapters/introduction}
+	\chapter{Parallel and distributed computing}
+	\label{ch:distributed-computing}
+	\input{chapters/distributed-computing}
 
-\chapter{Parallel and distributed computing}
-\label{ch:distributed-computing}
-\input{chapters/distributed-computing}
+	\chapter{Task-based programming}
+	\label{ch:taskgraphs}
+	\input{chapters/taskgraphs}
 
-\chapter{Task-based programming model}
-\label{ch:taskgraphs}
-\input{chapters/taskgraphs}
+	\chapter{Task graph execution on HPC clusters}
+	\chapter{State of the Art}
+	\label{ch:sota}
+	\input{chapters/sota-challenges}
 
-%\chapter{Task graph execution on HPC clusters}
-\chapter{State of the Art}
-\label{ch:sota}
-\input{chapters/sota-challenges}
+	\chapter{Task scheduling analysis}
+	\label{ch:estee}
+	\input{chapters/estee}
 
-\chapter{Task scheduling analysis}
-\label{ch:estee}
-\input{chapters/estee}
+	\chapter{Task runtime optimization}
+	\label{ch:rsds}
+	\input{chapters/rsds}
 
-\chapter{Task runtime optimization}
-\label{ch:rsds}
-\input{chapters/rsds}
+	\chapter{Task graph meta-scheduling}
+	\label{ch:hyperqueue}
+	\input{chapters/hyperqueue}
 
-\chapter{Task graph meta-scheduling}
-\label{ch:hyperqueue}
-\input{chapters/hyperqueue}
-
-\chapter{Conclusion}
-\label{ch:conclusion}
-\input{chapters/conclusion}
-
+	\chapter{Conclusion}
+	\label{ch:conclusion}
+	\input{chapters/conclusion}
 \end{spacing}
 
 \begin{spacing}{1}
-\chapter*{List of own publication activities}
-\label{ch:listofstudentsownpublicationactivities}
-\addcontentsline{toc}{chapter}{\nameref{ch:listofstudentsownpublicationactivities}}
+	\chapter*{List of own publication activities}
+	\label{ch:listofstudentsownpublicationactivities}
+	\addcontentsline{toc}{chapter}{\nameref{ch:listofstudentsownpublicationactivities}}
 
-\input{chapters/publications-generated}
+	\input{chapters/publications-generated}
 
-%\chapter*{List of projects}
-%\label{ch:listofprojects}~\addcontentsline{toc}{chapter}{\nameref{ch:listofprojects}}
-%\input{chapters/projects}
+	%	\chapter*{List of projects}
+	%	\label{ch:listofprojects}~\addcontentsline{toc}{chapter}{\nameref{ch:listofprojects}}
+	%	\input{chapters/projects}
 
-% Bibliography
-\renewcommand*{\bibfont}{\small}
-\printbibliography[heading=bibintoc, title={Bibliography}]
+	% Bibliography
+	\renewcommand*{\bibfont}{\small}
+	\printbibliography[heading=bibintoc, title={Bibliography}]
 \end{spacing}
 
 \appendix
