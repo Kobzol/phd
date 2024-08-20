@@ -46,13 +46,13 @@ data outputs between tasks, and also the resources needed for the execution of i
 
 \newcommand{\alltaskpairs}{\forall t_1\in{}T, \forall t_2\in{}T}
 
-\vspace{2mm}\makedef{def:task_graph} A task graph is a tuple $G = (T, O, E, \setresourcekindstaskgraph, \fntaskres)$, where:
+\vspace{2mm}\makedef{def:task_graph} A task graph is a tuple $G = \taskgraphinner{\setresourcekindstaskgraph}$, where:
 \begin{itemize}[itemsep=0pt]
 	\item $T$ is a set of \emph{tasks}.
 	\item $O$ is a set of \emph{data objects}.
 	\item $E \subseteq ((T\times{}O) \cup (O\times{}T))$ is a set of arcs.
 	\item $\setresourcekindstaskgraph$ is a set of \emph{resource kinds}. Each resource kind
-	      describes a type of resource (e.g. \gls{cpu} core or a \gls{gpu} device)
+	      describes a type of a resource (e.g.\ a \gls{cpu} core or a \gls{gpu} device)
 	      that might be required to execute a specific task.
 	\item $\fntaskres$ is a function that defines the
 	      \emph{resource requirement} of a task for a given resource kind: \\
@@ -60,16 +60,16 @@ data outputs between tasks, and also the resources needed for the execution of i
 	      A resource requirement specifies what amount of the given resource kind is required to be present
 	      at a computational provider so that the task can be executed. $\fntaskres(t, r) = 0$ specifies that
 	      task $t$ does not require resource $r$ for its execution.
-\end{itemize}
+	\item $(T \cup O, E)$ forms a finite directed acyclic graph.
 
-%TODO: move this into the definition above?
-$(T \cup O, E)$ forms a finite directed acyclic graph. The absence of cycles is important;
-otherwise, the graph could not be executed. The graph is structured in a way so that for every data
-object, there is exactly one task that produces it: \\ $\forall o \in O: |E \cap (T \times \{o\})| = 1$
+		  The absence of cycles is important; otherwise, the task graph could not be executed.
+	\item The graph is structured in a way so that for every data
+	object, there is exactly one task that produces it: $\forall o \in O: |E \cap (T \times \{o\})| = 1$
+\end{itemize}
 
 \vspace{2mm}Below we will define several terms that will be useful for describing task
 graphs and their properties:
-\begin{itemize}
+\begin{itemize}[itemsep=0pt]
 	\item If there is an arc from a task to a data object ($(t,o) \in (T\times{}O)$), then we call
 	      $t$ the \emph{producer} of $o$ and
 	      $o$ the \emph{output} of $t$.
@@ -85,18 +85,18 @@ graphs and their properties:
 	      by $t_1$.
 
 	\item Let us introduce a binary relation $D_G$, which forms the transitive closure of
-	      $DR_G$. Tasks $(t_1, t_2)$ belong to $DR_G$ if there
+	      $DR_G$. Tasks $(t_1, t_2)$ belong to $D_G$ if there
 	      exists a sequence $(t_1, t_2, \ldots, t_n)$ such that $\forall i \in \{1,2,\ldots,n - 1\}: (t_i, t_{i+1}) \in DR_G$
 
 	      When $(t_1, t_2) \in D_G$, we say that $t_2$ \emph{depends} on
 	      $t_1$ and that $t_1$ is a \emph{dependency} of
 	      $t_2$.
 
-	\item We label tasks without any inputs \emph{source tasks}: \\ $S_G = \{ t\in{}T \mid
+	\item We will label tasks without any inputs \emph{source tasks}: \\ $S_G = \{ t\in{}T \mid
 		      \forall{}t_d\in{}T\colon (t_d, t)\notin D_G\}$ \\ It is a
 	      simple observation that unless the task graph is empty ($(T\cup{}O) = \emptyset$), there is always at
 	      least one source task in the graph, because the graph is acyclic.
-	\item We label tasks that are not depended upon by any other task \emph{leaf tasks}: \\
+	\item We will label tasks that are not depended upon by any other task \emph{leaf tasks}: \\
 	      $L_G = \{ t\in{}T \mid \forall{}t_d\in{}T: (t,
 		      t_d)\notin D_G\}$.
 \end{itemize}
@@ -263,50 +263,57 @@ define a computational environment (e.g.\ a cluster) where tasks can be executed
 \vspace{2mm}\makedef{def:cluster} A \emph{computational environment} is a tuple
 $C = (W, \setresourcekindscluster, \fnworkerres)$, where:
 \begin{itemize}[itemsep=0pt]
-	\item $W$ is a set of workers.
+	\item $W$ is a set of workers (computational providers).
 	\item $\setresourcekindscluster$ is a set of \emph{resource kinds}. Each resource kind
-	      describes some resource (e.g. \gls{cpu} cores or \glspl{gpu}) that can be
-	      provided a worker.
+	      describes some type of a resource (e.g.\ a \gls{cpu} core or a \gls{gpu} device) that
+		  can be provided a worker.
 
-	      Note that in all following definitions, we will assume that the resource kinds of a computational
-	      environment are equal to the resource kinds of a task graph computed in that environment.
+	      Note that in all following definitions, we will assume that the set of resource kinds
+		  of a computational environment is equal to the set of resource kinds of a task graph
+		  computed in that environment.
 	\item $\fnworkerres$ is a function which defines how many resources are
 	      provided by a worker for a specific resource kind: \\ $\fnworkerres\colon W \times \setresourcekindscluster \rightarrow
 		      \mathbb{N}_{\geq{}0}$
 \end{itemize}
 
-Now we can formally describe the execution of a task graph. We will use the notion of an execution
+Now we will describe the execution of a task graph. We will use the notion of an execution
 record of a task graph that was executed in some computational environment, so that we can examine
-the properties of that execution. Note that the exact semantics of executing task graphs will of
-course heavily depend on the used programming model and task runtime. Nevertheless, there are a few
-rules related to task dependencies and resource requirements that should hold in most task graph
-executions; these will also be defined below.
+selected properties of that execution. Note that the exact semantics of task graph execution
+will of course heavily depend on the used programming model and task runtime. Nevertheless,
+it is still useful to provide a general definition that will allow us to define several useful
+properties and rules that should hold in most task graph executions; these will be defined
+later below.
 
 \vspace{2mm}\makedef{def:task_graph_execution} A \emph{task graph execution} is a tuple
 \taskgraphexecution, where:
 \begin{itemize}[itemsep=0pt]
-	\item $G = (T, O, E, \setresourcekinds, \fntaskres)$ forms a \emph{task graph}.
+	\item $G = \taskgraphinner{\setresourcekinds}$ forms a \emph{task graph}.
 	\item $C = (W, \setresourcekinds, \fnworkerres)$ forms a \emph{computational environment}.
 	\item $\fntaskworkerassigned$ is a function that returns the worker that was currently
-	      executing a specific task at a given point in time, or $\bot$ if that task was not
+	      executing a specific task at a given point in time in $E$, or $\bot$ if that task was not
 	      being executed at the given time: \\ $\fntaskworkerassigned\colon T \times \timedomain \rightarrow W \cup \{\bot\}$
-
-	      We assume that each task was executed at least once: $\forall t\in{}T, \exists tp\in\timedomain\colon \fntaskworkerassigned(t, tp) \neq \bot$
-	\item Let $\fnworkertaskassigned_E$ be a function that returns the set of tasks that were currently being
-	      executed on a given worker at a given point in time in $E$: \\
-	      $\fnworkertaskassigned_E(w, tp) = \{t \in{} T \mid \fntaskworkerassigned(t, tp) = w \}$
-	\item Let $\fntaskstart_E$ be a function that returns the earliest point in time at which (any
-	      \emph{instance} of) a given task started its execution in $E$: \\
-	      $\fntaskstart_E(t) = \min\limits_{tp \in\timedomain} \fntaskworkerassigned(t, tp) \neq \bot$
-	\item Let $\fntaskfinish_E$ be a function that returns the latest point in time at which (any
-	      \emph{instance} of) a given task finished its execution in $E$: \\
-	      $\fntaskfinish_E(t) = \max\limits_{tp \in\timedomain} \fntaskworkerassigned(t, tp) \neq \bot$
+    \item We assume that each task was executed at least once: $\forall t\in{}T, \exists tp\in\timedomain\colon \fntaskworkerassigned(t, tp) \neq \bot$
 \end{itemize}
 
 Note that this definition assumes that each task is executed on at most a single worker at a time.
-It could be generalized for tasks that can execute on multiple workers at once; however, that would
-have to be performed in the context of a specific task runtime, as the semantics of
+It could be generalized for tasks that can be executed on multiple workers at once; however, that
+would have to be performed in the context of a specific task runtime, as the semantics of
 \emph{multi-node} execution can vary significantly between runtimes.
+
+We will also define the following helper functions, which will be used in later definitions:
+
+\begin{itemize}[itemsep=0pt]
+	\item Let $\fnworkertaskassigned_E$ be a function that returns the set of tasks that were currently being
+	executed on a given worker at a given point in time in execution
+	$E = (\taskgraphinner{\setresourcekinds}, C, X)$: \\
+	$\fnworkertaskassigned_E(w, tp) = \{t \in{} T \mid \fntaskworkerassigned(t, tp) = w \}$
+	\item Let $\fntaskstart_E$ be a function that returns the earliest point in time at which (any
+	\emph{instance} of) a given task started its computation in execution \taskgraphexecution: \\
+	$\fntaskstart_E(t) = \min\limits_{tp \in\timedomain} \fntaskworkerassigned(t, tp) \neq \bot$
+	\item Let $\fntaskfinish_E$ be a function that returns the latest point in time at which (any
+	\emph{instance} of) a given task finished its computation in execution \taskgraphexecution: \\
+	$\fntaskfinish_E(t) = \max\limits_{tp \in\timedomain} \fntaskworkerassigned(t, tp) \neq \bot$
+\end{itemize}
 
 The described semantics capture a basic form of fault tolerance; tasks can be executed repeatedly
 (through multiple instances), even on different workers. However, each task must eventually
@@ -314,19 +321,29 @@ successfully finish its execution. Additional semantics of fault-tolerant task e
 defined, because task runtimes handle task re-execution in different ways and it would thus be
 infeasible to provide a general definition of task retry semantics.
 
-Unless a task runtime provides some special semantics, then the execution $E$
-should also uphold at least the following two basic properties:
-\begin{itemize}
-	\item If a task $t_2$ depends on a task $t_1$, it cannot begin
-	      executing until $t_1$ has finished executing: \\ $\alltaskpairs\colon (t_1, t_2) \in D_G \Rightarrow \fntaskfinish_E(t_1) \leq \fntaskstart_E(t_2)$
-	\item[\makedef{def:worker_resource_constraint}] Resource requirements of all tasks must be fulfilled and resources provided by individual workers
-		must not be oversubscribed at any point in time: \\ $\forall tp\in\timedomain, \forall w\in{}W, \forall
-			r\in{}\setresourcekinds\colon \sum_{t\in{}\fnworkertaskassigned_E(w, tp)} \fntaskres(t, r) \leq
-			\fnworkerres(w, r)$ \vspace{2mm}\\
-		This definition both satisfies all task resource requirements (which we will label as the
-		\emph{task resource constraint}) and it makes sure that resources of workers are not oversubscribed at any
-		given time (which we will label as the \emph{worker resource constraint}).
-\end{itemize}
+Unless a task runtime provides some special semantics, then each execution
+should also uphold at least the following three basic constraints, which ensure a reasonable
+behavior w.r.t\ dependencies, task resource requirements and worker resources:
+
+\vspace{2mm}\makedef{def:dependency_constraint} A \emph{dependency constraint} in the context
+of execution \\
+$E = (\taskgraphinner{\setresourcekinds}, C, X)$ is defined as follows: \vspace{1mm}\\
+$\alltaskpairs\colon (t_1, t_2) \in D_G \Rightarrow \fntaskfinish_E(t_1) \leq \fntaskstart_E(t_2)$
+
+\vspace{1mm}Informally, if a task $t_2$ depends on a task $t_1$, then it cannot begin executing
+until $t_1$ has finished executing.
+
+\vspace{2mm}\makedef{def:worker_resource_constraint} A \emph{worker resource constraint} and a
+\emph{task resource constraint} in the context of execution
+$E = (\taskgraphinner{\setresourcekinds}, (W, \setresourcekinds, \fnworkerres), X)$
+are defined as follows: \vspace{1mm}\\
+$\forall tp\in\timedomain, \forall w\in{}W, \forall
+r\in{}\setresourcekinds\colon \sum_{t\in{}\fnworkertaskassigned_E(w, tp)} \fntaskres(t, r) \leq
+\fnworkerres(w, r)$
+
+\vspace{1mm}This property both ensures that all resource requirements of all tasks are
+satisfied and also that resources of worker are not oversubscribed at any point in time during the
+execution $E$.
 
 \section{Task scheduling}
 \label{sec:task-scheduling}
@@ -356,9 +373,11 @@ task runtime, which is typically affected by the behavior of its scheduler. Ther
 that a scheduler can optimize for, such as the latency to execute specific critical tasks, but the
 most commonly used metric is \emph{makespan}:
 
-\vspace{2mm}\makedef{def:makespan} The makespan $M_E$ of a specific
-task graph execution $E = ((T, O, E, \setresourcekinds, \fntaskres), C, \fntaskworkerassigned)$ is the duration between the start of the execution of
-the first task to the completion of all tasks: \\ $M_E = \max\limits_{t \in T}(\fntaskfinish_E(t)) - \min\limits_{t \in T}(\fntaskstart_E(t))$
+\vspace{2mm}\makedef{def:makespan} The \emph{makespan} $M_E$ of execution $E = ((T, O, E, \setresourcekinds, \fntaskres), C, \fntaskworkerassigned)$
+is defined as follows: $M_E = \max\limits_{t \in T}(\fntaskfinish_E(t)) - \min\limits_{t \in T}(\fntaskstart_E(t))$
+
+\vspace{1mm}Informally, makespan is the duration between the start of the execution of the first task to the
+completion of all tasks.
 
 \begin{figure}[h]
 	\centering
