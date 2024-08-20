@@ -101,7 +101,7 @@ graphs.
 In addition to simply comparing the performance of different schedulers, our goal was also to test
 two factors for which we have hypothesized that they might affect scheduling; we have not seen
 these explored in detail in existing works. Namely, we wanted to examine the effects of
-\acrlong{msd}, the delay between two invocations of the scheduler and
+\glsxtrlong{msd}, the delay between two invocations of the scheduler and
 \emph{information mode}, the amount of knowledge of task durations that is available to the
 scheduler. These factors will be described in detail in the following section. The existing
 simulation environments that we have evaluated did not have support for these factors, and it would
@@ -221,7 +221,7 @@ with an arbitrary network bandwidth amount for a given simulation.
 \estee{} implements support for two parameters that can affect scheduler
 performance, and which we have not seen examined in detail in existing literature:
 \begin{description}[wide=0pt]
-	\item[\acrlong{msd}] Non-trivial schedulers create task assignments continuously during task graph execution, based on
+	\item[\glsxtrlong{msd}] Non-trivial schedulers create task assignments continuously during task graph execution, based on
 		the current worker load and task completion times. That means that they are not invoked only once,
 		but rather the task runtime invokes them repeatedly to ask them to produce assignments for tasks
 		that are (or soon will be) ready to be executed at any given point in time.
@@ -493,7 +493,7 @@ benchmark results do not depend on the used hardware. Each benchmark that was no
 any way (e.g.\ because it used a pseudo-random number generator) was executed twenty times. Unless
 otherwise specified, the individual experiments were performed with the default benchmark
 configuration that uses the \emph{max-min} network model, the \emph{exact}
-information mode and a \acrlong{msd} of \SI{0.1}{\second}.
+information mode and a \glsxtrlong{msd} of \SI{0.1}{\second}.
 
 Note that the vertical axis of some charts presented in this section does not start at zero, as the
 goal was to focus on the relative difference between different scheduling algorithms rather than on
@@ -597,14 +597,14 @@ demonstrated both in~\cite{wang2018list} and by results of our other experiments
 between the two network models depends heavily on the used task graph.
 %the difference was much smaller, as can be seen in~\Autoref{fig:estee-chart-pegasus-netmodel}.%For task graphs from the Pegasus dataset,
 
-\subsubsection*{\acrlong{msd}}
+\subsubsection*{\glsxtrlong{msd}}
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{imgs/estee/charts/irw-32x4-schedtime-score}\\
 	{\small horizontal axis: bandwidth [MiB/s]; vertical axis: makespan normalized to
 	$\gls{msd}=0$}
-	\caption{Comparison of \acrshort{msd}; cluster 32x4}
+	\caption{Comparison of \glsxtrshort{msd}; cluster 32x4}
 	\label{fig:estee-chart-irw-msd}
 \end{figure}
 
@@ -647,7 +647,7 @@ scheduler implementation and the task graph that it executes.
 from the \emph{irw} dataset on a $32x4$ cluster, with different
 information modes being used. The results are normalized to the mean makespan of the default
 \emph{exact} information mode. In general, the effect of information modes is more
-significant than the effect of the \acrlong{msd}.
+significant than the effect of the \glsxtrlong{msd}.
 
 An intuitive expectation would be that with more precise task duration information, the scheduler
 will be able to produce a shorter makespan, and this is indeed what happens in several cases, e.g.\
@@ -790,7 +790,7 @@ simple scheduling algorithms can be competitive, and more complex algorithms are
 special situations and edge cases, where the simple heuristics might fail to produce reasonable
 results.
 
-The \acrlong{msd} had a smaller effect in our simulations than we have expected. This
+The \glsxtrlong{msd} had a smaller effect in our simulations than we have expected. This
 hints that it might be possible to reduce the scheduling overhead (by invoking the scheduler less
 often) without sacrificing schedule quality, but this will be highly dependent on the specific task
 runtime implementation.

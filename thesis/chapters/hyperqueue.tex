@@ -718,7 +718,7 @@ $ hq worker start &
 # Submit a HQ job (task graph) with a single task
 $ hq submit ./my-program
 	\end{minted}
-	\caption{Examples of \hyperqueue{} \acrshort{cli} commands}
+	\caption{Examples of \hyperqueue{} \glsxtrshort{cli} commands}
 	\label{lst:hq-cli-commands}
 \end{listing}
 
@@ -833,7 +833,7 @@ $ hq submit --each-line=inputs.txt ./my-script.sh
 # Each task will receive a single item from a JSON array stored in the given file
 $ hq submit --from-json=items.json ./my-script.sh
 	\end{minted}
-	\caption{Creating task arrays using the \hyperqueue{} \acrshort{cli}}
+	\caption{Creating task arrays using the \hyperqueue{} \glsxtrshort{cli}}
 	\label{lst:hq-cli-task-arrays}
 \end{listing}
 
@@ -933,7 +933,7 @@ filesystem.~\Autoref{sec:hq-exp-output-streaming} will evaluate how this system 
 %# Export the log into a JSON format
 %$ hq log log.bin export
 %	\end{minted}
-%	\caption{\hyperqueue{} \acrshort{cli} commands for working with output streaming}
+%	\caption{\hyperqueue{} \glsxtrshort{cli} commands for working with output streaming}
 %	\label{lst:hq-cli-log}
 %\end{listing}
 
@@ -1032,7 +1032,7 @@ $ hq worker start \
 	--resource 'gpus/nvidia=[0,1,2,3]' \
 	--resource 'memory=sum(1024)'
 	\end{minted}
-	\caption{Configuring worker resources using the \hyperqueue{} \acrshort{cli}}
+	\caption{Configuring worker resources using the \hyperqueue{} \glsxtrshort{cli}}
 	\label{lst:hq-cli-worker-resources}
 \end{listing}
 
@@ -1139,7 +1139,7 @@ $ hq submit --cpus=2 --pin=omp ./my-program
 # Submit a task that requires 2 FPGA devices and needs at least 10 minutes to execute
 $ hq submit --resource 'fpga=2' --time-request 10m ./my-program
 	\end{minted}
-	\caption{Configuring task resource requirements using the \hyperqueue{} \acrshort{cli}}
+	\caption{Configuring task resource requirements using the \hyperqueue{} \glsxtrshort{cli}}
 	\label{lst:hq-cli-task-resources}
 \end{listing}
 
@@ -1211,7 +1211,7 @@ $ FAILED_TASKS=$(hq job task-ids last --filter=failed)
 # Resubmit only the failed tasks
 $ hq submit --array=${FAILED_TASKS} ./my-computation
 	\end{minted}
-	\caption{Handling task failure using the \hyperqueue{} \acrshort{cli}}
+	\caption{Handling task failure using the \hyperqueue{} \glsxtrshort{cli}}
 	\label{lst:hq-cli-fault-tolerance}
 \end{listing}
 
@@ -1320,7 +1320,7 @@ $ hq alloc add pbs --resource "gpus/nvidia=range(0-1)" ...
 # Display information about allocations submitted by the given queue
 $ hq alloc info 1
 	\end{minted}
-	\caption{Handling task failure using the \hyperqueue{} \acrshort{cli}}
+	\caption{Handling task failure using the \hyperqueue{} \glsxtrshort{cli}}
 	\label{lst:hq-cli-autoalloc}
 \end{listing}
 
@@ -2017,7 +2017,7 @@ slow than with the \emph{Compact} strategy. This suggests that for memory-sensit
 programs, using a \gls{numa}-aware task allocation strategy can significantly improve
 the achieved performance.
 
-\subsection{Worker \acrshort{cpu} utilization}
+\subsection{Worker \glsxtrshort{cpu} utilization}
 \label{sec:hq-cpu-utilization}
 One of the primary metrics that task graph users care about is hardware utilization -- how well can
 a task graph (executed with a given task runtime) make use of available resources? This experiment
@@ -2034,7 +2034,7 @@ sleeping). This task graph was executed on four workers whose
 	\includegraphics[width=\textwidth]{imgs/hq/charts/scalability-stress-utilization}
 
 	In the bottom row, 75\% of tasks last \SI{5}{\second}, 25\% of tasks last
-	\SI{30}{\second} \caption{\acrshort{cpu} utilization of \hyperqueue{} worker nodes} \label{fig:hq-cpu-utilization}
+	\SI{30}{\second} \caption{\glsxtrshort{cpu} utilization of \hyperqueue{} worker nodes} \label{fig:hq-cpu-utilization}
 \end{figure}
 
 The results are shown in~\Autoref{fig:hq-cpu-utilization}. The horizontal axis shows the progress of the
@@ -2058,7 +2058,7 @@ workflow execution, where approximately $30$ seconds before the end, the
 utilization starts to drop. However, even for this skewed task graph, the average
 \gls{cpu} utilization of all four workers was kept at almost $90\%$.
 
-\subsection{Server \acrshort{cpu} consumption}
+\subsection{Server \glsxtrshort{cpu} consumption}
 \label{sec:hq-exp-server-cpu-consumption}
 When deployed on supercomputers, the \hyperqueue{} server is primarily designed to be
 executed on their login nodes. This could pose a problem if it consumed too many system
@@ -2081,7 +2081,7 @@ standard Linux process monitoring tools.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.6\textwidth]{imgs/hq/charts/server-utilization-tasks}
-	\caption{\hyperqueue{} server \acrshort{cpu} time consumption with an increasing number
+	\caption{\hyperqueue{} server \glsxtrshort{cpu} time consumption with an increasing number
 	of tasks}
 	\label{fig:hq-server-cpu-consumption-tasks}
 \end{figure}
@@ -2105,7 +2105,7 @@ thousand tasks in the task graph, the server consumed approximately \SI{0.3}{\mi
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.6\textwidth]{imgs/hq/charts/server-utilization-workers}
-	\caption{\hyperqueue{} server \acrshort{cpu} time consumption with an increasing number
+	\caption{\hyperqueue{} server \glsxtrshort{cpu} time consumption with an increasing number
 	of workers}
 	\label{fig:hq-server-cpu-consumption-workers}
 \end{figure}
@@ -2583,10 +2583,10 @@ has a different programming model and a different set of features and trade-offs
 use-cases it was primarily designed for.
 
 The first section of the table, \emph{Task interfaces}, shows which interfaces can be used to
-submit tasks and if they support modifying task graphs dynamically. \acrshort{cli}
+submit tasks and if they support modifying task graphs dynamically. \glsxtrshort{cli}
 specifies that tasks can be submitted from the command-line, \emph{Workflow file} specifies that
 task graphs can be defined using e.g.\ \gls{yaml} or \gls{toml} files and
-\emph{Python \acrshort{api}} marks runtimes that provide the option to specify tasks using Python. Note
+\emph{Python \glsxtrshort{api}} marks runtimes that provide the option to specify tasks using Python. Note
 that the \gls{cli} column indicates that tasks and task graphs can be actually
 defined and submitted using the command-line without requiring additional input files, not just
 that the runtime provides some form of a \gls{cli} (which is offered by most runtimes). The last column,

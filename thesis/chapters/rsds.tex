@@ -508,7 +508,7 @@ already mentioned effect of \gls{gil}, \dask{} users might be
 forced to use more workers than would be otherwise necessary to achieve reasonable performance. We
 will examine this in the following experiment.
 
-\subsubsection*{The effect of \acrshort{gil}}
+\subsubsection*{The effect of \glsxtrshort{gil}}
 As noted earlier, the \gls{gil} can have a non-trivial effect on the performance
 of Python programs. This can also be seen in \dask{}, where the configuration
 of workers might need to be tuned in order to achieve optimal performance.
@@ -516,7 +516,7 @@ of workers might need to be tuned in order to achieve optimal performance.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.3\linewidth]{./imgs/rsds/charts/dask-gil-scaling}
-	\caption{Effect of \acrshort{gil} on the performance of the \emph{pandas\_groupby} benchmark}
+	\caption{Effect of \glsxtrshort{gil} on the performance of the \emph{pandas\_groupby} benchmark}
 	\label{fig:dask-gil-scaling}
 \end{figure}
 
