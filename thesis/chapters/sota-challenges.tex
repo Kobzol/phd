@@ -366,7 +366,7 @@ checkpointing. When a stage dynamically asks for a different set of resources, i
 moved to a different allocation and then restarted. While this approach does alleviate some
 problems with resource waste, it is relatively inflexible; workflows have to be manually separated
 into individual stages with coarse-grained resource requirements, and these stages are still
-submitted as individual allocations, rather than being load balanced across different allocations.
+submitted as individual allocations rather than being load balanced across different allocations.
 
 To achieve a better utilization of computational nodes, some task runtimes allow users to deploy a
 generic computational provider (a worker) in an allocation, which is then able to execute any task
@@ -636,7 +636,7 @@ It is important for task runtimes to be prepared for these situations; they shou
 disconnections gracefully even if a task is being executed on a node that suddenly disconnects, and
 they should be able to restart previously interrupted tasks on newly arrived workers. In general,
 in \gls{hpc} scenarios, worker instability and frequent disconnects should be
-considered the normal mode of operation, rather than just a rare edge case.
+considered the normal mode of operation rather than just a rare edge case.
 
 Tasks are usually considered to be atomic from the perspective of the runtime, i.e.\ they either
 execute completely (and successfully), or they fail, in which case they might be restarted from

@@ -276,12 +276,12 @@ example \dask{}~\cite{dask},
 
 Streaming processing is common in the area of cloud computing, and is useful especially for
 analyzing data that is being generated in real time. However, it is not very common in the world of
-supercomputing, because \gls{hpc} hardware resources are typically ephemeral, and are
+supercomputing, because \gls{hpc} hardware resources are typically transient, and are
 not designed to be available for a single user at all times, which limits their usefulness for
 handling real-time events that occur at unpredictable times. On the other hand, batch processing
 workflows are a better fit for \gls{hpc} clusters, since their execution time is
 bounded by the size of their input, which is often known in advance, and thus they can be more
-easily mapped to ephemeral, time-limited allocations of \gls{hpc} hardware resources.
+easily mapped to transient, time-limited allocations of \gls{hpc} hardware resources.
 This thesis focuses exclusively on batch processing.
 
 \subsection{Programming model generality}
@@ -438,7 +438,7 @@ parallelized and if it even makes sense to distribute it to multiple nodes at al
 certain tasks would take mere nanoseconds to execute, there would be no point in dynamically load
 balancing them across multiple remote nodes, because the overhead of doing so would dwarf the
 execution time of the tasks themselves, due to the latency induced by the network communication. In
-other words, it would be faster to just execute all such tasks on the local node, rather than
+other words, it would be faster to just execute all such tasks on the local node rather than
 sending them across the network. It could still be worth it to distribute a large number of such
 extremely granular tasks to multiple nodes, but the distribution would need to happen in an
 amortized way, for example only once at the beginning of the computation, to avoid excessive

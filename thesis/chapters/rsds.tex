@@ -14,7 +14,7 @@ vehicle for our experiments. After evaluating several of them, we have decided t
 \begin{itemize}
 	\setlength\itemsep{0.1em}
 	\item It is very popular within the scientific community~\cite{dask-user-survey}, and thus any insights
-	      on how it could be improved could benefit a wide range of users.
+	      into how it could be improved could benefit a wide range of users.
 	\item It is implemented in Python, which makes it relatively easy to modify.
 	\item It is quite versatile, as it allows executing arbitrary task graphs with dependencies and
 	      performing data object exchanges between workers.
@@ -127,7 +127,7 @@ code that performs a query over a \texttt{pandas}-like table (also called DataFr
 will eventually be converted to a set of tasks; each such task performs the query on a subset of
 the table's rows. The selected number of these tasks (or partitions) is crucial, since it
 determines how effectively the operation will be parallelized. Too few (large) tasks can cause
-computational resources to be under-utilized, while too many (small) tasks can overwhelm the
+computational resources to be underutilized, while too many (small) tasks can overwhelm the
 \dask{} runtime.
 
 \subsection*{Architecture}
