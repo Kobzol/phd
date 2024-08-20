@@ -523,37 +523,57 @@ $G^{var} = (T, O, E, \setresourcekindstaskgraph, \fntaskresvar)$, where:
 	\item $\setresourcekindstaskgraph$ is a set of \emph{resource kinds}.
 	\item $\fntaskresvar$ is a function that defines a specific variant of a resource
 	      requirement of a task for a given resource kind: \\ $\fntaskresvar\colon T \times \setresourcekindstaskgraph \times
-		      \mathbb{N}_{\geq{}0} \rightarrow
+		      \mathbb{N}_{>0} \rightarrow
 		      \mathbb{N}_{\geq{}0}$
 
-	Variants are identified with a numeric index; each variant is a separate set of resource
-	requirements.
+	Variants are identified with a numeric index starting at $1$; each variant is a separate
+	set of resource requirements.
 	\item Let $\fntaskresvarcount_{G^{var}}$ be a function that determines the number of
 	resource variants for a task of $G^{var}$: \\
-	$\fntaskresvarcount_{G^{var}}(t) = \max\limits_{n\in\mathbb{N}_{\geq{}0}} \exists
+	$\fntaskresvarcount_{G^{var}}(t) = \max\limits_{n\in\mathbb{N}_{>0}} \exists
 		      r\in\setresourcekindstaskgraph\colon \fntaskresvar(t, r, n) > 0$
 \end{itemize}
 
 The remaining properties of $G^{var}$ are identical to the properties of the
 \emph{task graph} defined in~\defref{def:task_graph}.
 
-Using~\defref{def:task_graph_var}, we can now also define a modified version of the
+\vspace{2mm}\makedef{def:task_graph_execution_var} A \emph{task graph execution with support for
+resource variants} is a tuple $E^{var} = (G^{var}, C, \fntaskworkerassigned,
+\fntaskvarassigned)$, where:
+\begin{itemize}[itemsep=0pt]
+	\item $G^{var} = (T, O, E, \setresourcekinds, \fntaskresvar)$ forms a
+	\emph{task graph with support for resource variants}.
+	\item $C = (W, \setresourcekinds, \fnworkerres)$ forms a \emph{computational environment}.
+	\item $\fntaskworkerassigned$ is a function that maps a task to a worker that is executing it
+	at a given point in time; this corresponds to~\defref{def:task_graph_execution}.
+	\item $\fntaskvarassigned$ is a function that returns a specific resource requirement variant
+	index that was assigned to a task running on some worker at a given point in
+	time in $E^{var}$: \\ $\fntaskvarassigned\colon T \times \timedomain \rightarrow
+	\mathbb{N}_{>0}$
+	\item $\fntaskvarassigned$ has to uphold the following condition: \\
+	$\forall tp\in\timedomain, \forall t\in{}T\colon \fntaskworkerassigned(t, tp) \ne \bot \Rightarrow
+	\fntaskvarassigned(t, tp) \in \{1,\ldots,\fntaskresvarcount_{G^{var}}(t)\}$
+
+	Informally, when a task is executing, it has to be assigned a valid variant index. Note that
+	when a task is not being executed at a given point in time, $\fntaskvarassigned$
+	is allowed to return an arbitrary (numeric) value.
+\end{itemize}
+
+Using the two previous definitions, we can now also define a modified version of the
 \emph{task resource constraint}:
 
-\vspace{2mm}\makedef{def:task_resource_constraint_var} A \emph{task resource variant constraint}
-in the context of an execution \vspace{1mm}\\
-$E^{var} = (G^{var}, C, \fntaskworkerassigned)$, where $G^{var} = (T, O, E, \setresourcekindstaskgraph, \fntaskresvar)$ is
-a \emph{task graph with support for resource variants}, is defined as follows: \vspace{1mm}\\
-$\forall t\in{}T, \forall tp\in\timedomain, \exists
-	i\in\{1,\ldots,\fntaskresvarcount_{G^{var}}(t)\}, \forall
-	r\in{}\setresourcekindstaskgraph\colon \\
-\fntaskworkerassigned(t, tp) \neq \bot \Rightarrow \fntaskresvar(t, r, i) = |\fntaskresassigned(t, \fntaskworkerassigned(t, tp), r, tp)|$
+\vspace{2mm}\makedef{def:worker_resource_constraint_var} A \emph{task resource variant constraint}
+and a \emph{worker resource variant constraint} in the context of an execution $E^{var} = (G^{var}, C, \fntaskworkerassigned, \fntaskvarassigned)$, where $G^{var} = (T, O, E, \setresourcekinds, \fntaskresvar)$ is
+a \emph{task graph with support for resource variants} and $C = (W, \setresourcekinds, \fnworkerres)$ is a
+\emph{computational environment}, are defined as follows: \vspace{1mm}\\
+$\forall tp\in\timedomain, \forall w\in{}W, \forall
+r\in{}\setresourcekinds\colon \sum_{t\in{}\fnworkertaskassigned_{E^{var}}(w, tp)} \fntaskresvar(t, r, \fntaskvarassigned(t, tp)) \leq
+\fnworkerres(w, r)$
 
-\vspace{1mm}Informally, at any given point in time, if a task is being executed on a worker, at
-least one of its resource variants has to be fully satisfied by that worker. Note that using this definition,
-multiple resource variants of a given task might be satisfiable at the same
-time.~\Autoref{sec:hq-resource-management} will describe how can this ambiguity be resolved through assigning
-priorities to variants.
+\vspace{1mm}Informally, each task has an assigned resource variant, whose resource requirements
+all need to be satisfied at any given point in time the task was being executed in a given
+task graph execution. Same as with~\defref{def:worker_resource_constraint}, this definition satisfies both the task
+and the worker resource constraints.
 
 To our knowledge, there is no existing task runtime that would support all the described advanced
 resource management concepts at once; we are also not aware of other work that would support
