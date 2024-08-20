@@ -309,7 +309,7 @@ resources is a tuple $E^{id} = (G, C^{id}, \fntaskworkerassigned,
 
 \begin{itemize}[itemsep=0pt]
 	\item $G = (T, O, E, \setresourcekindsident, \fntaskres)$ forms a \emph{task graph}.
-	\item $C^{id} = (W, \setresourcekindsident, \fnworkerres)$ forms a \emph{computational environment with support for non-fungible resouces}.
+	\item $C^{id} = (W, \setresourcekindsident, \fnworkerres)$ forms a \emph{computational environment with support for non-fungible resources}.
 	\item \fntaskworkerassigned{} maps a task to a worker that is executing it at a given point in time; this
 	      corresponds to the same definition from~\defref{def:cluster}.
 	\item \fntaskresassigned{} is a function that returns a set of specific resource elements of a
@@ -530,7 +530,7 @@ $\forall t\in{}T, \forall tp\in\timedomain, \exists
 
 Informally, at any given point in time, if a task is being executed on a worker, at least one of
 its resource variants has to be fully satisfied by that worker. Note that using this definition,
-multiple resource variants of a given task might be satistiable at the same
+multiple resource variants of a given task might be satisfiable at the same
 time.~\Autoref{sec:hq-resource-management} will describe how can this ambiguity be resolved through assigning
 priorities to variants.
 
@@ -1067,7 +1067,7 @@ their priority. The load-balancing improvements that can be achieved using resou
 be evaluated in~\Autoref{sec:hq-exp-resource-variants}.
 
 \vspace{2mm}\textbf{Related resources}\enskip{}Relations between resource
-elements can be modelled using a combination of indexed pool groups and a \emph{group allocation strategy},
+elements can be modeled using a combination of indexed pool groups and a \emph{group allocation strategy},
 which can be used to choose which specific resource elements from an indexed pool will be used for
 a given task. A typical example where indexed pool groups are useful are \gls{numa}
 nodes, where tasks might want to be executed on cores that belong to the same
@@ -1158,7 +1158,7 @@ nodefile can then be used by common \gls{mpi} program launchers to start an
 
 Users that execute multi-node tasks running \gls{mpi} applications might want to make
 sure that all workers (nodes) contributing in this computation are started in the same allocation,
-primarly for performance reasons (e.g.\ they might configure allocations to use nodes that reside
+primarily for performance reasons (e.g.\ they might configure allocations to use nodes that reside
 close together in the networking topology of the cluster). By default, \hyperqueue{}
 tries to adhere to this constraint. It uses an abstract concept of \emph{worker groups};
 multi-node tasks are always scheduled to workers belonging to the same group. At the same time, the
@@ -1945,7 +1945,7 @@ on the \gls{gpu} or on the \gls{cpu} using resource variants. The
 remaining three modes assign a specific fraction of tasks to run on the \gls{gpu};
 the rest was executed on the \gls{cpu}. The three charts show results for different
 values of the \gls{gpu} vs \gls{cpu} performance ratio, i.e.\ how much
-faster was the task running on a \gls{gpu} thatn on the \gls{cpu}.
+faster was the task running on a \gls{gpu} than on the \gls{cpu}.
 
 We can see that unless the \gls{gpu} ratio is too high or we assign too many tasks to
 the \gls{cpu}, it is beneficial to also leverage the \gls{cpu}
