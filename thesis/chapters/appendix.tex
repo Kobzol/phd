@@ -203,6 +203,7 @@
 	Bag; A = Arrays; F = Futures; X = XArray \caption{Properties of \dask{} benchmark task graphs} \label{tab:dask-graph-properties}
 \end{table}
 
+\begin{spacing}{1}
 \chapter{Task runtime descriptions}
 \label{app:task-runtime-descriptions}
 Below you can find a brief description of the individual task runtimes that were compared with \hyperqueue{} in~\Autoref{hq:related-work}.
@@ -218,8 +219,8 @@ tasks and complex resource requirements with a single command.
 \subsection*{\hypershell}
 \hypershell~\cite{hypershell} is also primarily designed for
 executing many homogeneous tasks using the command-line. It does introduce several useful features
-on top of \gnuparallel, such as automatic task re-execution when a task fails and storing the task
-state in a database, which enabls users to observe the history of executed workflows. It also
+on top of \gnuparallel{}, such as automatic task re-execution when a task fails and storing the task
+state in a database, which enables users to observe the history of executed workflows. It also
 provides a simple autoscaling functionality that automatically submits allocations. However, tasks
 in \hypershell{} are strictly tied to allocations; by default, one task is submitted in a single
 allocation. It does provide the option to \emph{bundle} several tasks together, but users
@@ -228,7 +229,7 @@ have to specify the maximum bundle size explicitly, which makes load balancing i
 task graphs.
 
 \subsection*{\dask}
-\dask~\cite{dask} was extensively decribed in~\Autoref{sec:rsds-dask}. It is a
+\dask~\cite{dask} was extensively described in~\Autoref{sec:rsds-dask}. It is a
 distributed task runtime written in Python, which allows parallelizing and distributing Python code
 in an easy way. \dask{} offers a low-level \gls{api} for building
 task graphs explicitly from Python function calls; however, one of its most powerful features is the
@@ -239,12 +240,10 @@ balancing and it is also very easy to use. With the use of a separate plugin cal
 Slurm allocations and also automatically scale them according to computational load. However, it
 only allows using a single queue for automatic allocation, which can make it challenging to execute
 task graphs that leverage heterogeneous resources (such as both \gls{cpu} and
-\gls{gpu} partitions of a cluster).
-
-Its resource requirement support is not as advanced as in \hyperqueue{} and it does not
+\gls{gpu} partitions of a cluster). Its resource requirement support is not as advanced as in \hyperqueue{} and it does not
 support multi-node tasks. Crucially, its performance is severely limited by its implementation
 language (Python), as is demonstrated in~\Autoref{dask:evaluation}; for \gls{hpc}-scale
-workflows, \hyperqueue{} easily outperforms it, which is further validated
+workflows, \hyperqueue{} easily outperforms it, which is shown
 in~\Autoref{sec:hq-exp-dask}.
 
 \subsection*{\ray}
@@ -278,28 +277,29 @@ execution command) and also an \emph{executor}, which controls how will be tasks
 scheduled and batched into allocations and if the execution will be fault-tolerant. While
 these options let users specify how will be their task graph executed on a very granular level, it
 requires them to tune this configuration per task graph or target cluster; the
-configuration system is also relatively complex. This is in contrast to \hyperqueue, which has a fully general resource
+configuration system is also relatively complex. This is in contrast to \hyperqueue{}, which has a fully general resource
 management model that does not require users to configure anything; tasks are automatically
 load balanced across all available workers regardless of allocations and workers do not have to be
 preconfigured for specific tasks.
 
-\parsl has basic support for resource requirements, but does not allow
+\parsl{} has basic support for resource requirements, but does not allow
 creating custom user-specified resource kinds. It also allows specifying the number of nodes
-assigned to a task; however, such tasks have to be executed within a single block; \parsl
+assigned to a task; however, such tasks have to be executed within a single block; \parsl{}
 does not allow executing multi-node tasks across different blocks or allocations.
 
 \subsection*{\pycompss}
 \pycompss~\cite{pycompss} is a Python interface for executing task graphs on top of the
 COMPSs distributed system. It allows defining arbitrary task graphs and has comprehensive support
 for multi-node tasks and basic resource requirements, but it does not allow users to define custom
-resource requirements. In terms of scheduling, it implements several simple
-scheduling algorithms; users can select which one should be used. Assignment of tasks to allocations is performed in a
+resource requirements. It was extended in~\cite{pycompss_numa} to support configuration of
+\gls{numa} nodes for individual tasks. In terms of scheduling, it implements several
+simple scheduling algorithms; users can select which one should be used. Assignment of tasks to allocations is performed in a
 manual way; users enqueue a task graph (an \emph{application}), which is then fully executed
 once that allocation is started. COMPSs provides basic support for automatic allocation that can
-react to computational load dynamically. However, it can only add or remove nodes from a primary
+dynamically react to computational load. However, it can only add or remove nodes from a primary
 allocation that is always tied to the execution of a single application; it does not provide fully
-flexible load balancing. \pycompss is slightly more challenging to deploy than most of the other
-mentioned task runtimes, since it also requires a Java runtime environment in addition to a Python
+flexible load balancing. \pycompss{} is slightly more challenging to deploy than most of the other
+compared task runtimes, since it also requires a Java runtime environment in addition to a Python
 interpreter.
 
 \subsection*{\pegasus}
@@ -308,17 +308,17 @@ workflows on a wide range of clusters, from \gls{hpc} to cloud. It provides supp
 for various additional features that have not been examined in this thesis, such as data provenance
 or advanced file management and staging. Its workflows are usually defined using workflow files,
 which enable specifying dependencies both explicitly or by inferring them from input/output files
-of tasks. It also supports basic resource requirements, but does not allow assigning custom
-resources to tasks or workers, and does not support multi-node tasks. By default, it maps each task
-to a single allocation, but it also allows users to \emph{cluster} tasks together using
-one of several predefined modes. However, users have to configure this clustering manually, it is
+of tasks. It also supports basic resource requirements, but does not allow defining custom
+resource kinds nor using multi-node tasks. By default, it maps each
+task to a single allocation, but it also allows users to \emph{cluster} tasks together using
+one of several predefined modes. However, users have to configure this clustering manually; it is
 not performed fully automatically like in \hyperqueue{}.
 
-In terms of deployment, it has the most complex runtime dependencies out of the compared task
+In terms of deployment, it has the most complex set of runtime dependencies out of the compared task
 runtimes, as it requires not only a Python interpreter and a Java runtime environment, but also the
 HTCondor~\cite{htcondor} workload management system, which can be non-trivial to install on
 an \gls{hpc} cluster. \pegasus{} delegates some of its functionality to
-HTCondor and requires a configured instance of HTCondor before it can execute workflows on a
+HTCondor; it requires a configured instance of HTCondor before it can execute workflows on a
 cluster.
 
 \subsection*{\balsam}
@@ -327,22 +327,19 @@ cluster.
 allocations as \hyperqueue{}, including automatic allocation; however, it is limited to a
 single allocation queue, similarly as in \dask{}. It supports multi-node tasks,
 although users have to statically preconfigure workers to either execute single-node or multi-node
-tasks. It does not allow specifying custom resource requirements (nor more advanced resource
-management offered by \hyperqueue{}, such as resource variants), which limits its
-usability for heterogeneous clusters.
-
-The \balsam{} server requires access to a PostgreSQL database instance, which makes
+tasks. It does not allow specifying custom resource kinds nor more advanced resource
+management offered by \hyperqueue{}, such as resource variants. The \balsam{} server requires access to a PostgreSQL database instance, which makes
 its deployment slightly more challenging than some other tools that do not need a database or that
 can use an embedded database like SQLite.
 
 \subsection*{\autosubmit}
-\autosubmit~\cite{autosubmit} is a tool for executing workflows and experiments. It focuses
-primarily on experiment tracking, data provenance and workflow automation. In its default mode,
+\autosubmit~\cite{autosubmit} is a high-level tool for executing workflows and experiments. It
+focuses primarily on experiment tracking, data provenance and workflow automation. In its default mode,
 each task corresponds to a single allocation, which is not ideal for short running tasks;
-\autosubmit is designed for more high-level and coarse-grained workflows. It provides a way to
+\autosubmit{} is designed primarily for coarse-grained workflows. It provides a way to
 bundle multiple tasks into the same allocation using \emph{wrappers}, but same as with
-e.g.\ \pegasus{}, this has to be preconfigured statically by the user and it is not
-performed automatically. \autosubmit{} does not support custom task resource requirements
+e.g.\ \pegasus{}, this has to be preconfigured statically by the user; it is not
+performed automatically. \autosubmit{} does not support custom task resource kinds
 and it also does not support direct data transfers between tasks nor output streaming.
 
 \subsection*{\fireworks}
@@ -353,17 +350,16 @@ have to be re-executed manually. \fireworks{} does not seem to support any task 
 requirements; resources can only be configured for individual allocations. Its meta-scheduling
 approach is relatively complicated; it provides several ways of mapping tasks to allocations and
 individual workers with different trade-offs rather than providing a unified way that users would
-not have to worry about. \fireworks{} requires a MongoDB database instance to store the
-state of tasks, which again makes its deployment slightly more challenging.
+not have to worry about. \fireworks{} requires a MongoDB database to store tasks, which can make its deployment slightly challenging.
 
 \subsection*{\merlin}
 \merlin~\cite{merlin} is a task queue system that enables execution of large workflows on
 \gls{hpc} clusters. It leverages the Celery~\cite{celery} task queue for
 distributing tasks to workers and the Maestro~\cite{maestro} workflow specification for
-defining task graphs. Tasks are submitted into separate Celery queues; whose resources need to be
-preconfigured, its load balancing is thus not fully flexible and automatic like in
-\hyperqueue{}. It also does not support automatic allocation of allocations and workers
-and also does not support custom resource requirements. Failed tasks can be automatically restarted
+defining task graphs. Tasks are submitted into separate Celery queues, whose resources need to be
+preconfigured; its load balancing is thus not fully flexible and automatic like in
+\hyperqueue{}. It also does not support automatic allocation and nor does it support custom
+resource kinds. Failed tasks can be automatically restarted
 if they end with a specific status code; however, if they fail because of unexpected reasons, users
 have to mark them for re-execution manually. \merlin{} requires a message broker
 backend, such as RabbitMQ or Redis, for its functionality, which makes its deployment non-trivial.
@@ -371,13 +367,14 @@ backend, such as RabbitMQ or Redis, for its functionality, which makes its deplo
 \subsection*{\snakemake}
 \snakemake~\cite{snakemake} is a popular workflow management system for executing
 coarse-grained workflows defined using workflow files that can be extended with inline Python code.
-\snakemake{} workflows are based on files, tasks are expected to produce and consume
+\snakemake{} workflows are based on files; tasks are expected to produce and consume
 files, which are also used to infer dependencies between them. This can pose an issue with a large
 number of tasks, as the created files can overload distributed filesystems; no output streaming is
 offered by the task runtime. It does enable assigning both known (e.g.\ \gls{cpu} or
-memory) and custom resource requirements to tasks, and also specify the number of nodes required
-for each task. Similarly to \pegasus{} or \autosubmit{}, it provides an
+memory) and custom resource kinds to tasks. It also allows specifying the number of nodes
+required for each task. Similarly to \pegasus{} or \autosubmit{}, it provides an
 option to \emph{cluster} multiple tasks into the same allocation; however, this
 partitioning has to be specified manually by users. Other than that, it submits tasks as individual
-allocations, which is not ideal for large workflows, because it can easily overload the target
+allocations, which is not ideal for large workflows, as it can easily overload the target
 cluster~\cite{nersc-snakemake}.
+\end{spacing}
