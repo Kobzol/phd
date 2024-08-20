@@ -410,12 +410,13 @@ $G^{fr} = (T, O, E, \setresourcekindstaskgraph, \fntaskresfrac)$, where:
 	\item $\setresourcekindstaskgraph$ is a set of \emph{resource kinds}.
 	\item $\fntaskresfrac$ is a function that defines the
 	\emph{fractional resource requirement} of a task for a given resource kind: \\
-	\resourcerequirement{\fntaskres}{Q}
+	\resourcerequirement{\fntaskresfrac}{Q}
 \end{itemize}
 
-%TODO: generalize theory
 The remaining properties of $G^{fr}$ are identical to the properties of the \emph{task graph}
-defined in~\defref{ch:taskgraphs}.
+defined in~\defref{def:task_graph}. Note that we can reuse both the task and worker resource
+constraints defined in~\defref{def:worker_resource_constraint}, as they still hold even with
+fractional resource requirements, assuming that we replace $\fntaskres$ by $\fntaskresfrac$.
 
 Support for fractional resource requirements can be useful to express situations where a task is
 not able to make full use of a resource. As an example, for some programs it can be challenging to
@@ -505,7 +506,7 @@ $G^{var} = (T, O, E, \setresourcekindstaskgraph, \fntaskresvar)$, where:
 \end{itemize}
 
 The remaining properties of $G^{var}$ are identical to the properties of the \emph{task graph}
-defined in~\defref{ch:taskgraphs}.
+defined in~\defref{def:task_graph}.
 
 Using~\defref{def:task_graph_var}, we can now also define a modified version of the
 \emph{task resource constraint}:
