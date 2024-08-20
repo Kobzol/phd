@@ -1,9 +1,11 @@
+%TODO: reformat definitions
 In order to discuss task-based programming, it is useful to provide a vocabulary of terms related
-to it. This vocabulary necessarily has to be relatively general, in order to be applicable to a
-wide range of systems; even though the previous chapter has specified a precise subset of
+to it and a set of definitions that describe the basic properties of task graphs and also the rules
+of their execution. These definitions necessarily have to be relatively general, so that they can be applied
+to a wide range of systems; even though the previous chapter has specified a relatively precise subset of
 task-based programming models that will be examined and analyzed in this thesis, there is still a
 large number of tools and systems that belong to this area of interest, each with their own
-distinct concepts and semantic rules. Therefore, it is infeasible to provide a single unifying and
+distinct concepts and semantic rules. Therefore, it would be infeasible to provide a single unifying and
 complete task theory that would encompass details of all these tools and programming models.
 
 This chapter defines a set of concepts related to tasks, with a particular focus on properties that
@@ -11,11 +13,12 @@ are important for task graph execution in \gls{hpc} environments, which will be
 further described in~\Autoref{ch:sota}. The definitions described in this chapter are
 specifically adapted to the needs and terminology of this thesis, as is usual for other research
 works. They form the lowest common denominator that can be applied to the specific task execution
-tools and their programming models discussed throughout this thesis. The presented terms are
-similar to definitions that can be found in existing works~\cite{task_scheduling,hagras2003static,wang2018list}. However, they
+tools and programming models discussed throughout this thesis. The presented terms are
+similar to definitions that can be found in existing works~\cite{task_scheduling,hagras2003static,wang2018list}, although they
 differ in several aspects. In particular, we do not assume that task execution times nor output
-data sizes are known in advance, and we provide a very general definition of task resource
-requirements, which can be used to model complex resource management of heterogeneous clusters.
+data sizes are known in advance, and we define a very general concept of resource management, which
+can be used to model complex resources of heterogeneous clusters. Some of the definitions related
+to resource management will be further extended in~\Autoref{ch:hyperqueue}.
 
 \section{Task graphs}
 \label{sec:task-graphs}
@@ -25,10 +28,9 @@ perspective, it describes which individual computational steps should be perform
 constraints for where and in which order they should be computed and how should data be transferred
 between the individual steps of the workflow.
 
-There are many variations of task graphs, based on the computational properties that they are able
-to describe. In the most basic form, task graph vertices represent computations to be performed,
-and the arcs (edges) represent dependencies between the computations, which enforce an order in
-which they should be executed. However, numerous other concepts can also be encoded in a task
+There are many variations of task graphs that differ in the computational properties they are able
+to describe. In the most basic form, task graph vertices represent computations that should be performed
+and the graph arcs (edges) represent dependencies between the computations, which enforce an execution order. However, numerous other concepts can also be encoded in a task
 graph. For example, in addition to dependencies, the arcs could represent abstract communication
 channels, through which the outputs of one computation are transferred to become the inputs of
 another computation that depends on it. As another example, there could be a special type of arc
@@ -36,31 +38,35 @@ which specifies that the outputs of a computation will be streamed to a follow-u
 instead of being transferred in bulk only after the previous computation has finished.
 
 As was already noted, the exact semantics of vertices and arcs of task graphs depend heavily on the
-specifics of tools that implement them, and thus it is not possible to provide a single definition
+specifics of tools that implement them, and it is thus infeasible to provide a single definition
 that would fit all variants used ``in the wild''. To provide a baseline definition, we will
-formally define a task graph that can capture dependencies between tasks, the notion of
-transferring data outputs between tasks, and where tasks can specify resources needed for their
-execution.
+formally define a task graph that can model dependencies between tasks, the notion of
+transferring data outputs between tasks, and also the resources needed for the execution of
+individual tasks.
 
 \newcommand{\alltaskpairs}{\forall t_1\in{}T, \forall t_2\in{}T}
 
-A task graph is a tuple $(T, O, E, \setresourcekinds, \fntaskres)$, where:
+\vspace{2mm}\makedef{def:task_graph} A task graph is a tuple $G = (T, O, E, \setresourcekindstaskgraph, \fntaskres)$, where:
 \begin{itemize}[itemsep=0pt]
 	\item $T$ is a set of \emph{tasks}.
 	\item $O$ is a set of \emph{data objects}.
 	\item $E \subseteq ((T\times{}O) \cup (O\times{}T))$ is a set of arcs.
-	\item $\setresourcekinds$ is a set of \emph{resource kinds}. Each resource kind describes some resource
-	      (e.g. \gls{cpu} cores or \glspl{gpu})
-	      that is required to execute a specific task.
-	\item[\makedef{def:task_resreq}] $\fntaskres$ is a function that defines the
-		\emph{resource requirement} of a task for a specific resource kind: \\
+	\item $\setresourcekindstaskgraph$ is a set of \emph{resource kinds}. Each resource kind
+	describes a type of resource
+	      (e.g. \gls{cpu} core or a \gls{gpu} device)
+	      that might be required to execute a specific task.
+	\item $\fntaskres$ is a function that defines the
+		\emph{resource requirement} of a task for a given resource kind: \\
 		\resourcerequirement{\fntaskres}{N} \\
 		A resource requirement specifies what amount of the given resource kind is required to be present
-		at a computational provider so that the task can be executed. If $\fntaskres(t, r) = 0$, then task
+		at a computational provider so that the task can be executed. $\fntaskres(t, r) = 0$
+	specifies that task
 		$t$ does not require resource $r$ for its execution.
 \end{itemize}
 
-$(T \cup O, E)$ forms a finite directed acyclic graph (a graph without cycles). The graph is
+%TODO: move this into the definition above?
+$(T \cup O, E)$ forms a finite directed acyclic graph. The absence of cycles is important;
+otherwise, the graph could not be executed. The graph is
 structured in a way so that for every data object, there is exactly one task that produces it: \\
 $\forall o \in O: |E \cap (T \times \{o\})| = 1$
 
@@ -74,34 +80,36 @@ graphs and their properties:
 	      $t$ the \emph{consumer} of $o$ and
 	      $o$ the \emph{input} of $t$.
 
-	\item Let us introduce a binary relation $D_r$: \\ $D_r: T \times T = \{(t_1, t_2) \mid (t_1, t_2)\in{}(T\times{}T)\land t_1 \neq t_2 \land
+	\item Let us introduce a binary relation $DR_G$: \\ $DR_G = \{(t_1, t_2)\in{}(T\times{}T) \mid t_1 \neq t_2 \land
 		      \exists{}o\in{}O\colon (t_1, o)\in{}E
 		      \land (o, t_2)\in{}E\}$ \\ When
-	      $(t_1, t_2) \in D_r$, we say that $t_2$ \emph{directly depends} on
+	      $(t_1, t_2) \in DR_G$, we say that $t_2$ \emph{directly depends} on
 	      $t_1$. We can also state that $t_2$ consumes the output produced
 	      by $t_1$.
 
-	\item Let us introduce a binary relation $D$: \\ $D: T \times T = \{(t_1, t_2) \mid \exists{}n (t_1, t_2, \ldots, t_n)\colon \forall i
-		      \in \{1,2,\ldots,n - 1\}\colon (t_i, t_{i+1}) \in{} D_r\}$ \\ When
-	      $(t_1, t_2) \in D$, we say that $t_2$ \emph{depends} on
-	      $t_1$ and that $t_1$ is a \emph{dependency} of
-	      $t_2$.
+	\item Let us introduce a binary relation $D_G$, which forms the transitive closure of
+	      $DR_G$. Tasks $(t_1, t_2)$ belong to $DR_G$ if there exists a sequence
+		  $(t_1, t_2, \ldots, t_n)$ such that $\forall i \in \{1,2,\ldots,n - 1\}: (t_i, t_{i+1}) \in DR_G$
 
-	\item We label tasks without any dependencies \emph{source tasks}: \\ $S = \{ t \mid t\in{}T \land
-		      \forall{}t_d\in{}T\colon (t_d, t)\notin D\}$ \\ It is
-	      a simple observation that unless the task graph is empty ($(T\cup{}O) = \emptyset$), there is always
-	      at least one source task in the graph, because the graph is acyclic.
+	      When $(t_1, t_2) \in D_G$, we say that $t_2$ \emph{depends} on $t_1$ and that
+	      $t_1$ is a \emph{dependency} of $t_2$.
+
+	\item We label tasks without any inputs \emph{source tasks}: \\ $S_G = \{ t\in{}T \mid
+		      \forall{}t_d\in{}T\colon (t_d, t)\notin D_G\}$ \\ It is a
+	      simple observation that unless the task graph is empty ($(T\cup{}O) = \emptyset$), there is always at
+	      least one source task in the graph, because the graph is acyclic.
+	\item We label tasks that are not depended upon by any other task \emph{leaf tasks}: \\
+	      $L_G = \{ t\in{}T \mid \forall{}t_d\in{}T: (t,
+		      t_d)\notin D_G\}$.
 \end{itemize}
 
-% \footnote{This representation will be used in all following task graph diagrams.}
-
 An example of a simple task graph is shown in~\Autoref{fig:task-graph-example}. Tasks are represented as
-circles, data objects as (rounded) rectangles and arcs as arrows. The task $t_0$
+circles, data objects as (rounded) rectangles and arcs as arrows. Task $t_1$
 generates two data objects, which are then used as inputs for four additional tasks. The outputs of
-these four tasks are then aggregated by a final task $t_5$. This can correspond
-e.g.\ to a workflow where $t_0$ generates some data, $t_{1-4}$
-performs a calculation on that data and $t_5$ then performs a final
-post-processing step and stores the results to disk.
+these four tasks are then aggregated by a final task $t_6$. This could correspond
+e.g.\ to a workflow where $t_1$ generates some initial preprocessed data, tasks $t_{2-5}$
+perform some computation on that data and $t_6$ then performs a final postprocessing
+step and stores the results to disk.
 
 \begin{figure}[h]
 	\centering
@@ -130,50 +138,50 @@ post-processing step and stores the results to disk.
 	\label{fig:task-graph-example}
 \end{figure}
 
-Note that the presented definition of a task graph does not describe its semantics -- how will the
-graph be created and executed and what will be the interactions between tasks and data objects.
-This depends on the specific tool or framework that will execute the task graph. As an example, the
-dependence of task $t_2$ on task $t_1$ could define the following
-invariant: $t_2$ cannot start to execute until $t_1$ has finished
-executing and the data objects produced by $t_1$ have been transferred to the
-computational node that will execute $t_2$. A formal definition of a basic set of
-execution and scheduling semantics will be provided in~\Autoref{sec:task-scheduling}.
+Note that the presented definition of a task graph does not describe its semantics, i.e.\ how
+will the graph be created and executed or what will be the interactions between tasks and data
+objects. This depends on the specific tool that will execute the task graph. A baseline formal
+definition of task graph execution properties will be provided
+in~\Autoref{sec:task-graph-execution}.
 
 A \emph{task} is a serializable description of a computation that can be executed
 repeatedly. The serializability property is crucial, as it allow us to treat computation as data.
-That is a powerful concept, because it allows tasks to be sent between different nodes in a cluster
-or stored to disk and to be transparently recomputed an arbitrary number of times. Enabling the
+That is a powerful concept, because it allows tasks to be sent between different nodes in a
+cluster, stored to disk and also to be transparently recomputed an arbitrary number of times.
+Enabling the
 recomputation of tasks is useful for achieving fault tolerance, as tasks might need to be
 recomputed later if some failure occurs during their execution.
 
 In practice, a single task will typically represent either the invocation a function (an executable
-block of code) or the execution of a whole program. Multiple tasks in a task graph can refer to the
-same function or program, since each such task can have different inputs. In fact, this is a common
-case, as task graphs are often used to parametrize a small set of functions or programs with many
-different input parameters.
+block of code) or the execution of a complete program. Multiple tasks in a task graph can refer
+to the same function or program; each such task can have different inputs. In fact, this is a common
+use-case, as task graphs are often used to parametrize a small set of functions or programs with
+many different input parameters.
 
-Even though the inputs and outputs of tasks were defined as sets in the formal definition, in
+Even though we have defined the inputs and outputs of tasks as sets, in
 practice they are usually stored using either ordered sequences or a mapping that associates a name
 with each input or output, because it is important to maintain a specific ordering of both inputs
-and outputs. For functions, the inputs are passed as arguments, and the output is derived from its
+and outputs. For functions, the inputs are passed as arguments and the output is derived from its
 return value (which can potentially form a sequence of values). Therefore, we have to be able to
 associate each task input to a specific argument index. The same holds for tasks that execute
 programs. In this case, inputs can be mapped to command-line arguments and the content of the
 \texttt{standard input stream}, and the output can be e.g.\ the content of the \texttt{standard output stream}
-generated by the executed program.
+generated by the executed program or a set of files that it writes to the filesystem.
 
-Each task can define its \emph{resource requirements}, a set of constraints for the worker(s) that are
-able to execute that task. As an example, a task that performs training of a machine-learning model
-might require a \gls{gpu} to be present on the worker where the task will be executed.
+Each task can define its \emph{resource requirements}, a set of constraints that need to be
+satisfied by a computational provider so that it can execute that task. As an example, a task that performs training of a
+machine-learning model
+might require a \gls{gpu} to be present on the computational node where it will be executed.
 Other resources might include e.g.\ a specific number of \gls{cpu} cores or a minimum
-amount of \gls{ram} or necessary to execute a given task.
+amount of \gls{ram} necessary to execute a given task.
 
-A \emph{data object} represents a dynamically computed result of a task; it is not known at the
+A \emph{data object} represents a dynamically computed result of a task; its value is not known
+at the
 time of the task graph creation. Typically, it is a serialized blob of data that is eventually
 transferred from the node where its producer was computed to the node where its consumer should be
 executed. If a task programming model does not encode direct data transfers between tasks, then
-data objects simply serve as ``empty'' markers of dependencies, and they do not hold any actual
-data. In that case, we could even remove them from the task graph completely, and represent task
+data objects simply serve as ``empty'' markers of dependencies and they do not hold any actual
+data. In that case, we could even remove them from the task graph completely and represent task
 dependencies directly with arcs between tasks.
 
 It is important to note that not all data used by tasks has to be encoded as a data object in the
@@ -183,80 +191,75 @@ constructed with a specific set of input data for its \emph{source tasks}. This 
 embedded directly within the definition of the function itself; in that case it is not represented
 as an explicit data object. In other words, a task might represent a serializable description of a
 computation along with its input data. That is why in the presented formal definition,
-\emph{source tasks} do not have any explicit \emph{inputs}, as it is expected that
+\emph{source tasks} do not have any explicit \emph{inputs}; it is expected that
 input data is embedded directly within them.
 
-Additionally, when a task is executed, it can also read and modify the state of the environment in
-which it is being executed, in a way that is observable by other tasks. For example, a function can
+Additionally, tasks can also read and modify the state of the environment in
+which they are being executed, in a way that is observable by other tasks. For example, a
+function can
 read or modify the value of a global variable, while a program can read an environment variable or
-create a file on a disk, without it being specified as a task output. Such actions, which we will
-label as \emph{side effects}, are also typically not encoded within the task graph. Tasks should
+create a file on a disk, without it being specified as a task output. Such actions, which are
+usually called side effects, are also typically not encoded within the task graph. Tasks
+should
 ideally contain as few side effects as possible, because they can make task execution
-non-deterministic, causing them to produce different outputs when executed multiple times, which is
+non-deterministic and cause them to produce different outputs when executed multiple times, which is
 typically undesirable.
 
-In general, the most important goal of the task graph is to encode high-level structure of the
-computation (such as dependencies between tasks), which enables a task execution tool to
-automatically execute the task graph in a parallel fashion. However, many details about the
-computation itself are specified outside the task graph itself.
-
 \section{Task execution}
+\label{sec:task-graph-execution}
 Task graphs merely describe some computation; therefore, they have to be executed in order to
 actually produce some outputs and results. This is the responsibility of a \emph{task runtime},
 a tool that analyzes task graphs and executes them in some \emph{computational environment}, e.g.\ a personal
 computer or a distributed cluster. Such an environment contains a set of computational providers
 that are able to execute tasks. We will label these providers as \emph{workers}. A worker
-can execute a task by invoking the computation assigned to it (typically by calling a function or
-executing a program), and passing it the inputs of the task. Usually a task can only be executed
-once all of its inputs are ready, which means that the dependencies of the task have been computed,
-and their outputs have been transferred to the computational node of the worker. However, this
-depends on the semantics of each task runtime.
+can execute a task by invoking its computation description (typically by
+calling a function or
+executing a program), while passing it the previously computed inputs of the task.
 
-We can formally define a \emph{computational environment} as a tuple $(W, \setresourcekinds, \fnworkerres)$, where:
-\begin{itemize}[itemsep=0pt]
-	\item $W$ is a set of workers.
-	\item $\setresourcekinds$ is a set of \emph{resource kinds}. Each resource kind describes some
-	      resource (e.g. \gls{cpu} cores or \glspl{gpu}) that can be provided a
-	      worker.
-	\item[\makedef{def:worker_resources}] $\fnworkerres$ is a function which defines how many resources are
-		provided by a worker for a specific resource kind: \\ $\fnworkerres\colon W \times \setresourcekinds \rightarrow
-			\mathbb{N}_{\geq{}0}$
-\end{itemize}
+%Usually a task
+%can only be executed
+%once all of its inputs are ready, which means that the dependencies of the task have been computed
+%and their outputs have been transferred to the computational node of the worker. However, this
+%depends on the semantics of each task runtime.
 
 There are many existing task runtimes with varying architectures, features and trade-offs, which
 affect factors like performance, fault tolerance or expressivity of the supported variant of the
 task-based programming model. Several task runtimes will be discussed throughout this thesis. In
 the rest of this section, we will consider a case typical for \gls{hpc} environments;
 a distributed task runtime with a central manager that communicates with a set of workers running
-on remote nodes that communicate together via a network.
+on remote nodes that communicate together via a network. We will also define a set of baseline
+properties and rules that should be applicable to most task runtimes using this architecture,
+without necessarily going into details of execution semantics that could differ across runtimes.
 
 In general, a task runtime oversees all aspects of task graph execution. Its two main
-responsibilities can be divided into managing communication with the workers, and handling the
+responsibilities can be divided into managing communication with workers and handling the
 scheduling and execution of tasks.
 
-Worker management involves handling the lifetime of workers (connection and disconnection from the
-cluster), facilitating data transfers between them or providing resiliency in case of worker
+Worker management involves handling the lifetime of workers, facilitating data transfers between them or providing resiliency in case of worker
 failures. A single worker is typically a program running on a computational node, which is
-connected to the runtime manager. It receives commands from it, executes tasks and sends
-information about task execution statuses back to the manager. Each worker typically manages some
+connected to the runtime through a network connection. It receives commands from the task runtime,
+executes tasks
+and sends
+information about task execution results back to the runtime. Each worker typically manages some
 hardware resources that are available for tasks during their execution. Hardware resources can be
-assigned to workers in various ways. There can be a single worker per the whole computational node,
+assigned to workers in various ways. There can be a single worker per the whole computational node
 or there could be multiple workers per node, each managing a subset of the available resources
 (e.g.\ a single worker per \gls{cpu} core).
 
 The second main aspect that has to be handled by the runtime is the management of tasks. It has to
 keep track of which tasks have already been computed, which tasks are currently being executed on
-some worker(s) or which tasks are ready to be executed next, because their dependencies have
-already been computed. Two important responsibilities in this area are fault tolerance and
+some worker(s) or which tasks are ready to be executed next. Two important responsibilities in this area are fault tolerance and
 scheduling.
 
-In the context of task graph execution, we will define \emph{fault tolerance} as the ability to
-gracefully handle task execution failures, and provide ways of retrying failed computations. When
+We will define \emph{fault tolerance} as the ability to
+gracefully handle various kinds of failures that can happen during task graph execution, such as
+task or worker failures. When
 the execution of a task fails with some error condition (e.g.\ because a worker executing the task
 crashes), a fault-tolerant task runtime will be able to transparently restart it by launching a new
 execution of that task. We will use the term \emph{task instance} for a specific execution of a
-task. Runtimes might impose some limits on retrying failed tasks, e.g.\ by attempting to execute up
-to a fixed number of task instances for each task before giving up, to avoid endless failure loops.
+task. Task runtimes might impose limits on retrying failed tasks, e.g.\ by attempting to
+execute up to a fixed number of task instances for each task before giving up, in order to avoid
+endless failure loops.
 
 The fact that it is even possible to execute a task multiple times is one of the main advantages of
 the task-based programming model, where tasks declaratively describe a self-contained computation
@@ -264,99 +267,103 @@ that can be re-executed arbitrarily many times. This crucial property of tasks m
 execution of task graphs easier to achieve than in other programming models, where individual
 computations are not self-contained and serializable.
 
+Below, we will provide a basic definition of task graph execution (and other concepts required
+to describe it), which should be applicable to most existing task runtimes. First, we will
+formally define a computational environment (e.g.\ a cluster) where tasks can be executed.
+
+\vspace{2mm}\makedef{def:cluster} A \emph{computational environment} is a tuple $C = (W, \setresourcekindscluster, \fnworkerres)$, where:
+\begin{itemize}[itemsep=0pt]
+	\item $W$ is a set of workers.
+	\item $\setresourcekindscluster$ is a set of \emph{resource kinds}. Each resource kind
+	describes some resource (e.g. \gls{cpu} cores or \glspl{gpu}) that can be provided a
+	worker.
+
+	Note that in all following definitions, we will assume that the resource kinds
+	of a computational environment are equal to the resource kinds of a task graph
+	computed in that environment.
+	\item $\fnworkerres$ is a function which defines how many resources are
+	provided by a worker for a specific resource kind: \\ $\fnworkerres\colon W \times \setresourcekindscluster \rightarrow
+	\mathbb{N}_{\geq{}0}$
+\end{itemize}
+
+Now we can formally describe the execution of a task graph. We will use the notion of an
+execution record of a task graph that was executed in some computational environment, so that we can
+examine the properties of that execution. Note that the exact semantics of
+executing task
+graphs will of course heavily depend on the used programming model and task runtime.
+Nevertheless, there are a few rules related to task dependencies and resource requirements that
+should hold in most task graph executions; these will also be defined below.
+
+%TODO: how to use inner variables (G, C)?
+\vspace{2mm}\makedef{def:task_graph_execution} An \emph{execution of a task graph} is a tuple
+\taskgraphexecution, where:
+\begin{itemize}[itemsep=0pt]
+	\item $G = (T, O, E, \setresourcekinds, \fntaskres)$ forms a \emph{task graph}.
+	\item $C = (W, \setresourcekinds, \fnworkerres)$ forms a \emph{computational environment}.
+	\item $\fntaskstart$ is a function that returns the point in time at which a specific
+	task started its execution in $E$: \\
+	$\fntaskstart\colon T \rightarrow \timedomain$
+	\item $\fntaskfinish$ is a function that returns the point in time at which a specific
+	task finished its execution in $E$: \\
+	$\fntaskfinish\colon T \rightarrow \timedomain$
+	\item $\fnworkertaskassigned$ is a function that returns the set of tasks that were currently
+	being executed on a specific worker at a given point in time in $E$: \\
+	$\fnworkertaskassigned\colon W \times \timedomain \rightarrow \powerset{T}$
+\end{itemize}
+
+Note that this definition assumes that each task is executed on a single worker and that exactly
+one task instance is executed for each task. In other words, tasks in such an execution do not fail and
+are all fully executed. Task runtimes handle task re-execution in different ways; it
+would be infeasible to provide a general definition of task retry semantics.
+
+%TODO: should this have a definition? How to reference it?
+
+Unless a task runtime provides some special semantics, then the execution $E$ should uphold at
+least the following two basic properties:
+\begin{itemize}
+	\item If a task $t_2$ depends on a task $t_1$, it cannot begin
+	executing until $t_1$ has finished executing: \\ $\alltaskpairs\colon (t_1, t_2) \in D_G \Rightarrow \fntaskfinish(t_1) \leq \fntaskstart(t_2)$
+	\item[\makedef{def:worker_resource_constraint}] Resource requirements of all tasks must be fulfilled and resources provided by individual workers
+	must not be oversubscribed at any point in time: \\ $\forall tp\in\timedomain, \forall w\in{}W, \forall
+	r\in{}\setresourcekinds\colon
+	\sum_{t\in{}\fnworkertaskassigned(w, tp)} \fntaskres(t, r) \leq
+	\fnworkerres(w, r)$ \\ We will label this
+	property as \emph{worker resource constraint}.
+\end{itemize}
+
 \section{Task scheduling}
 \label{sec:task-scheduling}
 One of the most important responsibilities of a task runtime is \emph{task scheduling}. It is the
 act of deciding in which order and on which specific worker(s) should each task execute, in a way
 that optimizes some key metric. We will use the term \emph{scheduler} for a component of the
 task runtime that is responsible for assigning tasks to workers by creating
-\emph{schedules}. A schedule is a mapping that assigns tasks to specific workers that should
-execute them, and also assigns an order in which the tasks should be executed. It can be
-\emph{static}, in which case it is produced just once before the task graph begins
+some form of a \emph{schedule}.
+
+In general terms, a schedule is a mapping that assigns tasks to specific
+workers that should execute them and also assigns an order in which the tasks should be executed.
+However, as with task graph execution, the semantics of scheduling and the structure of schedules
+depend on the specific implementation of a task runtime. Schedules can be
+\emph{static}, in which case they are produced just once before the task graph begins
 executing, or \emph{dynamic}, where the scheduler generates the assignments on-the-fly,
 based on the current utilization of workers and the observed durations of tasks that have already
 been executed. Some schedulers also retroactively modify already produced schedules in reaction to
 dynamic situations that occur during task graph execution (e.g.\ if a new worker connects to the
-cluster, or if some worker is starving).
+cluster or if some worker is underloaded), while others might not use any explicit schedules at
+all. Furthermore, the semantics of scheduling are tightly coupled to the semantics of
+task graph execution in each specific task runtime, such as fault tolerance, resource management,
+and other aspects. We will thus not provide a formal definition of schedules, as it would
+necessarily have to choose a specific schedule structure that might not be applicable to all
+task runtimes describes in this thesis.
 
-We will split the formal definition of a \emph{schedule} into two parts, because the
-schedule decides both the worker that executes a given task, and also the ordering in which tasks
-are executed. As mentioned earlier, a schedule can be produced either before the task graph is
-executed or during its execution. The following definitions are general and work for both
-approaches.
-
-We can define a \emph{schedule} as a pair $(\scheduleworker, \scheduleorder)$ applied to a task graph
-$(T, O, E, \setresourcekinds, \fntaskres)$ and a computational environment $(W, \setresourcekinds, \fnworkerres)$ as follows:
-
-\begin{itemize}[itemsep=0pt]
-	\item A worker schedule $\scheduleworker$ is a function that assigns each task to a specific worker:
-	      \\ $\scheduleworker\colon T \rightarrow W$
-	\item An ordering schedule $\scheduleorder$ is a function that assigns a unique number to each
-	      task, to define an (approximate) ordering in which tasks should be executed: \\
-	      $\scheduleorder\colon T \rightarrow \mathbb{O}, \mathbb{O} =
-		      \{1,\ldots,|T|\},
-		      \alltaskpairs\colon \scheduleorder(t_1) = \scheduleorder(t_2) \Rightarrow t_1 = t_2$
-\end{itemize}
-
-This definition supports only single-node tasks, i.e.\ tasks that are always executed on exactly a
-single node. It could be generalized for other use-cases that have a more complex programming
-model. For example, we could add support for multi-node tasks by generalizing the worker schedule
-to be a mapping of tasks to a non-empty set of workers: \\ $\scheduleworker\colon T \rightarrow \powerset{W}, \forall
-	t\in{}T\colon |\scheduleworker(t)| > 0$
-
-Usually, we will want the produced schedules to have additional desirable properties, such as
-respecting the dependencies and resource requirements of tasks in the task graph. Even though the
-specifics of these properties differ in each task-based programming model, we can define a set of
-baseline properties that are desirable in almost all situations. In order to do that, we will need
-to consider a specific execution of a task graph that used a given schedule; we can then evaluate
-whether that schedule satisfied these properties in the context of this execution.
-
-Assume that we want to evaluate a specific schedule ($\scheduleworker$,
-$\scheduleorder$) that was used to execute a task graph $(T, O, E, \setresourcekinds, \fntaskres)$ in a
-computational environment $(W, \setresourcekinds, \fnworkerres)$ in some execution $X$. For
-simplicity, we assume exactly one task instance executed for each task. In other words, tasks in
-this execution did not fail and each task was fully executed. First, let us define several
-auxiliary functions:
-
-\newcommand{\timedomain}{\mathbb{R}_{\geq{}0}}
-
-\begin{itemize}
-	\item Let us have a function $\fntaskstart$ that returns the point in time at which a specific
-	      task started its execution in $X$: $\fntaskstart\colon T \rightarrow \timedomain$
-	\item Let us have a function $\fntaskfinish$ that returns the point in time at which a specific
-	      task finished its execution in $X$: $\fntaskfinish\colon T \rightarrow \timedomain$
-	\item Let us have a function $\fnworkertaskassigned$ that returns a set of tasks that were currently being
-	      executed on a specific worker at a given point in time in $X$:
-	      $\fnworkertaskassigned\colon W \times \timedomain \rightarrow \powerset{T}$
-\end{itemize}
-
-We will say that a schedule is \emph{valid} in $X$ when all the
-following properties hold:
-
-\begin{itemize}
-	\item The ordering of task execution defined by $\scheduleorder$ has to be upheld: \\
-	      $\alltaskpairs\colon \scheduleorder(t_1) < \scheduleorder(t_2) \Rightarrow \fntaskstart(t_1) \leq
-		      \fntaskstart(t_2)$
-	\item If a task $t_2$ depends on a task $t_1$, it cannot begin to
-	      execute until $t_1$ has finished executing: \\ $\alltaskpairs\colon D(t_1, t_2) \Rightarrow \fntaskfinish(t_1) \leq \fntaskstart(t_2)$
-	\item[\makedef{def:worker_resource_constraint}] Resource requirements of all tasks must be fulfilled and resources provided by individual workers
-		must not be oversubscribed at any point in time: \\ $\forall tp\in\timedomain, \forall w\in{}W, \forall
-			r\in{}\setresourcekinds\colon
-			\mathlarger{\sum}_{t\in{}\fnworkertaskassigned(w, tp)} \fntaskres(t, r) \leq
-			\fnworkerres(w, r)$ \\ We will label this
-		property as \emph{worker resource constraint}.
-\end{itemize}
-
-% TODO: generalize ``validness'' to executions? Use it more?
-Since these properties form the bare minimum that a reasonable schedule should support, we will
-assume that all further schedules discussed in this thesis are \emph{valid}.
-
-We can further evaluate the quality of a schedule on various metrics. There are many such metrics
+What we can define generally is some measure of the quality of a specific task graph execution
+in a task runtime, which is typically affected by the behavior of its scheduler. There are many metrics
 that a scheduler can optimize for, such as the latency to execute specific critical tasks, but the
-most commonly used metric is \emph{makespan} -- the duration between the start of the
-execution of the first task to the completion of all tasks within the task graph. We can formally
-define the makespan $M$ of a specific task graph execution as follows: \\
-$M = \max\limits_{t \in T}(\fntaskfinish(t)) - \min\limits_{t \in T}(\fntaskstart(t))$
+most commonly used metric is \emph{makespan}:
+
+\vspace{2mm}\makedef{def:makespan} The makespan $M_E$ of a specific task graph execution
+$E = ((T, O, E, \setresourcekinds, \fntaskres), C, \fntaskstart, \fntaskfinish, \fnworkertaskassigned)$ is the
+duration between the start of the execution of the first task to the completion of all tasks: \\
+$M_E = \max\limits_{t \in T}(\fntaskfinish(t)) - \min\limits_{t \in T}(\fntaskstart(t))$
 
 \begin{figure}[h]
 	\centering
@@ -393,10 +400,7 @@ $M = \max\limits_{t \in T}(\fntaskfinish(t)) - \min\limits_{t \in T}(\fntaskstar
 			% Move to the right to draw the timelines
 			\tikzset{shift={(4,2)}}
 
-			\node[anchor=west,align=left] at (0, 0) {
-				$\scheduleworker^1(t_1) = w_1, \scheduleworker^1(t_2) = w_1, \scheduleworker^1(t_3) = w_2, \scheduleworker^1(t_4) = w_3$ \\
-				$\scheduleorder^1(t_1) = 1, \scheduleorder^1(t_2) = 2, \scheduleorder^1(t_3) = 3, \scheduleorder^1(t_4) = 4$
-			};
+			\node[anchor=west] at (0, 0) {Schedule $S_1$: $w_1$=\{$t_1$, $t_2$\}, $w_2$=\{$t_3$\}, $w_3$=\{$t_4$\}};
 
 			\tikzset{shift={(0,-1)}}
 			\node (tim1A) at (0, 0) {$w_1$};
@@ -429,10 +433,7 @@ $M = \max\limits_{t \in T}(\fntaskfinish(t)) - \min\limits_{t \in T}(\fntaskstar
 			% Move below to draw the timelines
 			\tikzset{shift={(0,-4)}}
 
-			\node[anchor=west,align=left] at (0, 0) {
-				$\scheduleworker^2(t_1) = w_1, \scheduleworker^2(t_2) = w_2, \scheduleworker^2(t_3) = w_3, \scheduleworker^2(t_4) = w_1$ \\
-				$\scheduleorder^2(t_1) = 1, \scheduleorder^2(t_2) = 3, \scheduleorder^2(t_3) = 4, \scheduleorder^2(t_4) = 2$
-			};
+			\node[anchor=west] at (0, 0) {Schedule $S_2$: $w_1$=\{$t_1$, $t_4$\}, $w_2$=\{$t_3$\}, $w_3$=\{$t_2$\}};
 
 			\tikzset{shift={(0,-1)}}
 			\node (tim2A) at (0, 0) {$w_1$};
@@ -461,28 +462,30 @@ $M = \max\limits_{t \in T}(\fntaskfinish(t)) - \min\limits_{t \in T}(\fntaskstar
 			([shift=({0,-1.75})]tim2t2.east) -- (tim2t2.east);
 		\end{tikzpicture}
 	}
-	\caption{Simple task graph and two different schedules}
+	\caption{Task graph executed with two different schedules}
 	\label{fig:scheduling-example}
 \end{figure}
 
-\vspace{2mm}Task scheduling is so crucial because it has a profound effect on the
+\vspace{4mm}Task scheduling is so crucial because it has a profound effect on the
 efficiency of the whole workflow execution. We can observe that in~\Autoref{fig:scheduling-example}, which
-shows a schedule for a simple task graph, and demonstrates how a trivial change in the schedule can
-severely affect the resulting makespan. The figure contains a task graph with four tasks and two
+shows two executions of a simple task graph that demonstrate how a trivial change in the
+used schedule can severely affect the resulting makespan. The figure contains a task graph with
+four tasks and two
 data objects. The size of the circles is proportional to the execution duration of the tasks and
 the size of the rounded rectangles is proportional to the size of the data objects.
 
-Let us assume that we want to schedule this task graph in a computational environment with three
-workers $(w_1, w_2, w_3)$. Two different schedules for this situation are shown in the figure.
-Schedule $S^1$ assigns tasks $t_1$ and $t_2$ to
+Let us assume that we want to execute this task graph in a computational environment with three
+workers $(w_1, w_2, w_3)$. Two different executions using different schedules are shown in the
+figure.
+Schedule $S_1$ assigns tasks $t_1$ and $t_2$ to
 worker $w_1$, task $t_3$ to worker $w_2$ and
-task $t_4$ to worker $w_3$, while schedule $S^2$
+task $t_4$ to worker $w_3$, while schedule $S_2$
 assigns tasks $t_1$ and $t_4$ to worker $w_1$,
 task $t_3$ to worker $w_2$ and task $t_2$ to
-worker $w_3$. The timelines shows the execution of tasks (blue rectangles) and
+worker $w_3$. The two timelines show the execution of tasks (blue rectangles) and
 the network transfers of data objects between workers (green rectangles) for each individual
-worker. It is clear that with $S^2$, the task graph will be computed faster than
-with $S^1$, even though the only difference between the two schedules is that the
+worker. It is clear that with $S_2$, the task graph will be computed faster than
+with $S_1$, even though the only difference between the two schedules is that the
 tasks $t_2$ and $t_4$ were swapped between workers
 $w_1$ and $w_3$. Note that the timeline assumes that a worker
 can overlap the computation of a task with the transfer a data object to another worker over the
@@ -495,41 +498,30 @@ resort to various heuristics tailored to their users' needs. Some classic task s
 heuristics and their comparisons can be found in~\cite{estee,hlfet1974,kwok1998benchmarking,hagras2003static,wang2018list}. \Autoref{ch:estee}
 provides a comprehensive survey of various task scheduling algorithms.
 
-%Scheduling heuristics have to take many factors into consideration when deciding on which worker
-%should a task be executed:
-%
-%\begin{description}[wide=0pt]
-%	\item[Resource requirements] The scheduler should respect all resource requirements specified by tasks. The runtime thus has to
-%		observe the dynamically changing available resources of each worker and schedule tasks accordingly,
-%		to uphold their requirements. This can be challenging especially in the presence of complex
-%		resource requirements.
-%	\item[Data transfer cost] If the runtime operates within a distributed cluster, one of the most important scheduling aspects
-%		that it needs to consider is the transfer cost of data between workers over the network. All
-%		benefits gained by computing a task on another worker to achieve more parallelization might be lost
-%		if it takes too much time to send the data (task outputs) to that worker.
-%
-%		The scheduler thus has to carefully balance the communication-to-computation ratio, based on the
-%		available network bandwidth, sizes of outputs produced by tasks and the current utilization of
-%		workers.
-%	\item[Scheduling overhead] The overhead of generating the schedule itself also cannot be underestimated. As was already
-%		stated, computing an optimal solution quickly is infeasible, but even heuristical approaches can
-%		have wildly different performance characteristics. Producing a lower quality schedule sooner,
-%		rather than a higher quality schedule later, can be sometimes beneficial.
-%	\item[Memory consumption] It is desirable to execute as many tasks in parallel on a given worker (with respect to its
-%		available parallelism), to speed up the completion of the whole workflow. However, the scheduler
-%		should also balance the number of concurrently executing tasks according to the total amount of
-%		memory that they consume. In general, it is difficult to predict for how long will a task execute,
-%		and how much (peak) memory will it consume. When a task executes longer than expected, the workflow
-%		will still be computed, it will just take more time. But when a task uses more memory than
-%		expected, or the scheduler puts too many tasks on a worker at the same time, then the worker might
-%		run out of memory and crash. If this happens repeatedly, it can stall or completely stop the
-%		execution of the workflow. For memory-intensive workflows, the runtime should assign fewer tasks at
-%		the same time to a single worker, or reduce overall memory consumption in some other way, e.g.\ by
-%		keeping less cached data objects in the worker's memory.
-%\end{description}
+Scheduling heuristics have to take many factors into consideration when deciding on which worker
+should a task be executed:
+
+\begin{description}[wide=0pt,itemsep=0pt,topsep=4pt]
+	\item[Resource requirements] The scheduler should respect all resource requirements specified by tasks. The runtime thus has to
+		observe the dynamically changing available resources of each worker and schedule tasks accordingly,
+		to uphold their requirements. This can be challenging especially in the presence of complex
+		resource requirements.
+	\item[Data transfer cost] If the runtime operates within a distributed cluster, one of the most important scheduling aspects
+		that it needs to consider is the transfer cost of data between workers over the network. All
+		benefits gained by computing a task on another worker to achieve more parallelization might be lost
+		if it takes too much time to send the data (task outputs) to that worker.
+
+		The scheduler thus has to carefully balance the communication-to-computation ratio, based on the
+		available network bandwidth, sizes of outputs produced by tasks and the current utilization of
+		workers.
+	\item[Scheduling overhead] The overhead of generating the schedule itself also cannot be underestimated. As was already
+		stated, computing an optimal solution quickly is infeasible, but even heuristical approaches can
+		have wildly different performance characteristics. Producing a lower quality schedule sooner,
+		rather than a higher quality schedule later, can be sometimes beneficial.
+\end{description}
 
 \section*{Summary}
-This chapter has provided a basic definition of the most important terms related to task-based
+This chapter has provided a general definition of the most important terms related to task-based
 programming models that will be used throughout this chapter. It has introduced the notion of task
 graphs, tasks, data objects, resource requirements, workers, task runtimes and task scheduling.
 
