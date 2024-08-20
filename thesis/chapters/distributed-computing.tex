@@ -282,7 +282,7 @@ handling real-time events that occur at unpredictable times. On the other hand, 
 workflows are a better fit for \gls{hpc} clusters, since their execution time is
 bounded by the size of their input, which is often known in advance, and thus they can be more
 easily mapped to transient, time-limited allocations of \gls{hpc} hardware resources.
-This thesis focuses exclusively on batch processing.
+\textbf{This thesis focuses exclusively on batch processing}.
 
 \subsection{Programming model generality}
 Even though most workflow processing tools are designed to execute a \gls{dag} of
@@ -412,8 +412,8 @@ to define the structure of the whole workflow.
 
 While MapReduce, DataFrame processing or other similar models are useful for computations that have
 a predictable structure, they are not always general enough to express complex
-\gls{hpc} scientific workflows. We will thus further only consider tools and models
-that allow executing arbitrary task graphs.
+\gls{hpc} scientific workflows. \textbf{We will thus further only consider tools and models
+that allow executing arbitrary task graphs}.
 
 \subsection{Task granularity}
 \label{sec:task-granularity}
@@ -429,9 +429,11 @@ more tasks. The same properties also apply inversely for a decreasing granularit
 
 Since tasks represent arbitrary computations, it is not always straightforward to determine how
 granular they are. Usually it is much simpler to use a proxy metric for task granularity based on
-the duration it takes to execute the task. Therefore, if a task executes very quickly, we will
-consider that it is highly granular, while if a task takes a long time to execute, we will consider
-that it has low granularity.
+the duration it takes to execute the task. Therefore, if a task takes a short time to execute (e.g.\
+milliseconds or less), we will consider that it is highly granular, while if a task takes a long
+time to execute (e.g.\ hours or more), we will consider that it has low granularity. However, it
+should be noted that what constitutes high or low granularity depends on a specific use-case and the
+task runtime used to execute it.
 
 Task granularity is important primarily because it determines how efficiently a task graph can be
 parallelized and if it even makes sense to distribute it to multiple nodes at all. For example, if
@@ -494,13 +496,13 @@ There is also a set of task-based tools that reside at the other end of the gran
 for example Apache Airflow~\cite{airfow}, Dagster~\cite{dagster},
 Prefect~\cite{prefect} or Argo~\cite{argo}. These are commonly labeled as
 \emph{Workflow Management Systems}. Although it cannot be said that there is a single distinguishing feature
-that would separate these tools from other task runtimes, from my point of view these tools form a
-separate category. They are primarily designed for very coarse-grained workflows with a relatively
+that would separate these tools from other task runtimes, what they have in common is that they
+were not primarily designed for \gls{hpc} use-cases. They typically
+work with very coarse-grained workflows with a relatively
 small number of tasks, they put strong emphasis on workflow reproducibility, data provenance,
-execution monitoring (typically through a web interface) and support scheduled execution (i.e.\
+execution monitoring (typically through a web interface) and scheduled execution (i.e.\
 ``execute this workflow every hour''). They are also typically being applied in cloud environments,
-moreso than on supercomputers. This thesis will thus not consider these tools in great detail, as
-they are not primarily designed for \gls{hpc} use-cases.
+moreso than on supercomputers. This thesis will thus not consider these tools in great detail.
 
 \section*{Summary}
 This chapter has introduced various approaches for creating distributed applications designed for

@@ -88,10 +88,10 @@ The main issue of allocations is that they strictly tie together two separate as
 \emph{what} the user wants to compute (the computation performed once the allocation
 starts) and \emph{where} should the computation take place (specific hardware resources
 and computational nodes reserved for the allocation). As was already described previously, both of
-these things have to be specified together in an allocation. This is a very inflexible design, for
+these things have to be specified together in an allocation. This is a very inflexible design because of
 several reasons:
 
-\begin{itemize}
+\begin{itemize}[itemsep=0pt]
 	\item The user needs to consider both aspects at the same time. Ultimately, the main thing that the user
 	      cares about is what they want to compute. With allocations, they also need to think about specific
 	      hardware resources that should be allocated for computing their tasks, and how should tasks be

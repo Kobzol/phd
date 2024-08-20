@@ -48,7 +48,7 @@ which scheduling approach is best suited for executing task graphs on distribute
 performed an extensive analysis of several task scheduling algorithms in
 \emph{Analysis of workflow schedulers in simulated distributed environments}~\cite{estee}. The two main contributions of this work are as
 follows:
-\begin{enumerate}
+\begin{enumerate}[itemsep=0pt]
 	\item We have created an extensible, open-source simulator of task graph execution, which allows users to
 	      easily implement their own scheduling algorithms and compare them, while taking into account
 	      various factors that affect task scheduling.
@@ -187,8 +187,9 @@ print(f"Task graph execution makespan = {makespan}s")
 \estee{} supports general task graphs represented by a \gls{dag}.
 Each task has an associated duration, and can contain multiple outputs (data objects), each with an
 associated size. It can also specify how many cores it requires, to model the common requirement of
-executing multi-threaded functions and programs on modern \gls{hpc} machines. The
-used task graph model corresponds to the task graph definition introduced
+executing multi-threaded functions and programs on modern \gls{hpc} machines. Tasks do not
+depend directly on other tasks; dependencies are formed between a task and a specific data
+output of another task. The used task graph model thus corresponds to the task graph definition introduced
 in~\Autoref{ch:taskgraphs}.
 
 \subsection{Communication model}
@@ -444,9 +445,9 @@ between various communication models and scheduler parameters.
 Note that since the used simulation environment is focused on simulating different task graph
 schedules and network transfers, and it does not model the actual execution of the scheduler nor
 the task runtime in a cycle-accurate way, the term \emph{scheduler performance} refers to the simulated
-makespan of task graphs executed using schedules provided by the given scheduler. In other words,
-our experiments estimate how quickly a given task graph would be fully computed on a cluster, using
-a given network model, while being scheduled by a specific scheduling algorithm.
+makespan of task graphs executed using schedules provided by the given scheduler, as defined
+by~\defref{def:makespan}. In other words, our experiments estimate how quickly a given task
+graph would be fully computed on a cluster, using a given network model, while being scheduled by a specific scheduling algorithm.
 
 \subsection{Benchmark configuration}
 Below, you can find descriptions of the cluster, scheduler and task graph configurations that we
