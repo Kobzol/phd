@@ -1,6 +1,6 @@
-%TODO: fix P(Rwid)
+%TODO: ergonomics/efficiency for meta-scheduling design
 %TODO: fractional resources experiment
-%TODO: ergonomics/efficiency for meta-scheduling design and resources
+%TODO: fix P(Rwid)
 %TODO: SOTA for resource management
 The previous two chapters focused primarily on the performance aspects of task graph execution, by
 examining various task scheduling algorithms and also bottlenecks that can limit the scalability of
@@ -388,9 +388,9 @@ necessary to keep the task graph portable, but crucially also to provide the sch
 for load balancing. If tasks required specific resource elements to execute, it would limit the
 scheduler's ability to choose resources dynamically in response to computational load.
 
-Taking resource identity into account makes it easier for tasks to correctly use the exact
-resources assigned to it by a scheduler, especially when combined with fractional resource
-requirements, which are described later below.
+Taking resource identity into account improves \textbf{ergonomics}, because it makes it easier for
+tasks to correctly use the exact resources assigned to it by a scheduler. This benefit is
+especially useful when combined with fractional resource requirements, which are described later below.
 
 \subsection{Related resources}
 Even though tasks should ideally not ask for specific resource elements in order to remain
@@ -416,7 +416,7 @@ way, because they can affect performance in other situations than just with
 characteristics.
 
 We will not provide a formal definition for this concept, as it is very general and could be
-designed and implemented in various ways.~\Autoref{sec:hq-resource-management} will describe how is it
+designed and implemented in various ways.~\Autoref{sec:hq-resource-management} will describe how it is
 implemented in \hyperqueue{}.
 
 While it is always possible to configure the \gls{cpu} or \gls{numa}
@@ -425,6 +425,10 @@ individual tasks. The \ray{}~\cite{ray} task runtime supports a
 general mechanism called \emph{placement groups} that allows specifying groups of related resources
 and the \pycompss{} was extended in~\cite{pycompss_numa} to support
 \gls{numa} placement of tasks.
+
+Specifying related resources is designed to improve \textbf{efficiency}, as it should allow the
+scheduler to understand more precise resource requirements of individual tasks and thus help
+them achieve better performance.
 
 \subsection{Fractional resource requirements}
 As you may recall from~\Autoref{sec:task-graphs} and~\defref{def:task_graph}, we have originally
@@ -478,6 +482,10 @@ specific resource by multiple tasks. However, this only works for a known set of
 for it to work. It also works mostly on the level of individual allocations; as was already
 discussed in~\Autoref{challenge:allocation-manager}, using Slurm allocations directly as tasks causes several
 issues.
+
+Fractional resource requirements are designed to improve \textbf{efficiency} of task graph
+execution, as they allow achieving higher hardware utilization of powerful hardware resources
+that are difficult to fully utilize by a single task.
 
 \subsection{Dynamic resource selection}
 \label{sec:dynamic-resource-selection}
@@ -593,6 +601,11 @@ resource management concepts at once; we are also not aware of other work that w
 non-fungible resources and resource variants at all. Implementing these concepts could improve the
 flexibility of task graph execution on heterogeneous clusters; this will be described in more
 detail and evaluated in the following sections.
+
+Dynamic resource selection should improve \textbf{efficiency}, by allowing tasks to provide the
+scheduler with several alternative resource options that they are able to work with, which then
+allows the scheduler to dynamically select the best option during load balancing based on
+current computational load.
 
 \section{\hyperqueue{}}
 \label{sec:hyperqueue}
