@@ -1,4 +1,3 @@
-%TODO: ergonomics/efficiency for meta-scheduling design
 %TODO: fractional resources experiment
 %TODO: fix P(Rwid)
 %TODO: SOTA for resource management
@@ -175,6 +174,10 @@ ergonomic task execution.
 		other users of the cluster, rather than being executed inside secured and isolated allocations. It
 		should thus offer its users an option to encrypt its communication to avoid other users of the
 		cluster reading sensitive data (e.g.\ task outputs) sent from workers.
+
+		This should improve both \ergonomics{}, by automating the partitioning of tasks to
+		allocations, and also \efficiency{}, by allowing the scheduler to load balance tasks
+		across different allocations.
 	\item[Allocations are uniform] Even with the task runtime running outside an allocation, it is still necessary to submit
 		\emph{some} allocations to provide hardware resources that will actually execute tasks.
 		Instead of defining specific tasks that should be computed within an allocation, allocations should
@@ -188,12 +191,18 @@ ergonomic task execution.
 		much easier for users to submit allocations. Instead of thinking about how to partition their task
 		graphs, users simply decide how many computational resources they want to spend at any given moment
 		and then they start the corresponding number of allocations.
+
+		This should improve \ergonomics{}, by making it easier for users (and the task runtime) to
+		provide computational resources.
 	\item[Allocations are submittable automatically] A corollary of the previous principle is that it becomes possible to submit allocations fully
 		automatically by the task runtime. It can use its knowledge of the current computational load to
 		submit workers whose resources would help execute tasks that are currently waiting for hardware
 		resources. This saves users from performing a laborious manual process (allocation submission) and
 		can further help improve hardware utilization, since the task runtime can use its knowledge to
 		dynamically increase and decrease the number of active workers.
+
+		This approach helps improving \ergonomics{} by removing the need to manually submit
+		allocations.
 	\item[Failed tasks are retried automatically] Once allocations become generic computational providers, their lifetime is no longer bound to a
 		specific set of tasks. And since allocations often end abruptly, they might disappear in the midst
 		of a task being computed. This is not a failure of the task per se; it is a mostly unavoidable
@@ -205,10 +214,16 @@ ergonomic task execution.
 		because an allocation failure will not affect the state of tasks stored in the task runtime. In
 		order to also be resilient against e.g.\ login node failures, the task runtime should be able to
 		restore its state from persistent storage (e.g.\ a filesystem or a database).
+
+		Automatic task re-execution improves \ergonomics{}, because users do not have to
+		find failed tasks and manually resubmit them.
 	\item[Dependencies are independent of allocations] The allocation manager should not act as a task runtime and thus it should not handle dependencies
 		between tasks. These should be expressed solely on the level of the task runtime itself and they
 		should be fully independent of allocations. This approach also facilitates execution of the task
 		runtime on a local computer, where there most likely will not be any allocation manager available.
+
+		Defining task graphs without any relation to allocations improves \ergonomics{}, because
+		it makes it simpler to prototype task graph execution on users' personal computers.
 	\item[Tasks are paired with workers using abstract resources] The first two principles described above separate the two core pillars of task graph execution; the
 		definition of the task graph and the provisioning of hardware resources. However, it is in fact
 		required to somehow tie these two aspects together, because tasks can have resource requirements
@@ -231,6 +246,10 @@ ergonomic task execution.
 		provided in allocations. Even if the allocation manager always provides at least a whole node in
 		each allocation, multiple granular tasks (even from completely independent task graphs) that
 		require e.g.\ only a single core can be load balanced onto that same node.
+
+		A generic resource system should improve \efficiency, by providing the scheduler with
+		more opportunities to load balance computation and by allowing tasks to express precise
+		resource requirements that can be useful especially on heterogeneous clusters.
 \end{description}
 
 This set of guidelines should enable execution of heterogeneous task graphs on supercomputers in a
@@ -388,7 +407,7 @@ necessary to keep the task graph portable, but crucially also to provide the sch
 for load balancing. If tasks required specific resource elements to execute, it would limit the
 scheduler's ability to choose resources dynamically in response to computational load.
 
-Taking resource identity into account improves \textbf{ergonomics}, because it makes it easier for
+Taking resource identity into account improves \ergonomics{}, because it makes it easier for
 tasks to correctly use the exact resources assigned to it by a scheduler. This benefit is
 especially useful when combined with fractional resource requirements, which are described later below.
 
@@ -426,7 +445,7 @@ general mechanism called \emph{placement groups} that allows specifying groups o
 and the \pycompss{} was extended in~\cite{pycompss_numa} to support
 \gls{numa} placement of tasks.
 
-Specifying related resources is designed to improve \textbf{efficiency}, as it should allow the
+Specifying related resources is designed to improve \efficiency{}, as it should allow the
 scheduler to understand more precise resource requirements of individual tasks and thus help
 them achieve better performance.
 
@@ -483,7 +502,7 @@ for it to work. It also works mostly on the level of individual allocations; as 
 discussed in~\Autoref{challenge:allocation-manager}, using Slurm allocations directly as tasks causes several
 issues.
 
-Fractional resource requirements are designed to improve \textbf{efficiency} of task graph
+Fractional resource requirements are designed to improve \efficiency{} of task graph
 execution, as they allow achieving higher hardware utilization of powerful hardware resources
 that are difficult to fully utilize by a single task.
 
@@ -602,7 +621,7 @@ non-fungible resources and resource variants at all. Implementing these concepts
 flexibility of task graph execution on heterogeneous clusters; this will be described in more
 detail and evaluated in the following sections.
 
-Dynamic resource selection should improve \textbf{efficiency}, by allowing tasks to provide the
+Dynamic resource selection should improve \efficiency{}, by allowing tasks to provide the
 scheduler with several alternative resource options that they are able to work with, which then
 allows the scheduler to dynamically select the best option during load balancing based on
 current computational load.
