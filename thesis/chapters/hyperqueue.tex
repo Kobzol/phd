@@ -1,4 +1,3 @@
-%TODO: fractional resources experiment
 %TODO: fix P(Rwid)
 %TODO: SOTA for resource management
 The previous two chapters focused primarily on the performance aspects of task graph execution, by
@@ -1143,7 +1142,9 @@ management features are described below.
 \vspace{2mm}\textbf{Fractional resource requirements}\enskip{}Tasks can specify
 their resource requirements in the form of a fraction. The scheduler uses fixed-point arithmetic to
 manage fractional resource requirements, in order to avoid issues associated with floating-point
-arithmetic, such as rounding errors.
+arithmetic, such as rounding errors. \Autoref{sec:hq-exp-fractional-resources} will examine
+hardware utilization improvements that can be achieved with fractional resource requirements.
+%TODO: describe what happens if you ask for a fraction of > 1
 
 \vspace{2mm}\textbf{Resource variants}\enskip{}Each task can define a list of
 resource requirement sets (resource variants); the scheduler uses the first one that can be
@@ -1678,9 +1679,13 @@ output mode for its \gls{cli} commands that facilitates this kind of usage.
 
 \section{Evaluation}
 \label{hq:evaluation}
-This section evaluates the performance and scalability of \hyperqueue{} and its ability
-to maximize hardware utilization of workers on a series of experiments. All experiments were
-performed on the \gls{cpu} partition of the Karolina
+This section presents several experiments that evaluate the performance and ergonomic aspects of
+\hyperqueue{}. They focus on its overhead, scalability, hardware utilization improvements
+achievable through its heterogeneous resource management techniques, \gls{cpu} time consumption on login nodes,
+and also its automatic allocation and output streaming features. We also examine the \hyperqueue{}
+virtual screening workflow and compare the scalability and overhead of \hyperqueue{} and \dask{}
+
+All experiments were performed on the \gls{cpu} partition of the Karolina
 supercomputer~\cite{karolina} located at the IT4Innovations supercomputing
 center~\cite{it4i}. Each non-accelerated computational node of Karolina has two AMD
 EPYC\texttrademark{} 7H12 2.6 GHz 64 core \glspl{cpu}, for a total of 128 cores
@@ -1992,61 +1997,6 @@ performance issues with large or very granular task graphs. It is also clear tha
 \dask{} increases quickly with multiple added workers, which is further exacerbated
 when multiple workers per node are used.
 
-\subsection{Resource variants}
-\label{sec:hq-exp-resource-variants}
-This experiment evaluates the load-balancing benefits of \emph{resource variants}, which were
-described in~\Autoref{sec:dynamic-resource-selection}. For evaluation, we use the simple workflow with
-$300$ tasks executed on a single node with $8$ virtual
-\glspl{gpu} and the same number of \glspl{cpu}. Tasks in this experiment
-simulate a computation that can run either on a \gls{gpu} or on a
-\gls{cpu}. To emulate the performance difference between the \gls{gpu}
-and the \gls{cpu}, tasks executed on the accelerator will sleep for
-\SI{1}{\second} and tasks executed on the \gls{cpu} will sleep for a
-multiple of this duration, according to a given ratio (which is a benchmark parameter).
-Note that we could also use a larger number of \gls{cpu} cores and reduce the benchmarked values
-of this ratio; the result should be approximately the same.
-
-Our goal was to determine how will the resulting makespan differ for the following three
-situations:
-\begin{itemize}[itemsep=0pt,topsep=2pt]
-	\item Tasks are executed only on the \gls{gpu}.
-	\item A fixed fraction of tasks is executed on the \gls{gpu}, the rest runs on the
-	      \gls{cpu}.
-	\item The fraction of tasks that is executed on the \gls{gpu} is determined dynamically by
-	      \hyperqueue{} using resource variants.
-\end{itemize}
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=\textwidth]{imgs/hq/charts/alternative-resources}
-	\caption{Load-balancing effect of resource variants}
-	\label{fig:hq-resource-variants}
-\end{figure}
-
-\vspace{1mm}The results of the experiment can be observed in~\Autoref{fig:hq-resource-variants}.
-The vertical axis displays the makespan; the five bars represent different configurations of resources. In the
-\emph{\gls{gpu} only} mode, all tasks were configured to run on a single
-\gls{gpu}. In the \emph{\gls{gpu} or \gls{cpu}} mode, tasks were configured to run either
-on the \gls{gpu} or on the \gls{cpu} using resource variants. The
-remaining three modes assign a specific fraction of tasks to run on the \gls{gpu};
-the rest was executed on the \gls{cpu}. The three charts show results for different
-values of the \gls{gpu} vs \gls{cpu} performance ratio, i.e.\ how much
-faster was the task running on a \gls{gpu} than on the \gls{cpu}.
-
-We can see that unless the \gls{gpu} ratio is too high or we assign too many tasks to
-the \gls{cpu}, it is beneficial to also leverage the \gls{cpu}
-resources rather than using only \glspl{gpu}. With \gls{cpu} fractions
-determined manually in advance, the result depends heavily on the \emph{\gls{gpu} ratio}, and in
-certain configurations it can make the makespan significantly longer. This would thus be both less
-efficient and more laborious to configure for the user. On the other hand, when the resources for
-each task are configured using two resource variants (either \gls{gpu} or
-\gls{cpu}), \hyperqueue{} is able to dynamically adapt to all three
-\gls{gpu} ratios. In all three scenarios, the makespan with resource variants is
-strictly smaller than with \glspl{gpu} only, and it either surpasses or matches the
-best result achieved with a predetermined fraction of tasks running on the \gls{cpu}.
-This shows that resource variants can help achieve better hardware utilization without requiring
-the user to fine-tune resource configurations of individual tasks in the task graph.
-
 \subsection{Group allocation strategies}
 \label{sec:hq-exp-numa}
 This experiment examines the effect of resource group allocation strategies on the
@@ -2103,6 +2053,122 @@ slow than with the \emph{Compact} strategy. This suggests that for memory-sensit
 programs, using a \gls{numa}-aware task allocation strategy can significantly improve
 the achieved performance.
 
+\subsection{Fractional resource requirements}
+\label{sec:hq-exp-fractional-resources}
+In this experiment we evaluate how can fractional resource requirements improve hardware
+utilization, and also demonstrate their interplay with non-fungible resources. We perform a
+simple hyperparameter search that executes $20$ independent tasks. Each task executes a Python
+script that trains a neural network model using the TensorFlow~\cite{tensorflow}
+deep-learning framework; the model is designed to perform image classification based on the
+Fashion MNIST dataset~\cite{fashionmnist}. The experiment was performed on the Karolina \gls{gpu}
+partition~\cite{karolina_gpu}, which contains very powerful NVIDIA A100 \gls{gpu} accelerators
+that can achieve over $300$ teraFLOPS (trillion floating-point operations per
+second) and have \SI{40}{\gibi\byte} of memory.
+
+The training script leverages a \gls{gpu} to accelerate the training; however, it is unable to
+fully utilize the NVIDIA A100 accelerator. Therefore, it is beneficial to execute multiple
+training tasks per a single \gls{gpu} in order to improve its utilization, which can be
+achieved using fractional resource requirements. We examine four configurations of a fractional \gls{gpu}
+resource requirement set by each task, $1$, $0.5$, $0.25$ and $0.1$.
+A fractional requirement of $n$ states that $\frac{1}{n}$ tasks can be executed in parallel on a
+single \gls{gpu}; for example, with a requirement of $0.1$ \glspl{gpu}, $10$ tasks can run on the
+same accelerator at once. The requirement of $1$ \gls{gpu} per task emulates the behavior of a
+task runtime without support for fractional resource requirements, which would be unable to
+assign multiple tasks to the same accelerator at the same time.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/hq/charts/fractional-resources}
+	\caption{\glsxtrshort{gpu} hardware utilization improvements with fractional resource requirements}
+	\label{fig:hq-fractional-resources}
+\end{figure}
+
+We have executed the described workflow on a Karolina node with two \glspl{gpu}. The results are
+displayed in~\Autoref{fig:hq-fractional-resources}. The vertical axis shows the average
+utilization of both \glspl{gpu}, which was measured using the \texttt{nvidia-smi} utility; the
+horizontal axis shows the progress of the computation in seconds. The four columns denote different configurations for the fraction of an accelerator
+required by each task. The red horizontal dotted line displays the average \gls{gpu} utilization
+over the course of the whole computation; the black ticks on the horizontal axis denote the makespan
+of each benchmarked scenario.
+
+We can see that when only a single task is executed on a \gls{gpu} at the same time, the
+achieved hardware utilization reaches only $3\%$ and the makespan is over \SI{380}{\second}.
+When each task required only a half of an accelerator, the makespan was reduced almost
+by a half, to approximately \SI{200}{\second} and the average utilization has also increased to
+$47\%$. With a quarter of a \gls{gpu} required per task, the makespan was further reduced to
+\SI{164}{\second}. In the last evaluated scenario, where up to ten tasks were being executed on a
+single \gls{gpu} in parallel, we observe diminishing returns. Even though the reported
+utilization still keeps increasing, the makespan decreases only very slightly. This suggests
+that the overhead associated with running too many separate processes on the same \gls{gpu} device
+start to overcome the benefits achieved by better parallelization.
+
+This experiment demonstrates that using fractional resource requirements can significantly
+improve hardware utilization and primarily also improve the resulting makespan in
+situations where individual tasks are unable to make full use of very powerful resources.
+
+This experiment also demonstrates how are non-fungible resources useful in combination with
+fractional resource requirements. Thanks to the fact that \glspl{gpu} managed \hyperqueue{} workers
+are non-fungible and have a separate identity, each task is assigned a specific \gls{gpu}
+device that it should leverage by the scheduler, through the \texttt{CUDA\_VISIBLE\_DEVICES}
+environment variable. This environment variable is then automatically detected by TensorFlow to
+select the correct \gls{gpu} that should be used for accelerating the training process. This
+mechanism works even if multiple tasks share the same device at the same time.
+
+\subsection{Resource variants}
+\label{sec:hq-exp-resource-variants}
+This experiment evaluates the load-balancing benefits of \emph{resource variants}, which were
+described in~\Autoref{sec:dynamic-resource-selection}. For evaluation, we use the simple workflow with
+$300$ tasks executed on a single node with $8$ virtual
+\glspl{gpu} and the same number of \glspl{cpu}. Tasks in this experiment
+simulate a computation that can run either on a \gls{gpu} or on a
+\gls{cpu}. To emulate the performance difference between the \gls{gpu}
+and the \gls{cpu}, tasks executed on the accelerator will sleep for
+\SI{1}{\second} and tasks executed on the \gls{cpu} will sleep for a
+multiple of this duration, according to a given ratio (which is a benchmark parameter).
+Note that we could also use a larger number of \gls{cpu} cores and reduce the benchmarked values
+of this ratio; the result should be approximately the same.
+
+Our goal was to determine how will the resulting makespan differ for the following three
+situations:
+\begin{itemize}[itemsep=0pt,topsep=2pt]
+	\item Tasks are executed only on the \gls{gpu}.
+	\item A fixed fraction of tasks is executed on the \gls{gpu}, the rest runs on the
+	      \gls{cpu}.
+	\item The fraction of tasks that is executed on the \gls{gpu} is determined dynamically by
+	      \hyperqueue{} using resource variants.
+\end{itemize}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/hq/charts/alternative-resources}
+	\caption{Load-balancing effect of resource variants}
+	\label{fig:hq-resource-variants}
+\end{figure}
+
+\vspace{1mm}The results of the experiment can be observed in~\Autoref{fig:hq-resource-variants}.
+The vertical axis displays the makespan; the five bars represent different configurations of resources. In the
+\emph{\gls{gpu} only} mode, all tasks were configured to run on a single
+\gls{gpu}. In the \emph{\gls{gpu} or \gls{cpu}} mode, tasks were configured to run either
+on the \gls{gpu} or on the \gls{cpu} using resource variants. The
+remaining three modes assign a specific fraction of tasks to run on the \gls{gpu};
+the rest was executed on the \gls{cpu}. The three charts show results for different
+values of the \gls{gpu} vs \gls{cpu} performance ratio, i.e.\ how much
+faster was the task running on a \gls{gpu} than on the \gls{cpu}.
+
+We can see that unless the \gls{gpu} ratio is too high or we assign too many tasks to
+the \gls{cpu}, it is beneficial to also leverage the \gls{cpu}
+resources rather than using only \glspl{gpu}. With \gls{cpu} fractions
+determined manually in advance, the result depends heavily on the \emph{\gls{gpu} ratio}, and in
+certain configurations it can make the makespan significantly longer. This would thus be both less
+efficient and more laborious to configure for the user. On the other hand, when the resources for
+each task are configured using two resource variants (either \gls{gpu} or
+\gls{cpu}), \hyperqueue{} is able to dynamically adapt to all three
+\gls{gpu} ratios. In all three scenarios, the makespan with resource variants is
+strictly smaller than with \glspl{gpu} only, and it either surpasses or matches the
+best result achieved with a predetermined fraction of tasks running on the \gls{cpu}.
+This shows that resource variants can help achieve better hardware utilization without requiring
+the user to fine-tune resource configurations of individual tasks in the task graph.
+
 \subsection{Worker \glsxtrshort{cpu} utilization}
 \label{sec:hq-cpu-utilization}
 One of the primary metrics that task graph users care about is hardware utilization -- how well can
@@ -2143,6 +2209,156 @@ time when other resources can no longer be utilized. We can observe this towards
 workflow execution, where approximately $30$ seconds before the end, the
 utilization starts to drop. However, even for this skewed task graph, the average
 \gls{cpu} utilization of all four workers was kept at almost $90\%$.
+
+\subsection{LiGen virtual screening workflow}
+\label{sec:hq-exp-ligen}
+This experiment evaluates the achieved hardware utilization and scalability of the LiGen virtual
+screening workflow implemented using \hyperqueue{}. As explained previously
+in~\Autoref{sec:hq-usecase-ligen}, the workflow uses a SMILES file as its main input, which contains a
+description of a single ligand on each line. To allow \hyperqueue{} to balance the load
+of the computation across available resources and nodes, the workflow first splits the single input
+file into several smaller subfiles, each containing a subset of the input lines. Each such file is
+then processed in two tasks; the first expands the ligands into a three-dimensional structure
+stored in a MOL2 file and the second performs scoring on this expanded representation, which
+generates a \gls{csv} file. All the intermediate \gls{csv} files are
+then combined with a single final task at the very end of the workflow.
+
+The number of ligands per file and the number of threads that are used for performing scoring on
+each file are configurable parameters. There are various trade-offs associated with setting these
+parameters. The expansion part is sequential; therefore, using as many files (tasks) as possible
+for this step is beneficial up to the number of available cores. On the other hand, each scoring
+invocation of LiGen for a file has a non-trivial cost, as it needs to perform a preprocessing step
+and a part of the computation is also performed sequentially. Therefore, for the scoring part,
+using fewer files is generally a better choice. Yet, with fewer files, there will also be less
+opportunities for load balancing performed by \hq{} and there might not be enough
+tasks to saturate the available computational resources.
+
+We examine the effect of these two parameters on makespan and the achieved hardware utilization on
+an input containing $200$ thousand ligands. The computation duration varies
+significantly based on the length of each ligand; therefore, we have tested two input files. The
+first one ($uniform$) contains $200$ thousand copies of the same
+ligand, which simulates a balanced workload. The second one ($skewed$) contains a
+variation of ligands with different lengths.
+
+The results can be observed in~\Autoref{fig:hq-ligen-utilization}. The vertical axis displays the achieved
+hardware utilization on a single worker; the horizontal axis shows the progress of the computation
+in seconds. The rows denote the two individual input files, while the columns show results for
+different combinations of the two input parameters. The red horizontal dotted line displays the
+total average utilization of a given worker over the course of the whole computation; the black
+vertical dotted line separates the expansion and scoring sections of the computation. The average
+node utilization of each section is displayed below the section name. The black ticks on the
+horizontal axis denote the makespan of each benchmarked scenario.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{imgs/hq/charts/ligen-aggregation-utilization}
+	\caption{Worker hardware utilization with the LiGen virtual screening workflow}
+	\label{fig:hq-ligen-utilization}
+\end{figure}
+
+We can see that the parameter affecting the number of ligands per file has a significant effect on
+the resulting makespan; using too few or too many ligands results in a longer execution. As
+expected, the expansion section needs enough tasks to saturate the available cores, because it is
+single-threaded. For $5000$ ligands per file (the rightmost column), the total
+number of expansion tasks is only $40$; therefore, the achieved utilization (for
+both input files) is only approximately $32\%$, which corresponds to using just
+$40$ out of the $128$ available cores. With more than
+$128$ files available, the utilization approaches $100\%$ for the
+uniform input. For the skewed input file, the utilization for the expansion section is in general
+worse than with the uniform input, as expected. With $100$ ligands per file, it
+is reduced significantly; unlike with the uniform input, some of the files were expanded much
+quicker than others, which led to more load imbalance.
+
+The scoring part is internally parallel and uses all $8$ assigned cores;
+therefore, it does not have to be divided into so many tasks. We can see that even with just
+$40$ files it achieves approximately $80\%$ utilization for
+both input workloads. In fact, with too many files, we can see the overhead associated with the
+sequential part of scoring (which needs to be performed for each file separately) starts to
+dominate; even with the uniform workload, the \gls{cpu} utilization of the scoring
+section with $2000$ files reaches only approximately $63\%$ with
+the uniform input and just $44\%$ with the skewed input.
+
+The two configurations in the middle present a sort of a sweet spot; especially with
+$1000$ ligands per file, the total average utilization for both workloads is at or
+above $88\%$. However, it should be noted that the best configuration will change
+based on the number of used workers. This can be observed in~\Autoref{fig:hq-ligen-scalability}, which shows
+how does the workflow scale up to $4$ workers ($512$ cores).
+The horizontal axis shows the number of workers and the vertical axis shows the duration of the
+executed task graph. We can see that with four workers, the configuration with
+$400$ ligands per task starts to beat the configuration with
+$1000$ ligands per task, simply because the latter configuration is not able to
+provide enough parallelism (tasks) to make efficient use of all the available hardware resources.
+In general, \hyperqueue{} is able to reduce the makespan with additional workers being
+added for all four tested configurations.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{imgs/hq/charts/ligen-aggregation-scalability}
+	\caption{Scalability of the LiGen virtual screening workflow}
+	\label{fig:hq-ligen-scalability}
+\end{figure}
+
+The results of this experiment have showed that \hyperqueue{} is able to reach high node
+utilization even for imbalanced workloads. However, we can also see that even when the overhead of
+the task runtime does not get in the way, for some workflows it might be necessary to tune the
+number of tasks in order to achieve optimal performance.
+
+\subsection{Automatic allocation}
+\label{sec:hq-exp-autoalloc}
+This experiment evaluates the ability of the automatic allocator to scale computational resources
+both up and down in reaction to computational load. The LiGen virtual screening workflow was
+executed using $16$ ligands per file and $8$ threads per
+file on an input file containing $24$ thousand ligands with a skewed
+distribution of ligands. No workers were explicitly allocated for this experiment; instead, the
+automatic allocator was configured to submit allocations that would start a single worker per
+allocated node. The maximum number of workers was set to four and the wall-time (the maximum
+duration) of the allocations was set to one minute. This very short wall-time was chosen simply to
+make the benchmark run shorter and to simulate the situation where an allocation ends in the midst
+of a task graph being computed. The experiment was performed with two configurations for the
+\emph{idle timeout} duration, which decides after what time a worker (and its allocation) shuts
+down when it is fully idle. Each configuration was benchmarked a single time.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{imgs/hq/charts/ligen-autoalloc-stats}
+	\caption{Scaling of allocations using the automatic allocator}
+	\label{fig:hq-ligen-autoalloc}
+\end{figure}
+
+We can observe the result of the experiment in~\Autoref{fig:hq-ligen-autoalloc}. The horizontal axis shows
+the progress of the computation in seconds. The left vertical axis and the blue line shows the
+number of cores used for executing tasks (number of running tasks $\times$ cores
+required per task). The right vertical axis and the orange line shows the number of active
+allocations, which also corresponds to the number of workers, because each allocation spawned
+exactly one worker. The dashed vertical lines show individual sections of the computation;
+expansion of ligands, scoring of expanded ligands and an \emph{End} section, where the
+task graph was already computed and the idle allocations were waiting for the idle timeout to be
+applied. Note that when we benchmark automatic allocation, the allocation manager and the global
+state of the cluster have a significant influence on the time allocations spend waiting to be
+executed in the queue, and thus also on the total makespan of the executed task graph; therefore,
+the makespans of these two executions cannot be directly compared.
+
+We can see that allocations were dynamically submitted in response to tasks that needed workers to
+execute and that new allocations were quickly created in response to previous allocations ending.
+As you may recall, the wall-time was set to only one minute, after which each allocation ended,
+which causes the periodic drops in active allocations in both charts. In the left chart, we can see
+the results for idle timeout being configured to \SI{5}{\second}. We can observe that in
+this case the allocations were scaled down during the expansion part of the workflow, as not that
+many resources were required towards the end of expansion. Furthermore, towards the end of the
+computation, allocations started being scaled down even before the task graph has finished
+computing. In the right chart, where the idle timeout was much longer (\SI{30}{\second}),
+the allocations were active for the whole duration of the task graph execution, except for short
+periods of time where new allocations had to be spawned due to wall-time being exhausted. All four
+allocations were also active up until the very end of the task graph computation, which resulted in
+more allocation time being wasted.
+
+With idle timeout \SI{5}{\second}, the workflow has consumed $682$
+node-seconds of allocation time, while with idle timeout \SI{30}{\second}, it has consumed
+$916$ node-seconds. This shows that it is crucial to configure the idle timeout
+properly to avoid wasting allocation time. By default, \hyperqueue{} uses a wall-time of
+$1$ hour and an idle timeout of $5$ minutes, which
+corresponds to the same wall-time/idle-timeout ratio as the benchmarked configuration with an idle
+timeout of \SI{5}{\second}.
 
 \subsection{Server \glsxtrshort{cpu} consumption}
 \label{sec:hq-exp-server-cpu-consumption}
@@ -2357,156 +2573,6 @@ in parallel if the given filesystem is optimized for such a use-case. As a futur
 streaming could be made more scalable by streaming task outputs to a single file (or a small amount
 of files) \emph{per worker}, in order to distribute the \gls{io} load; outputs
 from individual worker log files could then be merged by the server on demand.
-
-\subsection{LiGen virtual screening workflow}
-\label{sec:hq-exp-ligen}
-This experiment evaluates the achieved hardware utilization and scalability of the LiGen virtual
-screening workflow implemented using \hyperqueue{}. As explained previously
-in~\Autoref{sec:hq-usecase-ligen}, the workflow uses a SMILES file as its main input, which contains a
-description of a single ligand on each line. To allow \hyperqueue{} to balance the load
-of the computation across available resources and nodes, the workflow first splits the single input
-file into several smaller subfiles, each containing a subset of the input lines. Each such file is
-then processed in two tasks; the first expands the ligands into a three-dimensional structure
-stored in a MOL2 file and the second performs scoring on this expanded representation, which
-generates a \gls{csv} file. All the intermediate \gls{csv} files are
-then combined with a single final task at the very end of the workflow.
-
-The number of ligands per file and the number of threads that are used for performing scoring on
-each file are configurable parameters. There are various trade-offs associated with setting these
-parameters. The expansion part is sequential; therefore, using as many files (tasks) as possible
-for this step is beneficial up to the number of available cores. On the other hand, each scoring
-invocation of LiGen for a file has a non-trivial cost, as it needs to perform a preprocessing step
-and a part of the computation is also performed sequentially. Therefore, for the scoring part,
-using fewer files is generally a better choice. Yet, with fewer files, there will also be less
-opportunities for load balancing performed by \hq{} and there might not be enough
-tasks to saturate the available computational resources.
-
-We examine the effect of these two parameters on makespan and the achieved hardware utilization on
-an input containing $200$ thousand ligands. The computation duration varies
-significantly based on the length of each ligand; therefore, we have tested two input files. The
-first one ($uniform$) contains $200$ thousand copies of the same
-ligand, which simulates a balanced workload. The second one ($skewed$) contains a
-variation of ligands with different lengths.
-
-The results can be observed in~\Autoref{fig:hq-ligen-utilization}. The vertical axis displays the achieved
-hardware utilization on a single worker; the horizontal axis shows the progress of the computation
-in seconds. The rows denote the two individual input files, while the columns show results for
-different combinations of the two input parameters. The red horizontal dotted line displays the
-total average utilization of a given worker over the course of the whole computation; the black
-vertical dotted line separates the expansion and scoring sections of the computation. The average
-node utilization of each section is displayed below the section name. The black ticks on the
-horizontal axis denote the makespan of each benchmarked scenario.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=\textwidth]{imgs/hq/charts/ligen-aggregation-utilization}
-	\caption{Worker hardware utilization with the LiGen virtual screening workflow}
-	\label{fig:hq-ligen-utilization}
-\end{figure}
-
-We can see that the parameter affecting the number of ligands per file has a significant effect on
-the resulting makespan; using too few or too many ligands results in a longer execution. As
-expected, the expansion section needs enough tasks to saturate the available cores, because it is
-single-threaded. For $5000$ ligands per file (the rightmost column), the total
-number of expansion tasks is only $40$; therefore, the achieved utilization (for
-both input files) is only approximately $32\%$, which corresponds to using just
-$40$ out of the $128$ available cores. With more than
-$128$ files available, the utilization approaches $100\%$ for the
-uniform input. For the skewed input file, the utilization for the expansion section is in general
-worse than with the uniform input, as expected. With $100$ ligands per file, it
-is reduced significantly; unlike with the uniform input, some of the files were expanded much
-quicker than others, which led to more load imbalance.
-
-The scoring part is internally parallel and uses all $8$ assigned cores;
-therefore, it does not have to be divided into so many tasks. We can see that even with just
-$40$ files it achieves approximately $80\%$ utilization for
-both input workloads. In fact, with too many files, we can see the overhead associated with the
-sequential part of scoring (which needs to be performed for each file separately) starts to
-dominate; even with the uniform workload, the \gls{cpu} utilization of the scoring
-section with $2000$ files reaches only approximately $63\%$ with
-the uniform input and just $44\%$ with the skewed input.
-
-The two configurations in the middle present a sort of a sweet spot; especially with
-$1000$ ligands per file, the total average utilization for both workloads is at or
-above $88\%$. However, it should be noted that the best configuration will change
-based on the number of used workers. This can be observed in~\Autoref{fig:hq-ligen-scalability}, which shows
-how does the workflow scale up to $4$ workers ($512$ cores).
-The horizontal axis shows the number of workers and the vertical axis shows the duration of the
-executed task graph. We can see that with four workers, the configuration with
-$400$ ligands per task starts to beat the configuration with
-$1000$ ligands per task, simply because the latter configuration is not able to
-provide enough parallelism (tasks) to make efficient use of all the available hardware resources.
-In general, \hyperqueue{} is able to reduce the makespan with additional workers being
-added for all four tested configurations.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=0.8\textwidth]{imgs/hq/charts/ligen-aggregation-scalability}
-	\caption{Scalability of the LiGen virtual screening workflow}
-	\label{fig:hq-ligen-scalability}
-\end{figure}
-
-The results of this experiment have showed that \hyperqueue{} is able to reach high node
-utilization even for imbalanced workloads. However, we can also see that even when the overhead of
-the task runtime does not get in the way, for some workflows it might be necessary to tune the
-number of tasks in order to achieve optimal performance.
-
-\subsection{Automatic allocation}
-\label{sec:hq-exp-autoalloc}
-This experiment evaluates the ability of the automatic allocator to scale computational resources
-both up and down in reaction to computational load. The LiGen virtual screening workflow was
-executed using $16$ ligands per file and $8$ threads per
-file on an input file containing $24$ thousand ligands with a skewed
-distribution of ligands. No workers were explicitly allocated for this experiment; instead, the
-automatic allocator was configured to submit allocations that would start a single worker per
-allocated node. The maximum number of workers was set to four and the wall-time (the maximum
-duration) of the allocations was set to one minute. This very short wall-time was chosen simply to
-make the benchmark run shorter and to simulate the situation where an allocation ends in the midst
-of a task graph being computed. The experiment was performed with two configurations for the
-\emph{idle timeout} duration, which decides after what time a worker (and its allocation) shuts
-down when it is fully idle. Each configuration was benchmarked a single time.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=0.8\textwidth]{imgs/hq/charts/ligen-autoalloc-stats}
-	\caption{Scaling of allocations using the automatic allocator}
-	\label{fig:hq-ligen-autoalloc}
-\end{figure}
-
-We can observe the result of the experiment in~\Autoref{fig:hq-ligen-autoalloc}. The horizontal axis shows
-the progress of the computation in seconds. The left vertical axis and the blue line shows the
-number of cores used for executing tasks (number of running tasks $\times$ cores
-required per task). The right vertical axis and the orange line shows the number of active
-allocations, which also corresponds to the number of workers, because each allocation spawned
-exactly one worker. The dashed vertical lines show individual sections of the computation;
-expansion of ligands, scoring of expanded ligands and an \emph{End} section, where the
-task graph was already computed and the idle allocations were waiting for the idle timeout to be
-applied. Note that when we benchmark automatic allocation, the allocation manager and the global
-state of the cluster have a significant influence on the time allocations spend waiting to be
-executed in the queue, and thus also on the total makespan of the executed task graph; therefore,
-the makespans of these two executions cannot be directly compared.
-
-We can see that allocations were dynamically submitted in response to tasks that needed workers to
-execute and that new allocations were quickly created in response to previous allocations ending.
-As you may recall, the wall-time was set to only one minute, after which each allocation ended,
-which causes the periodic drops in active allocations in both charts. In the left chart, we can see
-the results for idle timeout being configured to \SI{5}{\second}. We can observe that in
-this case the allocations were scaled down during the expansion part of the workflow, as not that
-many resources were required towards the end of expansion. Furthermore, towards the end of the
-computation, allocations started being scaled down even before the task graph has finished
-computing. In the right chart, where the idle timeout was much longer (\SI{30}{\second}),
-the allocations were active for the whole duration of the task graph execution, except for short
-periods of time where new allocations had to be spawned due to wall-time being exhausted. All four
-allocations were also active up until the very end of the task graph computation, which resulted in
-more allocation time being wasted.
-
-With idle timeout \SI{5}{\second}, the workflow has consumed $682$
-node-seconds of allocation time, while with idle timeout \SI{30}{\second}, it has consumed
-$916$ node-seconds. This shows that it is crucial to configure the idle timeout
-properly to avoid wasting allocation time. By default, \hyperqueue{} uses a wall-time of
-$1$ hour and an idle timeout of $5$ minutes, which
-corresponds to the same wall-time/idle-timeout ratio as the benchmarked configuration with an idle
-timeout of \SI{5}{\second}.
 
 \section{Comparison with other task runtimes}
 \label{hq:related-work}
@@ -2817,7 +2883,10 @@ The overhead and scalability of \hyperqueue{} was evaluated in various situation
 results indicate that it consumes little resources, introduces a reasonable amount of overhead and
 can scale to tens of nodes and thousands of cores. The experiments have also shown that it is more
 than competitive against \dask{}, a very popular task runtime that is being
-commonly used for running task graphs on distributed clusters.
+commonly used for running task graphs on distributed clusters. We have also demonstrated that
+the heterogeneous resource management concepts introduced in~\Autoref{sec:heterogeneous-resources}
+are able to both improve the achieved hardware utilization and also decrease the makespan of
+executed task graphs.
 
 Several ideas for the future improvement of \hyperqueue{} will be summarized in the final
 chapter.
