@@ -195,7 +195,7 @@ for the user to leverage available hardware resources.
 Implicit models are typically easier to use than the explicit models, and they facilitate rapid
 prototyping of parallelized programs. On the other hand, the main disadvantage of these models is
 the lack of control of how exactly is parallelization performed. Therefore, programs implemented
-using them might not be able to achieve the same performance as explicitly parallelized programs.
+using them might unable to achieve the same performance as explicitly parallelized programs.
 
 There are various models that support implicit parallelization, for example stencil
 computations~\cite{stencil} or automatically parallelized functional
@@ -366,7 +366,7 @@ repeatedly until some condition is met, which typically use the output of a prev
 an input for the next iteration, thus creating a loop in the flow of data.
 
 %An additional potential disadvantage, which is shared by most implicitly parallel models, is that
-%MapReduce programs might not be able to achieve performance comparable to programs implemented
+%MapReduce programs might unable to achieve performance comparable to programs implemented
 %using explicit parallelism. This is especially problematic for certain implementations of MapReduce
 %that are known to be very inefficient, such as Apache Hadoop~\cite{hadoop}. In general,
 %when executing distributed computations, it is always a good idea to first make sure that it is not

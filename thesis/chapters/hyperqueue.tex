@@ -1150,7 +1150,16 @@ their resource requirements in the form of a fraction. The scheduler uses fixed-
 manage fractional resource requirements, in order to avoid issues associated with floating-point
 arithmetic, such as rounding errors. \Autoref{sec:hq-exp-fractional-resources} will examine
 hardware utilization improvements that can be achieved with fractional resource requirements.
-%TODO: describe what happens if you ask for a fraction of > 1
+
+When a task has a fractional resource requirement that is drawn from an indexed resource
+pool, then the fractional part of the requirement is always allocated from a single resource
+element. For example, if a task requires $0.5$ of a \gls{gpu} resource, it will always be
+assigned a half of a single device, not e.g.\ a quarter of two separate devices. Furthermore,
+the integer part of a resource requirement is always allocated from a single resource element.
+If a task requires a single \gls{gpu}, it will not ever be provided with e.g.\ a half of two
+separate devices. This approach avoids excessive fragmentation of individual resource elements, and
+it also makes it easier for tasks to use the allocated resources; some tasks might be unable to
+leverage more than one resource element of a given resource kind.
 
 \vspace{2mm}\textbf{Resource variants}\enskip{}Each task can define a list of
 resource requirement sets (resource variants); the scheduler uses the first one that can be

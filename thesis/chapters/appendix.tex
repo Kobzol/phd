@@ -254,7 +254,7 @@ scheduling decisions need to go through a central location, unlike most other co
 enormous amount of resources, millions of tasks and thousands of nodes. However, in order to enable
 this level of scalability, the workflow itself has to be implemented in a way where tasks submit
 new tasks from worker nodes dynamically. Therefore, batch computing use-cases that simply want to
-execute a predetermined workflow might not be able to achieve such high performance.
+execute a predetermined workflow might be unable to achieve such high performance.
 
 Same as \dask{}, it offers basic resource requirements and it also supports fractional resources
 and related resource groups. However, it does not allow expressing multi-node tasks. In contrast to \dask{}, it is internally implemented in \texttt{C++}, which introduces much less overhead than Python.
