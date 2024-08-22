@@ -46,6 +46,7 @@ data outputs between tasks, and also the resources needed for the execution of i
 
 \newcommand{\alltaskpairs}{\forall t_1\in{}T, \forall t_2\in{}T}
 
+%TODO: function for getting vertices of a graph
 \vspace{2mm}\makedef{def:task_graph}{Task graph} A task graph is a tuple
 $G = \taskgraphinner{\setresourcekindstaskgraph}$, where:
 \begin{itemize}[itemsep=0pt]
@@ -53,7 +54,7 @@ $G = \taskgraphinner{\setresourcekindstaskgraph}$, where:
 	\item $O$ is a set of \emph{data objects}.
 	\item $E \subseteq ((T\times{}O) \cup (O\times{}T))$ is a set of arcs.
 	\item $\setresourcekindstaskgraph$ is a set of \emph{resource kinds}. Each resource kind
-	      describes a type of a resource (e.g.\ a \gls{cpu} core or a \gls{gpu} device)
+	      describes a type of resource (e.g.\ a \gls{cpu} core or a \gls{gpu} device)
 	      that might be required to execute a specific task.
 	\item $\fntaskres$ is a function that defines the
 	      \emph{resource requirement} of a task for a given resource kind: \\
@@ -68,7 +69,7 @@ $G = \taskgraphinner{\setresourcekindstaskgraph}$, where:
 	object, there is exactly one task that produces it: $\forall o \in O: |E \cap (T \times \{o\})| = 1$
 \end{itemize}
 
-\vspace{2mm}Below we will define several terms that will be useful for describing task
+\vspace{2mm}Below, we will define several terms that will be useful for describing task
 graphs and their properties:
 \begin{itemize}[itemsep=0pt]
 	\item If there is an arc from a task to a data object ($(t,o) \in (T\times{}O)$), then we call
@@ -257,16 +258,16 @@ that can be re-executed arbitrarily many times. This crucial property of tasks m
 execution of task graphs easier to achieve than in other programming models, where individual
 computations are not self-contained and serializable.
 
-Below, we will provide a basic definition of task graph execution (and other concepts required to
-describe it), which should be applicable to most existing task runtimes. First, we will formally
-define a computational environment (e.g.\ a cluster) where tasks can be executed.
+Below, we provide several definitions related to task graph execution that should be
+applicable to most existing task runtimes. First, we will formally define a computational environment
+(e.g.\ a cluster), an environment in which a task graph can be executed.
 
 \vspace{2mm}\makedef{def:cluster}{Computational environment} A \emph{computational environment}
 is a tuple $C = (W, \setresourcekindscluster, \fnworkerres)$, where:
 \begin{itemize}[itemsep=0pt]
 	\item $W$ is a set of workers (computational providers).
 	\item $\setresourcekindscluster$ is a set of \emph{resource kinds}. Each resource kind
-	      describes some type of a resource (e.g.\ a \gls{cpu} core or a \gls{gpu} device) that
+	      describes some type of resource (e.g.\ a \gls{cpu} core or a \gls{gpu} device) that
 		  can be provided a worker.
 
 	      Note that in all following definitions, we will assume that the set of resource kinds
@@ -277,14 +278,21 @@ is a tuple $C = (W, \setresourcekindscluster, \fnworkerres)$, where:
 		      \mathbb{N}_{\geq{}0}$
 \end{itemize}
 
-Now we will describe the execution of a task graph. We will use the notion of an execution
-record of a task graph that was executed in some computational environment, so that we can examine
-selected properties of that execution. Note that the exact semantics of task graph execution
-will of course heavily depend on the used programming model and task runtime. Nevertheless,
-it is still useful to provide a general definition that will allow us to define several useful
-properties and rules that should hold in most task graph executions; these will be defined
-later below.
+Now we can describe the execution of a task graph. However, formally defining the behavior of
+such a dynamic process is much more challenging than defining
+the previous (relatively static) concepts, such as the task graph and the computational
+environment. Each task runtime has its own set of execution semantics that affect the details of how are tasks assigned to
+workers, how they are executed, how is data being transferred over the network, etc. Providing a formal
+definition of this process that would be general and could be applied to multiple task runtimes
+would thus be infeasible. On the other hand, it would be useful to have an option to examine if a
+concrete task graph execution satisfied several constraints related to the dependencies and
+resource requirements of tasks that most users would intuitively expect to hold.
 
+Therefore, instead of defining the behavior of an execution itself, we assume that we have
+available a set of information about an already performed execution, and we
+will then examine if that execution has satisfied various properties.
+
+%TODO: infinite task durations?
 \vspace{2mm}\makedef{def:task_graph_execution}{Task graph execution} A \emph{task graph execution}
 is a tuple \taskgraphexecution, where:
 \begin{itemize}[itemsep=0pt]
@@ -296,14 +304,22 @@ is a tuple \taskgraphexecution, where:
     \item We assume that each task was executed at least once: $\forall t\in{}T, \exists tp\in\timedomain\colon \fntaskworkerassigned(t, tp) \neq \bot$
 \end{itemize}
 
-Note that this definition assumes that each task is executed on at most a single worker at a time.
-It could be generalized for tasks that can be executed on multiple workers at once; however, that
-would have to be performed in the context of a specific task runtime, as the semantics of
-\emph{multi-node} execution can vary significantly between runtimes.
+Note that this definition assumes that each task in $E$ was being executed on at most a
+single worker at the same time. It could be generalized for tasks that can be executed on multiple
+workers at once; however, that would have to be performed in the context of a specific task runtime,
+as the semantics of \emph{multi-node} execution can vary significantly between runtimes.
 
-We will also define the following helper functions, which will be used in later definitions:
+It is also important to note that based on the definition of the $\fntaskworkerassigned$
+function provided above, each task in $E$ could have been started multiple times (in multiple
+\emph{instances}), even on different workers. This captures a basic form of fault tolerance.
+However, we assume that each task must eventually successfully finish its execution. Additional
+semantics of fault-tolerant task execution are not defined, because task runtimes handle task
+re-execution in different ways; it would be infeasible to provide a general definition of task
+retry semantics.
 
-\begin{itemize}[itemsep=0pt]
+Next, we will also define the following helper functions that will be used in later definitions:
+
+\begin{itemize}[itemsep=0pt,topsep=2pt]
 	\item Let $\fnworkertaskassigned_E$ be a function that returns the set of tasks that were currently being
 	executed on a given worker at a given point in time in execution
 	$E = (\taskgraphinner{\setresourcekinds}, C, X)$: \\
@@ -316,14 +332,8 @@ We will also define the following helper functions, which will be used in later 
 	$\fntaskfinish_E(t) = \max\limits_{tp \in\timedomain} \fntaskworkerassigned(t, tp) \neq \bot$
 \end{itemize}
 
-The described semantics capture a basic form of fault tolerance; tasks can be executed repeatedly
-(through multiple instances), even on different workers. However, each task must eventually
-successfully finish its execution. Additional semantics of fault-tolerant task execution are not
-defined, because task runtimes handle task re-execution in different ways and it would thus be
-infeasible to provide a general definition of task retry semantics.
-
-Unless a task runtime provides some special semantics, then each execution
-should also uphold at least the following three basic constraints, which ensure a reasonable
+Unless a task runtime has some special semantics, then each execution
+should uphold the following three basic constraints, which ensure a reasonable
 behavior w.r.t\ dependencies, task resource requirements and worker resources:
 
 \vspace{2mm}\makedef{def:dependency_constraint}{Dependency constraint} A
@@ -332,7 +342,8 @@ $E = (\taskgraphinner{\setresourcekinds}, C, X)$ is defined as follows: \vspace{
 $\alltaskpairs\colon (t_1, t_2) \in D_G \Rightarrow \fntaskfinish_E(t_1) \leq \fntaskstart_E(t_2)$
 
 \vspace{1mm}Informally, if a task $t_2$ depends on a task $t_1$, then it cannot begin executing
-until $t_1$ has finished executing.
+until $t_1$ has finished executing. We assume that executions performed by all task runtimes that
+will be further discussed in this thesis will always uphold this constraint.
 
 \vspace{2mm}\makedef{def:worker_resource_constraint}{Worker and task resource constraint} A
 \emph{worker resource constraint} and a \emph{task resource constraint} in the context of execution
