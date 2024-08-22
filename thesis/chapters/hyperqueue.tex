@@ -1,3 +1,5 @@
+%TODO: worker constraint usage + HQ usage
+%TODO: objectives
 %TODO: Ligen virtual screening diagram
 %TODO: SOTA for resource management
 The previous two chapters focused primarily on the performance aspects of task graph execution, by
@@ -316,41 +318,59 @@ also~\defref{def:worker_resource_constraint} to add support for resources with i
 \emph{computational environment with non-fungible resources} is a tuple
 $C^{id} = (W, \setresourcekindsident, \fnworkerresident)$, where:
 \begin{itemize}[itemsep=0pt]
+	\item $W$ is a set of workers.
 	\item $\setresourcekindsident$ is a set of resource kinds; each resource kind is a set of
 	      \emph{resource elements}, non-fungible resources that can be provided by workers.
-	\item Let $\setresourceelements_{C^{id}}$ be a set of all resource elements of $C^{id}$: \\
+	\item Let $\setresourceelements_{C^{id}}$ be a set of all resource elements of $C^{id}$: \vspace{1mm}\\
 	      $\setresourceelements_{C^{id}} = \bigcup\limits_{r\in\setresourcekindsident} r$
-	\item $\fnworkerresident$ is a function that defines a set of non-fungible resource elements
-		  provided by a worker for a specific resource kind: \\ $\fnworkerresident\colon W \times \setresourcekindsident \rightarrow \powerset{\setresourceelements_{C^{id}}}$\vspace{2mm}\\
+	\item $\fnworkerresident\colon W \times \setresourcekindsident \rightarrow \powerset{\setresourceelements_{C^{id}}}$ is a function that defines a set of non-fungible resource elements provided by a worker for a specific resource kind.
+
 		  In the original definition of a computational environment (\defref{def:cluster}), $\fnworkerres$ assigned a numerical
 		  amount to each resource kind. In this  definition, the worker manages a specific set
-		  of resource elements instead.
-	\item Workers do not share resources between each other: \\
-		  $\forall w_1\in{}W, \forall w_2\in{}W, \forall r\in\setresourcekindsident\colon:
+		  of unique resource elements; therefore, $\fnworkerresident$ returns a set of
+		  elements instead.
+	\item $\fnworkerresident$ has to return resource elements belonging to the correct resource
+	kind: \vspace{1mm}\\
+		$\forall w\in{}W, \forall r\in\setresourcekindsident: \fnworkerresident(w, r) \subseteq r$
+	\item Workers do not share resource elements between each other: \vspace{1mm}\\
+		  $\forall w_1\in{}W, \forall w_2\in{}W, \forall r\in\setresourcekindsident\colon
 		  w_1 \neq w_2 \Rightarrow \fnworkerresident(w_1, r) \cap \fnworkerresident(w_2, r) = \emptyset$
-	\item Workers do not share resource elements between different resource kinds: \\
+	\item Workers do not share resource elements between different resource kinds: \vspace{1mm}\\
 		  $\forall w\in{}W, \forall r_1\in\setresourcekindsident, \forall r_2\in\setresourcekindsident\colon
 		  r_1 \neq r_2 \Rightarrow \fnworkerresident(w, r_1) \cap \fnworkerresident(w, r_2) = \emptyset$
 \end{itemize}
+
+This definition describes a computational environment where each worker manages a set of unique
+resource elements that are non-fungible; each one has a separate identity and cannot be
+interchanged with another resource element.
 
 \vspace{2mm}
 \makedef{def:task_graph_execution_ident}{Task graph execution with non-fungible resources} A
 \emph{task graph execution with non-fungible resources} is a tuple $E^{id} = (G, C^{id}, \fntaskworkerassigned,
 	\fntaskresassigned)$, where:
 
-\begin{itemize}[itemsep=0pt]
+\begin{itemize}[itemsep=0pt,topsep=2pt]
 	\item $G = \taskgraphinner{\setresourcekindsident}$ forms a \emph{task graph}.
 	\item $C^{id} = (W, \setresourcekindsident, \fnworkerresident)$ forms a
-	\emph{computational environment with support for non-fungible resources}.
-	\item \fntaskworkerassigned{} is a function that maps a task to a worker that is executing it
-	at a given point in time; this corresponds to~\defref{def:task_graph_execution}.
-	\item \fntaskresassigned{} is a function that returns a set of specific resource elements of a
+	\emph{computational environment with non-fungible resources}.
+	\item $\fntaskworkerassigned$ is a function that maps a task to a worker that is executing it
+	at a given point in time; this corresponds to $X$ defined in~\defref{def:task_graph_execution}.
+	\item $\fntaskresassigned\colon \settasks \times W \times \setresourcekindsident \times \timedomain \rightarrow
+	\powerset{\setresourceelements_{C^{id}}}$ is a function that returns a set of specific resource elements of a
 	      given resource kind that were assigned to a task running on a specific worker at a given point in
-	      time in $E^{id}$: \\ $\fntaskresassigned\colon T \times W \times \setresourcekindsident \times \timedomain \rightarrow
-		      \powerset{\setresourceelements_{C^{id}}}$ \vspace{2mm}\\ Note that in the
-	      previous definition of a computational environment (\defref{def:cluster}) we did not
+	      time in $E^{id}$.
+
+		  Note that in the previous definition of a computational environment
+		  (\defref{def:cluster}) we did not
 		  need the $\fntaskresassigned$ function to define worker and task resource constraints
-		  (\defref{def:worker_resource_constraint}); $\fntaskres$ was used instead.
+		  (\defref{def:worker_resource_constraint}); $\fntaskres$ was used instead. However,
+		  that is no longer enough in the presence of non-fungible resources.
+	\item When a task is not being executed at a given point in time, no resource elements are
+	assigned to it: \vspace{1mm}\\
+	$\forall tp\in\timedomain, \forall t\in\settasks, \forall w\in{}W, \forall r\in\setresourcekindsident\colon X(t, tp) = \bot \Rightarrow \fntaskresassigned(t, w, r, tp) = \emptyset$
+	\item Resource elements allocated to a task that is being executed have to be drawn from the
+	correct resource kind: \vspace{1mm}\\
+	$\forall tp\in\timedomain, \forall t\in\settasks, \forall r\in\setresourcekindsident\colon X(t, tp) \neq \bot \Rightarrow \fntaskresassigned(t, X(t, tp), r, tp) \subseteq r$
 \end{itemize}
 
 Using these modified definitions, we can now redefine the
@@ -363,21 +383,21 @@ resources.
 \emph{worker resource constraint with non-fungible resources} in the context of execution $E^{id} = (\taskgraphinner{\setresourcekindsident}, (W, \setresourcekindsident, \fnworkerresident), \fntaskworkerassigned,
 \fntaskresassigned)$ is
 defined as follows: \vspace{1mm}\\ $\forall tp\in\timedomain, \forall w\in{}W, \forall
-	r\in{}\setresourcekindsident\colon \bigcup_{t\in{}T}
-	\fntaskresassigned(t, w, r, tp) \subseteq \fnworkerresident(w, r)$
+	r\in{}\setresourcekindsident\colon \left(\bigcup_{t\in{}\fnworkertaskassigned_{E^{id}}(w, tp)}
+	\fntaskresassigned(t, w, r, tp)\right) \subseteq \fnworkerresident(w, r)$
 
-\vspace{2mm}If we want to ensure that a given resource element is used by at most a
-single task at any given
-point in time, we could also add the following constraint: \vspace{2mm}\\
+\vspace{2mm} This property ensures that resource elements assigned to a task belong to the
+worker that is executing it. If we want to also ensure that a given resource element is not being oversubscribed, i.e.\ that
+is used by at most a single task at any given point in time, we could also add the following constraint: \vspace{2mm}\\
 $\forall tp\in\timedomain, \forall w\in{}W, \forall
-	r\in{}\setresourcekindsident, \forall t_1\in{}T, \forall
-	t_2\in{}T\colon \\t_1 \neq t_2 \Rightarrow \fntaskresassigned(t_1, w, r, tp) \cap
-	\fntaskresassigned(t_2, w, r, tp) = \emptyset$ \\
+	r\in{}\setresourcekindsident, \forall t_1\in{}\settasks, \forall
+	t_2\in{}T\colon t_1 \neq t_2 \Rightarrow \fntaskresassigned(t_1, w, r, tp) \cap
+	\fntaskresassigned(t_2, w, r, tp) = \emptyset$
 
 However, in a following section that describes fractional resource requirements, we will see that
 there are some situations where this constraint might not be desirable.
 
-In addition to the modified \emph{worker resource constraint}, we will also need to define a new version of
+In addition to the modified \emph{worker resource constraint} we will also need to define a new version of
 the \emph{task resource constraint}, which ensures that all task resource requirements were satisfied in a
 given execution. Note that with fungible resources, this property was a trivial consequence
 of~\defref{def:worker_resource_constraint}; however, that is no longer the case with non-fungible resources.
@@ -391,18 +411,17 @@ follows: \vspace{1mm}\\
 $\forall tp\in\timedomain, \forall w\in{}W, \forall
 	t\in{}\fnworkertaskassigned_{E^{id}}(w, tp), \forall
 	r\in{}\setresourcekindsident\colon \fntaskres(t, r) =
-	|\fntaskresassigned(t, w, r, tp)|$ \\
+	|\fntaskresassigned(t, w, r, tp)|$
 
-This constraint ensures that all tasks have enough resource elements available for each resource
-kind that they require, at any given point in time when they are being executed. If we want to
-ensure that the set of resource elements assigned to a task does not change during its
-execution and that all instances of the task are executed on the same worker, we could enforce the
-following additional constraint:
+\vspace{1mm}This property ensures that at any given point in time when it is being executed, each
+task has been assigned the required amount of resource elements for each resource kind. Note that this
+definition allows the individual resource elements assigned to tasks to change over time; some
+task runtimes might leverage this to implement a very dynamic form of resource management.
 
-\vspace{1mm}
-$\forall tp_1\in\timedomain, \forall tp_2\in\timedomain, \forall r\in\setresourcekindsident, \forall t\in{}T\colon
-X(t, tp_1) \neq \bot \land X(t, tp_2) \neq \bot \Rightarrow X(t, tp_1) = X(t, tp_2) \land RA(t, X(t, tp_1), r, tp_1) =
-RA(t, X(t, tp_2), r, tp_2)$
+%\vspace{1mm}
+%$\forall tp_1\in\timedomain, \forall tp_2\in\timedomain, \forall r\in\setresourcekindsident, \forall t\in{}T\colon
+%X(t, tp_1) \neq \bot \land X(t, tp_2) \neq \bot \Rightarrow X(t, tp_1) = X(t, tp_2) \land RA(t, X(t, tp_1), r, tp_1) =
+%RA(t, X(t, tp_2), r, tp_2)$
 
 \vspace{1mm}It is important to note that even with non-fungible resources, tasks should still
 express their resource requirements using numerical amounts of required resources, as defined
@@ -462,22 +481,18 @@ resource specification, we can leverage a \emph{fractional resource requirement}
 require only a fraction of some resource.
 
 \vspace{2mm}\makedef{def:task_graph_frac}{Task graph with fractional resources} A
-\emph{task graph with fractional resources} is a tuple
-$G^{fr} = (T, O, E, \setresourcekindstaskgraph, \fntaskresfrac)$, where:
-\begin{itemize}[itemsep=0pt]
-	\item $T$ is a set of \emph{tasks}.
-	\item $O$ is a set of \emph{data objects}.
-	\item $E \subseteq ((T\times{}O) \cup (O\times{}T))$ is a set of arcs.
-	\item $\setresourcekindstaskgraph$ is a set of \emph{resource kinds}.
-	\item $\fntaskresfrac$ is a function that defines the
-	      \emph{fractional resource requirement} of a task for a given resource kind: \\
-	      \resourcerequirement{\fntaskresfrac}{Q}
+\emph{task graph with fractional resource requirements} is a tuple \\
+$G^{fr} = (\settasks, \setobjects, \setarcs, \setresourcekindstaskgraph, \fntaskresfrac)$, where:
+\begin{itemize}[itemsep=0pt,topsep=2pt]
+	\item \resourcerequirement{\fntaskresfrac}{Q} is a function that defines the
+	      \emph{fractional resource requirement} of a task for a given resource kind.
 \end{itemize}
 
-The remaining properties of $G^{fr}$ are identical to the properties of the
-\emph{task graph} defined in~\defref{def:task_graph}. Note that we can reuse both the task
-and worker resource constraints provided by~\defref{def:worker_resource_constraint}, as they still
-hold even with fractional resource requirements, assuming that we simply replace $\fntaskres$ by
+The remaining properties of $G^{fr}$ are identical to the \emph{task graph} properties
+defined in~\defref{def:task_graph}. Note that we can reuse both the task
+and worker resource constraints provided by~\defref{def:worker_resource_constraint} for
+\emph{task graphs with fractional resource requirements}, as they still
+hold even with fractional resource requirements if we simply replace $\fntaskres$ by
 $\fntaskresfrac$.
 
 Support for fractional resource requirements can be useful to express situations where a task is
@@ -550,51 +565,48 @@ execution. This allows the scheduler to react to computational load in a flexibl
 potentially improve its load balancing capabilities.
 
 To support this use-case, we can generalize task resource requirements so that each task can
-specify multiple \emph{resource variants} of resource requirements. Each variant determines the
-required amount of resources required for each resource kind for a given task. The task runtime can
-then choose which variant to use for a task dynamically, based on computational load and current
+specify multiple \emph{resource variants} of resource requirements, where each variant is a
+separate set of resource requirements. The task runtime can
+then dynamically choose which variant to use for a task based on current computational load and
 worker resource usage.
 
 \vspace{2mm}\makedef{def:task_graph_var}{Task graph with resource variants} A
-\emph{task graph with resource variants} is a tuple \\
-$G^{var} = (T, O, E, \setresourcekindstaskgraph, \fntaskresvar)$, where:
-\begin{itemize}[itemsep=0pt]
-	\item $T$ is a set of \emph{tasks}.
-	\item $O$ is a set of \emph{data objects}.
-	\item $E \subseteq ((T\times{}O) \cup (O\times{}T))$ is a set of arcs.
-	\item $\setresourcekindstaskgraph$ is a set of \emph{resource kinds}.
-	\item $\fntaskresvar$ is a function that defines a specific variant of a resource
-	      requirement of a task for a given resource kind: \\ $\fntaskresvar\colon T \times \setresourcekindstaskgraph \times
-		      \mathbb{N}_{>0} \rightarrow
-		      \mathbb{N}_{\geq{}0}$
+\emph{task graph with resource variants} is a tuple
+$G^{var} = (\settasks, \setobjects, \setarcs, \setresourcekindstaskgraph, \fntaskresvar)$, where:
+\begin{itemize}[itemsep=0pt,topsep=2pt]
+	\item $\fntaskresvar\colon \settasks \times \setresourcekindstaskgraph \times
+	\mathbb{N}_{>0} \rightarrow
+	\mathbb{N}_{\geq{}0}$ is a function that defines the resource
+	      requirement of a task for a given resource kind and a given resource variant index.
 
-	Variants are identified with a numeric index starting at $1$; each variant is a separate
-	set of resource requirements.
+	The individual variants are identified with consecutive numeric indices starting at $1$.
+	%TODO: Allow tasks with no resource requirements!
 	\item Let $\fntaskresvarcount_{G^{var}}$ be a function that determines the number of
 	resource variants for a task of $G^{var}$: \\
-	$\fntaskresvarcount_{G^{var}}(t) = \max\limits_{n\in\mathbb{N}_{>0}} \exists
-		      r\in\setresourcekindstaskgraph\colon \fntaskresvar(t, r, n) > 0$
+	$\fntaskresvarcount_{G^{var}}(t) = \max\limits_{v\in\mathbb{N}_{>0}} \exists
+		      r\in\setresourcekindstaskgraph\colon \fntaskresvar(t, r, v) > 0$
 \end{itemize}
 
-The remaining properties of $G^{var}$ are identical to the properties of the
-\emph{task graph} defined in~\defref{def:task_graph}.
+The remaining properties of $G^{var}$ are identical to the \emph{task graph} properties
+defined in~\defref{def:task_graph}.
 
 \vspace{2mm}
 \makedef{def:task_graph_execution_var}{Task graph execution with resource variants} A
 \emph{task graph execution with resource variants} is a tuple $E^{var} = (G^{var}, C, \fntaskworkerassigned,
 \fntaskvarassigned)$, where:
-\begin{itemize}[itemsep=0pt]
-	\item $G^{var} = (T, O, E, \setresourcekinds, \fntaskresvar)$ forms a
-	\emph{task graph with support for resource variants}.
+\begin{itemize}[itemsep=0pt,topsep=2pt]
+	\item $G^{var} = (\settasks, \setobjects, \setarcs, \setresourcekinds, \fntaskresvar)$ forms a
+	\emph{task graph with resource variants}.
 	\item $C = (W, \setresourcekinds, \fnworkerres)$ forms a \emph{computational environment}.
 	\item $\fntaskworkerassigned$ is a function that maps a task to a worker that is executing it
-	at a given point in time; this corresponds to~\defref{def:task_graph_execution}.
-	\item $\fntaskvarassigned$ is a function that returns a specific resource requirement variant
+	at a given point in time; this corresponds to $X$ defined in~\defref{def:task_graph_execution}.
+	\item $\fntaskvarassigned\colon \settasks \times \timedomain \rightarrow
+	\mathbb{N}_{>0}$ is a function that returns a specific resource variant
 	index that was assigned to a task running on some worker at a given point in
-	time in $E^{var}$: \\ $\fntaskvarassigned\colon T \times \timedomain \rightarrow
-	\mathbb{N}_{>0}$
+	time.
+	%TODO: allow tasks with no resource requirements!
 	\item $\fntaskvarassigned$ has to uphold the following condition: \\
-	$\forall tp\in\timedomain, \forall t\in{}T\colon \fntaskworkerassigned(t, tp) \ne \bot \Rightarrow
+	$\forall tp\in\timedomain, \forall t\in{}\settasks\colon \fntaskworkerassigned(t, tp) \ne \bot \Rightarrow
 	\fntaskvarassigned(t, tp) \in \{1,\ldots,\fntaskresvarcount_{G^{var}}(t)\}$
 
 	Informally, when a task is executing, it has to be assigned a valid variant index. Note that
@@ -602,18 +614,17 @@ The remaining properties of $G^{var}$ are identical to the properties of the
 	is allowed to return an arbitrary (numeric) value.
 \end{itemize}
 
-Using the two previous definitions, we can now also define a modified version of the
-\emph{task resource constraint}:
+Using the two previous definitions, we can now also define a modified version of both the
+worker and task resource constraints:
 
 \vspace{2mm}
 \makedef{def:worker_resource_constraint_var}{Worker and task constraint with resource variants} A
 \emph{task resource variant constraint}
-and a \emph{worker resource variant constraint} in the context of an execution $E^{var} = (G^{var}, C, \fntaskworkerassigned, \fntaskvarassigned)$, where $G^{var} = (T, O, E, \setresourcekinds, \fntaskresvar)$ is
-a \emph{task graph with resource variants} and $C = (W, \setresourcekinds, \fnworkerres)$ is a
+and a \emph{worker resource variant constraint} in the context of an execution $E^{var} = (G^{var}, C, \fntaskworkerassigned, \fntaskvarassigned)$, where $G^{var} = (\settasks, \setobjects, \setarcs, \setresourcekinds, \fntaskresvar)$ is
+a \emph{task graph with resource variants} and $C = \clusterinner{\setresourcekinds}$ is a
 \emph{computational environment}, are defined as follows: \vspace{1mm}\\
 $\forall tp\in\timedomain, \forall w\in{}W, \forall
-r\in{}\setresourcekinds\colon \sum_{t\in{}\fnworkertaskassigned_{E^{var}}(w, tp)} \fntaskresvar(t, r, \fntaskvarassigned(t, tp)) \leq
-\fnworkerres(w, r)$
+r\in{}\setresourcekinds\colon \left(\sum_{t\in{}\fnworkertaskassigned_{E^{var}}(w, tp)} \fntaskresvar(t, r, \fntaskvarassigned(t, tp))\right) \leq \fnworkerres(w, r)$
 
 \vspace{1mm}Informally, each task has an assigned resource variant, whose resource requirements
 all need to be satisfied at any given point in time the task was being executed in a given

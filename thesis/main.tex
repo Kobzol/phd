@@ -126,31 +126,34 @@
 
 \newcommand{\defref}[1]{\hyperref[#1]{Definition~\ref*{#1}}}
 
-% Specific definitions
 \newcommand{\fntaskres}{Res_t}
 \newcommand{\fntaskresfrac}{\fntaskres^{fr}}
 \newcommand{\fntaskresvar}{\fntaskres^{var}}
 \newcommand{\fnworkerres}{Res_w}
 \newcommand{\fnworkerresident}{\fnworkerres^{id}}
-\newcommand{\fntaskresassigned}{RA}
-\newcommand{\fntaskvarassigned}{RV}
-\newcommand{\fnworkertaskassigned}{WX}
+\newcommand{\fntaskresassigned}{\mathit{RA}}
+\newcommand{\fntaskvarassigned}{\mathit{RV}}
+\newcommand{\fnworkertaskassigned}{\mathit{WX}}
 \newcommand{\fntaskworkerassigned}{X}
 \newcommand{\fntaskstart}{S}
 \newcommand{\fntaskfinish}{F}
-\newcommand{\fntaskresvarcount}{RC}
+\newcommand{\fntaskresvarcount}{\mathit{RC}}
 \newcommand{\scheduleworker}{S_w}
 \newcommand{\scheduleorder}{S_o}
-\newcommand{\setresourcekinds}{RK}
-\newcommand{\setresourcekindstaskgraph}{RK_t}
-\newcommand{\setresourcekindscluster}{RK_w}
-\newcommand{\setresourcekindsident}{RK_w^{id}}
-\newcommand{\setresourceelements}{RE}
+\newcommand{\settasks}{T}
+\newcommand{\setobjects}{O}
+\newcommand{\setarcs}{A}
+\newcommand{\setresourcekinds}{\mathit{RK}}
+\newcommand{\setresourcekindstaskgraph}{\mathit{RK}_t}
+\newcommand{\setresourcekindscluster}{\mathit{RK}_w}
+\newcommand{\setresourcekindsident}{\mathit{RK}_w^{id}}
+\newcommand{\setresourceelements}{\mathit{RE}}
 \newcommand{\powerset}[1]{\mathcal{P}(#1)}
 \newcommand{\resourcerequirement}[2]{$#1\colon T \times \setresourcekindstaskgraph \rightarrow \mathbb{#2}_{\geq{}0}$}
 \newcommand{\timedomain}{\mathbb{R}_{\geq{}0}}
-\newcommand{\taskgraphinner}[1]{(T, O, E, #1, \fntaskres)}
+\newcommand{\taskgraphinner}[1]{(\settasks, \setobjects, \setarcs, #1, \fntaskres)}
 \newcommand{\taskgraphexecution}{$E = (G, C, \fntaskworkerassigned)$}
+\newcommand{\clusterinner}[1]{(W, #1, \fnworkerres)}
 
 \graphicspath{{./imgs/}}
 
