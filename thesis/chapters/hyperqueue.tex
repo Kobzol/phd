@@ -1,4 +1,4 @@
-%TODO: fix P(Rwid)
+%TODO: Ligen virtual screening diagram
 %TODO: SOTA for resource management
 The previous two chapters focused primarily on the performance aspects of task graph execution, by
 examining various task scheduling algorithms and also bottlenecks that can limit the scalability of
@@ -325,6 +325,12 @@ $C^{id} = (W, \setresourcekindsident, \fnworkerresident)$, where:
 		  In the original definition of a computational environment (\defref{def:cluster}), $\fnworkerres$ assigned a numerical
 		  amount to each resource kind. In this  definition, the worker manages a specific set
 		  of resource elements instead.
+	\item Workers do not share resources between each other: \\
+		  $\forall w_1\in{}W, \forall w_2\in{}W, \forall r\in\setresourcekindsident\colon:
+		  w_1 \neq w_2 \Rightarrow \fnworkerresident(w_1, r) \cap \fnworkerresident(w_2, r) = \emptyset$
+	\item Workers do not share resource elements between different resource kinds: \\
+		  $\forall w\in{}W, \forall r_1\in\setresourcekindsident, \forall r_2\in\setresourcekindsident\colon
+		  r_1 \neq r_2 \Rightarrow \fnworkerresident(w, r_1) \cap \fnworkerresident(w, r_2) = \emptyset$
 \end{itemize}
 
 \vspace{2mm}
