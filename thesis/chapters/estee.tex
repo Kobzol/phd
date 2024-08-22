@@ -125,8 +125,11 @@ properties similar to real-world task graphs.
 tool is the \emph{Simulator} component, which uses discrete event
 simulation~\cite{discrete_event_simulation} to simulate the execution of a task graph. It manages tasks,
 queries the \emph{Scheduler} component for task-to-worker assignments (schedules) and then
-assigns the tasks to their corresponding workers. The \emph{Worker} component then
-simulates task execution and uses the provided network model to simulate exchanges of data (task
+assigns the tasks to their corresponding workers. It also ensures that all task graph executions satisfy
+the dependency constraint (\defref{def:dependency_constraint}) and both task and worker constraints
+(\defref{def:worker_resource_constraint}).
+
+The \emph{Worker} component simulates task execution and uses the provided network model to simulate exchanges of data (task
 outputs) between individual workers of the simulated cluster.
 
 \begin{figure}

@@ -596,6 +596,10 @@ scheduler does not share any data structures with the reactor. A disadvantage of
 that both the reactor and the scheduler need to maintain their own copies of submitted task graphs,
 which increases their memory usage. However, we have not found this to be an issue in practice.
 
+Same as \dask{}, the \rsds{} scheduler also ensures that task dependencies and resource
+requirements are always satisfied and that worker resources are not being oversubscribed, as defined
+by~\defref{def:dependency_constraint} and~\defref{def:worker_resource_constraint}.
+
 \subsection*{Compatibility with \dask{}}
 \dask{} components communicate together using a custom
 communication protocol that contains dozens of different message types. Messages are represented as
