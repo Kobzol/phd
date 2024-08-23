@@ -70,7 +70,13 @@ $G = \taskgraphinner{\setresourcekindstaskgraph}$, where:
 		  execution.
 \end{itemize}
 
-\vspace{2mm}Below, we will define several terms that will be useful for describing task
+\vspace{2mm}Note that the definition above allows the existence of tasks that have no resource
+requirements. While there might be use-cases where this is desirable, in typical situations we might
+want to ensure that each task requires at least some resource (e.g.\ at least a single \gls{cpu} core),
+to avoid situations where all such tasks could be scheduled to a single worker, which could lead to
+oversubscription. We could express that constraint using the following property: $\forall t\in\settasks, \exists r\in\setresourcekindstaskgraph: \fntaskres(t, r) \neq 0$.
+
+Below, we will define several terms that will be useful for describing task
 graphs and their properties. For the following definitions, assume that we work with a
 task graph $G = \taskgraphinner{\setresourcekindstaskgraph}$:
 \begin{itemize}[itemsep=0pt]
