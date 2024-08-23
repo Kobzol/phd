@@ -1,7 +1,4 @@
-%TODO: worker constraint usage + HQ usage
 %TODO: objectives
-%TODO: Ligen virtual screening diagram
-%TODO: SOTA for resource management
 The previous two chapters focused primarily on the performance aspects of task graph execution, by
 examining various task scheduling algorithms and also bottlenecks that can limit the scalability of
 existing task runtimes. However, while performance is naturally crucial for
@@ -480,7 +477,7 @@ However, in some situations this might be too coarse-grained. To support a more 
 resource specification, we can leverage a \emph{fractional resource requirement}, which would allow a task to
 require only a fraction of some resource.
 
-\vspace{2mm}\makedef{def:task_graph_frac}{Task graph with fractional resources} A
+\vspace{2mm}\makedef{def:task_graph_frac}{Task graph with fractional resource requirements} A
 \emph{task graph with fractional resource requirements} is a tuple \\
 $G^{fr} = (\settasks, \setobjects, \setarcs, \setresourcekindstaskgraph, \fntaskresfrac)$, where:
 \begin{itemize}[itemsep=0pt,topsep=2pt]
@@ -562,7 +559,7 @@ $16$ \gls{cpu} cores in the case that a \gls{gpu} is
 not currently available, and let the scheduler decide whether to execute that task using
 \gls{cpu} or \gls{gpu} resources dynamically during task graph
 execution. This allows the scheduler to react to computational load in a flexible way, and thus
-potentially improve its load balancing capabilities.
+potentially improve its load-balancing capabilities.
 
 To support this use-case, we can generalize task resource requirements so that each task can
 specify multiple \emph{resource variants} of resource requirements, where each variant is a
@@ -580,7 +577,7 @@ $G^{var} = (\settasks, \setobjects, \setarcs, \setresourcekindstaskgraph, \fntas
 	      requirement of a task for a given resource kind and a given resource variant index.
 
 	The individual variants are identified with consecutive numeric indices starting at $1$.
-	%TODO: Allow tasks with no resource requirements!
+	%TODO: allow tasks with no resource requirements!
 	\item Let $\fntaskresvarcount_{G^{var}}$ be a function that determines the number of
 	resource variants for a task of $G^{var}$: \\
 	$\fntaskresvarcount_{G^{var}}(t) = \max\limits_{v\in\mathbb{N}_{>0}} \exists
@@ -619,8 +616,8 @@ worker and task resource constraints:
 
 \vspace{2mm}
 \makedef{def:worker_resource_constraint_var}{Worker and task constraint with resource variants} A
-\emph{task resource variant constraint}
-and a \emph{worker resource variant constraint} in the context of an execution $E^{var} = (G^{var}, C, \fntaskworkerassigned, \fntaskvarassigned)$, where $G^{var} = (\settasks, \setobjects, \setarcs, \setresourcekinds, \fntaskresvar)$ is
+\emph{task resource constraint with resource variants}
+and a \emph{worker resource constraint with resource variants} in the context of an execution $E^{var} = (G^{var}, C, \fntaskworkerassigned, \fntaskvarassigned)$, where $G^{var} = (\settasks, \setobjects, \setarcs, \setresourcekinds, \fntaskresvar)$ is
 a \emph{task graph with resource variants} and $C = \clusterinner{\setresourcekinds}$ is a
 \emph{computational environment}, are defined as follows: \vspace{1mm}\\
 $\forall tp\in\timedomain, \forall w\in{}W, \forall
@@ -1058,10 +1055,12 @@ assigns tasks to workers eagerly, to optimize the fast path where there are enou
 the available workers. When some workers are underutilized, the server uses work-stealing to steal
 tasks between workers to balance the computational load. Scheduling is performed on the level of
 tasks, regardless of which job they belong to; the scheduler does not even know anything about
-jobs, as they exist only in the frontend.
+jobs, as they exist only in the frontend. The scheduler ensures that the
+\emph{dependency constraint} (\defref{def:dependency_constraint}) is always upheld.
 
-What makes the scheduler different from \rsds{} is its support for the complex
-resource management scenarios that were described in~\Autoref{sec:heterogeneous-resources}. It supports
+What makes the scheduler different from \rsds{} and other state-of-the-art task runtimes is its
+support for the heterogeneous resource management concepts described
+in~\Autoref{sec:heterogeneous-resources}. It supports
 non-fungible resources, related resources, fractional resource requirements, resource variants and
 also multi-node tasks in a single unified resource system. When a task is being scheduled, the
 scheduler looks for a worker that can satisfy all resource requirements of that task, based on the
@@ -1071,15 +1070,15 @@ task, which will not be available for other tasks until that task finishes its e
 
 \hyperqueue{} resources are \emph{generic}; users can define their own
 arbitrary resource kinds for both tasks and workers. At the same time, \hq{} also
-recognizes several known resource names and provides specialized support for them. Resource
+recognizes several known resource kind names and provides specialized support for them. Resource
 management in \hyperqueue{} consists of two main systems, resource pools provided by
 workers and resource requirements specified by tasks. They will be described in turn below.
 
 \subsubsection*{Worker resource pools}
-Worker resources are configured when a worker is started through so-called \emph{resource pools},
-named sets of resource elements. The most common resource pools, such as \gls{cpu}
-cores and their \gls{numa} sockets, the amount of \gls{ram} and the
-presence of \gls{gpu} accelerators are detected automatically. On top of that, users
+Worker resources are configured when a worker is started through so-called \emph{resource pools}, which
+represent individual resource kinds (named sets of resource elements). The most common resource
+pools, such as \gls{cpu} cores and their \gls{numa} sockets, the amount of \gls{ram} and the
+presence of \gls{gpu} accelerators, are detected automatically. On top of that, users
 can specify an arbitrary set of additional pools. There are two kinds of resource pools:
 
 \begin{description}[wide=0pt]
@@ -1102,9 +1101,13 @@ can specify an arbitrary set of additional pools. There are two kinds of resourc
 	      \gls{numa} socket present on its node. Tasks can then specify if they want to
 	      prioritize drawing resources that belong to the same group; this will be described later.
 
-	      When a worker is started, by default it automatically divides \gls{cpu} cores into
-	      groups according to their \gls{numa} nodes. However, the concept of groups is general;
-	      they can be used for any indexed pool, not only specifically for \gls{numa}.
+	      When a worker is started, by default it automatically divides available \gls{cpu} cores
+		  into groups according to their \gls{numa} nodes. However, the concept of groups is
+		  general; they can be used for any indexed pool, not only specifically for \gls{numa}.
+
+		  The scheduler ensures that the
+	\emph{worker resource constraint with non-fungible resources}
+		  (\defref{def:worker_resource_constraint_ident}) is upheld for indexed pools.
 	\item [Sum pool] is designed for resources that are fungible. Such resources are typically
 	      numerous and it would thus be impractical to track each individual resource element separately. A
 	      sum pool does not represent its individual elements with indices; it simply defines a single number
@@ -1114,6 +1117,10 @@ can specify an arbitrary set of additional pools. There are two kinds of resourc
 	      treat each byte as a separate resource element. At the same time, tasks usually do not need such
 	      fine-grained tracking for these kinds of resources; if they care about memory requirements, they
 	      can just specify how much memory they need.
+
+		  The scheduler ensures that the
+	\emph{worker resource constraint}
+	(\defref{def:worker_resource_constraint}) is upheld for sum pools.
 \end{description}
 
 \Autoref{lst:hq-cli-worker-resources} shows a few examples of how users can configure resources
