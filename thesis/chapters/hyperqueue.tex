@@ -969,6 +969,7 @@ state anymore. Each job also has its associated state that is derived from the s
 
 \begin{figure}[h]
 	\centering
+	\resizebox{!}{60mm}{
 	\begin{tikzpicture}
 		\tikzstyle{every node}=[font=\footnotesize]
 		\tikzstyle{every state}=[fill={rgb:black,1;white,8},minimum size=1.5cm,font=\footnotesize]
@@ -987,6 +988,7 @@ state anymore. Each job also has its associated state that is derived from the s
 		(running)	edge    			node [left,xshift=-5]	{Canceled} 			(canceled)
 		(running)	edge [bend left]    node [below,xshift=8]	{Worker crashed}	(waiting);
 	\end{tikzpicture}
+	}
 	\caption{State diagram of \hyperqueue{} tasks}
 	\label{fig:hq-task-state-diagram}
 \end{figure}
@@ -1537,33 +1539,6 @@ performs virtual screening to assign a score to it. The resulting ligand-score p
 stored in a \gls{csv} file. Finally, the most promising $N$
 candidates (where $N$ is a configurable parameter) are selected based on their
 scores and molecular docking is then performed on them.
-
-\begin{figure}[h]
-	\centering
-	\resizebox{!}{35mm}{
-		\begin{tikzpicture}
-			\tikzset{%
-				data/.style={rectangle, draw, rounded corners, minimum size=8mm},
-			}
-			\graph[
-				grow right sep=11mm,
-			] {
-				"$t_1$"[task] -> {
-					"$o_{1a}$"[data] -> {
-						"$t_2$"[task] -> "$o_{2}$"[data],
-						"$t_3$"[task] -> "$o_{3}$"[data],
-						"$t_4$"[task] -> "$o_{4}$"[data]
-					},
-					"$o_{1b}$"[data] -> {
-						"$t_5$"[task] -> "$o_{5}$"[data]
-					}
-				} -> "$t_6$"[task]
-			};
-		\end{tikzpicture}
-	}
-	\caption{Simple task graph with six tasks and six data objects}
-	\label{fig:ligen-task-graph}
-\end{figure}
 
 The virtual screening workflow has been implemented using \hyperqueue{}, in order to
 leverage its heterogeneous resource management capabilities. It was designed using the Python
@@ -2752,7 +2727,7 @@ Runtime dependencies \\ % deployment
 \no & \automaticmap & \yes & \no & \yes & \no & \no & \no & \no & \no & \yes & \yes & \no & \python \\
 %	\midrule
 \pycompss{}\hfill\cite{pycompss} & \yes & \no & \yes & \yes & \yes & \no & \automaticft &
-\yes\textsuperscript{*} & \manualmap & \no & \no & \yes & \no & \no & \yes\textsuperscript{\dag} & \no & \no & \yes & \yes & \yes & \python, Java \\
+\yes\textsuperscript{*} & \manualmap & \no & \no & \yes & \no & \no & \yes & \no & \no & \yes & \yes & \yes & \python, Java \\
 %	\midrule
 \pegasus{}\hfill\cite{pegasus} & \no & \yes & \yes & \no & \yes & \yes & \automaticft &
 \yes & \manualmap & \no & \no & \yes & \no & \no & \no & \no & \no & \no & \no & \yes & \python, Java,
@@ -2949,8 +2924,8 @@ can scale to tens of nodes and thousands of cores. The experiments have also sho
 than competitive against \dask{}, a very popular task runtime that is being
 commonly used for running task graphs on distributed clusters. We have also demonstrated that
 the heterogeneous resource management concepts introduced in~\Autoref{sec:heterogeneous-resources}
-are able to both improve the achieved hardware utilization and also decrease the makespan of
-executed task graphs.
+are able to both improve the achieved hardware utilization of heterogeneous resources and also
+decrease the makespan of executed task graphs.
 
-Several ideas for the future improvement of \hyperqueue{} will be summarized in the final
+Several ideas for possible future improvements of \hyperqueue{} will be summarized in the final
 chapter.
