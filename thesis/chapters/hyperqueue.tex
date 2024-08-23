@@ -577,14 +577,20 @@ $G^{var} = (\settasks, \setobjects, \setarcs, \setresourcekindstaskgraph, \fntas
 	      requirement of a task for a given resource kind and a given resource variant index.
 
 	The individual variants are identified with consecutive numeric indices starting at $1$.
-	%TODO: allow tasks with no resource requirements!
 	\item Let $\fntaskresvarcount_{G^{var}}$ be a function that determines the number of
-	resource variants for a task of $G^{var}$: \\
-	$\fntaskresvarcount_{G^{var}}(t) = \max\limits_{v\in\mathbb{N}_{>0}} \exists
-		      r\in\setresourcekindstaskgraph\colon \fntaskresvar(t, r, v) > 0$
+	resource variants for a task of $G^{var}$: \vspace{1mm}\\
+	$\fntaskresvarcount_{G^{var}}(t) = \begin{cases}
+	   1,&\text{if } \forall v\in\mathbb{N}_{>0}, \forall r\in\setresourcekindstaskgraph\colon \fntaskresvar(t, r, v) = 0 \\
+	   \max\limits_{v\in\mathbb{N}_{>0}} \exists
+	   r\in\setresourcekindstaskgraph\colon \fntaskresvar(t, r, v) > 0,&\text{otherwise}
+	\end{cases}$
+
+	If a task does not define any resource requirements,
+	then $\fntaskresvarcount_{G^{var}}(t) = 1$. In that case, the task behaves as if
+	it had a single variant that does not require any resources.
 \end{itemize}
 
-The remaining properties of $G^{var}$ are identical to the \emph{task graph} properties
+\vspace{2mm}The remaining properties of $G^{var}$ are identical to the \emph{task graph} properties
 defined in~\defref{def:task_graph}.
 
 \vspace{2mm}
@@ -601,14 +607,13 @@ defined in~\defref{def:task_graph}.
 	\mathbb{N}_{>0}$ is a function that returns a specific resource variant
 	index that was assigned to a task running on some worker at a given point in
 	time.
-	%TODO: allow tasks with no resource requirements!
 	\item $\fntaskvarassigned$ has to uphold the following condition: \\
 	$\forall tp\in\timedomain, \forall t\in{}\settasks\colon \fntaskworkerassigned(t, tp) \ne \bot \Rightarrow
 	\fntaskvarassigned(t, tp) \in \{1,\ldots,\fntaskresvarcount_{G^{var}}(t)\}$
 
 	Informally, when a task is executing, it has to be assigned a valid variant index. Note that
 	when a task is not being executed at a given point in time, $\fntaskvarassigned$
-	is allowed to return an arbitrary (numeric) value.
+	is allowed to return an arbitrary non-zero natural number.
 \end{itemize}
 
 Using the two previous definitions, we can now also define a modified version of both the
