@@ -286,12 +286,12 @@ provided below.
 \subsection{Benchmark configuration}
 Our experiments were performed on the Salomon supercomputer~\cite{salomon}. Each
 Salomon node has two sockets containing Intel Xeon E5-2680v3 with 12 cores clocked at
-$2.5$ GHz ($24$ cores in total),
-\SI{128}{\gibi\byte} of \gls{ram} clocked at $2133$
+$2.5$ GHz (\num{24} cores in total),
+\SI{128}{\gibi\byte} of \gls{ram} clocked at \num{2133}
 MHz and no local disk. The interconnections between nodes use an InfiniBand FDR56 network with 7D
 enhanced hypercube topology.
 
-Unless otherwise specified, by default we spawn $24$
+Unless otherwise specified, by default we spawn \num{24}
 \dask{} workers per node, each using a single thread for task computations. We
 chose this setting because of the CPython \gls{gil} issue described earlier.
 Since our benchmarks are mostly compute-bound and not \gls{io}-bound, a single
@@ -303,15 +303,15 @@ the available cores ensures that no more than a single task per core is executed
 moment, to avoid oversubscription of the cores.
 
 To validate our choice of this default configuration, we have benchmarked a configuration using a
-single worker with $24$ threads per each node. We have found that it provides
+single worker with \num{24} threads per each node. We have found that it provides
 no benefit in comparison to a single worker with only one thread in any of our benchmarks.
 
 For each of our experiments we state the number of used worker nodes which contain only the
 workers. We always use one additional node which runs both the client and the server. For our
-scaling experiments, we use $1$ to $63$ worker nodes
-($24$ to $1512$ \dask{} workers), for
-the rest of our experiments we use either $1$ or $7$
-worker nodes ($24$ or $168$ \dask{}
+scaling experiments, we use \num{1} to \num{63} worker nodes
+(\num{24} to \num{1512} \dask{} workers), for
+the rest of our experiments we use either \num{1} or \num{7}
+worker nodes (\num{24} or \num{168} \dask{}
 workers). We have chosen these two cluster sizes to represent a small and a medium sized
 \dask{} cluster. The number of workers is fixed; it does not change during the
 computation.
@@ -451,8 +451,8 @@ benchmark; we can see how the average overhead per each task (vertical axis) cha
 increasing number of tasks (horizontal axis). We can observe that the overhead of the random
 scheduler is smaller than the overhead of the work-stealing scheduler, as expected. We can also see
 that the overhead per task increases with an increasing number of tasks for both schedulers. There
-is also a distinct increase of overhead between the configuration with $24$
-workers (one node) and with $168$ workers (seven nodes) for the work-stealing
+is also a distinct increase of overhead between the configuration with \num{24}
+workers (one node) and with \num{168} workers (seven nodes) for the work-stealing
 scheduler.
 
 \begin{figure}
@@ -488,10 +488,10 @@ in~\Autoref{fig:dask-strong-scaling}, which shows the strong scaling of \dask{} 
 the $merge\_slow$ benchmark. The three charts demonstrate how it scales with tasks
 that take \SI{1000}{\milli\second}, \SI{100}{\milli\second} and \SI{10}{\milli\second},
 respectively. With tasks that take one second, \dask{} is able to scale
-relatively well up to $1512$ workers. However, when tasks take one tenth of the
-time, it only scales up to approximately $360$ workers, and when tasks take
+relatively well up to \num{1512} workers. However, when tasks take one tenth of the
+time, it only scales up to approximately \num{360} workers, and when tasks take
 only \SI{10}{\milli\second}, \dask{} scales to approx.
-$168$ workers ($7$ nodes); adding more workers makes
+\num{168} workers (\num{7} nodes); adding more workers makes
 the makespan longer.
 
 The results of this experiment indicate that the general runtime overhead of
@@ -522,9 +522,9 @@ of workers might need to be tuned in order to achieve optimal performance.
 \Autoref{fig:dask-gil-scaling} demonstrates the effect of \gls{gil} on the
 \emph{pandas\_groupby} benchmark. We have executed the same benchmark using three
 \dask{} worker configurations on a single node. In the default configuration,
-with a single worker that uses $24$ threads (one for each core), the pipeline
+with a single worker that uses \num{24} threads (one for each core), the pipeline
 finishes in approximately $6.5$ seconds. If we instead create a single worker
-per each core ($24$ processes, each with a single thread), the performance
+per each core (\num{24} processes, each with a single thread), the performance
 improves significantly, by approximately $35\%$. This makes it clear that the
 \gls{gil} is a bottleneck in this case, and more \dask{}
 workers are needed to improve performance by enabling parallel task execution.
@@ -532,8 +532,8 @@ workers are needed to improve performance by enabling parallel task execution.
 However, it is not so simple as to always use a single \dask{} worker per core.
 As we have discovered with our earlier benchmarks, more workers introduce non-negligible overhead
 for the \dask{} server. This can be seen from the result of the third
-configuration, which uses $4$ \dask{} workers
-(processes), each leveraging $6$ threads. This configuration actually
+configuration, which uses \num{4} \dask{} workers
+(processes), each leveraging \num{6} threads. This configuration actually
 achieves the best performance out of the three tested configurations. It is thus clear that for
 some \dask{} workflows, users might need to carefully tune the configuration of
 workers to achieve optimal performance.
@@ -857,8 +857,8 @@ performance of \dask{} workflows in \gls{hpc} scenarios. In
 these use-cases, it is important for the runtime to scale to a large number of workers that can be
 provided by an \gls{hpc} cluster. We have designed an experiment which tests the
 strong scaling of both server implementations on several cluster sizes, ranging from
-$1$ node ($24$ workers) to $63$
-nodes ($1512$ workers). The default work-stealing scheduler was used for both
+\num{1} node (\num{24} workers) to \num{63}
+nodes (\num{1512} workers). The default work-stealing scheduler was used for both
 server implementations.
 
 \begin{figure}[h]
@@ -874,12 +874,12 @@ tasks. It is an adversarial case for a scheduler, as the tasks are short and thu
 scheduling and network transfers will overcome most parallelism gains. Therefore, increasing the
 number of workers will probably not provide a large speedup for this task graph. However, it should
 ideally not slow down the computation to a large extent. We can see that
-\rsds{} scales up to $15$ nodes
-($360$ workers). This is due to the fact that the cost associated with worker
+\rsds{} scales up to \num{15} nodes
+(\num{360} workers). This is due to the fact that the cost associated with worker
 management and work-stealing increases with an increasing number of workers, and from some point it
 starts to dominate, because the tasks are too short. However, \dask{} fares
 much worse. It is twice as slow when compared to \rsds{} with a single worker
-node, but four times slower with $63$ nodes ($1512$
+node, but four times slower with \num{63} nodes (\num{1512}
 workers). Here we can see that the inner overhead of \dask{} adds up, and its
 performance is reduced significantly with each additional worker node. On the other hand, with
 \rsds{}, the total makespan stays relatively constant, even after it stops
@@ -894,9 +894,9 @@ However,~\Autoref{tab:dask-graph-properties} (in~\Autoref{app:benchmarks}) shows
 \SI{10}{\milli\second}, while the average task output is \SI{1}{\mebi\byte}. This
 benchmark thus produces considerable network traffic. While both \dask{} and
 \rsds{} have identical performance with a single worker node,
-\dask{} stops scaling at $7$ nodes; with more nodes its
+\dask{} stops scaling at \num{7} nodes; with more nodes its
 performance degrades and eventually becomes slower than the single node case.
-\rsds{} scales up to $23$ worker nodes, hence it is able
+\rsds{} scales up to \num{23} worker nodes, hence it is able
 to utilize three times more workers. With more worker nodes, the performance of
 \rsds{} also degrades, as the network communication caused by task output
 transfers and work-stealing messages starts to dominate the overall execution time. In this case,
@@ -912,21 +912,21 @@ of this task graph, with $0.01$, $0.1$ and
 $1$ second tasks, same as for the previous similar experiment that we have
 performed with \dask{} only. This gives us a better idea of the task
 granularity required for \dask{} and \rsds{} to scale
-effectively. With $10$ millisecond tasks, \dask{} scales
-to $7$ workers; further its performance follows a similar shape as for
+effectively. With \num{10} millisecond tasks, \dask{} scales
+to \num{7} workers; further its performance follows a similar shape as for
 \texttt{merge-100K}. \rsds{} stops scaling at
-$15$ nodes, then its performance drops slightly with more added nodes. With
-$100$ millisecond tasks, \rsds{} is able to scale up to
-$47$ worker nodes ($1128$ workers); from that point on
-its performance stagnates. \dask{} scales only up to $23$
+\num{15} nodes, then its performance drops slightly with more added nodes. With
+\num{100} millisecond tasks, \rsds{} is able to scale up to
+\num{47} worker nodes (\num{1128} workers); from that point on
+its performance stagnates. \dask{} scales only up to \num{23}
 worker nodes, then the makespan again starts to increase when additional workers are added. For the
 last task graph, with one second tasks, both \rsds{} and
-\dask{} scale up to $63$ nodes
-($1512$ workers). However, \rsds{} is consistently faster
+\dask{} scale up to \num{63} nodes
+(\num{1512} workers). However, \rsds{} is consistently faster
 on all cluster sizes, and its performance with respect to \dask{} increases
 with added worker nodes; it is $1.03\times$ faster than \dask{}
-with $7$ nodes and $1.6\times$ faster with
-$63$ nodes.
+with \num{7} nodes and $1.6\times$ faster with
+\num{63} nodes.
 
 In general, \rsds{} is able to scale to a larger number of workers than
 \dask{}, thanks to its reduced runtime overhead. Furthermore, it is also able

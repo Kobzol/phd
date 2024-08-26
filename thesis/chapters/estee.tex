@@ -256,7 +256,7 @@ performance, and which we have not seen examined in detail in existing literatur
 
 		We use a parameter called \emph{Information mode (imode)}, which controls the amount of knowledge the
 		scheduler has of the duration of tasks. It can be set to one of the following values:
-		\begin{description}
+		\begin{description}[wide=20pt,leftmargin=20pt]
 			\item[exact] The scheduler has access to the exact duration of each task and the exact size of each data object
 				in the whole task graph.
 			\item[user] The scheduler has access to user-defined estimations for each task in the task graph. These
@@ -468,10 +468,10 @@ have used for our benchmarks.
 		the scheduler is invoked immediately after any task status update, and then a delay of
 		$0.1$, $0.4$, $1.6$ and $6.4$
 		seconds. In the cases where \gls{msd} is non-zero, we have also added a
-		$50$ milliseconds delay before sending the scheduler decision to workers, to
+	\num{50} milliseconds delay before sending the scheduler decision to workers, to
 		simulate the time taken by the scheduler to produce the schedule. For experiments that do not focus
 		on \gls{msd}, we always use an \gls{msd} of $0.1$ seconds
-		and the $50$ milliseconds computation delay. To evaluate information modes, we
+		and the \num{50} milliseconds computation delay. To evaluate information modes, we
 		have used the \emph{exact}, \emph{user} and \emph{mean} imodes. For
 		experiments that do not focus on imodes, we always use the \emph{exact} mode.
 	\item[Network models] The simple (labeled \emph{simple}) and max-min (labeled \emph{max-min}) network
@@ -720,7 +720,7 @@ their execution traces, so that we would have a completely accurate representati
 executed task durations and data object sizes, which we could then accurately replicate in the
 simulated \estee{} environment. The recorded task graphs will be described
 in~\Autoref{sec:rsds-dask-overhead-analysis} and they can also be found in~\cite{rsds}. We have executed
-these workflows with a $24x2$ cluster ($24$ cores on two nodes),
+these workflows with a $24x2$ cluster (\num{24} cores on two nodes),
 which corresponds to two nodes of the Salomon~\cite{salomon} cluster, on which were the
 \dask{} workflows executed. Each actual execution and simulation was performed
 three times.
@@ -736,7 +736,7 @@ three times.
 task graphs\footnote{Extended validation results can be found in~\cite{estee}.}. The performance of each scheduler was normalized to the
 makespan of the \emph{blevel} scheduler within the same environment (either
 \estee{} or \dask{}). Note that the relative ratios were centered
-around zero by subtracting $1$ from them, to focus on the relative differences.
+around zero by subtracting \num{1} from them, to focus on the relative differences.
 For example, if a task graph execution had a makespan of \SI{100}{\second} with the
 \emph{blevel} scheduler, but \SI{110}{\second} with the \emph{ws}
 scheduler, the ratio of the \emph{ws} scheduler would be $0.1$. If
@@ -777,11 +777,6 @@ have a large effect on the final performance of the scheduler. Furthermore, we h
 confirm our hypothesis that the naive network model used in several existing works can result in
 very inaccurate simulation results.
 
-Combined with the fact that the source code of many published scheduling algorithms or surveys is
-not open-source, it is difficult (even nigh impossible) to accurately reproduce their performance
-results. We have tried our best to make all available source-code, benchmark datasets and the
-results of our experiments public, to make them easy to reproduce and thus avoid this issue.
-
 %Our analysis has shown that despite its simplicity, the foundational \gls{hlfet}
 %algorithm~\cite{hlfet1974} (\emph{b-level}) produces high quality schedules in various scenarios and should
 %thus serve as a good baseline scheduler for task runtimes. It can be complemented with
@@ -802,6 +797,10 @@ runtime implementation.
 The effect of different information modes turned out to be significant, although it is unclear
 whether schedulers can leverage the additional information about exact task durations when facing
 unpredictable network conditions.
+
+All our benchmarks, source code and also experiment results and charts are available in an open
+and reproducible form~\cite{estee_graphs, estee_results}, which should facilitate
+reproducibility of our experiments.
 
 The implemented \estee{} simulator enables simple prototyping of task schedulers and
 also allows simulating execution of various task graphs. We hope that it could have further

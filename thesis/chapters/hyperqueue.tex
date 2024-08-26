@@ -200,7 +200,9 @@ ergonomic task execution.
 
 		This approach helps improving \ergonomics{} by removing the need to manually submit
 		allocations.
-	\item[Failed tasks are retried automatically] Once allocations become generic computational providers, their lifetime is no longer bound to a
+	% \\ to fix overfull hbox
+	\item[Failed tasks are retried automatically] Once allocations become generic computational \\
+	    providers, their lifetime is no longer bound to a
 		specific set of tasks. And since allocations often end abruptly, they might disappear in the midst
 		of a task being computed. This is not a failure of the task per se; it is a mostly unavoidable
 		consequence of allocations being transient. Such tasks should thus be automatically reassigned by
@@ -435,7 +437,7 @@ especially useful when combined with fractional resource requirements, which are
 Even though tasks should ideally not ask for specific resource elements in order to remain
 general, in certain cases it could be useful for a task to ask for a set resource elements that are
 somehow \emph{related} to each other, primarily for performance reasons. Assume that there
-is a computational node with $128$ \gls{cpu} cores and we want to
+is a computational node with \num{128} \gls{cpu} cores and we want to
 execute a task that requires four cores. It might seem that it does not matter which specific four
 cores are assigned to that task by the scheduler. However, modern processors are divided into
 so-called \gls{numa} nodes, where each such node contains a subset of cores and a
@@ -554,7 +556,7 @@ durations in advance; it is thus infeasible to estimate the ideal fraction of ta
 on the accelerators in order to achieve optimal hardware utilization. What we could do instead is
 to leverage \emph{dynamic resource selection}. For example, we could specify that a task needs either a
 single \gls{gpu} and a single \gls{cpu} or that it needs
-$16$ \gls{cpu} cores in the case that a \gls{gpu} is
+\num{16} \gls{cpu} cores in the case that a \gls{gpu} is
 not currently available, and let the scheduler decide whether to execute that task using
 \gls{cpu} or \gls{gpu} resources dynamically during task graph
 execution. This allows the scheduler to react to computational load in a flexible way, and thus
@@ -575,7 +577,7 @@ $G^{var} = (\settasks, \setobjects, \setarcs, \setresourcekindstaskgraph, \fntas
 	\mathbb{N}_{\geq{}0}$ is a function that defines the resource
 	      requirement of a task for a given resource kind and a given resource variant index.
 
-	The individual variants are identified with consecutive numeric indices starting at $1$.
+	The individual variants are identified with consecutive numeric indices starting at \num{1}.
 	\item Let $\fntaskresvarcount_{G^{var}}$ be a function that determines the number of
 	resource variants for a task of $G^{var}$: \vspace{1mm}\\
 	$\fntaskresvarcount_{G^{var}}(t) = \begin{cases}
@@ -650,7 +652,7 @@ in practice, what their performance and usage implications are and how they comp
 meta-schedulers, we have implemented them in a task runtime called \hyperqueue{}, which
 will be described in the rest of this chapter.
 
-\hyperqueue{} (\hq{}) is a distributed task runtime that aims to make task graph execution a
+\hyperqueue{} is a distributed task runtime that aims to make task graph execution a
 first-class concept on supercomputers. It does that by implementing the meta-scheduling design
 described in the previous section and leveraging insights gained from our task scheduling
 experiments and \dask{} runtime efficiency analysis. In terms of architecture and
@@ -674,7 +676,7 @@ used allocation manager without loss of generality.
 components, a central management service called a \emph{server} and a component that
 serves as a computational provider which executes tasks, called a \emph{worker}. Users
 then interact with the server using a \emph{client} interface.~\Autoref{fig:hq-architecture}
-displays a high-level view of the \hq{} architecture for a typical deployment on
+displays a high-level view of the \hyperqueue{} architecture for a typical deployment on
 an \gls{hpc} cluster with an allocation manager, where the server runs on a login
 node and meta-schedules tasks to workers that run on computational nodes in various allocations.
 The individual components are described in more detail below.
@@ -778,7 +780,7 @@ contributing to the execution of the submitted task graphs. This property enable
 arbitrarily scale the computation of a task graph both up and down even while it is being executed,
 by dynamically adding or removing workers as needed.
 
-While workers can be deployed manually by users, \hq{} can also automatically
+While workers can be deployed manually by users, \hyperqueue{} can also automatically
 submit allocations to an allocation manager that start workers on computational nodes based on
 current computational needs of submitted task graphs, as was already mentioned. This system, called
 \emph{automatic allocation}, will be described in more detail later in~\Autoref{hq:automatic-allocation}.
@@ -837,7 +839,7 @@ installation nor configuration.
 
 The \hyperqueue{} Python \gls{api} is then distributed as a Python package
 that is available on the standard Python Package Index~\cite{hq_pypi}. This package
-contains all the \hq{} logic inline; it is thus self-contained and does not
+contains all the relevant code inline; it is thus self-contained and does not
 require the \texttt{hq} binary.
 
 Both clients and workers communicate with the server using the standard \gls{tcpip}
@@ -898,7 +900,7 @@ Each task also has various additional properties, such as a path to the executed
 Python function), a set of environment variables, a working directory, and others.
 
 Tasks are composed into task graphs, which are called \emph{jobs} in the
-\hq{} terminology. Each task belongs to exactly one job; jobs are completely
+\hyperqueue{} terminology. Each task belongs to exactly one job; jobs are completely
 independent, so there can be no dependencies between tasks belonging to different jobs. Jobs are
 units of monitoring and management, as they allow users to group many tasks together, observe their
 state or perform operations on all (or a selected subset of) tasks of a job at once. There are two
@@ -918,9 +920,9 @@ usage of the server, because the task graph is stored in a compressed format.
 Each task in the task array gets assigned a different \emph{task ID}, which uniquely
 identifies a specific task, which allows it to perform its computation on a different input. For
 example, if a user creates a task array with a thousand tasks, then by default, the first will have
-ID $1$, the second one will have ID $2$, etc. The ID is
+ID \num{1}, the second one will have ID \num{2}, etc. The ID is
 passed to the task through an environment variable. Apart from assigning unique inputs to tasks
-through task IDs, \hq{} also supports passing a unique binary blob to each task
+through task IDs, \hyperqueue{} also supports passing a unique binary blob to each task
 (again through an environment variable) that can contain arbitrary data.~\Autoref{lst:hq-cli-task-arrays}
 shows an example of how users may submit task arrays through the \gls{cli}.
 
@@ -952,7 +954,7 @@ single \emph{state}:
 		state. If the worker that is executing the task stops or crashes, the task will move back to the
 		\emph{waiting} state, so that it can be rescheduled to a different worker. This is labeled
 		as a \emph{task restart}.
-	\item[Finished] When a task finishes successfully (a binary program exits with the exit code $0$
+	\item[Finished] When a task finishes successfully (a binary program exits with the exit code \num{0}
 		or a Python function returns without throwing an exception), it moves to the \emph{finished}
 		state.
 	\item[Failed] When a task fails (a binary program exits with a non-zero exit code or a Python function throws an
@@ -1006,7 +1008,7 @@ the computation starts.
 \label{hq:task-input-and-output}
 By default, each \hyperqueue{} task stores its \emph{standard output} (\emph{stdout}) and
 \emph{standard error output} (\emph{stderr}) streams to the filesystem. Users can override this to avoid storing these
-output streams, or to let \hq{} remove them if they are empty after the task has
+output streams, or to let \hyperqueue{} remove them if they are empty after the task has
 finished executing, to reduce disk clutter. It is also possible to use various placeholders for
 configuring the paths of these streams. For example, the string \texttt{\%\{TASK\_ID\}} in a stream
 path will get resolved to the task ID of the task that produces the stream. This can be used to
@@ -1014,7 +1016,7 @@ easily separate the output of different tasks.
 
 Since task graphs can be large, generating two files per task, especially on shared network
 filesystems that are commonly used on supercomputers, could cause performance bottlenecks or run
-into limitations caused by user disk quotas. To alleviate this problem, \hq{}
+into limitations caused by user disk quotas. To alleviate this problem, \hyperqueue{}
 supports an output management system called \emph{output streaming}. If it is enabled for a given
 job, then \emph{stdout} and \emph{stderr} of tasks is streamed over the network
 from workers to the server, instead of being stored into separate files. The server then stores all
@@ -1023,7 +1025,7 @@ and filtering task output data from this file. This helps to reduce the pressure
 filesystem.~\Autoref{sec:hq-exp-output-streaming} will evaluate how this system can help resolve potential
 \gls{io} issues.
 
-%~\Autoref{lst:hq-cli-log} shows several \hq{}
+%~\Autoref{lst:hq-cli-log} shows several \hyperqueue{}
 %commands that can be used to interact with output streaming.
 
 %\begin{listing}[h]
@@ -1046,9 +1048,9 @@ data can be attached as an input for any task (through its \emph{standard input}
 task outputs are only used for specifying dependencies; they cannot be transferred between the
 workers directly. This is only relevant for the Python \gls{api}, because tasks
 submitted using the \gls{cli} cannot easily express data transfers. The
-\hq{} server is based on the \rsds{} server implementation, which
+\hyperqueue{} server is based on the \rsds{} server implementation, which
 supports data transfers between workers, so the transfer functionality itself is actually
-implemented in \hq{}. However, data transfers still need to be incorporated into
+implemented. However, data transfers still need to be incorporated into
 the \hyperqueue{} programming model, and a user-facing (Python) interface for consuming
 outputs of tasks needs to be designed. It should be noted that this is a limitation of the current
 implementation that we plan to lift in future work.
@@ -1075,8 +1077,8 @@ a worker, the scheduler \emph{allocates} a specific subset of the worker's resou
 task, which will not be available for other tasks until that task finishes its execution.
 
 \hyperqueue{} resources are \emph{generic}; users can define their own
-arbitrary resource kinds for both tasks and workers. At the same time, \hq{} also
-recognizes several known resource kind names and provides specialized support for them. Resource
+arbitrary resource kinds for both tasks and workers. At the same time, workers also
+recognize several known resource kind names and provide specialized support for them. Resource
 management in \hyperqueue{} consists of two main systems, resource pools provided by
 workers and resource requirements specified by tasks. They will be described in turn below.
 
@@ -1092,11 +1094,11 @@ can specify an arbitrary set of additional pools. There are two kinds of resourc
 	      non-fungible and has a unique identity (represented either by an integer or a string). An example
 	      of such a resource pool could be a set of \gls{cpu} cores or \gls{gpu}
 	      devices. For example, if a worker has two NVIDIA \glspl{gpu}, that worker could provide
-	      an indexed pool containing two elements (e.g.\ with indices $0$ and
-	      $1$), each representing one individual \gls{gpu} device. These two
+	      an indexed pool containing two elements (e.g.\ with indices \num{0} and
+	      \num{1}), each representing one individual \gls{gpu} device. These two
 	      resources are not interchangeable; the scheduler decides which specific element will be assigned to
 	      a task and it tracks the individual elements based on their identity. If a task
-	      $t$ is currently using \gls{gpu} $0$, that
+	      $t$ is currently using \gls{gpu} \num{0}, that
 	      element will not be assigned to any other task until $t$ has finished being
 	      executed.
 
@@ -1169,7 +1171,8 @@ resources, and dynamic resource selection (resource variants). These allow tasks
 complex use-cases related to resource management. The implementation specifics of these resource
 management features are described below.
 
-\vspace{2mm}\textbf{Fractional resource requirements}\enskip{}Tasks can specify
+\begin{description}[wide=0pt,itemsep=0pt,topsep=1pt]
+	\item[Fractional resource requirements] Tasks can specify
 their resource requirements in the form of a fraction. The scheduler uses fixed-point arithmetic to
 manage fractional resource requirements, in order to avoid issues associated with floating-point
 arithmetic, such as rounding errors. \Autoref{sec:hq-exp-fractional-resources} will examine
@@ -1185,13 +1188,13 @@ separate devices. This approach avoids excessive fragmentation of individual res
 it also makes it easier for tasks to use the allocated resources; some tasks might be unable to
 leverage more than one resource element of a given resource kind.
 
-\vspace{2mm}\textbf{Resource variants}\enskip{}Each task can define a list of
+	\item[Resource variants] Each task can define a list of
 resource requirement sets (resource variants); the scheduler uses the first one that can be
 satisfied by a worker at the time of scheduling. The order of the variants in the list determines
 their priority. The load-balancing improvements that can be achieved using resource variants will
 be evaluated in~\Autoref{sec:hq-exp-resource-variants}.
 
-\vspace{2mm}\textbf{Related resources}\enskip{}Relations between resource
+	\item[Related resources] Relations between resource
 elements can be modeled using a combination of indexed pool groups and a \emph{group allocation strategy},
 which can be used to choose which specific resource elements from an indexed pool will be used for
 a given task. A typical example where indexed pool groups are useful are \gls{numa}
@@ -1199,17 +1202,18 @@ nodes, where tasks might want to be executed on cores that belong to the same
 \gls{numa} node (group). Tasks can use one of the following three strategies for each resource kind
 that they request:
 
-\begin{description}[wide=0pt,itemsep=0pt,topsep=1pt]
-	\item [Compact] is the default strategy. The scheduler tries to allocate all requested
-	      resources from as few groups as possible. However, if there are not enough resources currently
-	      available for that approach on a given worker, it will also try to draw resource elements from a
-	      larger number of groups in order to satisfy the resource requirement.
-	\item [Strict compact] is a stricter version of the \emph{compact} strategy. With this
-	      strategy, the scheduler first figures out the minimum number of groups required to satisfy the
-	      resource requirement. It will then schedule the task only after it can provide all requested
-	      resources from the smallest number of groups possible.
-	\item [Scatter] is the opposite of the \emph{compact} mode. It tries to allocate resources
-	      for the task from as many groups as possible.
+	\begin{description}[wide=20pt,leftmargin=20pt]
+		\item [Compact] is the default strategy. The scheduler tries to allocate all requested
+			  resources from as few groups as possible. However, if there are not enough resources currently
+			  available for that approach on a given worker, it will also try to draw resource elements from a
+			  larger number of groups in order to satisfy the resource requirement.
+		\item [Strict compact] is a stricter version of the \emph{compact} strategy. With this
+			  strategy, the scheduler first figures out the minimum number of groups required to satisfy the
+			  resource requirement. It will then schedule the task only after it can provide all requested
+			  resources from the smallest number of groups possible.
+		\item [Scatter] is the opposite of the \emph{compact} mode. It tries to allocate resources
+			  for the task from as many groups as possible.
+	\end{description}
 \end{description}
 
 The effect of group allocation strategies will be evaluated in~\Autoref{sec:hq-exp-numa}. Note that
@@ -1223,8 +1227,8 @@ are available when the task starts to execute. This can be used for software tha
 w.r.t.\ the amount of resources provided to it.
 
 There is also one additional special resource that is relevant for scheduling, called a
-\emph{time request}. If a task specifies a time request (a duration) $t$, it
-tells the scheduler that it needs at least $t$ time units for its execution.
+\emph{time request}. If a task specifies a time request (a duration) $tr$, it
+tells the scheduler that it needs at least $tr$ time units for its execution.
 This is important for avoiding needless task restarts. Because workers started in allocations
 cannot run for a longer time than their allocation's wall-time (which is a known value), the
 scheduler knows the remaining lifetime of each such worker at any given time. This information is
@@ -1234,17 +1238,17 @@ probable that such tasks could not finish executing before that worker shuts dow
 
 Once a task is scheduled to a worker and the scheduler decides which resources will be allocated to
 it, it passes this information to the task through environment variables. For example, if a task
-asks for two \gls{cpu} cores and the scheduler allocates cores $10$
-and $14$ of a specific worker to it, \hq{} will pass the
+asks for two \gls{cpu} cores and the scheduler allocates cores \num{10}
+and \num{14} of a specific worker to it, \hyperqueue{} will pass the
 environment variable \texttt{HQ\_RESOURCE\_VALUES\_cpus=10,14} to the task.
 
 It is important to note that \hyperqueue{} treats resources as opaque and virtual; they
-are used only for scheduling. For example, if a task is provided with cores $0$
-and $1$, the worker that executes it does not enforce that it will actually run
+are used only for scheduling. For example, if a task is provided with cores \num{0}
+and \num{1}, the worker that executes it does not enforce that it will actually run
 on these specific cores. This responsibility is left to the task itself, which can use the provided
 environment variable to decide which resources it should actually use for its execution. For
 example, a task could pin its threads onto cores that were allocated to it. In the case of
-\gls{cpu} cores, \hq{} can pin the allocated cores for the task
+\gls{cpu} cores, \hyperqueue{} can pin the allocated cores for the task
 automatically if the task is configured as such.
 
 \Autoref{lst:hq-cli-task-resources} displays a few examples of how can task resource requirements be
@@ -1272,11 +1276,11 @@ $ hq submit --resource 'fpga=2' --time-request 10m ./my-program
 \hyperqueue{} also supports a special kind of a resource that is especially useful for
 tasks that want to execute \gls{hpc} applications designed to run on multiple nodes
 (e.g. \gls{mpi} programs). A task may specify that it wants to be executed on
-multiple workers at the same time. In this case, \hq{} assumes exclusive
+multiple workers at the same time. In this case, \hyperqueue{} assumes exclusive
 ownership of all the resources of each worker (node), which typically matches the requirement of
 \gls{mpi}-like applications. A multi-node task requiring $n$ nodes
 can only be scheduled when $n$ workers are idle (not executing any tasks) at the
-same time. When a multi-node task starts to execute, \hq{} passes it a
+same time. When a multi-node task starts to execute, \hyperqueue{} passes it a
 \emph{nodefile} which contains the hostnames of all workers allocated to the task. This
 nodefile can then be used by common \gls{mpi} program launchers to start an
 \gls{mpi} program.
@@ -1320,8 +1324,8 @@ marked as failed and any tasks that (transitively) depend on it are canceled.
 \hyperqueue{} allows users to filter tasks by their state and resubmit only failed or
 canceled tasks in a straightforward way, which is possible due to the job state being kept outside
 of transient allocations.~\Autoref{lst:hq-cli-fault-tolerance} demonstrates how users can use the
-\hq{} \gls{cli} to resubmit failed tasks from a previously
-submitted job. It also shows that several \hq{} commands are designed to be
+\gls{cli} to resubmit failed tasks from a previously
+submitted job. It also shows that several \hyperqueue{} commands are designed to be
 composable, adhering to the Unix philosophy of creating commands that do a single thing well and
 that can be easily combined together.
 
@@ -1346,7 +1350,7 @@ used the wrong filesystem path for inputs. If this happens for a very large job,
 lot of wasted computation, where tasks will start to execute, but they will probably fail very soon
 after that. \hyperqueue{} thus allows users to configure a parameter that specifies the
 maximum number of task failures per job. If the configured number of failures is exceeded,
-\hq{} will preemptively cancel the whole job to avoid wasting computation.
+the whole job will be preemptively canceled to avoid wasting computation.
 
 A special case of a failure is when the server itself crashes or it is stopped by the user or when
 a worker loses connection to the server due to networking issues. In this case, the worker cannot
@@ -1372,7 +1376,7 @@ automated approach for scaling computational resources. Since \hyperqueue{} know
 state of all tasks and workers and it is commonly executed on login nodes that have access to
 allocation managers, it is natural to provide it with the ability to automatically submit new
 allocations on behalf of the user, based on current computational load. This system has been
-implemented in \hq{} under the name \emph{Automatic allocator} (shortened as \autoalloc{}). The automatic
+implemented in \hyperqueue{} under the name \emph{Automatic allocator} (shortened as \autoalloc{}). The automatic
 allocator was created with the following design goals:
 
 \begin{description}[wide=0pt,itemsep=0pt,topsep=2pt]
@@ -1392,12 +1396,12 @@ allocator was created with the following design goals:
 \Autoalloc{} has been implemented as a background service within the
 \hyperqueue{} server. To use it, users first need to create at least one
 \emph{allocation queue}. Such a queue describes a template for creating new allocations that will
-be submitted by \hq{} when there is a demand for more computational resources.
+be submitted when there is a demand for more computational resources.
 Each queue contains several properties that can be configured by users:
 
 \begin{description}[wide=0pt,itemsep=0pt,topsep=2pt]
 	\item[Allocation manager] \Autoalloc{} needs to communicate with a given allocation manager
-		to be able to submit allocations into it. Users thus need to tell \hq{} which
+		to be able to submit allocations into it. Users thus need to tell \hyperqueue{} which
 		allocation manager it should communicate with. Currently, two managers are supported, Slurm and
 		\gls{pbs}.
 	\item[Time limit] This value determines the wall-time of each allocation submitted by \autoalloc{}.
@@ -1411,7 +1415,7 @@ Each queue contains several properties that can be configured by users:
 		the allocation manager.
 	\item[Worker count per allocation] Determines how many nodes (workers) should be requested for each allocation. Unless users want to
 		execute multi-node tasks, it is usually convenient to use the default value
-		($1$); typically, the fewer nodes are requested in an allocation, the sooner it
+		(\num{1}); typically, the fewer nodes are requested in an allocation, the sooner it
 		will be started by the allocation manager.
 	\item[Max worker count] This parameter can be used to limit the maximum number of running workers across all allocations
 		started by this queue.
@@ -1473,7 +1477,7 @@ communication between the node with the server and a node where the manager is d
 \hyperqueue{} implements communication with each manager in a custom way. While there
 have been some attempts to create a unified interface~\cite{psij,workflow-alloc-manager-comm} for submitting
 allocations to different allocation managers, they have not seen wide adoption so far. Furthermore,
-adopting these approaches would require \hq{} to introduce a dependency on Python
+adopting these approaches would require \hyperqueue{} to introduce a dependency on Python
 or an external \gls{http} service, which would make it more difficult to deploy.
 
 It is crucial for \autoalloc{} to maintain an up-to-date state of its created
@@ -1487,8 +1491,8 @@ they are queried too often; this reduces the chance of them being overloaded, bu
 that \hyperqueue{} would not get the latest data, which is not ideal. However, we can
 observe that it is not actually required to poll the allocation manager. The only allocation events
 that are important for the allocator are the start and an end of an allocation. And this
-information can be learned through a proxy; the connections are disconnections of
-\hq{} workers. When a worker is started in an allocation, it will connect to the
+information can be learned through a proxy; the connections and disconnections of
+workers. When a worker is started in an allocation, it will connect to the
 server and tell it its allocation ID\@. This lets the automatic allocator learn about new
 allocations. On the other hand, when such a worker disconnects, it signifies that its containing
 allocation has also finished. Using this approach, the allocator is able to maintain the latest
@@ -1515,12 +1519,12 @@ to execute task graphs on \gls{hpc} systems. Apart from these selected case stud
 it has also been used in other projects and scenarios; these will be enumerated
 in~\Autoref{ch:conclusion}.
 
-The firs two use-cases originate from the LIGATE (LIgand Generator and portable drug discovery
+The first two use-cases originate from the LIGATE (LIgand Generator and portable drug discovery
 platform AT Exascale)~\cite{ligate} project, whose goal was to integrate state-of-the-art
 \gls{cadd} tools into a unified platform designed for executing drug design
 experiments on petascale and exascale \gls{hpc} clusters. This project provided
-funding for the development of \hyperqueue{}, and its use-cases also served as one of the
-main driving forces behind the design of this task runtime. The usage of \hyperqueue{}
+funding for the creation and development of \hyperqueue{}, and its use-cases also served as one
+of the main driving forces behind the design of this task runtime. The usage of \hyperqueue{}
 within the LIGATE project is also briefly described in~\cite{ligate}.
 
 \subsection{Virtual screening and free-energy calculations}
@@ -1548,7 +1552,7 @@ workflow consists of both very short running tasks (such as ligand expansion) an
 computationally demanding tasks (such as scoring and docking). The scoring and docking stages can
 also run on \gls{gpu} accelerators, which provide much higher throughput than the
 \gls{cpu} implementation. These constraints were encoded using
-\hq{} resource requirements, which allowed selecting the proper hardware
+task resource requirements, which allowed selecting the proper hardware
 resources for each kind of task. \Autoref{sec:hq-exp-ligen} describes an experiment that measures the
 achieved hardware utilization when running this workflow with \hyperqueue{}.
 
@@ -1556,7 +1560,7 @@ This workflow was executed on four computational sites; the Karolina~\cite{karol
 LUMI~\cite{lumi}, LEONARDO~\cite{leonardo} and E4~\cite{e4}
 \gls{hpc} clusters. The only change required to port the workflow to a new cluster
 was to update the Slurm credentials used for submitting allocations. This demonstrates the
-simplicity of porting \hyperqueue{} workflows between different supercomputers.
+simplicity of porting \hyperqueue{} workflows to different supercomputers.
 
 The output of the scoring and docking stages of the virtual screening workflow then serve as input
 for a more complex \gls{cadd} workflow that is designed for performing free-energy
@@ -1583,8 +1587,8 @@ short (\SI{100}{\pico\second}) trajectory for each pose, from which a final
 \gls{abfe} value is calculated. Because this computation is relatively lightweight (it
 only lasts for a couple of minutes), it was possible to run it on a large dataset of inputs. It was
 executed for more than four thousand complexes from the PDBbind~\cite{pdbbind} v2020
-database; for each complex, up to $256$ different poses were evaluated, and for
-each pose, $8$ simulation replicas were executed to reduce statistical error
+database; for each complex, up to \num{256} different poses were evaluated, and for
+each pose, \num{8} simulation replicas were executed to reduce statistical error
 (since the computation is randomized). This resulted in more than $6.5$ million
 GROMACS simulations that had to be performed in total.
 
@@ -1593,9 +1597,9 @@ dependencies between tasks. However, due to the sheer amount of simulations that
 performed, it would be quite challenging to execute such a large number of tasks directly using
 Slurm allocations. \hyperqueue{} was thus used to define the computational task graph and
 manage the executions of all the simulations. Each task executed all eight replicas (independent
-simulations) for a given complex pose, either on $8$ \glspl{gpu} or
-$16$ \gls{cpu} cores in parallel. \hyperqueue{} thus had
-to schedule and manage approximately $800$ thousand tasks in total. The automatic
+simulations) for a given complex pose, either on \num{8} \glspl{gpu} or
+\num{16} \gls{cpu} cores in parallel. \hyperqueue{} thus had
+to schedule and manage approximately \num{800} thousand tasks in total. The automatic
 allocator took care of automatically submitting Slurm allocations, users of the workflow thus did
 not need to concern themselves with creating them manually.
 
@@ -1604,15 +1608,15 @@ fault-tolerance. With such a large number of tasks, some of them have not finish
 either because of a Slurm allocation ending in the middle of a computation or because of an
 instability of the used \gls{hpc} cluster. Thanks to \hyperqueue{}, such
 failed tasks were transparently rescheduled to different computational nodes without any user
-intervention. This was possible due to the fact that the \hq{} server was
+intervention. This was possible due to the fact that the server was
 executed on a login node and thus it kept the state of the submitted tasks in a persistent database
 that was not affected by shutdowns or failures of Slurm allocations.
 
 The execution of this workflow has consumed a non-trivial amount of both \gls{cpu}
 and \gls{gpu} computational time. Concretely, its execution has used
-$240$ thousand \gls{gpu} hours on \emph{LUMI-G}
+\num{240} thousand \gls{gpu} hours on \emph{LUMI-G}
 (the \gls{gpu} partition of the LUMI~\cite{lumi} cluster) and
-$2$ million \gls{cpu} core hours on the
+\num{2} million \gls{cpu} core hours on the
 MeluXina~\cite{meluxina} cluster. This demonstrates that \hyperqueue{} is able to
 scale to large use-cases and enables robust execution using a significant amount of computational
 resources. To our knowledge, the execution of this workflow was among the largest
@@ -1640,9 +1644,9 @@ hyperparameters that produces a model with the highest possible prediction perfo
 Parallelizing a hyperparameter search using \hyperqueue{} is very simple, even using the
 \gls{cli}. The individual configurations can be stored either into a
 \gls{json} array (where each configuration is a \gls{json} object) or
-into a text file (where each configuration is a separate line), from which \hq{}
+into a text file (where each configuration is a separate line), from which \hyperqueue{}
 can then automatically build the workflow.~\Autoref{lst:hq-exa4mind-hyperparameter-search} shows an example of how easy is
-to use \hq{} in this case. The user simply starts the server, configures
+to use \hyperqueue{} in this case. The user simply starts the server, configures
 automatic allocation, so that it starts allocations on their behalf, and then submits a job that is
 automatically generated from a \gls{json} file containing the hyperparameter
 configurations. The executed script does not know anything about \hyperqueue{} apart from
@@ -1694,10 +1698,10 @@ rest is handled fully automatically by \hyperqueue{}.
 
 The second advantage of using \hyperqueue{} is an improved utilization of nodes.
 Previously, the computations were performed on the Salomon supercomputer~\cite{salomon},
-which had $24$ \gls{cpu} cores per node. This was a reasonable
+which had \num{24} \gls{cpu} cores per node. This was a reasonable
 amount of cores for computing a single simulation per each node. However, once Salomon has been
 decommissioned, \gls{arcce} started submitting computations to
-Karolina~\cite{karolina}, which has $128$ cores per node instead. This
+Karolina~\cite{karolina}, which has \num{128} cores per node instead. This
 resulted in a decrease of \gls{cpu} utilization, because each simulation spends a
 non-trivial amount of time performing either sequential computation or \gls{io},
 during which only a few cores were utilized. And with so many cores available on the node, this
@@ -1705,7 +1709,7 @@ resulted in lower hardware utilization, as many cores remained idle. A simple me
 utilization is to split the computation into smaller parts that each use a smaller number of cores.
 However, on the Karolina \gls{cpu} partition, it is not possible to ask for less than
 a whole node directly using Slurm. This is where \hyperqueue{} came in; once
-\gls{arcce} switched to it, the computations were configured for $32$
+\gls{arcce} switched to it, the computations were configured for \num{32}
 cores and \hyperqueue{} then took care of packing four such computations to each
 allocated Karolina node. This change resulted in an improvement of the average
 \gls{cpu} utilization of the submitted computations on Karolina from
@@ -1735,7 +1739,7 @@ performed with \hyperqueue{} version $0.18$, compiled with Rust
 $1.79.0$. The source code of the presented experiments is available in
 a GitHub repository\footnoteurl{https://github.com/It4innovations/hyperqueue/tree/benchmarks/benchmarks}.
 
-In selected experiments, \hq{} was benchmarked in a so-called
+In selected experiments, \hyperqueue{} was benchmarked in a so-called
 \emph{zero worker} mode, which is very similar to the zero worker mode that has been used to
 benchmark the overhead of \rsds{}, described in~\Autoref{sec:dask-overhead-per-task}. In this
 mode, workers do not actually execute any tasks; when a task is about to be executed on a worker,
@@ -1768,13 +1772,13 @@ resources (workers) used for its execution. Nevertheless, it is interesting to e
 overhead introduced by the task runtime on a trivial task graph, in particular to gain insight into
 the smallest duration of tasks that can be used without the overhead becoming too limiting.
 
-We have benchmarked the \emph{simple workflow} in two sizes ($10$ and
-$50$ thousand tasks) with three different worker counts ($1$,
-$2$ and $4$ workers) and four different task durations
+We have benchmarked the \emph{simple workflow} in two sizes (\num{10} and
+\num{50} thousand tasks) with three different worker counts (\num{1},
+\num{2} and \num{4} workers) and four different task durations
 (\SI{1}{\milli\second}, \SI{10}{\milli\second}, \SI{100}{\milli\second} and
 \SI{250}{\milli\second}). The \emph{ideal duration} for each task graph was estimated by taking
 the total time to execute all the tasks sequentially (task count $\times$ task duration) and
-dividing it by the total number of cores available (worker count $\times$ $128$). This estimates a
+dividing it by the total number of cores available (worker count $\times$ \num{128}). This estimates a
 perfect scenario without any overhead, where all tasks are perfectly parallelized across all
 available \gls{cpu} cores.
 
@@ -1795,7 +1799,7 @@ $5\%$ slower than the ideal duration.
 
 We can see that for tasks that last for \SI{100}{\milli\second} or more, the overhead of
 \hyperqueue{} is within $5\%$ of the ideal makespan; with the larger
-task graph that contains $50$ thousand tasks, the overhead stays within
+task graph that contains \num{50} thousand tasks, the overhead stays within
 $3\%$. The overhead increases slightly with an added number of workers, which is
 expected; the scheduler needs to perform more work and the server also communicates with more
 workers over the network.
@@ -1829,7 +1833,7 @@ To provide a fairer evaluation of the overhead of \hyperqueue{} for short tasks,
 also evaluated it against a different baseline, which is not based on a theoretical calculation,
 but on the actual performance of command execution on Karolina. We have implemented a simple
 program that executes the same tasks (\texttt{sleep} processes) as
-\hyperqueue{}, in parallel on all $128$ available cores. This provides a
+\hyperqueue{}, in parallel on all \num{128} available cores. This provides a
 more reasonable baseline that takes into account the overhead of command execution on Karolina. The
 results of this experiments can be seen in~\Autoref{fig:hq-overhead-vs-manual}. The baseline is marked with a
 horizontal red line; it represents the fastest measured time to execute the given number of
@@ -1843,15 +1847,15 @@ running the commands without a task runtime) stays within $10\%$ even for very s
 The previous experiment has evaluated the total overhead of \hyperqueue{} while taking
 into account the time to execute tasks. To further examine the inner overhead of scheduling and
 network communication, in this experiment we evaluate the possible task throughput (number of tasks
-processed per second) using the \emph{zero worker} mode. In this mode, \hq{}
+processed per second) using the \emph{zero worker} mode. In this mode, \hyperqueue{}
 performs all operations that it does normally (managing tasks and workers, scheduling, sending
-network packets), but it does not actually execute the tasks; the corresponding worker immediately
-marks each task as completed instead. This allows us to examine the overhead of
+network packets), but workers do not actually execute tasks; the corresponding worker
+immediately marks each task as completed instead. This allows us to examine the overhead of
 \hyperqueue{} without it being affected by process spawning, which can have severe
 overhead, as was demonstrated in the previous experiment. We have benchmarked the
-\emph{simple workflow} containing from $10$ thousand to $1$
-million tasks with varying worker counts (up to $16$ workers and thus
-$2048$ \gls{cpu} cores).
+\emph{simple workflow} containing from \num{10} thousand to \num{1}
+million tasks with varying worker counts (up to \num{16} workers and thus
+\num{2048} \gls{cpu} cores).
 
 \begin{figure}[h]
 	\centering
@@ -1863,10 +1867,10 @@ $2048$ \gls{cpu} cores).
 The results can be observed in~\Autoref{fig:hq-tasks-per-s}. The horizontal axis displays the number of
 workers in the task graph, while the vertical axis displays the achieved throughput measured in
 tasks processed per second. In theory, the throughput should be increasing with more added workers. For
-the smallest task graph with $10$ thousand tasks, the throughput increases up to
-four workers ($512$ cores), then it decreases; the task graph is too small and the
+the smallest task graph with \num{10} thousand tasks, the throughput increases up to
+four workers (\num{512} cores), then it decreases; the task graph is too small and the
 constant overhead factors start dominating over the available parallelism. For task graphs with up
-to $100$ thousand tasks, the throughput also increases up to four workers, where it
+to \num{100} thousand tasks, the throughput also increases up to four workers, where it
 saturates. For even larger task graphs, the throughput once again starts decreasing with more than
 four workers; the overhead of network communication and scheduling starts to dominate.
 
@@ -1882,7 +1886,7 @@ throughput measured for the \parsl{}, \fireworks{} and
 \dask{} task runtimes, as reported in~\cite{parsl}.
 
 As you may recall from~\Autoref{dask:evaluation}, the overhead per task of \dask{}
-for a task graph with $50$ thousand tasks and a single node (using the
+for a task graph with \num{50} thousand tasks and a single node (using the
 \emph{zero worker} mode) was approximately \SI{0.3}{\milli\second}. The per-task overhead of
 \hyperqueue{} (calculated as an
 inverted value of the number of tasks executed per second) for a similar configuration evaluated in this experiment is approximately
@@ -1892,20 +1896,20 @@ inverted value of the number of tasks executed per second) for a similar configu
 \label{sec:hq-exp-scalability}
 This experiment evaluates the ability of \hyperqueue{} to scale to many computational
 resources, by executing the same task graph with increasing worker counts (up to
-$64$ workers and thus $8192$ cores in total). Note that each
+\num{64} workers and thus \num{8192} cores in total). Note that each
 benchmark configuration in this experiment was measured only once because of the large amount of
 computational resources required to allocate tens of worker nodes.
 
 We have designed two separate scenarios for this experiment. In the first one, we have selected a
-fixed target makespan, so that the \emph{simple workflow} would be executed in approximately $5$
-minutes ($300$ seconds) on a single worker, and benchmarked
+fixed target makespan, so that the \emph{simple workflow} would be executed in approximately \num{5}
+minutes (\num{300} seconds) on a single worker, and benchmarked
 three task graphs with increasing task counts. This allowed us to examine how the
 scalability of \hyperqueue{} changes based on the number of tasks in the task graph when the total
 computational workload stays the same. The task duration of each task was scaled accordingly for
-each graph, so that the total makespan on a single worker would be $5$ minutes.
-The benchmarked worker counts were $1$, $2$,
-$4$, $8$, $16$, $32$
-and $64$.
+each graph, so that the total makespan on a single worker would be \num{5} minutes.
+The benchmarked worker counts were \num{1}, \num{2},
+\num{4}, \num{8}, \num{16}, \num{32}
+and \num{64}.
 
 \begin{figure}[h]
 	\centering
@@ -1919,16 +1923,16 @@ The results of the benchmark with a fixed makespan can be observed in~\Autoref{f
 horizontal axis displays the number of workers used for executing the task graph. In the top row,
 the vertical axis shows the measured makespan; in the bottom row, the vertical axis shows speedup
 against the measured makespan on a single worker. We can see that for all three measured task
-durations, \hyperqueue{} was able to scale reasonably well up to $64$
-workers, where it was able to compute the whole task graph in approximately $5$
+durations, \hyperqueue{} was able to scale reasonably well up to \num{64}
+workers, where it was able to compute the whole task graph in approximately \num{5}
 seconds. In the best case, with tasks that took \SI{2.5}{\second} to execute, it provided a
-$59.2$x speedup over a single worker using $64$ workers. In the worst case, with
+$59.2$x speedup over a single worker using \num{64} workers. In the worst case, with
 tasks that lasted \SI{100}{\milli\second}, it provided a $54.4$x speedup over a single worker using
-$64$ workers. With task duration \SI{0.1}{\second} and
-$64$ workers, \hyperqueue{} was able to dispatch almost
-$70$ thousand tasks per second.
+\num{64} workers. With task duration \SI{0.1}{\second} and
+\num{64} workers, \hyperqueue{} was able to dispatch almost
+\num{70} thousand tasks per second.
 
-In the second scenario, we fixed the task duration of each task to $1$ second
+In the second scenario, we fixed the task duration of each task to \num{1} second
 and then varied the task count. This allowed us to examine how the strong scalability of
 \hyperqueue{} changes with an increasing number of tasks.
 
@@ -1940,12 +1944,12 @@ and then varied the task count. This allowed us to examine how the strong scalab
 \end{figure}
 
 We can observe the results in~\Autoref{fig:hq-scalability-fixed-task-duration}. We can see that the scalability improves
-with the number of tasks; with $100$ thousand tasks, \hyperqueue{} is
-able to provide a $59$x speedup with $64$ workers. On the
-other hand, with only $10000$ tasks, the speedup in this case reaches only
+with the number of tasks; with \num{100} thousand tasks, \hyperqueue{} is
+able to provide a $59$x speedup with \num{64} workers. On the
+other hand, with only \num{10} thousand tasks, the speedup in this case reaches only
 $38.8$x, because there are not enough tasks to saturate all workers. With
-$64$ workers that each have $128$ cores, the total number of
-cores managed by \hq{} is $8192$. Therefore, each worker barely gets a single task to compute in
+\num{64} workers that each have \num{128} cores, the total number of
+cores managed by \hyperqueue{} is \num{8192}. Therefore, each worker barely gets a single task to compute in
 this small task graph.
 
 In general, the results of our scalability and overhead experiments indicate that \hyperqueue{}
@@ -1953,7 +1957,7 @@ introduces very little overhead and is able to scale to a large amount of comput
 resources (tens of nodes and thousands of cores) and also to large amounts of tasks
 (hundreds of thousands) without an issue.
 
-\subsection{Performance comparison of \dask{} and \hq{}}
+\subsection{Performance comparison of \dask{} and \hyperqueue{}}
 \label{sec:hq-exp-dask}
 This experiment evaluates basic performance differences between the \dask{} task
 runtime and \hyperqueue{}. We have evaluated \emph{dask/distributed}
@@ -1964,13 +1968,13 @@ to reduce the required computational resources.
 We have evaluated the scalability of both runtimes on the \emph{simple workflow} with a target
 makespan set to \SI{30}{\second} on a single worker, with an increasing number of workers
 and a varying number of tasks. In this scenario, \dask{} was benchmarked in three
-separate worker configurations, with $1$ process per node and
-$128$ threads per process ($1p/128t$), with $8$
-processes per node and $16$ threads per process ($8p/16t$) and
-with $128$ processes per node and $1$ thread per process
+separate worker configurations, with \num{1} process per node and
+\num{128} threads per process ($1p/128t$), with \num{8}
+processes per node and \num{16} threads per process ($8p/16t$) and
+with \num{128} processes per node and \num{1} thread per process
 ($128p/1t$). The reason for choosing different process/thread combinations has been
-extensively explained in~\Autoref{dask:evaluation}; we chose two extremes ($1$
-process and $128$ processes) and then a compromise with $8$
+extensively explained in~\Autoref{dask:evaluation}; we chose two extremes (\num{1}
+process and \num{128} processes) and then a compromise with \num{8}
 processes per node, according to recommendations in the \dask{}
 documentation~\cite{dask-thread-recommendation}.
 
@@ -1984,19 +1988,19 @@ documentation~\cite{dask-thread-recommendation}.
 
 The results of this experiment are displayed in~\Autoref{fig:hq-dask-sleep}. The individual charts
 display separate task graphs with varying task counts (in each case, the task graph should have a
-makespan of $30$ seconds on a single node). The horizontal axis shows the amount
+makespan of \num{30} seconds on a single node). The horizontal axis shows the amount
 of used nodes and the vertical axis displays the makespan. Note that we are using the term
 \emph{node count} instead of \emph{worker count} here, because each
 \dask{} process spawned per node is technically a separate worker. We can see that
 the in the case of \dask{}, the performance depends a lot on the number of tasks in
-the task graph and also on the task duration. With only $1000$ tasks and task
+the task graph and also on the task duration. With only \num{1000} tasks and task
 duration in the range of seconds, \dask{} is able to scale relatively well in all
 three configurations, although it is still slightly slower than \hyperqueue{}. However,
 with a larger number of tasks (tens of thousands), and tasks that last only hundreds or tens of
 milliseconds, the performance of \dask{} decreases very quickly.
 
 We can also see differences between the three \dask{} configurations, particularly
-in the benchmark with $50000$ tasks. With a single node, \dask{} is
+in the benchmark with \num{50000} tasks. With a single node, \dask{} is
 unable to keep up with the number of tasks, and it has a twice longer makespan than when multiple
 worker processes are used. On the other hand, once the number of nodes is increased, the situation
 reverses, and the configuration with a single worker per node becomes the fastest one, because
@@ -2005,7 +2009,7 @@ that some amount of manual tuning based on the number of used nodes and workers 
 to achieve optimal performance of \dask{} workflows. Conversely,
 \hyperqueue{} was able to keep a consistent performance profile in this experiment
 without being heavily affected by the number of tasks or the task duration. And because each
-\hq{} worker manages all resources of its node, it does not require
+\hyperqueue{} worker manages all resources of its node, it does not require
 any manual worker tuning.
 
 Note that this benchmark actually presents a sort of a best-case scenario for
@@ -2041,8 +2045,8 @@ when multiple workers per node are used.
 This experiment examines the effect of resource group allocation strategies on the
 performance of programs that are sensitive to memory latency. Each Karolina
 \gls{cpu} (non-accelerated)
-computational node has $128$ cores and \SI{256}{\gibi\byte} of memory, divided
-into $8$ \gls{numa} nodes. Accessing memory across these
+computational node has \num{128} cores and \SI{256}{\gibi\byte} of memory, divided
+into \num{8} \gls{numa} nodes. Accessing memory across these
 \gls{numa} nodes is slower than accessing memory within the same node, which can
 affect the performance of programs that are very sensitive to memory throughput or latency. We have
 created a simple program inspired by the STREAM benchmark~\cite{stream} that exerts this
@@ -2052,9 +2056,9 @@ Then, a number of threads pinned to individual cores repeatedly read from this m
 these threads are running on cores from a different \gls{numa} node than where the memory was
 allocated, the program takes longer to execute due to memory transfers being slower.
 
-We have benchmarked the \emph{simple workflow} with $100$ tasks on a single
-Karolina node, where each task executes the described program with either $4$
-or $8$ threads (cores). Each task is configured so the spawned threads are
+We have benchmarked the \emph{simple workflow} with \num{100} tasks on a single
+Karolina node, where each task executes the described program with either \num{4}
+or \num{8} threads (cores). Each task is configured so the spawned threads are
 pinned to the specific set of cores assigned to that task by the
 scheduler. Each available group allocation strategy was
 examined; \emph{Compact}, which tries to allocate cores using the smallest possible
@@ -2096,12 +2100,12 @@ the achieved performance.
 \label{sec:hq-exp-fractional-resources}
 In this experiment we evaluate how can fractional resource requirements improve hardware
 utilization, and also demonstrate their interplay with non-fungible resources. We perform a
-simple hyperparameter search that executes $20$ independent tasks. Each task executes a Python
+simple hyperparameter search that executes \num{20} independent tasks. Each task executes a Python
 script that trains a neural network model using the TensorFlow~\cite{tensorflow}
 deep-learning framework; the model is designed to perform image classification based on the
 Fashion MNIST dataset~\cite{fashionmnist}. The experiment was performed on the Karolina \gls{gpu}
 partition~\cite{karolina_gpu}, which contains very powerful NVIDIA A100 \gls{gpu} accelerators
-that can achieve over $300$ teraFLOPS (trillion floating-point operations per
+that can achieve over \num{300} teraFLOPS (trillion floating-point operations per
 second) and have \SI{40}{\gibi\byte} of memory.
 
 The training script leverages a \gls{gpu} to accelerate the training; however, it is unable to
@@ -2110,8 +2114,8 @@ training tasks per a single \gls{gpu} in order to improve its utilization, which
 achieved using fractional resource requirements. We examine four configurations of a fractional \gls{gpu}
 resource requirement set by each task, $1$, $0.5$, $0.25$ and $0.1$.
 A fractional requirement of $n$ states that $\frac{1}{n}$ tasks can be executed in parallel on a
-single \gls{gpu}; for example, with a requirement of $0.1$ \glspl{gpu}, $10$ tasks can run on the
-same accelerator at once. The requirement of $1$ \gls{gpu} per task emulates the behavior of a
+single \gls{gpu}; for example, with a requirement of $0.1$ \glspl{gpu}, \num{10} tasks can run on the
+same accelerator at once. The requirement of \num{1} \gls{gpu} per task emulates the behavior of a
 task runtime without support for fractional resource requirements, which would be unable to
 assign multiple tasks to the same accelerator at the same time.
 
@@ -2157,7 +2161,7 @@ mechanism works even if multiple tasks share the same device at the same time.
 \label{sec:hq-exp-resource-variants}
 This experiment evaluates the load-balancing benefits of \emph{resource variants}, which were
 described in~\Autoref{sec:dynamic-resource-selection}. For evaluation, we use the simple workflow with
-$300$ tasks executed on a single node with $8$ virtual
+\num{300} tasks executed on a single node with \num{8} virtual
 \glspl{gpu} and the same number of \glspl{cpu}. Tasks in this experiment
 simulate a computation that can run either on a \gls{gpu} or on a
 \gls{cpu}. To emulate the performance difference between the \gls{gpu}
@@ -2215,7 +2219,7 @@ a task graph (executed with a given task runtime) make use of available resource
 examines the average \gls{cpu} utilization of worker nodes while executing a task
 graph with \hyperqueue{}, both for tasks with a uniform duration and also for tasks with
 a skewed distribution of durations. We have benchmarked the \emph{simple workflow} with
-$10$ thousand tasks, where each task fully utilizes a full
+\num{10} thousand tasks, where each task fully utilizes a full
 \gls{cpu} core by executing the \texttt{stress} UNIX utility (instead of just
 sleeping). This task graph was executed on four workers whose
 \gls{cpu} utilization was periodically measured over the course of the computation.
@@ -2230,10 +2234,10 @@ sleeping). This task graph was executed on four workers whose
 
 The results are shown in~\Autoref{fig:hq-cpu-utilization}. The horizontal axis shows the progress of the
 computation in seconds, the vertical axis displays the average \gls{cpu} utilization
-over all $128$ cores for each separate worker. The red horizontal dotted line marks the
+over all \num{128} cores for each separate worker. The red horizontal dotted line marks the
 total average utilization of each worker over the course of the whole computation. The top row
 displays a situation where all tasks in the task graph have a uniform duration of
-$5$ seconds. In this case, \hyperqueue{} workers kept their average
+\num{5} seconds. In this case, \hyperqueue{} workers kept their average
 utilization at or above $92\%$. Note that it takes some amount of time for each
 \texttt{stress} invocation to fully reach full core utilization, and since all tasks have
 the same duration, the tasks perform this ramp-up process in a mostly synchronized fashion. This
@@ -2245,7 +2249,7 @@ the tasks still have a duration of \SI{5}{\second}; the remainder simulates a ``
 of slower tasks that take \SI{30}{\second} to execute. This is a more difficult situation
 for achieving high utilization; because some tasks are longer, they might get stuck executing at a
 time when other resources can no longer be utilized. We can observe this towards the end of the
-workflow execution, where approximately $30$ seconds before the end, the
+workflow execution, where approximately \num{30} seconds before the end, the
 utilization starts to drop. However, even for this skewed task graph, the average
 \gls{cpu} utilization of all four workers was kept at almost $90\%$.
 
@@ -2269,13 +2273,13 @@ for this step is beneficial up to the number of available cores. On the other ha
 invocation of LiGen for a file has a non-trivial cost, as it needs to perform a preprocessing step
 and a part of the computation is also performed sequentially. Therefore, for the scoring part,
 using fewer files is generally a better choice. Yet, with fewer files, there will also be less
-opportunities for load balancing performed by \hq{} and there might not be enough
+opportunities for load balancing performed by \hyperqueue{} and there might not be enough
 tasks to saturate the available computational resources.
 
 We examine the effect of these two parameters on makespan and the achieved hardware utilization on
-an input containing $200$ thousand ligands. The computation duration varies
+an input containing \num{200} thousand ligands. The computation duration varies
 significantly based on the length of each ligand; therefore, we have tested two input files. The
-first one ($uniform$) contains $200$ thousand copies of the same
+first one ($uniform$) contains \num{200} thousand copies of the same
 ligand, which simulates a balanced workload. The second one ($skewed$) contains a
 variation of ligands with different lengths.
 
@@ -2298,34 +2302,34 @@ horizontal axis denote the makespan of each benchmarked scenario.
 We can see that the parameter affecting the number of ligands per file has a significant effect on
 the resulting makespan; using too few or too many ligands results in a longer execution. As
 expected, the expansion section needs enough tasks to saturate the available cores, because it is
-single-threaded. For $5000$ ligands per file (the rightmost column), the total
-number of expansion tasks is only $40$; therefore, the achieved utilization (for
+single-threaded. For \num{5000} ligands per file (the rightmost column), the total
+number of expansion tasks is only \num{40}; therefore, the achieved utilization (for
 both input files) is only approximately $32\%$, which corresponds to using just
-$40$ out of the $128$ available cores. With more than
-$128$ files available, the utilization approaches $100\%$ for the
+\num{40} out of the \num{128} available cores. With more than
+\num{128} files available, the utilization approaches $100\%$ for the
 uniform input. For the skewed input file, the utilization for the expansion section is in general
-worse than with the uniform input, as expected. With $100$ ligands per file, it
+worse than with the uniform input, as expected. With \num{100} ligands per file, it
 is reduced significantly; unlike with the uniform input, some of the files were expanded much
 quicker than others, which led to more load imbalance.
 
-The scoring part is internally parallel and uses all $8$ assigned cores;
+The scoring part is internally parallel and uses all \num{8} assigned cores;
 therefore, it does not have to be divided into so many tasks. We can see that even with just
-$40$ files it achieves approximately $80\%$ utilization for
+\num{40} files it achieves approximately $80\%$ utilization for
 both input workloads. In fact, with too many files, we can see the overhead associated with the
 sequential part of scoring (which needs to be performed for each file separately) starts to
 dominate; even with the uniform workload, the \gls{cpu} utilization of the scoring
-section with $2000$ files reaches only approximately $63\%$ with
+section with \num{2000} files reaches only approximately $63\%$ with
 the uniform input and just $44\%$ with the skewed input.
 
 The two configurations in the middle present a sort of a sweet spot; especially with
-$1000$ ligands per file, the total average utilization for both workloads is at or
+\num{1000} ligands per file, the total average utilization for both workloads is at or
 above $88\%$. However, it should be noted that the best configuration will change
 based on the number of used workers. This can be observed in~\Autoref{fig:hq-ligen-scalability}, which shows
-how does the workflow scale up to $4$ workers ($512$ cores).
+how does the workflow scale up to \num{4} workers (\num{512} cores).
 The horizontal axis shows the number of workers and the vertical axis shows the duration of the
 executed task graph. We can see that with four workers, the configuration with
-$400$ ligands per task starts to beat the configuration with
-$1000$ ligands per task, simply because the latter configuration is not able to
+\num{400} ligands per task starts to beat the configuration with
+\num{1000} ligands per task, simply because the latter configuration is not able to
 provide enough parallelism (tasks) to make efficient use of all the available hardware resources.
 In general, \hyperqueue{} is able to reduce the makespan with additional workers being
 added for all four tested configurations.
@@ -2346,8 +2350,8 @@ number of tasks in order to achieve optimal performance.
 \label{sec:hq-exp-autoalloc}
 This experiment evaluates the ability of the automatic allocator to scale computational resources
 both up and down in reaction to computational load. The LiGen virtual screening workflow was
-executed using $16$ ligands per file and $8$ threads per
-file on an input file containing $24$ thousand ligands with a skewed
+executed using \num{16} ligands per file and \num{8} threads per
+file on an input file containing \num{24} thousand ligands with a skewed
 distribution of ligands. No workers were explicitly allocated for this experiment; instead, the
 automatic allocator was configured to submit allocations that would start a single worker per
 allocated node. The maximum number of workers was set to four and the wall-time (the maximum
@@ -2391,11 +2395,11 @@ periods of time where new allocations had to be spawned due to wall-time being e
 allocations were also active up until the very end of the task graph computation, which resulted in
 more allocation time being wasted.
 
-With idle timeout \SI{5}{\second}, the workflow has consumed $682$
+With idle timeout \SI{5}{\second}, the workflow has consumed \num{682}
 node-seconds of allocation time, while with idle timeout \SI{30}{\second}, it has consumed
-$916$ node-seconds. This shows that it is crucial to configure the idle timeout
+\num{916} node-seconds. This shows that it is crucial to configure the idle timeout
 properly to avoid wasting allocation time. By default, \hyperqueue{} uses a wall-time of
-$1$ hour and an idle timeout of $5$ minutes, which
+\num{1} hour and an idle timeout of \num{5} minutes, which
 corresponds to the same wall-time/idle-timeout ratio as the benchmarked configuration with an idle
 timeout of \SI{5}{\second}.
 
@@ -2411,8 +2415,8 @@ nodes~\cite{leonardo_time_limit} and terminate the process if it exceeds the max
 To evaluate how many resources the server consumes, we have performed an experiment where the
 server had to schedule a large number of tasks in a short time period (which acts as a sort of a
 stress test); we have measured its total \gls{cpu} time consumption across all cores over this
-period. The server was running on a login node and it was managing up to $12$ workers
-($1536$ cores) and up to $200$ thousand tasks. Each worker was
+period. The server was running on a login node and it was managing up to \num{12} workers
+(\num{1536} cores) and up to \num{200} thousand tasks. Each worker was
 deployed on a computational node, so that the server had to communicate with the workers over the
 network. The benchmark was executed with a fixed makespan; the duration of each task was scaled so
 that the whole task graph would finish computing in one minute. We measured the total amount of
@@ -2428,18 +2432,18 @@ standard Linux process monitoring tools.
 \end{figure}
 
 \Autoref{fig:hq-server-cpu-consumption-tasks} shows how the \gls{cpu} utilization of the
-server changes with a fixed number of workers ($12$) and an increasing number of
+server changes with a fixed number of workers (\num{12}) and an increasing number of
 tasks. In this case, the server had to schedule the \emph{simple workflow} with the number of tasks
-ranging from $10$ to $200$ thousand. The horizontal axis shows
+ranging from \num{10} to \num{200} thousand. The horizontal axis shows
 the number of tasks that were used for the given benchmark run and the vertical axis shows the
 \gls{cpu} time consumed by the server over the measured one-minute period. We can see that the
 amount of \gls{cpu} resources scales approximately linearly with the number of tasks
 scheduled by the server. In the worst case, the server has consumed less than five seconds of
 \gls{cpu} time over one minute of real time, even though it had to schedule
-$200$ thousand tasks within this short period, which is an extreme stress test
+\num{200} thousand tasks within this short period, which is an extreme stress test
 that far exceeds the rate of scheduled tasks in most scientific workflows. Over all the benchmarked
 task counts, the average \gls{cpu} consumption of the server per second and per
-$1000$ tasks was approximately \SI{0.0003}{\second}. In other words, for every
+\num{1000} tasks was approximately \SI{0.0003}{\second}. In other words, for every
 thousand tasks in the task graph, the server consumed approximately \SI{0.3}{\milli\second}
 \gls{cpu} time every second.
 
@@ -2452,14 +2456,14 @@ thousand tasks in the task graph, the server consumed approximately \SI{0.3}{\mi
 \end{figure}
 
 \Autoref{fig:hq-server-cpu-consumption-workers} displays a situation where the number of tasks
-is fixed ($50000$), but the number of workers increases from
-$2$ to $12$. The horizontal axis shows the number of workers
+is fixed (\num{50000}), but the number of workers increases from
+\num{2} to \num{12}. The horizontal axis shows the number of workers
 that were used for the given benchmark run and the vertical axis shows the \gls{cpu}
 time consumed by the server over the one-minute period. In this case, the consumption of the server
 does not increase by a large amount with more added workers.
 
 In terms of memory consumption, in the largest evaluated case with a task graph containing
-$200$k tasks, the memory consumption of the server, measured using the Linux
+\num{200} thousand tasks, the memory consumption of the server, measured using the Linux
 \gls{rss} metric, was approximately \SI{120}{\mebi\byte}, which shows that the server
 also does not consume large amounts of memory.
 
@@ -2478,7 +2482,7 @@ of the encryption, by benchmarking \hyperqueue{} both with encryption enabled an
 disabled.
 
 We have benchmarked three instances of the \emph{simple workflow} containing
-$10$, $50$ and $100$ thousand tasks executed
+\num{10}, \num{50} and \num{100} thousand tasks executed
 with four \hyperqueue{} workers in two configurations; with and without the
 \emph{zero worker} mode. Because the \emph{zero worker} mode does not actually execute
 any tasks, it emphasizes the inner overhead of \hyperqueue{} and should thus also amplify
@@ -2497,7 +2501,7 @@ We can observe the results of the experiment in~\Autoref{fig:hq-encryption-overh
 the number of tasks in the benchmarked task graph and the vertical axis shows the
 \emph{makespan}. In the \emph{zero worker} mode (displayed on the left), it is clear
 that encrypting the communication in fact produces a measurable overhead. In the largest measured
-case with $100$ thousand tasks, the makespan is approximately twice longer with
+case with \num{100} thousand tasks, the makespan is approximately twice longer with
 encryption enabled. However, as soon as the tasks do any actual work (albeit it being the simplest
 work possible), the encryption overhead is no longer noticeable and it does not affect the total
 makespan of the task graph.
@@ -2514,9 +2518,9 @@ encryption at runtime.
 In this experiment we evaluate the effect of the \emph{output streaming} mode, which can be used to
 stream the outputs of \emph{stdout} and \emph{stderr} streams from individual
 tasks to the \hyperqueue{} server, to avoid creating a large number of files on the
-filesystem. We have benchmarked two task graphs without dependencies, with $10$
-and $50$ thousand tasks, where each task generates a fixed amount of data
-($10$ or \SI{100}{\kibi\byte} per task). Each task simply outputs the
+filesystem. We have benchmarked two task graphs without dependencies, with \num{10}
+and \num{50} thousand tasks, where each task generates a fixed amount of data
+(\num{10} or \SI{100}{\kibi\byte} per task). Each task simply outputs the
 corresponding amount of data to its standard output (\emph{stdout}). The standard error
 output is disabled and no output is printed to it. In the largest configuration, the task graph
 produces approximately \SI{5}{\gibi\byte} of data in total.
@@ -2581,10 +2585,16 @@ cause network contention.
 	\begin{tabular}{|r|r|r|r|r|}
 		\hline
 		Output per task [B] & Task count & Size (stream) [MiB] & Size (stdout) [MiB] & Ratio \\ \hline
-		10000               & 10000      & 96                  & 118                 & 1.23x \\ \hline
-		10000               & 50000      & 479                 & 589                 & 1.23x \\ \hline
-		100000              & 10000      & 955                 & 978                 & 1.02x \\ \hline
-		100000              & 50000      & 4775                & 4916                & 1.03x \\ \hline
+		\num{10000}               & \num{10000}      & \num{96}                  &
+		\num{118}                 & 1.23x \\ \hline
+		\num{10000}               & \num{50000}      & \num{479}                 &
+		\num{589}                 & 1.23x \\ \hline
+		\num{100000}              & \num{10000}      & \num{955}                 &
+		\num{978}                 &
+		1.02x \\ \hline
+		\num{100000}              & \num{50000}      & \num{4775}                &
+		\num{4916}                &
+		1.03x \\ \hline
 	\end{tabular}
 	\caption{Size of task output on disk with and without I/O streaming}
 	\label{tab:hq-io-streaming-size}
