@@ -858,7 +858,8 @@ deployment scripts and client commands every time the server would start with a 
 need to specify hostnames and ports by default, by exploiting a useful property of
 \gls{hpc} clusters, which commonly use a shared networked filesystem. When a server
 is created, it creates a configuration file in the user's home directory, which contains all
-information necessary for exchanging handshakes and connecting the components. When workers and
+information necessary for exchanging handshakes and connecting the components, including
+encryption keys. When workers and
 clients discover the presence of this file (which can be accessed due to the filesystem being
 shared), they are able to connect to the server without the user having to specify any addresses.
 However, it is still possible to deploy multiple concurrent instances of \hyperqueue{}
