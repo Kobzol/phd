@@ -85,7 +85,7 @@ x = np.random.random((10000, 10000))
 y = (x * 2 + x.T).mean(axis=1)
 	\end{minted}
 	\caption{Example of a Python program that leverages the \dask{} Array
-	\gls{api}}
+	\glsxtrshort{api}}
 	\label{lst:dask-array-example}
 \end{listing}
 
@@ -100,7 +100,7 @@ df2 = df[df.y > 0]
 df3 = df2.groupby("name").x.std()
 	\end{minted}
 	\caption{Example of a Python program that leverages the \dask{} DataFrame
-	\gls{api}}
+	\glsxtrshort{api}}
 	\label{lst:dask-dataframe-example-2}
 \end{listing}
 
@@ -795,12 +795,18 @@ is further increased.
 		\textbf{Server} & \textbf{Scheduler} & \textbf{Node count} & \textbf{Worker	count} &
 		\textbf{Speedup}                                                                                 \\
 		\midrule
-		dask            & random             & 1                   & 24                   & $0.88\times$ \\
-		rsds            & random             & 1                   & 24                   & $1.04\times$ \\
-		rsds            & ws                 & 1                   & 24                   & $1.28\times$ \\
-		dask            & random             & 7                   & 168                  & $0.95\times$ \\
-		rsds            & random             & 7                   & 168                  & $1.41\times$ \\
-		rsds            & ws                 & 7                   & 168                  & $1.66\times$ \\
+		dask            & random             & 1                   & 24                   &
+		$0.88$x \\
+		rsds            & random             & 1                   & 24                   &
+		$1.04$x \\
+		rsds            & ws                 & 1                   & 24                   &
+		$1.28$x \\
+		dask            & random             & 7                   & 168                  &
+		$0.95$x \\
+		rsds            & random             & 7                   & 168                  &
+		$1.41$x \\
+		rsds            & ws                 & 7                   & 168                  &
+		$1.66$x \\
 	\end{tabular}
 	\caption{Geometric mean of speedup over the \dask{}/ws baseline}
 	\label{tab:rsds-geom-mean-speedup}
@@ -839,13 +845,13 @@ counterpart) than in \dask{}.
 		\textbf{Worker	count} & \textbf{Speedup}                                                   \\
 		\midrule
 		dask                 & random             & dask/ws           & 1                   & 24
-		                     & $0.88\times$                                                       \\
+		                     & $0.88$x                                                       \\
 		rsds                 & random             & rsds/ws           & 1                   & 24
-		                     & $0.82\times$                                                       \\
+		                     & $0.82$x                                                       \\
 		dask                 & random             & dask/ws           & 7                   & 168
-		                     & $0.95\times$                                                       \\
+		                     & $0.95$x                                                       \\
 		rsds                 & random             & rsds/ws           & 7                   & 168
-		                     & $0.85\times$                                                       \\
+		                     & $0.85$x                                                       \\
 	\end{tabular}
 	\caption{Geometric mean of speedup for random schedulers}
 	\label{tab:rsds-random-geom-mean-speedup}
@@ -984,7 +990,7 @@ it is almost negligible, at least for the evaluated number of workers.
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.7\textwidth]{./imgs/rsds/charts/speedup-zw-rsds-ws-1}
+	\includegraphics[width=0.8\textwidth]{./imgs/rsds/charts/speedup-zw-rsds-ws-1}
 	\caption{Speedup of \rsds{}/ws over \dask{}/ws with the zero worker
 	implementation}
 	\label{fig:rsds-zero-worker-speedup}

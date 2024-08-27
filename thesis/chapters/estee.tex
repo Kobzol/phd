@@ -155,11 +155,16 @@ task execution time spans.
 
 \begin{listing}
 	\begin{minted}[fontsize=\normalsize]{python}
-# Create task graph containing 3 tasks
+from estee.common import TaskGraph
+from estee.schedulers import BlevelGtScheduler
+from estee.simulator import Simulator, Worker, MaxMinFlowNetModel
+
+# Create a task graph containing 3 tasks
 # Each task runs for 1s and requires 1 CPU core
 #
 #     t0
-#     | (50MB output)
+#     |
+#     o (50MB output)
 #    / \
 #  t1   t2
 tg = TaskGraph()
@@ -540,7 +545,7 @@ graph execution cost. This will be described in more detail in~\Autoref{ch:rsds}
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.8\textwidth]{imgs/estee/charts/gt-scheduler}\\
+	\includegraphics[width=\textwidth]{imgs/estee/charts/gt-scheduler}\\
 	{\small horizontal axis: bandwidth [MiB/s]; vertical axis:
 	makespan [s]; row: cluster}
 	\caption{Comparison of worker selection strategy}
@@ -605,7 +610,7 @@ between the two network models depends heavily on the used task graph.
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.8\textwidth]{imgs/estee/charts/irw-32x4-schedtime-score}\\
+	\includegraphics[width=\textwidth]{imgs/estee/charts/irw-32x4-schedtime-score}\\
 	{\small horizontal axis: bandwidth [MiB/s]; vertical axis: makespan normalized to
 	$\gls{msd}=0$}
 	\caption{Comparison of \glsxtrshort{msd}; cluster 32x4}

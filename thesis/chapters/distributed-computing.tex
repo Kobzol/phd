@@ -304,7 +304,7 @@ computing is MapReduce~\cite{mapreduce}. Its goal is to allow parallel processin
 amounts of data on a distributed cluster in a fault-tolerant way, while providing a simple
 interface for the user. It does that by structuring the computation into three high-level
 operations, which correspond to individual bulk synchronous parallel steps:
-\begin{enumerate}
+\begin{enumerate}[itemsep=0pt,topsep=4pt]
 	\item A \emph{map} operation (provided by the user) is performed on the input data. This
 	      operation performs data transformation and filtering, associates some form of a
 	      \emph{key} to each data item and produces a key-value tuple.
@@ -412,7 +412,8 @@ to define the structure of the whole workflow.
 
 While MapReduce, DataFrame processing or other similar models are useful for computations that have
 a predictable structure, they are not always general enough to express complex
-\gls{hpc} scientific workflows. \textbf{We will thus further only consider tools and models
+\gls{hpc} scientific workflows.
+\textbf{We will thus further only consider tools and programming models
 that allow executing arbitrary task graphs}.
 
 \subsection{Task granularity}
@@ -466,17 +467,14 @@ number using a task-parallel approach.
 
 \begin{listing}
 	\begin{minted}[fontsize=\footnotesize, tabsize=4]{c}
-cilk int fibonacci(int n)
-{
+cilk int fibonacci(int n) {
 	if (n < 2) {
 		return n;
-	}
-	else
-	{
+	} else {
 		// Spawn a new task for each recursive call
-		int x = spawn fibonaccib(n - 1);
-		int y = spawn fibonaccib(n - 2);
-		// Wait until the tasks finish with a barrier
+		int x = spawn fibonacci(n - 1);
+		int y = spawn fibonacci(n - 2);
+		// Use a barrier to wait until the tasks finish
 		sync;
 		return x + y;
 	}

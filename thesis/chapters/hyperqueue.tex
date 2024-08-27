@@ -46,8 +46,9 @@ We have described the design and key ideas of \hyperqueue{} in
 \emph{HyperQueue: efficient and ergonomic task graphs on HPC clusters}~\cite{hyperqueue}. The architecture of \hyperqueue{}
 presented in this chapter was adapted from this publication.
 
-\workshare{I have collaborated on this work with Ada Böhm; we have both contributed to it equally. I am the
-sole author of the design and implementation of the automatic allocator
+% New line because of layout
+\workshare{I have collaborated on this work with Ada Böhm; we have both contributed to it equally. \\
+I am the sole author of the design and implementation of the automatic allocator
 component, and I have also significantly contributed to the design and implementation of most remaining parts
 of \hyperqueue{}. I have designed and performed all the experiments described in this
 chapter. While Ada and I are the primary contributors to \hyperqueue{}, it should be noted that other people have also contributed to it, as its development is a team effort. Source code contribution statistics for
@@ -621,7 +622,7 @@ Using the two previous definitions, we can now also define a modified version of
 worker and task resource constraints:
 
 \vspace{2mm}
-\makedef{def:worker_resource_constraint_var}{Worker and task constraint with resource variants} A
+\makedef{def:worker_resource_constraint_var}{Worker and task resource constraint with resource variants} A
 \emph{task resource constraint with resource variants}
 and a \emph{worker resource constraint with resource variants} in the context of execution $E^{var} = (G^{var}, C, \fntaskworkerassigned, \fntaskvarassigned)$, where $G^{var} = (\settasks, \setobjects, \setarcs, \setresourcekinds, \fntaskresvar)$ is
 a \emph{task graph with resource variants} and $C = \clusterinner{\setresourcekinds}$ is a
@@ -1450,7 +1451,7 @@ $ hq alloc add pbs --resource "gpus/nvidia=range(0-1)" ...
 # Display information about allocations submitted by the given queue
 $ hq alloc info 1
 	\end{minted}
-	\caption{Handling task failure using the \hyperqueue{} \glsxtrshort{cli}}
+	\caption{Configuring automatic allocation using the \hyperqueue{} \glsxtrshort{cli}}
 	\label{lst:hq-cli-autoalloc}
 \end{listing}
 
