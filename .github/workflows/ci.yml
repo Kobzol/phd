@@ -1,0 +1,40 @@
+name: Build
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+
+jobs:
+  build-thesis:
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: write
+      pages: write
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Build PDF
+        uses: xu-cheng/latex-action@v3
+        with:
+          working_directory: thesis
+          root_file: main.tex
+          latexmk_shell_escape: true
+          texlive_version: 2022
+      - name: Convert to HTML
+        run: |
+          wget https://github.com/pdf2htmlEX/pdf2htmlEX/releases/download/continuous/pdf2htmlEX-0.18.8.rc2-master-20200820-ubuntu-20.04-x86_64.deb
+          sudo apt install -y ./pdf2htmlEX-0.18.8.rc2-master-20200820-ubuntu-20.04-x86_64.deb
+          cd thesis
+          pdf2htmlEX main.pdf
+          mv main.html index.html
+      - name: Upload HTML file
+        uses: actions/upload-artifact@v4
+        with:
+          name: thesis
+          path: thesis/index.html
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+        if: github.event_name == 'push'
+        with:
+          artifact_name: thesis
