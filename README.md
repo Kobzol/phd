@@ -1,7 +1,7 @@
 # PhD thesis
 This repository contains source code and the final version of my PhD thesis titled `Ergonomics and efficiency of workflows on HPC clusters`.
 
-You can find the rendered thesis [here](output/thesis.pdf).
+The rendered thesis is available [online](https://kobzol.github.io/phd). If you'd like to see the PDF rendered version, it can be found [here](output/thesis.pdf).
 
 The goal of my thesis was to design approaches that would enable the effortless and efficient execution of task graphs (DAGs, workflows, pipelines, …) on heterogeneous HPC (High-Performance Computing) clusters, aka supercomputers. This research led to the following three main outputs/contributions:
 
