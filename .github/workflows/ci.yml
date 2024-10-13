@@ -27,14 +27,12 @@ jobs:
           sudo apt install -y ./pdf2htmlEX-0.18.8.rc2-master-20200820-ubuntu-20.04-x86_64.deb
           cd thesis
           pdf2htmlEX main.pdf
-          mv main.html index.html
+          mkdir -p pages
+          mv main.html pages/index.html
       - name: Upload HTML file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: thesis
-          path: thesis/index.html
+          path: thesis/pages
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
         if: github.event_name == 'push'
-        with:
-          artifact_name: thesis
+        uses: actions/deploy-pages@v4
