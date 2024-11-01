@@ -168,3 +168,10 @@ def labeled_image(box: Box, img: str, label: str,
     label_box = box.box(width=width, height=30)
     label_box.rect(bg_color=DARK_GREEN)
     label_box.fbox(p_top=5, p_bottom=5).text(label, style=TextStyle(color="white", bold=True))
+
+
+def github_link(box: Box, link: str, **text_args):
+    box = box.box(horizontal=True)
+    box.box(width=50).image("images/github-logo.png")
+    box.box(width=10)
+    box.box().text(f"~tt{{{link}}}", **text_args)

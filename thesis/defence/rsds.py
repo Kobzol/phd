@@ -9,7 +9,7 @@ def rsds(slides: Slides):
     @slides.slide()
     def rsds_intro(slide: Box):
         slide.box().text("Runtime vs Scheduler: Analyzing Dask’s Overheads")
-        slide.box(p_top=10).text("Stanislav Böhm, Jakub Beránek", style=TextStyle(size=20))
+        slide.box(p_top=10).text("Ada Böhm, Jakub Beránek", style=TextStyle(size=20))
         slide.box().text("(IEEE/ACM Workflows in Support of Large-Scale Science 2020)",
                          style=TextStyle(size=20))
 

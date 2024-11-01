@@ -20,9 +20,10 @@ HEIGHT = 900
 
 slides = elsie.Slides(width=WIDTH, height=HEIGHT)
 slides.update_style("default", T(font="Raleway", size=55, variant_numeric="lining-nums"))
-slides.set_style("l2", T(size=30))
+slides.set_style("l2", T(size=34))
 slides.set_style("bold", T(bold=True))
 slides.set_style("emph", T(italic=True))
+slides.set_style("header", T(size=60))
 
 """
 # Questions
