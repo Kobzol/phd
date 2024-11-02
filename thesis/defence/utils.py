@@ -5,6 +5,7 @@ from elsie import Arrow, Slides, TextStyle
 from elsie.boxtree.box import Box
 from elsie.ext import unordered_list
 from elsie.ext.list import ListBuilder
+from elsie.text.textboxitem import TextBoxItem
 
 CODE_HIGHLIGHT_COLOR = "#FAAFAA"
 CODE_HIDDEN_COLOR = "#BBBBBB"
@@ -56,11 +57,13 @@ def list_item(parent, level=0, bullet="•", bullet_style="default", **box_args)
     return b.box(width="fill")
 
 
-def code(parent: Box, code: str, language="cpp", width=None, code_style="code", p_right=50) -> Box:
+def code(parent: Box, code: str, language="cpp", width=None, code_style="code", p_right=50, return_box=False, **kwargs) -> Union[Box, TextBoxItem]:
     content = parent.box(width=width)
     content.rect(bg_color="#EEEEEE")
     codebox = content.box(p_left=10, p_right=p_right, p_y=10, z_level=100, x=0)
-    codebox.code(language, code, style=code_style)
+    innerbox = codebox.code(language, code, style=code_style, **kwargs)
+    if return_box:
+        return innerbox
     return codebox
 
 

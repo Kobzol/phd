@@ -1,6 +1,7 @@
 from elsie import Slides, TextStyle as T
 from elsie.boxtree.box import Box
 from elsie.ext import unordered_list
+from elsie.text.textboxitem import TextBoxItem
 
 from utils import code_step, github_link, slide_header_top
 
@@ -33,17 +34,17 @@ def estee(slides: Slides):
         lst = unordered_list(slide.box())
         lst.item().text("Framework for simulating task graph execution")
         # Discrete event simulation
-        lst.item(show="next+").text("Several built-in scheduler implementations")
-        lst.item(show="next+").text("Python interface, ideal for prototyping")
+        lst.item(show="next+").text("Python interface designed for prototyping")
+        lst.item(show="next+").text('"Batteries included"')
 
-    @slides.slide(debug_boxes=False)
+    @slides.slide()
     def estee_code(slide: Box):
-        slide = slide_header_top(slide, "ESTEE architecture")
+        slide = slide_header_top(slide, "ESTEE usage example")
         slide.update_style("code", T(size=26))
 
         row = slide.box(horizontal=True, x=25, p_top=100)
         width = 1030
-        code_step(row.box(p_top=30, width=width, y=0), """
+        codebox: TextBoxItem = code_step(row.box(p_top=30, width=width, y=0), """
 dag = TaskGraph()
 t0 = dag.new_task(duration=1, cpus=1, output_size=50)
 t1 = dag.new_task(duration=1, cpus=1)
@@ -52,28 +53,29 @@ t2 = dag.new_task(duration=1, cpus=1)
 t2.add_input(t0)
 
 scheduler = BlevelGtScheduler()
-cluster   = [Worker(cpus=8) for _ in range(16)]
+cluster   = [Worker(cpus=8) for _ in range(3)]
 network   = MaxMinFlowNetModel(bandwidth=10*1024)
 
 simulator = Simulator(task_graph, cluster, scheduler, network)
-makespan  = simulator.run()
+~#makespan{makespan}  = simulator.run()
 """, 1, [
             list(range(6)),
             list(range(8)),
             list(range(9)),
             list(range(10)),
             list(range(13)),
-        ], language="python", width=width)
+        ], language="python", width=width, use_styles=True, return_box=True)
         row.box(width=30)
         row.box(width=500).image("images/estee-architecture.svg")
+        codebox.inline_box("#makespan", padding=-5, show="next+").rect(color="red", stroke_width=4)
 
     @slides.slide()
     def estee_analysis(slide: Box):
-        slide = slide_header_top(slide, "Scheduler analysis & benchmarks")
+        slide = slide_header_top(slide, "Scheduler analysis")
 
         slide.update_style("default", T(size=45))
         lst = unordered_list(slide.box())
-        lst.item(show="next+").text("Comparison of scheduler performance")
+        lst.item(show="next+").text("Compare scheduler performance")
         lst.item(show="next+").text("Analyze neglected factors")
         lst2 = lst.ul()
         lst2.item(show="next+").text("Knowledge about task durations", style="l2")
@@ -96,11 +98,10 @@ makespan  = simulator.run()
         lst = unordered_list(content.box())
         lst.item().text("Most competitive schedulers")
         lst2 = lst.ul()
-        lst2.item(show="next+").text("Work-stealing (used in Dask)", style="l2")
-        lst2.item(show="next+").text("B-level (basic heuristic)", style="l2")
+        lst2.item(show="next+").text("B-level", style="l2")
+        lst2.item(show="next+").text("Work-stealing", style="l2")
         lst.item(show="next+").text("Implementation details matter a lot!")
         lst.item(show="next+").text("Open source scheduler simulator ESTEE")
         lst2 = lst.ul()
         github_link(lst2.item(show="last+"), "github.com/it4innovations/estee", style="l2")
-        # lst2.item(show="last+").text("", style="l2")
-        # Published benchmark results as open datasets
+        lst2.item(show="next+").text("Benchmark datasets and results @ Zenodo", style="l2")

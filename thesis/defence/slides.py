@@ -59,14 +59,14 @@ extensions or improvements can be done on Estee, especially from HPC point of vi
 def intro(slide: Box):
     slide.box().text("""Ergonomics and efficiency
 of workflows on HPC clusters""", style=T(size=60))
-    slide.box(p_top=40).text("Jakub Beránek", T(size=50))
+    slide.box(p_top=40).text("Jakub Beránek", T(size=46))
 
     style = T(align="left", size=34)
     supervisor = slide.box(x="5%", y="80%")
     supervisor.box(width=500).text("Supervisor", style=style)
     supervisor.box(width=500).text("Ing. Jan Martinovič, Ph.D.", style=style)
 
-    slide.box(x="[85%]", y="80%", width=600).image("images/it4i-logo.png")
+    slide.box(x="[95%]", y="80%", width=600).image("images/it4i-logo.png")
 
 
 # @slides.slide()
@@ -82,24 +82,24 @@ of workflows on HPC clusters""", style=T(size=60))
 
 @slides.slide()
 def goal(slide: Box):
-    content = slide_header_top(slide, "Goal")
-    content.box().text("""Help users execute workflows (task graphs)
-on HPC clusters in an easy & efficient way""", T(size=50))
+    content = slide_header_top(slide, "Thesis goal")
+    content.box().text("""Design approches for executing workflows
+on HPC clusters in an easy & efficient way""", T(size=54))
 
-    row = content.box(horizontal=True, p_top=100)
-    task_graph_1(row.box(show="next+"), size=75)
-    middle = row.box(width=50, height=50, p_left=75, p_right=75, show="next+")
-    middle.box().line((
-        (middle.x(0).add(-40), middle.y("50%")),
-        (middle.x("100%").add(40), middle.y("50%"))
-    ), end_arrow=Arrow(size=20), stroke_width=10)
-    cluster_box = row.box(show="last+")
-    cluster_1(cluster_box, size=75)
+    # row = content.box(horizontal=True, p_top=100)
+    # task_graph_1(row.box(show="next+"), size=75)
+    # middle = row.box(width=50, height=50, p_left=75, p_right=75, show="next+")
+    # middle.box().line((
+    #     (middle.x(0).add(-40), middle.y("50%")),
+    #     (middle.x("100%").add(40), middle.y("50%"))
+    # ), end_arrow=Arrow(size=20), stroke_width=10)
+    # cluster_box = row.box(show="last+")
+    # cluster_1(cluster_box, size=75)
 
 
 @slides.slide()
 def objectives(slide: Box):
-    content = slide_header_top(slide, "Objectives")
+    content = slide_header_top(slide, "Thesis objectives")
     lst = ordered_list(content.box())
     lst.item(show="next+").text("Identify HPC workflow challenges")
     lst.item(show="next+").text("Design approaches for overcoming them")
