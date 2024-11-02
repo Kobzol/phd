@@ -34,7 +34,7 @@ of workflows on HPC clusters""", style=T(size=60))
     style = T(align="left", size=34)
     supervisor = slide.box(x="5%", y="80%")
     supervisor.box(width=500).text("Supervisor", style=style)
-    supervisor.box(width=500).text("Ing. Jan Martinovič, Ph.D.", style=style.compose(T(bold=True)))
+    supervisor.box(width=500).text("Ing. Jan Martinovič, Ph.D.", style=style)
 
     slide.box(x="[85%]", y="80%", width=600).image("images/it4i-logo.png")
 
@@ -95,7 +95,7 @@ workflows(slides)
 
 @slides.slide()
 def task_graph_challenges(slide: Box):
-    slide.box().text("Task graph challenges on HPC clusters", style=TextStyle(size=46))
+    slide.box().text("Task graph challenges on HPC clusters", style=TextStyle(size=54))
 
 
 challenges(slides)
