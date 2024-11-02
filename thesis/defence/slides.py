@@ -24,6 +24,35 @@ slides.set_style("l2", T(size=30))
 slides.set_style("bold", T(bold=True))
 slides.set_style("emph", T(italic=True))
 
+"""
+# Questions
+
+## Ismail
+1. The thesis identifies key challenges in task scheduling and resource management on heterogeneous
+supercomputers. What are the most significant bottlenecks and how RSDS or HyperQueue addresses
+these bottlenecks?
+- Interaction with allocation managers, heterogeneous resource scheduling
+- RSDS: speed-up of Dask
+- HQ: integration of solutions in a single tool
+
+2. It is shown that simple scheduling heuristics like work-stealing can compete with more complex
+algorithms. Under what conditions would a more complex algorithm be necessary?
+- Specialized edge cases, e.g. memory consumption
+
+3. Thesis mentions that Python runtime overhead is a critical bottleneck in Dask. How Rust-based
+server (RSDS) reduces this overhead, and why Rust was chosen for this task over other languages?
+- Compiled, memory layout, no GC, inlining
+- Safer than C++ :)
+
+4. HyperQueue has already been adopted by several European supercomputing centers. Is there any
+feedback that could be used to improve HyperQueue?
+- Data transfers, Python API
+
+5. Estee is designed to benchmark task schedulers and help prototype new algorithms. What future
+extensions or improvements can be done on Estee, especially from HPC point of view?
+- Support for more complex resource requirements
+- Rewrite in Rust :)
+"""
 
 @slides.slide()
 def intro(slide: Box):
