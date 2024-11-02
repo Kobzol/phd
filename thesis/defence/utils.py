@@ -1,8 +1,8 @@
 from typing import Optional, Tuple, Union
 
 import elsie
-from elsie import Arrow, Slides, TextStyle
-from elsie.boxtree.box import Box
+from elsie import Arrow, Slides, TextStyle as T
+from elsie.boxtree.box import Box, BoxItem
 from elsie.ext import unordered_list
 from elsie.ext.list import ListBuilder
 from elsie.text.textboxitem import TextBoxItem
@@ -13,6 +13,8 @@ COLOR_NOTE = "orange"
 COLOR_BACKEND = "#001DB6"
 COLOR_FRONTEND = "#FF0000"
 DARK_GREEN = "#116466"
+
+QUOTATION_BG = "#CCCCCC"
 
 
 def new_slides(width: int, height: int) -> Slides:
@@ -26,7 +28,7 @@ def new_slide(slides: Slides):
 def slide_header_top(box: Box, text: str, return_header=False) -> Union[Box, Tuple[Box, Box]]:
     header = box.box(width="fill", y="[5%]")
     row = header.box(horizontal=True)
-    row.box().text(text, style=TextStyle(
+    row.box().text(text, style=T(
         size=60,
         bold=True,
     ))
@@ -37,8 +39,8 @@ def slide_header_top(box: Box, text: str, return_header=False) -> Union[Box, Tup
     return content
 
 
-def slide_header(box: Box, text: str, text_style: Optional[TextStyle] = None, **box_args) -> Box:
-    text_style = text_style if text_style is not None else TextStyle(size=50)
+def slide_header(box: Box, text: str, text_style: Optional[T] = None, **box_args) -> Box:
+    text_style = text_style if text_style is not None else T(size=50)
 
     if "p_bottom" not in box_args:
         box_args["p_bottom"] = 40
@@ -57,7 +59,8 @@ def list_item(parent, level=0, bullet="•", bullet_style="default", **box_args)
     return b.box(width="fill")
 
 
-def code(parent: Box, code: str, language="cpp", width=None, code_style="code", p_right=50, return_box=False, **kwargs) -> Union[Box, TextBoxItem]:
+def code(parent: Box, code: str, language="cpp", width=None, code_style="code", p_right=50,
+         return_box=False, **kwargs) -> Union[Box, TextBoxItem]:
     content = parent.box(width=width)
     content.rect(bg_color="#EEEEEE")
     codebox = content.box(p_left=10, p_right=p_right, p_y=10, z_level=100, x=0)
@@ -75,9 +78,9 @@ def with_bg(parent: Box, bg_color="#DDDDDD") -> Box:
 
 def bash(parent: Box, code: str, text_style=None, **box_args):
     if text_style is None:
-        text_style = TextStyle()
+        text_style = T()
 
-    text_style = text_style.compose(TextStyle(color="#E9E9ED", font="monospace", align="left"))
+    text_style = text_style.compose(T(color="#E9E9ED", font="monospace", align="left"))
 
     wrapper = parent.fbox(**box_args)
     wrapper.rect(bg_color="#3F3F3F", rx=5, ry=5)
@@ -138,7 +141,7 @@ def with_coauthors(content: Box, authors):
     coauthors = content.box(x="[100%]", y=20, p_right=20)
     for author in authors:
         coauthors.box(x="[100%]", z_level=999).text(f"with {author}",
-                                                    style=elsie.TextStyle(align="right"))
+                                                    style=elsie.T(align="right"))
 
 
 def left_side_list(box: Box) -> ListBuilder:
@@ -158,7 +161,7 @@ def iterate_grid(rows: int, cols: int, width: int, height: int, p_horizontal: in
 
 
 def big_text_slide(slide: Box, text: str):
-    slide.box().text(text, style=TextStyle(size=60))
+    slide.box().text(text, style=T(size=60))
 
 
 def labeled_image(box: Box, img: str, label: str,
@@ -170,7 +173,7 @@ def labeled_image(box: Box, img: str, label: str,
     im_box.image(img)
     label_box = box.box(width=width, height=30)
     label_box.rect(bg_color=DARK_GREEN)
-    label_box.fbox(p_top=5, p_bottom=5).text(label, style=TextStyle(color="white", bold=True))
+    label_box.fbox(p_top=5, p_bottom=5).text(label, style=T(color="white", bold=True))
 
 
 def github_link(box: Box, link: str, **text_args):
@@ -178,3 +181,23 @@ def github_link(box: Box, link: str, **text_args):
     box.box(width=50).image("images/github-logo.png")
     box.box(width=10)
     box.box().text(f"~tt{{{link}}}", **text_args)
+
+
+def quotation(box: Box, quotation: str, source: str = "", **text_args) -> BoxItem:
+    wrapper = box.fbox().rect(bg_color=QUOTATION_BG, rx=10, ry=10)
+    inner = wrapper.box(padding=30)
+
+    if "size" not in text_args:
+        text_args["size"] = 60
+    if "align" not in text_args:
+        text_args["align"] = "left"
+
+    quote_width = 60
+    inner.box(x=0, y=0, width=quote_width).image("images/quote.png", rotation=180)
+    inner.box(x=inner.x("100%").add(-quote_width), y=inner.y("100%").add(-quote_width),
+              width=quote_width).image("images/quote.png")
+    inner.box(p_top=quote_width).text(quotation, style=T(**text_args))
+    inner.box(width="100%", height=quote_width, p_top=10, p_right=quote_width * 1.5).text(
+        source, style=T(align="right", size=50)
+    )
+    return wrapper
