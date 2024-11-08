@@ -43,15 +43,23 @@ def rsds(slides: Slides):
     @slides.slide()
     def dask_gil_scaling(slide: Box):
         content = slide_header_top(slide, "Effect of GIL on Dask's performance")
-        content.box(width="45%").image("images/dask-gil-scaling.svg")
+        content.box(width="45%").image("images/dask-gil-scaling.svg", fragments=False)
 
     @slides.slide()
     def dask_observations(slide: Box):
         content = slide_header_top(slide, "Observations")
         lst = unordered_list(content.box())
-        lst.item().text("Scheduler cannot be easily replaced")
-        lst.item().text("Dask does not scale well in HPC contexts")
-        lst.item().text("Python implementation is limited by the GIL")
+        lst.item(show="next+").text("Scheduler cannot be easily replaced")
+        lst.item(show="next+").text("Dask does not scale well in HPC contexts")
+        lst.item(show="next+").text("Python implementation is limited by the GIL")
+
+    @slides.slide()
+    def rsds(slide: Box):
+        content = slide_header_top(slide, "RSDS")
+        lst = unordered_list(content.box())
+        lst.item(show="next+").text("Alternative Dask server implementation")
+        lst.item(show="next+").text("Written in Rust, designed for low overhead")
+        lst.item(show="next+").text("Explicitly designed for a pluggable scheduler")
 
     @slides.slide()
     def rsds_architecture(slide: Box):
@@ -66,7 +74,7 @@ def rsds(slides: Slides):
     @slides.slide()
     def rsds_scaling(slide: Box):
         content = slide_header_top(slide, "Dask vs. RSDS: scaling")
-        content.box(width="80%").image("images/rsds-scaling.png")
+        content.box(width="70%", p_top=80).image("images/rsds-scaling.png")
 
     @slides.slide()
     def rsds_summary(slide: Box):
