@@ -1,142 +1,172 @@
-from elsie import Slides, TextStyle
+import random
+from typing import List, Optional
+
+from elsie import Arrow, Slides, TextStyle as T
 from elsie.boxtree.box import Box
 from elsie.ext import unordered_list
 
-from tasks import cluster_1, get_task_color, half_node, node, task, task_graph_1, task_graph_grid
+from tasks import cluster_1, get_task_color, node, task, task_graph_1
 from utils import slide_header_top
+
+
+BLUE = "#608BC1"
+RED = "#FA4032"
+GREEN = "#B1D690"
+ORANGE = "#FF9D3D"
+
+
+def header(slide: Box, text: str, ok: Optional[bool] = None, step: Optional[str] = None):
+    header = slide.box(horizontal=True, height=120, y=50, show=step)
+    header.box(p_right=40).text(text, T(size=60))
+    if ok is not None:
+        img = "checkmark" if ok else "crossmark"
+        header.box(width=50, y=40).image(f"images/{img}.png")
 
 
 def challenges(slides: Slides):
     @slides.slide()
-    def job_manager_1(slide: Box):
-        content = slide_header_top(slide, "Job manager")
+    def allocation_manager(slide: Box):
+        content = slide_header_top(slide, "Allocation manager")
 
         row = content.box(horizontal=True)
         task_graph_1(row, size=75)
-        middle = row.box(width=50, p_left=25, p_right=25, show="next+")
-        middle.image("images/brick-wall.jpeg")
-        middle.text("PBS/Slurm", rotation=-90, style=TextStyle(color="white"))
+
+        row.box(p_left=50)
+        row.box(width=100).line(
+            [(0, "50%"), ("100%", "50%")],
+            stroke_width=8,
+            end_arrow=Arrow(size=20)
+        )
+        row.box(p_right=50)
+        # TODO: better graphics
+        manager = row.box(p_right=100, show="next+")
+        manager.rect(color="red", stroke_width=10, stroke_dasharray="16")
+        manager.box(padding=50).text("""PBS
+Slurm""")
 
         cluster_box = row.box()
         cluster_1(cluster_box, size=75)
 
-        content.box(p_top=40, show="next+").text("How to map tasks to PBS jobs?")
-
-    # @slides.slide()
-    # def job_manager_granularity(slide: Box):
-    #     content = slide_header_top(slide, "Granularity levels (task vs job)")
-    #
-    #     lst = unordered_list(content.box())
-    #     lst.item().text("Duration")
-    #     lst2 = lst.ul()
-    #     lst2.item().text("Task: ms - hours", style="l2")
-    #     lst2.item().text("Job: minutes - days", style="l2")
-    #     lst.item(show="next+").text("Count")
-    #     lst2 = lst.ul()
-    #     lst2.item().text("Task: millions", style="l2")
-    #     lst2.item().text("Job: hundreds", style="l2")
-    #     lst.item(show="next+").text("Resource usage")
-    #     lst2 = lst.ul()
-    #     lst2.item().text("Task: cores, specific devices", style="l2")
-    #     lst2.item().text("Job: nodes", style="l2")
-
     @slides.slide()
-    def job_manager_submit(slide: Box):
-        content = slide_header_top(slide, "Submitting task graphs into PBS")
+    def large_tasks(slide: Box):
+        header(slide, text="A few large tasks", ok=True)
 
-        lst = unordered_list(content.box(x=50))
-        lst.item(show="next+").text("Submit each task as a job")
-        lst2 = lst.ul()
-        lst2.item(show="next+").text("Massive overhead (millions of jobs)", style="l2")
-        lst2.item(show="next+").text("Job count limits", style="l2")
-        lst2.item(show="next+").text("~bold{Node granularity}", style="l2")
-        lst2.item(show="next+").text("Difficult with dependencies", style="l2")
-        lst.item(show="next+", p_top=30).text("Submit task graph as a single job")
-        lst2 = lst.ul()
-        lst2.item().text("Only for small-ish task graphs", style="l2")
-        lst.item(show="next+", p_top=100).text("Split task graph into multiple jobs")
-        lst2 = lst.ul()
-        lst2.item().text("Lot of work", style="l2")
-        lst2.item(show="next+").text("No load balancing across jobs", style="l2")
+        cols = slide.box(horizontal=True)
+        left = cols.box(y=0, width=100)
 
-        task_size = 30
-        node_size = 40
+        tasks = [(0, GREEN), (150, RED), (300, BLUE)]
+        for (y, color) in tasks:
+            task(left, y=y, bg_color=color)
 
-        def task_fn(box, x, y, name, size, row, col):
-            return task(box, x=x, y=y, name=None, size=size, bg_color=get_task_color(col))
+        right = cols.box(p_left=200)
+        cluster_box = right.box()
+        cluster_1(cluster_box.fbox(show=1), size=100)
 
-        def tg(box: Box, color=None):
-            return task_graph_grid(box, size=task_size, rows=1, cols=3, task_constructor=task_fn)
+        index = 0
 
-        x_start = 700
-        y_start = 150
+        def get_color():
+            nonlocal index
+            color = tasks[index][1]
+            index = (index + 1) % len(tasks)
+            return color
 
-        # Each task as a job
-        box_1 = content.box(x=x_start, y=y_start, horizontal=True, show="2+")
-        tasks = tg(box_1.box(p_right=40))
-
-        def get_color(index: int) -> str:
+        def filled_node(box, x, y, size, diagonal, index):
+            box = node(box, x=x, y=y, size=size)
             if index == 0:
-                return "black"
-            return get_task_color(index + 2)
+                task(box.box(), size=60, bg_color=get_color())
+            return box
 
-        for (index, task_box) in enumerate(tasks):
-            task(box=task_box, x=task_size / 2, y = task_size / 2, size=task_size,
-                 bg_color=get_task_color(index), color=get_color(index))
-        nodes = cluster_1(box_1.box(), size=node_size)
-        for (index, node_box) in enumerate(nodes[:3]):
-            node(node_box.overlay(z_level=2), x=node_size / 2, y=node_size / 2, size=node_size,
-                 bg_color=get_task_color(index), color=get_color(index),
-                 node_args=dict(stroke_width=4))
+        cluster_1(cluster_box.overlay(show=2), size=100, node_constructor=filled_node)
 
-        # Task graph as a single job
-        box_1 = content.box(x=x_start, y=y_start + 180, horizontal=True, show="7+")
-        tg(box_1.box(p_right=40))
-        nodes = cluster_1(box_1.box(), size=node_size)
-        node_box = nodes[0]
-        half_node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
-                  bg_color=get_task_color(0))
-        half_node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
-                  bg_color=get_task_color(1), mode="down")
-        half_node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
-                  bg_color=get_task_color(2), mode="left")
-        node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
-             bg_color=None, node_args=dict(stroke_width=4))
+    task_rows = 8
+    task_cols = 16
+    task_dim = 45
 
-        # Split graph
-        box_1 = content.box(x=x_start, y=y_start + 340, horizontal=True, show="8+")
-        tasks = tg(box_1.box(p_right=40))
-        task(box=tasks[2].overlay(), x=task_size / 2, y=task_size / 2, size=task_size,
-             bg_color=get_task_color(2), color=get_task_color(3))
+    def render_tasks(parent: Box) -> List[Box]:
+        tasks = []
 
-        nodes = cluster_1(box_1.box(), size=node_size)
-        node_box = nodes[0]
-        half_node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
-                  bg_color=get_task_color(0))
-        half_node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
-                  bg_color=get_task_color(1), mode="down")
-        node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
-             bg_color=None, node_args=dict(stroke_width=4))
-        node(nodes[1].overlay(z_level=2), x=node_size / 2, y=node_size / 2, size=node_size,
-             bg_color=get_task_color(2), node_args=dict(stroke_width=4), color=get_task_color(3))
+        horizontal_padding = 10
+        vertical_padding = 30
+        for row in range(task_rows):
+            for col in range(task_cols):
+                row_coord = row * (task_dim + vertical_padding)
+                col_coord = col * (task_dim + horizontal_padding)
+
+                t = task(parent, x=col_coord, y=row_coord, size=task_dim)
+                tasks.append(t)
+        return tasks
 
     @slides.slide()
-    def heterogeneity(slide: Box):
-        content = slide_header_top(slide, "Resource management")
+    def many_tasks_overhead(slide: Box):
+        header(slide, "Many tasks", ok=False)
+
+        cols = slide.box(x=100, y=220, horizontal=True)
+        left = cols.box(width=1000, y=0)
+        render_tasks(left)
+
+        cols.update_style("default", T(size=30))
+        right = cols.box(horizontal=True, y=0, show="next+")
+        submits = right.box()
+        for _ in range(15):
+            submits.box().text("sbatch script.sh")
+        submits.box().text("...")
+        submits.box(width=300, x="[50%]", y="[50%]", show="next+").image("images/prohibited.svg")
+
+    @slides.slide()
+    def heterogeneous_tasks(slide: Box):
+        header(slide, "Heterogeneous tasks", ok=False, step="1")
+        header(slide, "Task dependencies", ok=False, step="2")
+
+        cols = slide.box(x=100, y=220, horizontal=True)
+        left = cols.box(width=1000, y=0)
+        tasks = render_tasks(left)
+
+        colours = [RED, GREEN, BLUE, ORANGE]
+        random.seed(42)
+        for (index, task_box) in enumerate(tasks):
+            task_box = task(task_box.overlay(), x=task_dim / 2, y=task_dim / 2, size=task_dim, bg_color=random.choice(colours))
+
+            row = index // task_cols
+            col = index % task_cols
+            if row == task_rows - 1:
+                continue
+
+            candidates = [col -1] if col != 0 else []
+            candidates.append(col)
+            if col != task_cols - 1:
+                candidates.append(col + 1)
+            random.shuffle(candidates)
+            targets = [c for c in candidates if random.random() < 0.5]
+            for target_col in targets:
+                offset = 0
+                if target_col < col:
+                    offset = 10
+                elif target_col > col:
+                    offset = -10
+                target_index = (row + 1) * task_cols + target_col
+                target = tasks[target_index]
+                slide.box(show="2+", z_level=-1).line((
+                    (task_box.x("50%"), task_box.y("50%")),
+                    (target.x("50%").add(offset), target.y("0%"))
+                ), stroke_width=3, end_arrow=Arrow())
+
+    @slides.slide()
+    def cluster_heterogeneity(slide: Box):
+        content = slide_header_top(slide, "Heterogeneous clusters")
         line_box = content.overlay(show="2+")
 
-        nodes = cluster_1(content.box(x=50, y=300), size=40)
+        nodes = cluster_1(content.box(x="[10%]", y="[50%]"), size=60)
         node = nodes[5]
         line_box.line((
             (node.x("25%"), node.y(0)),
-            (385, 175)
+            (660, 300)
         ), stroke_width=2, stroke_dasharray="4")
         line_box.line((
             (node.x("25%"), node.y("100%")),
-            (385, 530)
+            (662, 676)
         ), stroke_width=2, stroke_dasharray="4")
 
-        content.box(width="75%").image("images/heterogeneous-node.svg", show_begin=2)
+        content.box(p_top=60, width="50%").image("images/heterogeneous-node.svg", show_begin=2)
 
     @slides.slide()
     def multinode_tasks(slide: Box):
@@ -170,4 +200,3 @@ def challenges(slides: Slides):
         lst2.item(show="next+").text("Communication bottleneck", style="l2")
         lst.item(show="next+").text("Fault tolerance")
         lst.item(show="next+").text("Iterative computation")
-        lst.item(show="next+").text("…")
