@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 import elsie
-from elsie import Arrow
 from elsie.boxtree.box import Box
 from elsie.ext import ordered_list, unordered_list
 from elsie.text.textstyle import TextStyle, TextStyle as T
@@ -11,7 +10,8 @@ from estee import estee
 from hq import hyperqueue
 from rsds import rsds
 from sota import sota
-from utils import slide_header_top, quotation
+from questions import questions
+from utils import slide_header_top
 from workflows import workflows
 
 WIDTH = 1600
@@ -84,11 +84,11 @@ def topic_highlight(slides: elsie.Slides, text: str, header: Optional[str] = Non
         content = slide_header_top(slide, header)
     else:
         content = slide
-    content.box().text(text, style=T(size=48))
+    content.box().text(text, style=T(size=60))
 
 
 topic_highlight(slides, """Ergonomics and efficiency
-of ~highlight{workflows on HPC clusters}""", header="Motivation")
+of ~highlight{workflows on HPC clusters}""")
 
 workflows(slides)
 
@@ -111,113 +111,6 @@ topic_highlight(slides, """~highlight{Ergonomics} and efficiency
 of workflows on HPC clusters""")
 
 hyperqueue(slides)
-
-
-@slides.slide()
-def outro(slide: Box):
-    slide.box().text("Thank you for your attention", style=T(size=60))
-    slide.box(p_top=300).text("Slides made with https://github.com/spirali/elsie", style=T(size=40))
-
-
-@slides.slide()
-def questions_ismail_1(slide: Box):
-    """
-    1. The thesis identifies key challenges in task scheduling and resource management on heterogeneous
-supercomputers. What are the most significant bottlenecks and how RSDS or HyperQueue addresses
-these bottlenecks?
-- Interaction with allocation managers, heterogeneous resource scheduling
-- RSDS: speed-up of Dask
-- HQ: integration of solutions in a single tool
-    """
-    slide = slide_header_top(slide, "Question 1 (prof. Ismail Hakki Toroslu)")
-
-    quotation(slide.box(), """What are the most significant workflow bottlenecks and how
-RSDS or HyperQueue addresses these bottlenecks?""", size=40)
-
-    slide.update_style("default", T(size=50))
-    lst = unordered_list(slide.box(p_top=40))
-    lst.item(show="next+").text("Interaction with allocation managers")
-    lst.item(show="next+").text("Heterogeneous resource management")
-    lst.item(show="next+").text("Scalability")
-
-
-@slides.slide()
-def questions_ismail_2(slide: Box):
-    """
-    2. It is shown that simple scheduling heuristics like work-stealing can compete with more complex
-algorithms. Under what conditions would a more complex algorithm be necessary?
-- Specialized edge cases, e.g. memory consumption
-    """
-    slide = slide_header_top(slide, "Question 2 (prof. Ismail Hakki Toroslu)")
-
-    quotation(slide.box(), """It is shown that simple scheduling heuristics like work-stealing
-can compete with more complex algorithms. Under what conditions
-would a more complex algorithm be necessary?""", size=40)
-
-    slide.update_style("default", T(size=50))
-    lst = unordered_list(slide.box(p_top=40))
-    lst.item(show="next+").text("Specialized use-cases")
-    lst.item(show="next+").text("Memory consumption limits")
-    lst.item(show="next+").text("Latency (not throughput) optimized scheduling")
-
-
-@slides.slide()
-def questions_ismail_3(slide: Box):
-    """
-    3. Thesis mentions that Python runtime overhead is a critical bottleneck in Dask. How Rust-based
-server (RSDS) reduces this overhead, and why Rust was chosen for this task over other languages?
-- Compiled, memory layout, no GC, inlining
-- Safer than C++ :)
-    """
-    slide = slide_header_top(slide, "Question 3 (prof. Ismail Hakki Toroslu)")
-
-    quotation(slide.box(), """Thesis mentions that Python runtime overhead is a critical bottleneck in Dask.
-How Rust-based server (RSDS) reduces this overhead, and why Rust was
-chosen for this task over other languages?""", size=40)
-
-    slide.update_style("default", T(size=50))
-    lst = unordered_list(slide.box(p_top=40))
-    lst.item(show="next+").text("Compiled to native code, small runtime, no GIL")
-    lst.item(show="next+").text("Memory safety, data race safety")
-    lst.item(show="next+").text("Compact task storage, binary message format")
-
-
-@slides.slide()
-def questions_ismail_4(slide: Box):
-    """
-    4. HyperQueue has already been adopted by several European supercomputing centers. Is there any
-feedback that could be used to improve HyperQueue?
-- Data transfers, Python API
-    """
-    slide = slide_header_top(slide, "Question 4 (prof. Ismail Hakki Toroslu)")
-
-    quotation(slide.box(), """HyperQueue has already been adopted by several European supercomputing
-centers. Is there any feedback that could be used to improve HyperQueue?""", size=40)
-
-    slide.update_style("default", T(size=50))
-    lst = unordered_list(slide.box(p_top=40))
-    lst.item(show="next+").text("Missing features (data transfers, better Python API)")
-    lst.item(show="next+").text("Better transparency of automatic allocation")
-
-
-@slides.slide()
-def questions_ismail_5(slide: Box):
-    """
-    5. Estee is designed to benchmark task schedulers and help prototype new algorithms. What future
-extensions or improvements can be done on Estee, especially from HPC point of view?
-- Support for more complex resource requirements
-- Rewrite in Rust :)
-    """
-    slide = slide_header_top(slide, "Question 5 (prof. Ismail Hakki Toroslu)")
-
-    quotation(slide.box(), """Estee is designed to benchmark task schedulers and help prototype
-new algorithms. What future extensions or improvements can be done on Estee,
-especially from HPC point of view?""", size=40)
-
-    slide.update_style("default", T(size=50))
-    lst = unordered_list(slide.box(p_top=40))
-    lst.item(show="next+").text("Improve simulation throughput (Rust core + Python API)")
-    lst.item(show="next+").text("Complex resource management")
 
 
 @slides.slide()
@@ -299,16 +192,13 @@ J. Martinovič, M. Golasowski, K. Slaninová, ~emph{J. Beránek}, M. Šurkovský
 ~emph{Complex, Intelligent, and Software Intensive Systems 2020}""")
 
 
-# @slides.slide()
-# def bonus_projects(slide: Box):
-#     content = slide_header_top(slide, "Projects and publications")
-#
-#     lst = unordered_list(content.box())
-#     lst.item().text("ANTAREX: distributed system for traffic simulator")
-#     lst.item().text("EVEREST: traffic simulator + HQ")
-#     lst.item().text("LIGATE: porting GROMACS + LiGEN workflow to HQ")
-#     lst.item().text("ETH internship: 5 publications (2 at SC'19)")
+@slides.slide()
+def outro(slide: Box):
+    slide.box().text("Thank you for your attention", style=T(size=60))
+    slide.box(p_top=300).text("Slides made with https://github.com/spirali/elsie", style=T(size=40))
 
+
+questions(slides)
 
 numbering_start = 2
 numbering_end = 39
