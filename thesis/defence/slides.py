@@ -1,8 +1,10 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import elsie
+from elsie import Arrow, SlideDeck
 from elsie.boxtree.box import Box
 from elsie.ext import ordered_list, unordered_list
+from elsie.slides.slide import Slide
 from elsie.text.textstyle import TextStyle, TextStyle as T
 
 from challenges import challenges
@@ -11,8 +13,11 @@ from hq import hyperqueue
 from rsds import rsds
 from sota import sota
 from questions import questions
+from tasks import cluster_1, task_graph_1
 from utils import slide_header_top
 from workflows import workflows
+
+PRODUCTION_BUILD = False
 
 WIDTH = 1600
 HEIGHT = 900
@@ -39,32 +44,21 @@ of workflows on HPC clusters""", style=T(size=60))
     slide.box(x="[95%]", y="80%", width=600).image("images/it4i-logo.png")
 
 
-# @slides.slide()
-# def intro(slide: Box):
-#     content = slide_header(slide, "Outline")
-#     lst = ordered_list(content.box())
-#     lst.item().text("HPC & task graphs")
-#     lst.item().text("HyperQueue")
-#     lst.item().text("Distributed systems research")
-#     lst.item().text("Next steps")
-#     lst.item().text("Publications")
-
-
 @slides.slide()
 def goal(slide: Box):
     content = slide_header_top(slide, "Thesis goal")
     content.box().text("""Design approches for executing workflows
 on HPC clusters in an easy & efficient way""", T(size=54))
 
-    # row = content.box(horizontal=True, p_top=100)
-    # task_graph_1(row.box(show="next+"), size=75)
-    # middle = row.box(width=50, height=50, p_left=75, p_right=75, show="next+")
-    # middle.box().line((
-    #     (middle.x(0).add(-40), middle.y("50%")),
-    #     (middle.x("100%").add(40), middle.y("50%"))
-    # ), end_arrow=Arrow(size=20), stroke_width=10)
-    # cluster_box = row.box(show="last+")
-    # cluster_1(cluster_box, size=75)
+    row = content.box(horizontal=True, p_top=100)
+    task_graph_1(row.box(show="next+"), size=75)
+    middle = row.box(width=50, height=50, p_left=75, p_right=75, show="next+")
+    middle.box().line((
+        (middle.x(0).add(-40), middle.y("50%")),
+        (middle.x("100%").add(40), middle.y("50%"))
+    ), end_arrow=Arrow(size=20), stroke_width=10)
+    cluster_box = row.box(show="last+")
+    cluster_1(cluster_box, size=75)
 
 
 @slides.slide()
@@ -200,14 +194,52 @@ def outro(slide: Box):
 
 questions(slides)
 
+def ferris(slides: SlideDeck):
+    count = sum(slide.steps() for slide in slides._slides)
+
+    def calculate_dim(slide: Slide, progress: float) -> Tuple[float, Tuple[float, float]]:
+        size = 80
+        if slide.view_box is not None:
+            size *= slide.view_box[2] / WIDTH
+
+            reference_x = slide.view_box[2] + slide.view_box[0]
+
+            x_first = reference_x
+            x_last = reference_x - (size * 1.05)
+            x_diff = abs(x_first - x_last)
+            x = x_first - progress * x_diff
+        else:
+            x_first = WIDTH
+            x_last = WIDTH - (size * 1.05)
+            x_diff = abs(x_first - x_last)
+            x = x_first - progress * x_diff
+
+        if slide.view_box is not None:
+            y = int(HEIGHT * 0.02)
+            y += slide.view_box[1] + 32
+        else:
+            y = int(HEIGHT * 0.02)
+
+        return (size, (x, y))
+
+    total_steps = 0
+    for i, slide in enumerate(slides._slides):
+        steps = slide.steps()
+        for step in range(steps):
+            progress = (total_steps + step) / count
+            (size, (x, y)) = calculate_dim(slide, progress=progress)
+            slide.box().box(show=step + 1, x=x, y=y, width=size, height=size).image(
+                "images/ferris.svg")
+        total_steps += steps
+
 numbering_start = 2
 numbering_end = 39
 
 
 def page_numbering(slides: List[Box]):
-    width = 90
-    height = 45
-    margin = 10
+    width = 70
+    height = 70
+    margin = 5
 
     for i, slide in enumerate(slides):
         if numbering_start <= (i + 1) <= numbering_end:
@@ -215,11 +247,15 @@ def page_numbering(slides: List[Box]):
                             y=HEIGHT - height - margin,
                             width=width,
                             height=height).rect(
-                bg_color="#2F96A8", rx=5, ry=5
+                bg_color="#2F96A8", rx=10, ry=10
             )
-            box.fbox(padding=5).text(f"{i + 1}/{numbering_end}",
-                                     style=TextStyle(color="white", size=26, align="right"))
+            box.fbox(padding=5).text(f"{i + 1}",
+                                     style=TextStyle(color="white", size=36))
 
 
-# slides.render(slide_postprocessing=page_numbering)
-slides.render()
+# ferris(slides)
+
+if PRODUCTION_BUILD:
+    slides.render(slide_postprocessing=page_numbering)
+else:
+    slides.render()
