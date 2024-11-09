@@ -96,13 +96,11 @@ How can other fault-tolerance schemes be included?""", [
             "Tasks are resilient to server failures (journaling)",
             "Potential future work: task checkpointing"
         ], joao),
-        Q("""The example in Fig. 3.2 seems to not consider the different execution time of
-tasks according to the worker. When there are differences, for instance because of the use
-of different computing units (CPU vs GPU), how does the scheduling decide?""", [
-            # TODO
-        ], joao),
-        Q("""What kind of possibilities do you see if we also consider variants of the tasks, using the same CPU,
-but with different energy/execution time trade-offs?""", [
+        Q("""The example in Fig. 3.2 seems to not consider the different execution time of tasks
+according to the worker. When there are differences, for instance because of the
+use of different computing units (CPU vs GPU), how does the scheduling decide?
+What kind of possibilities do you see if we also consider variants of the tasks,
+using the same CPU, but with different energy/execution time trade-offs?""", [
             # TODO
         ], joao),
         Q("""The use of checkpointing, although convenient, usually introduces a large
@@ -246,18 +244,6 @@ directly between tasks? And to streaming and task pipelining support?""", [
 
 
 def render_questions(slides: SlideDeck, questions: List[Question]):
-    # question_counts = defaultdict(int)
-    # for question in questions:
-    #     question_counts[question.author] += 1
-    #
-    # question_counts = sorted(question_counts.items(), key=lambda v: v[1])
-    #
-    # slide = slides.new_slide()
-    # slide = slide_header_top(slide, "Reviewer questions")
-    # lst = unordered_list(slide.box())
-    # for (author, count) in question_counts:
-    #     lst.item().text(f"{author}: {count} question{'' if count == 1 else 's'}")
-
     last_author = None
     counter = 0
     for question in questions:

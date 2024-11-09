@@ -77,7 +77,7 @@ def rsds(slides: Slides):
         content.box(width="70%", p_top=80).image("images/rsds-scaling.png")
 
     @slides.slide()
-    def rsds_summary(slide: Box):
+    def rsds_outcome(slide: Box):
         content = slide_header_top(slide, "Outcome")
         lst = unordered_list(content.box())
         lst.item().text("Runtime efficiency as important as scheduling")
@@ -91,3 +91,4 @@ def rsds(slides: Slides):
         lst2 = lst.ul()
         lst2.item(show="next+").text("Backward-compatible with existing Dask programs", style="l2")
         github_link(lst2.item(show="last+"), "github.com/it4innovations/rsds", style="l2")
+        lst.item(show="next+").text("Some ideas from RSDS were integrated into Dask")

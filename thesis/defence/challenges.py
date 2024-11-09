@@ -168,35 +168,33 @@ Slurm""")
 
         content.box(p_top=60, width="50%").image("images/heterogeneous-node.svg", show_begin=2)
 
-    @slides.slide()
-    def multinode_tasks(slide: Box):
-        content = slide_header_top(slide, "Multi-node tasks")
-
-        box = content.box(horizontal=True)
-
-        task_size = 60
-        tasks = task_graph_1(box=box.box(p_right=100), size=task_size, with_names=False)
-        task(box=tasks[0].overlay(), x=task_size / 2, y=task_size / 2, size=task_size,
-             bg_color=get_task_color(0))
-
-        node_size = 60
-        nodes = cluster_1(box.box(), size=node_size)
-        for node_box in nodes[:2]:
-            node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
-                 bg_color=get_task_color(0))
-
-        lst = unordered_list(content.box(p_top=50))
-        lst.item(show="next+").text("MPI application within a task")
-        lst.item(show="next+").text("Complicates scheduling and data transfers")
+    # @slides.slide()
+    # def multinode_tasks(slide: Box):
+    #     content = slide_header_top(slide, "Multi-node tasks")
+    #
+    #     box = content.box(horizontal=True)
+    #
+    #     task_size = 60
+    #     tasks = task_graph_1(box=box.box(p_right=100), size=task_size, with_names=False)
+    #     task(box=tasks[0].overlay(), x=task_size / 2, y=task_size / 2, size=task_size,
+    #          bg_color=get_task_color(0))
+    #
+    #     node_size = 60
+    #     nodes = cluster_1(box.box(), size=node_size)
+    #     for node_box in nodes[:2]:
+    #         node(node_box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
+    #              bg_color=get_task_color(0))
+    #
+    #     lst = unordered_list(content.box(p_top=50))
+    #     lst.item(show="next+").text("MPI application within a task")
+    #     lst.item(show="next+").text("Complicates scheduling and data transfers")
 
     @slides.slide()
     def other_challenges(slide: Box):
         content = slide_header_top(slide, "Other workflow challenges on HPC")
 
         lst = unordered_list(content.box())
-        lst.item().text("Scalability")
-        lst2 = lst.ul()
-        lst2.item(show="next+").text("Millions of tasks, hundreds of nodes", style="l2")
-        lst2.item(show="next+").text("Communication bottleneck", style="l2")
+        lst.item(show="next+").text("Scalability")
+        lst.item(show="next+").text("Multi-node tasks")
         lst.item(show="next+").text("Fault tolerance")
         lst.item(show="next+").text("Iterative computation")

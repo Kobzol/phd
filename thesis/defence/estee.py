@@ -93,7 +93,7 @@ simulator = Simulator(task_graph, cluster, scheduler, network)
         content.box(width="75%").image("images/estee-msd.png")
 
     @slides.slide()
-    def estee_outcomes(slide: Box):
+    def estee_outcome(slide: Box):
         content = slide_header_top(slide, "Outcome")
         lst = unordered_list(content.box())
         lst.item().text("Most competitive schedulers")

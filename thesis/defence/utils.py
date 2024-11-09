@@ -76,7 +76,7 @@ def with_bg(parent: Box, bg_color="#DDDDDD") -> Box:
     return quote.box(padding=10, z_level=100)
 
 
-def bash(parent: Box, code: str, text_style=None, **box_args):
+def bash(parent: Box, code: str, text_style=None, p_x=10, p_y=5, **box_args):
     if text_style is None:
         text_style = T()
 
@@ -84,7 +84,7 @@ def bash(parent: Box, code: str, text_style=None, **box_args):
 
     wrapper = parent.fbox(**box_args)
     wrapper.rect(bg_color="#3F3F3F", rx=5, ry=5)
-    code_wrapper = wrapper.box(x=0, p_x=10, p_y=5)
+    code_wrapper = wrapper.box(x=0, p_x=p_x, p_y=p_y)
     return code_wrapper.text(code, style=text_style)
 
 

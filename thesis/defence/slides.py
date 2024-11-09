@@ -1,3 +1,4 @@
+import math
 from typing import List, Optional, Tuple
 
 import elsie
@@ -11,7 +12,6 @@ from challenges import challenges
 from estee import estee
 from hq import hyperqueue
 from rsds import rsds
-from sota import sota
 from questions import questions
 from tasks import cluster_1, task_graph_1
 from utils import slide_header_top
@@ -93,7 +93,7 @@ def task_graph_challenges(slide: Box):
 
 
 challenges(slides)
-sota(slides)
+# sota(slides)
 
 topic_highlight(slides, """Ergonomics and ~highlight{efficiency}
 of workflows on HPC clusters""")
@@ -105,6 +105,27 @@ topic_highlight(slides, """~highlight{Ergonomics} and efficiency
 of workflows on HPC clusters""")
 
 hyperqueue(slides)
+
+
+@slides.slide()
+def objectives_fulfilled(slide: Box):
+    slide.set_style("l2", T(size=40))
+    content = slide_header_top(slide, "Thesis objectives fulfillment")
+
+    offset = 40
+
+    lst = ordered_list(content.box(p_top=80))
+    lst.item(show="next+").text("Identify HPC workflow challenges ✓")
+    lst.item(show="next+", p_top=offset).text("Design approaches for overcoming them ✓")
+    lst2 = lst.ul()
+    lst2.item(show="next+").text("Meta-scheduling approach", style="l2")
+    lst2.item(show="next+").text("Heterogeneous resource management", style="l2")
+    lst.item(show="next+", p_top=offset).text("Implement them in a task runtime ✓")
+    lst2 = lst.ul()
+    lst2.item(show="next+").text("HyperQueue", style="l2")
+    lst.item(show="next+", p_top=offset).text("Analyze results on real use-cases ✓")
+    lst2 = lst.ul()
+    lst2.item(show="next+").text("LIGATE, CERN", style="l2")
 
 
 @slides.slide()
@@ -188,8 +209,8 @@ J. Martinovič, M. Golasowski, K. Slaninová, ~emph{J. Beránek}, M. Šurkovský
 
 @slides.slide()
 def outro(slide: Box):
-    slide.box().text("Thank you for your attention", style=T(size=60))
-    slide.box(p_top=300).text("Slides made with https://github.com/spirali/elsie", style=T(size=40))
+    slide.box().text("Thank you for your attention", style=T(size=70))
+    slide.box(y="[90%]").text("Slides made with https://github.com/spirali/elsie", style=T(size=40))
 
 
 questions(slides)
@@ -253,7 +274,18 @@ def page_numbering(slides: List[Box]):
                                      style=TextStyle(color="white", size=36))
 
 
+def print_stats(slides: SlideDeck, minutes: int):
+    step_count = sum(slide.steps() for slide in slides._slides)
+    slide_count = len(slides._slides)
+
+    seconds = minutes * 60
+    print(f"{slide_count} slides, {math.floor(seconds / slide_count)}s per slide")
+    print(f"{step_count} steps, {math.floor(seconds / step_count)}s per step")
+
+
 # ferris(slides)
+
+print_stats(slides, minutes=20)
 
 if PRODUCTION_BUILD:
     slides.render(slide_postprocessing=page_numbering)
