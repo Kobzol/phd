@@ -50,15 +50,15 @@ def goal(slide: Box):
     content.box().text("""Design approches for executing workflows
 on HPC clusters in an easy & efficient way""", T(size=54))
 
-    row = content.box(horizontal=True, p_top=100)
-    task_graph_1(row.box(show="next+"), size=75)
-    middle = row.box(width=50, height=50, p_left=75, p_right=75, show="next+")
-    middle.box().line((
-        (middle.x(0).add(-40), middle.y("50%")),
-        (middle.x("100%").add(40), middle.y("50%"))
-    ), end_arrow=Arrow(size=20), stroke_width=10)
-    cluster_box = row.box(show="last+")
-    cluster_1(cluster_box, size=75)
+    # row = content.box(horizontal=True, p_top=100)
+    # task_graph_1(row.box(show="next+"), size=75)
+    # middle = row.box(width=50, height=50, p_left=75, p_right=75, show="next+")
+    # middle.box().line((
+    #     (middle.x(0).add(-40), middle.y("50%")),
+    #     (middle.x("100%").add(40), middle.y("50%"))
+    # ), end_arrow=Arrow(size=20), stroke_width=10)
+    # cluster_box = row.box(show="last+")
+    # cluster_1(cluster_box, size=75)
 
 
 @slides.slide()

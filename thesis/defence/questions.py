@@ -1,7 +1,6 @@
-from collections import defaultdict
 from typing import List
 
-from attr import dataclass
+from dataclasses import dataclass
 from elsie import SlideDeck
 from elsie.ext import unordered_list
 from elsie import TextStyle as T

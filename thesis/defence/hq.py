@@ -1,5 +1,6 @@
 import dataclasses
-from typing import Iterable, List, Optional
+import functools
+from typing import Iterable, List, Optional, Union
 
 from elsie import Slides, TextStyle as T
 from elsie.boxtree.box import Box
@@ -72,12 +73,12 @@ def hyperqueue(slides: Slides):
 
         box.update_style("default", T(size=40))
         lst = unordered_list(box.box(p_top=60))
-        lst.item(show="next+").text("How to overcome the largest HPC workflow challenges?")
+        lst.item(show="next+").text("How to overcome HPC workflow challenges?")
         lst2 = lst.ul()
-        lst2.item(show="next+").text("Interaction with HPC allocation managers")
-        lst2.item(show="next+").text("Heterogeneous resource management")
-        lst2.item(show="next+").text("Scalability")
-        lst.item(show="next+").text("Can we integrate the solutions into a single task runtime?")
+        lst2.item(show="next+").text("Interaction with HPC allocation managers", style="l2")
+        lst2.item(show="next+").text("Heterogeneous resource management", style="l2")
+        lst2.item(show="next+").text("Scalability", style="l2")
+        lst.item(show="next+").text("Can we integrate everything into a single task runtime?")
 
     @slides.slide()
     def hq_software(slide: Box):
@@ -101,15 +102,15 @@ def hyperqueue(slides: Slides):
 
     @slides.slide()
     def task_to_allocation_mapping(slide: Box):
-        content = slide_header_top(slide, "Challenge: mapping tasks to PBS/Slurm allocations")
+        content = slide_header_top(slide, "Challenge: how to map tasks to allocations?")
         content.update_style("default", T(size=50))
         content.update_style("l2", T(size=30))
 
         lst = unordered_list(content.box(x=50, p_top=100))
         lst.item(show="next+").text("Each task is a separate allocation")
         lst2 = lst.ul()
-        lst2.item().text("Massive overhead (millions of jobs)", style="l2")
-        lst2.item().text("Job count limits", style="l2")
+        lst2.item().text("Massive overhead (millions of allocations)", style="l2")
+        lst2.item().text("Allocation count limits", style="l2")
         lst2.item().text("Node granularity", style="l2")
         lst2.item().text("Difficult with dependencies", style="l2")
         lst.item(show="next+", p_top=10).text("One allocation for the whole task graph")
@@ -119,7 +120,7 @@ def hyperqueue(slides: Slides):
         lst.item(show="next+", p_top=10).text("Split task graph into multiple allocations")
         lst2 = lst.ul()
         lst2.item().text("Challenging to find good partitioning", style="l2")
-        lst2.item().text("No load balancing across jobs", style="l2")
+        lst2.item().text("No load balancing across allocations", style="l2")
 
         task_size = 50
         node_size = 60
@@ -183,148 +184,154 @@ def hyperqueue(slides: Slides):
         node(nodes[1].overlay(z_level=2), x=node_size / 2, y=node_size / 2, size=node_size,
              bg_color=get_task_color(2), node_args=dict(stroke_width=4), color=get_task_color(3))
 
-    # @slides.slide(debug_boxes=False)
-    # def challenge_pbs(slide: Box):
-    #     content = slide_header_top(slide, "Challenge: PBS/Slurm")
-    #
-    #     margin_bottom = 30
-    #     margin_line = 15
-    #
-    #     wrapper = content.box(y=20)
-    #     wrapper.box(p_bottom=20).text("Disentangle computation description from resources")
-    #
-    #     width = 700
-    #     row = wrapper.box(horizontal=True, p_bottom=margin_bottom, width=width, height=160,
-    #                       show="next+")
-    #
-    #     content.box(x=50, y=row.y("50%").add(-20), show="2+").text("PBS only",
-    #                                                                style=T(size=20))
-    #
-    #     node_size = 40
-    #     task_size = 40
-    #
-    #     def pbs_task(offset: int, box, x, y, name, size, row, col):
-    #         bg_color = get_task_color(col + offset)
-    #         return task(box=box, x=x, y=y, name=None, size=size, bg_color=bg_color)
-    #
-    #     def node_row(box: Box, count: int):
-    #         margin = node_size * 0.2
-    #         row = box.box(horizontal=True, width=node_size * count + margin * (count - 1),
-    #                       height=node_size)
-    #         x = node_size / 2
-    #         for _ in range(count):
-    #             node(row.box(width=node_size, x=x), size=node_size)
-    #             x += node_size + margin
-    #
-    #     task_box = row.box()
-    #     task_box_1 = task_box.fbox(show="2-3")
-    #     task_graph_grid(task_box_1.box(), size=task_size, rows=1, cols=3,
-    #                     task_constructor=functools.partial(pbs_task, offset=0))
-    #     task_box_1.box().text("+", style=T(size=30))
-    #     node_row(task_box_1.box(), count=3)
-    #
-    #     task_box_2 = task_box.overlay(show="4+")
-    #     task_graph_grid(task_box_2.box(), size=task_size, rows=1, cols=2,
-    #                     task_constructor=functools.partial(pbs_task, offset=3))
-    #     task_box_2.box().text("+", style=T(size=30))
-    #     node_row(task_box_2.box(), count=1)
-    #
-    #     row.box(p_left=100, p_right=100).text("→ PBS →")
-    #
-    #     def overlay_node(node_box: Box, show: str,
-    #                      color_index: Optional[Union[int, str]] = None,
-    #                      mode="full"):
-    #         box = node_box.overlay()
-    #         modes = {
-    #             "full": node,
-    #             "up": lambda **args: half_node(mode="up", **args),
-    #             "down": lambda **args: half_node(mode="down", **args)
-    #         }
-    #
-    #         stroke_width = 4 if mode == "full" else 2
-    #         modes[mode](box=box, x=node_size / 2, y=node_size / 2, size=node_size,
-    #                     bg_color=get_task_color(color_index) if color_index is not None else None,
-    #                     show=show, node_args=dict(stroke_width=stroke_width))
-    #         if mode != "full":
-    #             node(box=box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
-    #                  show=show, node_args=dict(stroke_width=4))
-    #
-    #     pbs_nodes = cluster_1(row.box(x=row.x("100%").add(-25)), size=node_size)
-    #     for i in range(3):
-    #         overlay_node(pbs_nodes[i], show="3+", color_index=i)
-    #     overlay_node(pbs_nodes[3], show="5+", color_index=3, mode="up")
-    #     overlay_node(pbs_nodes[3], show="5+", color_index=4, mode="down")
-    #
-    #     content.overlay(show="next+", p_bottom=margin_bottom).line((
-    #         (content.x("5%"), row.y("100%").add(margin_line)),
-    #         (content.x("95%"), row.y("100%").add(margin_line))
-    #     ))
-    #
-    #     row = wrapper.box(horizontal=True, width=width, height=200, show="last+")
-    #
-    #     content.box(x=50, y=row.y("50%").add(-20), show="last+").text("PBS + HQ",
-    #                                                                   style=T(size=20))
-    #
-    #     task_box = row.box()
-    #     fragment = slide.current_fragment()
-    #     task_box_1 = task_box.fbox(show=f"{fragment}-{fragment + 2}")
-    #     task_graph_grid(task_box_1.box(), size=task_size, rows=1, cols=3,
-    #                     task_constructor=functools.partial(pbs_task, offset=0))
-    #
-    #     text_box = row.box(p_left=20, p_right=100, horizontal=True)
-    #     text_box.box(p_right=20).text("→")
-    #     text_box.box(width=200).image("images/hq-logo.png")
-    #
-    #     pbs_box_width = 145
-    #     pbs_box = text_box.box(p_left=20, width=pbs_box_width).text("→ PBS →")
-    #     below_pbs_box = row.box(x=pbs_box.x(0), y=pbs_box.y("100%"), width=pbs_box_width,
-    #                             show=f"{fragment + 1}+")
-    #     below_pbs_box.box().text("↑")
-    #     node_row(below_pbs_box.box(), count=2)
-    #
-    #     pbs_nodes = cluster_1(row.box(x=row.x("100%").add(-25)), size=node_size)
-    #     node_fragment = f"{fragment + 2}+"
-    #     overlay_node(pbs_nodes[0], show=node_fragment, color_index=0, mode="up")
-    #     overlay_node(pbs_nodes[0], show=node_fragment, color_index=1, mode="down")
-    #     overlay_node(pbs_nodes[1], show=node_fragment, color_index=2)
-    #
-    #     task_box_2 = task_box.overlay(show=f"{fragment + 3}+")
-    #     task_graph_grid(task_box_2.box(), size=task_size, rows=1, cols=2,
-    #                     task_constructor=functools.partial(pbs_task, offset=3))
-    #
-    #     overlay_node(pbs_nodes[0], show=f"{fragment + 4}+", color_index=3, mode="down")
-    #     overlay_node(pbs_nodes[1], show=f"{fragment + 4}+", color_index=4)
-    #
-    #     content.overlay(show="next+", p_bottom=margin_bottom).line((
-    #         (content.x("5%"), row.y("100%").add(margin_line)),
-    #         (content.x("95%"), row.y("100%").add(margin_line))
-    #     ))
-    #
-    #     row = wrapper.box(horizontal=True, width=width, height=200, show="last+")
-    #
-    #     content.box(x=50, y=row.y("50%").add(-20), show="last+").text("PBS + HQ\n+autoalloc",
-    #                                                                   style=T(size=20))
-    #
-    #     task_box = row.box()
-    #     task_graph_grid(task_box.box(), size=task_size, rows=1, cols=3,
-    #                     task_constructor=functools.partial(pbs_task, offset=0))
-    #
-    #     text_box = row.box(p_left=20, p_right=100, horizontal=True)
-    #     text_box.box(p_right=20).text("→")
-    #     hq_box = text_box.box(width=200).image("images/hq-logo.png")
-    #     text_box.box(p_left=20, width=pbs_box_width).text("→ PBS →")
-    #
-    #     pbs_nodes = cluster_1(row.box(x=row.x("100%").add(-25)), size=node_size)
-    #
-    #     node(row.box(x=hq_box.x("50%"), y=hq_box.y(0).add(-25), show="next+"), x=0, y=0,
-    #          size=node_size, node_args=dict(stroke_dasharray="4", stroke_width="2"))
-    #
-    #     fragment = slide.current_fragment() + 1
-    #     overlay_node(pbs_nodes[0], show=f"{fragment}", color_index=None)
-    #     overlay_node(pbs_nodes[1], show=f"{fragment}", color_index=None)
-    #     overlay_node(pbs_nodes[0], show=f"{fragment + 1}+", color_index=0, mode="up")
-    #     overlay_node(pbs_nodes[0], show=f"{fragment + 1}+", color_index=1, mode="down")
-    #     overlay_node(pbs_nodes[1], show=f"{fragment + 1}+", color_index=2)
+    # @slides.slide()
+    # def hq_approach(slide: Box):
+    #     slide.box().text("HyperQueue meta-scheduling approach")
+    #     slide.box(show="next+", p_top=80).text("Disentangle what to compute (tasks) +")
+    #     slide.box(show="next+").text("where to compute it (nodes)")
+
+    @slides.slide()
+    def metascheduling(slide: Box):
+        content = slide_header_top(slide, "Meta-scheduling")
+
+        margin_bottom = 30
+        margin_line = 15
+
+        wrapper = content.box(y=160)
+
+        width = 700
+        row = wrapper.box(horizontal=True, p_bottom=margin_bottom, width=width, height=160,
+                          show="next+")
+
+        label_size = 40
+        content.box(x=50, y=row.y("50%").add(-20), show="2+").text("Slurm",
+                                                                   style=T(size=label_size))
+
+        node_size = 40
+        task_size = 40
+
+        def pbs_task(offset: int, box, x, y, name, size, row, col):
+            bg_color = get_task_color(col + offset)
+            return task(box=box, x=x, y=y, name=None, size=size, bg_color=bg_color)
+
+        def node_row(box: Box, count: int):
+            margin = node_size * 0.2
+            row = box.box(horizontal=True, width=node_size * count + margin * (count - 1),
+                          height=node_size)
+            x = node_size / 2
+            for _ in range(count):
+                node(row.box(width=node_size, x=x), size=node_size)
+                x += node_size + margin
+
+        task_box = row.box()
+        task_box_1 = task_box.fbox(show="2-3")
+        task_graph_grid(task_box_1.box(), size=task_size, rows=1, cols=3,
+                        task_constructor=functools.partial(pbs_task, offset=0))
+        task_box_1.box().text("+", style=T(size=30))
+        node_row(task_box_1.box(), count=3)
+
+        task_box_2 = task_box.overlay(show="4+")
+        task_graph_grid(task_box_2.box(), size=task_size, rows=1, cols=2,
+                        task_constructor=functools.partial(pbs_task, offset=3))
+        task_box_2.box().text("+", style=T(size=30))
+        node_row(task_box_2.box(), count=1)
+
+        row.box(p_left=100, p_right=100).text("→ Slurm →")
+
+        def overlay_node(node_box: Box, show: str,
+                         color_index: Optional[Union[int, str]] = None,
+                         mode="full"):
+            box = node_box.overlay()
+            modes = {
+                "full": node,
+                "up": lambda **args: half_node(mode="up", **args),
+                "down": lambda **args: half_node(mode="down", **args)
+            }
+
+            stroke_width = 6 if mode == "full" else 4
+            modes[mode](box=box, x=node_size / 2, y=node_size / 2, size=node_size,
+                        bg_color=get_task_color(color_index) if color_index is not None else None,
+                        show=show, node_args=dict(stroke_width=stroke_width))
+            if mode != "full":
+                node(box=box.overlay(), x=node_size / 2, y=node_size / 2, size=node_size,
+                     show=show, node_args=dict(stroke_width=4))
+
+        pbs_nodes = cluster_1(row.box(x=row.x("100%").add(-25)), size=node_size)
+        for i in range(3):
+            overlay_node(pbs_nodes[i], show="3+", color_index=i)
+        overlay_node(pbs_nodes[3], show="5+", color_index=3, mode="up")
+        overlay_node(pbs_nodes[3], show="5+", color_index=4, mode="down")
+
+        content.overlay(show="next+", p_bottom=margin_bottom).line((
+            (content.x("5%"), row.y("100%").add(margin_line)),
+            (content.x("95%"), row.y("100%").add(margin_line))
+        ))
+
+        row = wrapper.box(horizontal=True, width=width, height=300, show="last+")
+
+        content.box(x=50, y=row.y("50%").add(-20), show="last+").text("Slurm + HQ",
+                                                                      style=T(size=label_size))
+
+        task_box = row.box()
+        fragment = slide.current_fragment()
+        task_box_1 = task_box.fbox(show=f"{fragment}-{fragment + 2}")
+        task_graph_grid(task_box_1.box(), size=task_size, rows=1, cols=3,
+                        task_constructor=functools.partial(pbs_task, offset=0))
+
+        text_box = row.box(p_left=20, p_right=100, horizontal=True)
+        text_box.box(p_right=20).text("→")
+        text_box.box(width=200).image("images/hq-logo.png")
+
+        pbs_box_width = 145
+        pbs_box = text_box.box(p_left=20, width=pbs_box_width).text("→ Slurm →")
+        below_pbs_box = row.box(x=pbs_box.x(0), y=pbs_box.y("100%"), width=pbs_box_width,
+                                show=f"{fragment + 1}+")
+        below_pbs_box.box().text("↑")
+        node_row(below_pbs_box.box(), count=2)
+
+        pbs_nodes = cluster_1(row.box(x=row.x("100%").add(-25)), size=node_size)
+        node_fragment = f"{fragment + 2}+"
+        overlay_node(pbs_nodes[0], show=node_fragment, color_index=0, mode="up")
+        overlay_node(pbs_nodes[0], show=node_fragment, color_index=1, mode="down")
+        overlay_node(pbs_nodes[1], show=node_fragment, color_index=2)
+
+        task_box_2 = task_box.overlay(show=f"{fragment + 3}+")
+        task_graph_grid(task_box_2.box(), size=task_size, rows=1, cols=2,
+                        task_constructor=functools.partial(pbs_task, offset=3))
+
+        overlay_node(pbs_nodes[0], show=f"{fragment + 4}+", color_index=3, mode="down")
+        overlay_node(pbs_nodes[1], show=f"{fragment + 4}+", color_index=4)
+
+        content.overlay(show="next+", p_bottom=margin_bottom).line((
+            (content.x("5%"), row.y("100%").add(margin_line)),
+            (content.x("95%"), row.y("100%").add(margin_line))
+        ))
+
+        row = wrapper.box(horizontal=True, width=width, height=200, show="last+")
+
+        content.box(x=50, y=row.y("50%").add(-20), show="last+").text("Slurm + HQ\n+autoalloc",
+                                                                      style=T(size=label_size))
+
+        task_box = row.box()
+        task_graph_grid(task_box.box(), size=task_size, rows=1, cols=3,
+                        task_constructor=functools.partial(pbs_task, offset=0))
+
+        text_box = row.box(p_left=20, p_right=100, horizontal=True)
+        text_box.box(p_right=20).text("→")
+        hq_box = text_box.box(width=200).image("images/hq-logo.png")
+        text_box.box(p_left=20, width=pbs_box_width).text("→ Slurm →")
+
+        pbs_nodes = cluster_1(row.box(x=row.x("100%").add(-25)), size=node_size)
+
+        node(row.box(x=hq_box.x("50%"), y=hq_box.y(0).add(-25), show="next+"), x=0, y=0,
+             size=node_size, node_args=dict(stroke_dasharray="4", stroke_width="2"))
+
+        fragment = slide.current_fragment() + 1
+        overlay_node(pbs_nodes[0], show=f"{fragment}", color_index=None)
+        overlay_node(pbs_nodes[1], show=f"{fragment}", color_index=None)
+        overlay_node(pbs_nodes[0], show=f"{fragment + 1}+", color_index=0, mode="up")
+        overlay_node(pbs_nodes[0], show=f"{fragment + 1}+", color_index=1, mode="down")
+        overlay_node(pbs_nodes[1], show=f"{fragment + 1}+", color_index=2)
 
     # @slides.slide()
     # def autoalloc(slide: Box):
