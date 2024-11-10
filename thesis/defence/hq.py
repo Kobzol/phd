@@ -73,32 +73,12 @@ def hyperqueue(slides: Slides):
 
         box.update_style("default", T(size=40))
         lst = unordered_list(box.box(p_top=60))
-        lst.item(show="next+").text("How to overcome HPC workflow challenges?")
+        lst.item(show="next+").text("How to deal with HPC workflow challenges?")
         lst2 = lst.ul()
         lst2.item(show="next+").text("Interaction with HPC allocation managers", style="l2")
         lst2.item(show="next+").text("Heterogeneous resource management", style="l2")
         lst2.item(show="next+").text("Scalability", style="l2")
-        lst.item(show="next+").text("Can we integrate everything into a single task runtime?")
-
-    @slides.slide()
-    def hq_software(slide: Box):
-        slide.box(width=500).image("images/hq-logo.png")
-        github_link(slide.box(), "github.com/it4innovations/hyperqueue", style=T(size=30))
-
-        slide.box(p_top=100, show="next+").text("Task runtime designed for HPC use-cases")
-
-        row = slide.box(p_top=80, horizontal=True, show="next+")
-        margin = 50
-        row.box(width=400, p_right=margin).image("images/it4i-logo.png")
-        row.box(width=300, p_right=margin).image("images/ligate-logo.png")
-
-        # slide.box(show="next+", p_top=40).text("Team effort @ IT4I")
-        # slide.box(show="last+").text("(primary contributors: Ada Böhm & me)", style="l2")
-
-    @slides.slide()
-    def hq_architecture(slide: Box):
-        content = slide_header_top(slide, "Architecture")
-        content.box(width="45%", p_top=40).image("images/hq-architecture.png")
+        lst.item(show="next+").text("Can we integrate the solutions into a single task runtime?")
 
     @slides.slide()
     def task_to_allocation_mapping(slide: Box):
@@ -192,7 +172,8 @@ def hyperqueue(slides: Slides):
 
     @slides.slide()
     def metascheduling(slide: Box):
-        content = slide_header_top(slide, "Meta-scheduling")
+        content = slide_header_top(slide, "Task graph partitioning")
+        content.update_style("default", T(size=42))
 
         margin_bottom = 30
         margin_line = 15
@@ -203,8 +184,8 @@ def hyperqueue(slides: Slides):
         row = wrapper.box(horizontal=True, p_bottom=margin_bottom, width=width, height=160,
                           show="next+")
 
-        label_size = 40
-        content.box(x=50, y=row.y("50%").add(-20), show="2+").text("Slurm",
+        label_size = 34
+        content.box(x=50, y=row.y("50%").add(-20), show="2+").text("Manual (Slurm)",
                                                                    style=T(size=label_size))
 
         node_size = 40
@@ -236,7 +217,7 @@ def hyperqueue(slides: Slides):
         task_box_2.box().text("+", style=T(size=30))
         node_row(task_box_2.box(), count=1)
 
-        row.box(p_left=100, p_right=100).text("→ Slurm →")
+        row.box(p_left=250, p_right=250).text("→ Slurm →")
 
         def overlay_node(node_box: Box, show: str,
                          color_index: Optional[Union[int, str]] = None,
@@ -269,7 +250,7 @@ def hyperqueue(slides: Slides):
 
         row = wrapper.box(horizontal=True, width=width, height=300, show="last+")
 
-        content.box(x=50, y=row.y("50%").add(-20), show="last+").text("Slurm + HQ",
+        content.box(x=50, y=row.y("[50%]").add(-20), show="last+").text("Meta-scheduling",
                                                                       style=T(size=label_size))
 
         task_box = row.box()
@@ -280,14 +261,14 @@ def hyperqueue(slides: Slides):
 
         text_box = row.box(p_left=20, p_right=100, horizontal=True)
         text_box.box(p_right=20).text("→")
-        text_box.box(width=200).image("images/hq-logo.png")
+        text_box.box().text("Meta-scheduler")
 
-        pbs_box_width = 145
-        pbs_box = text_box.box(p_left=20, width=pbs_box_width).text("→ Slurm →")
-        below_pbs_box = row.box(x=pbs_box.x(0), y=pbs_box.y("100%"), width=pbs_box_width,
+        slurm_box_width = 200
+        slurm_box = text_box.box(p_left=20, width=slurm_box_width).text("→ Slurm →")
+        below_slurm_box = row.box(x=slurm_box.x(0), y=slurm_box.y("100%"), width=slurm_box_width,
                                 show=f"{fragment + 1}+")
-        below_pbs_box.box().text("↑")
-        node_row(below_pbs_box.box(), count=2)
+        below_slurm_box.box().text("↑")
+        node_row(below_slurm_box.box(), count=2)
 
         pbs_nodes = cluster_1(row.box(x=row.x("100%").add(-25)), size=node_size)
         node_fragment = f"{fragment + 2}+"
@@ -307,9 +288,9 @@ def hyperqueue(slides: Slides):
             (content.x("95%"), row.y("100%").add(margin_line))
         ))
 
-        row = wrapper.box(horizontal=True, width=width, height=200, show="last+")
+        row = wrapper.box(horizontal=True, width=width, height=300, show="last+")
 
-        content.box(x=50, y=row.y("50%").add(-20), show="last+").text("Slurm + HQ\n+autoalloc",
+        content.box(x=50, y=row.y("[50%]").add(-40), show="last+").text("Meta-scheduling +\nautomatic allocation",
                                                                       style=T(size=label_size))
 
         task_box = row.box()
@@ -318,8 +299,8 @@ def hyperqueue(slides: Slides):
 
         text_box = row.box(p_left=20, p_right=100, horizontal=True)
         text_box.box(p_right=20).text("→")
-        hq_box = text_box.box(width=200).image("images/hq-logo.png")
-        text_box.box(p_left=20, width=pbs_box_width).text("→ Slurm →")
+        hq_box = text_box.box().text("Meta-scheduler")
+        text_box.box(p_left=20, width=slurm_box_width).text("→ Slurm →")
 
         pbs_nodes = cluster_1(row.box(x=row.x("100%").add(-25)), size=node_size)
 
@@ -455,26 +436,59 @@ def hyperqueue(slides: Slides):
     def resources(slide: Box):
         content = slide_header_top(slide, "Challenge: heterogeneous resource management")
 
-        lst = unordered_list(content.box())
+        lst = unordered_list(content.box(p_top=80))
+        lst.item(show="next+").text("Arbitrary resources")
+        lst2 = lst.ul()
+        lst2.item().text("GPUs, FPGAs, NICs, …", style="l2")
         lst.item(show="next+").text("Non-fungible resources")
         lst2 = lst.ul()
-        lst2.item(show="next+").text("'Execute task on GPUs 0 and 3' vs 'Execute task on 2 GPUs'", style="l2")
+        lst2.item().text('Resources have identity: "Execute task on GPUs 0 and 3"', style="l2")
         lst.item(show="next+").text("Related resources")
         lst2 = lst.ul()
-        lst2.item(show="next+").text("Task requires 4 cores in the same NUMA node", style="l2")
+        lst2.item().text("Task requires 4 cores in the same NUMA node", style="l2")
         lst.item(show="next+").text("Fractional resources")
         lst2 = lst.ul()
-        lst2.item(show="next+").text("Task requires 0.5 of a GPU", style="l2")
+        lst2.item().text("Task requires 0.5 of a GPU", style="l2")
         lst.item(show="next+").text("Resource variants")
         lst2 = lst.ul()
-        lst2.item(show="next+").text("Task requires 1 GPU OR 16 CPUs", style="l2")
-
+        lst2.item().text("Task requires (1 GPU AND 1 CPU) OR 16 CPUs", style="l2")
 
     @slides.slide()
-    def other_features(slide: Box):
-        content = slide_header_top(slide, "Other solutions for workflow challenges")
-        lst = unordered_list(content.box())
-        lst.item(show="next+").text("Multi-node tasks (integrated with single-node tasks)")
+    def hq_software(slide: Box):
+        slide.box(width=500).image("images/hq-logo.png")
+        github_link(slide.box(), "github.com/it4innovations/hyperqueue", style=T(size=30))
+
+        slide.box(p_top=100, show="next+").text("Task runtime designed for HPC use-cases")
+
+        row = slide.box(p_top=80, horizontal=True, show="next+")
+        margin = 50
+        row.box(width=400, p_right=margin).image("images/it4i-logo.png")
+        row.box(width=300, p_right=margin).image("images/ligate-logo.png")
+
+        # slide.box(show="next+", p_top=40).text("Team effort @ IT4I")
+        # slide.box(show="last+").text("(primary contributors: Ada Böhm & me)", style="l2")
+
+    @slides.slide()
+    def hq_architecture(slide: Box):
+        content = slide_header_top(slide, "Architecture")
+        content.box(width="45%", p_top=40).image("images/hq-architecture.png")
+
+    @slides.slide()
+    def hq_solutions(slide: Box):
+        content = slide_header_top(slide, "HyperQueue solutions for workflow challenges")
+        content.update_style("default", T(size=46))
+
+        lst = unordered_list(content.box(p_top=120))
+        lst.item().text("Meta-scheduling")
+        lst2 = lst.ul()
+        lst2.item().text("Automatic allocation", style="l2")
+        lst.item(show="next+").text("Heterogeneous resource scheduling")
+        lst.item(show="next+").text("Multi-node tasks")
+        lst2 = lst.ul()
+        lst2.item().text("Integrated with single node tasks", style="l2")
+        lst.item(show="next+").text("Fault-tolerance")
+        lst2 = lst.ul()
+        lst2.item().text("Worker and server resilience", style="l2")
         lst.item(show="next+").text("I/O streaming")
         lst2 = lst.ul()
         lst2.item().text("Reduces networked filesystem contention", style="l2")
@@ -610,10 +624,10 @@ def hyperqueue(slides: Slides):
         content.box(p_top=120).text(
             "LIGATE Pose selector workflow",
         )
-        lst = unordered_list(content.box())
+        lst = unordered_list(content.box(p_top=20))
         lst.item(show="next+").text("6M+ MD simulations on 4k+ ligands", "small")
-        lst.item(show="next+").text("240k GPU hours on LUMI-G cluster", "small")
-        lst.item(show="next+").text("2M CPU hours on MeluXina cluster", "small")
+        lst.item().text("240k GPU hours on LUMI-G cluster", "small")
+        lst.item().text("2M CPU hours on MeluXina cluster", "small")
 
         quotation(content.box(p_top=40, show="next+"), """...making both workflows some of the largest
 molecular dynamics campaigns ever performed...""", "LIGATE Deliverable D7.1 (lessons learned)")
@@ -626,14 +640,14 @@ molecular dynamics campaigns ever performed...""", "LIGATE Deliverable D7.1 (les
         lst.item(show="next+").text("Integrated solution for workflows on HPC")
         lst.item(show="next+").text("Ergonomics")
         lst2 = lst.ul()
-        lst2.item(show="next+").text("Meta-scheduling", style="l2")
-        lst2.item(show="next+").text("Fine-grained heterogeneous resource management", style="l2")
-        lst2.item(show="next+").text("Multi-node tasks", style="l2")
-        lst2.item(show="next+").text("Trivial deployment", style="l2")
+        lst2.item().text("Meta-scheduling", style="l2")
+        lst2.item().text("Fine-grained heterogeneous resource management", style="l2")
+        lst2.item().text("Multi-node tasks", style="l2")
+        lst2.item().text("Trivial deployment", style="l2")
         lst.item(show="next+").text("Efficiency")
         lst2 = lst.ul()
-        lst2.item(show="next+").text("Low overhead per task", style="l2")
-        lst2.item(show="next+").text("Millions of tasks, hundreds of nodes", style="l2")
+        lst2.item().text("Low overhead per task", style="l2")
+        lst2.item().text("Millions of tasks, hundreds of nodes", style="l2")
         lst.item(show="next+").text("Open source")
         lst2 = lst.ul()
-        github_link(lst2.item(show="last+"), "github.com/it4innovations/hyperqueue", style="l2")
+        github_link(lst2.item(), "github.com/it4innovations/hyperqueue", style="l2")

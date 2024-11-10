@@ -115,11 +115,21 @@ Slurm""")
     @slides.slide()
     def heterogeneous_tasks(slide: Box):
         header(slide, "Heterogeneous tasks", ok=False, step="1")
-        header(slide, "Task dependencies", ok=False, step="2")
+        header(slide, "Task dependencies", ok=False, step="2+")
 
-        cols = slide.box(x=100, y=220, horizontal=True)
-        left = cols.box(width=1000, y=0)
+        slide.update_style("default", T(size=36))
+
+        cols = slide.box(x=100, y=220, height=1000, horizontal=True)
+        left = cols.box(width=900, y=0)
         tasks = render_tasks(left)
+
+        right = cols.box(y=0, width=600)
+        row = right.box(x=0, horizontal=True)
+        row.box(p_right=20).text("Node granularity")
+        row.box(width=50).image("images/prohibited.svg")
+        row = right.box(show="2+", x=0, horizontal=True)
+        row.box(p_right=20).text("Coarse-grained dependencies")
+        row.box(width=50).image("images/prohibited.svg")
 
         colours = [RED, GREEN, BLUE, ORANGE]
         random.seed(42)

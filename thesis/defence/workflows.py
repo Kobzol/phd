@@ -41,10 +41,10 @@ def workflows(slides: Slides):
         content = slide_header_top(slide, "Benefits of task-based programming")
 
         lst = unordered_list(content.box())
-        lst.item(show="next+").text("Implicit parallelism", style="bold")
+        lst.item().text("Implicit parallelism", style="bold")
         lst2 = lst.ul()
         lst2.item().text("Create a DAG vs. explicit MPI calls", style="l2")
-        lst2.item(show="next+").text("Extracted by a task runtime", style="l2")
+        lst2.item().text("Extracted by a task runtime", style="l2")
         lst.item(show="next+", p_top=40).text("High-level description")
         lst2 = lst.ul()
         lst2.item().text("Python/DSL vs. C/C++", style="l2")

@@ -49,7 +49,7 @@ def rsds(slides: Slides):
     def dask_observations(slide: Box):
         content = slide_header_top(slide, "Observations")
         lst = unordered_list(content.box())
-        lst.item(show="next+").text("Scheduler cannot be easily replaced")
+        lst.item().text("Scheduler cannot be easily replaced")
         lst.item(show="next+").text("Dask does not scale well in HPC contexts")
         lst.item(show="next+").text("Python implementation is limited by the GIL")
 
@@ -57,7 +57,7 @@ def rsds(slides: Slides):
     def rsds(slide: Box):
         content = slide_header_top(slide, "RSDS")
         lst = unordered_list(content.box())
-        lst.item(show="next+").text("Alternative Dask server implementation")
+        lst.item().text("Alternative Dask server implementation")
         lst.item(show="next+").text("Written in Rust, designed for low overhead")
         lst.item(show="next+").text("Explicitly designed for a pluggable scheduler")
 
@@ -82,13 +82,13 @@ def rsds(slides: Slides):
         lst = unordered_list(content.box())
         lst.item().text("Runtime efficiency as important as scheduling")
         lst2 = lst.ul()
-        lst2.item(show="next+").text("Even a random scheduler can be competitive!", style="l2")
+        lst2.item().text("Even a random scheduler can be competitive!", style="l2")
         lst.item(show="next+").text("Dask scaled poorly on HPC")
         lst2 = lst.ul()
-        lst2.item(show="next+").text("Caused by inefficient runtime and GIL", style="l2")
-        lst2.item(show="next+").text("<100 ms tasks problematic", style="l2")
+        lst2.item().text("Caused by inefficient runtime and GIL", style="l2")
+        # lst2.item(show="next+").text("<100 ms tasks problematic", style="l2")
         lst.item(show="next+").text("RSDS: open source alternative to Dask's server")
         lst2 = lst.ul()
+        github_link(lst2.item(), "github.com/it4innovations/rsds", style="l2")
         lst2.item(show="next+").text("Backward-compatible with existing Dask programs", style="l2")
-        github_link(lst2.item(show="last+"), "github.com/it4innovations/rsds", style="l2")
         lst.item(show="next+").text("Some ideas from RSDS were integrated into Dask")
