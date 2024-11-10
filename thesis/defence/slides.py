@@ -2,7 +2,7 @@ import math
 from typing import List, Optional, Tuple
 
 import elsie
-from elsie import Arrow, SlideDeck
+from elsie import SlideDeck
 from elsie.boxtree.box import Box
 from elsie.ext import ordered_list, unordered_list
 from elsie.slides.slide import Slide
@@ -11,9 +11,8 @@ from elsie.text.textstyle import TextStyle, TextStyle as T
 from challenges import challenges
 from estee import estee
 from hq import hyperqueue
-from rsds import rsds
 from questions import questions
-from tasks import cluster_1, task_graph_1
+from rsds import rsds
 from utils import slide_header_top
 from workflows import workflows
 
@@ -213,6 +212,8 @@ def outro(slide: Box):
     slide.box(y="[90%]").text("Slides made with https://github.com/spirali/elsie", style=T(size=40))
 
 
+main_slide_count = len(slides._slides)
+
 questions(slides)
 
 def ferris(slides: SlideDeck):
@@ -254,7 +255,7 @@ def ferris(slides: SlideDeck):
         total_steps += steps
 
 numbering_start = 2
-numbering_end = 39
+numbering_end = 53
 
 
 def page_numbering(slides: List[Box]):
@@ -275,8 +276,9 @@ def page_numbering(slides: List[Box]):
 
 
 def print_stats(slides: SlideDeck, minutes: int):
-    step_count = sum(slide.steps() for slide in slides._slides)
-    slide_count = len(slides._slides)
+    main_slides = slides._slides[:main_slide_count]
+    step_count = sum(slide.steps() for slide in main_slides)
+    slide_count = len(main_slides)
 
     seconds = minutes * 60
     print(f"{slide_count} slides, {math.floor(seconds / slide_count)}s per slide")

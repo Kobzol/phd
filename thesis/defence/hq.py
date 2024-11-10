@@ -607,14 +607,12 @@ def hyperqueue(slides: Slides):
 
         content = slide_header_top(slide, "HyperQueue impact")
 
-        col = content.box(x="[70%]")
-        col.box(p_top=120).text(
-            "ATLAS experiment (CERN)\n~small{ARC-CE+HyperQueue based submission system of\nATLAS jobs for the Karolina HPC}",
-            T(line_spacing=0.7)
-        )
-        content.box(x="[10%]", y="[50%]", width=350, show="next+").image("images/cern-hq-poster.png")
+        col = content.box(x="[70%]", p_top=140)
+        col.box().text("ATLAS experiment (CERN)")
+        col.box(p_top=10).text("ARC-CE+HyperQueue based submission system of\nATLAS jobs for the Karolina HPC", style="small")
+        content.box(x="[10%]", y="[50%]", width=350).image("images/cern-hq-poster.png")
 
-        col.box(width=550, show="next+", p_top=40).image("images/cern-hq-efficiency.png")
+        col.box(width=550, show="next+", p_top=20).image("images/cern-hq-efficiency.png")
 
     @slides.slide()
     def hyperqueue_research_ligate(slide: Box):
