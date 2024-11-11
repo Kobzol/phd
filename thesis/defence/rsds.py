@@ -85,7 +85,7 @@ def rsds(slides: Slides):
         lst2.item().text("Even a random scheduler can be competitive!", style="l2")
         lst.item(show="next+").text("Dask scaled poorly on HPC")
         lst2 = lst.ul()
-        lst2.item().text("Caused by inefficient runtime and GIL", style="l2")
+        lst2.item().text("Caused by inefficient Python runtime and GIL", style="l2")
         # lst2.item(show="next+").text("<100 ms tasks problematic", style="l2")
         lst.item(show="next+").text("RSDS: open source alternative to Dask's server")
         lst2 = lst.ul()

@@ -2,7 +2,7 @@ import dataclasses
 import functools
 from typing import Iterable, List, Optional, Union
 
-from elsie import Slides, TextStyle as T
+from elsie import Arrow, Slides, TextStyle as T
 from elsie.boxtree.box import Box
 from elsie.ext import unordered_list
 from elsie.ext.list import ListBuilder
@@ -92,7 +92,6 @@ def hyperqueue(slides: Slides):
         lst2.item().text("Massive overhead (millions of allocations)", style="l2")
         lst2.item().text("Allocation count limits", style="l2")
         lst2.item().text("Node granularity", style="l2")
-        lst2.item().text("Difficult with dependencies", style="l2")
         lst.item(show="next+", p_top=10).text("One allocation for the whole task graph")
         lst2 = lst.ul()
         lst2.item().text("Only for small task graphs", style="l2")
@@ -101,6 +100,7 @@ def hyperqueue(slides: Slides):
         lst2 = lst.ul()
         lst2.item().text("Challenging to find good partitioning", style="l2")
         lst2.item().text("No load balancing across allocations", style="l2")
+        lst2.item().text("Difficult dependency management", style="l2")
 
         task_size = 50
         node_size = 60
@@ -203,6 +203,7 @@ def hyperqueue(slides: Slides):
             for _ in range(count):
                 node(row.box(width=node_size, x=x), size=node_size)
                 x += node_size + margin
+            return row
 
         task_box = row.box()
         task_box_1 = task_box.fbox(show="2-3")
@@ -261,7 +262,7 @@ def hyperqueue(slides: Slides):
 
         text_box = row.box(p_left=20, p_right=100, horizontal=True)
         text_box.box(p_right=20).text("→")
-        text_box.box().text("Meta-scheduler")
+        metascheduler = text_box.box().text("Meta-scheduler")
 
         slurm_box_width = 200
         slurm_box = text_box.box(p_left=20, width=slurm_box_width).text("→ Slurm →")
@@ -276,6 +277,14 @@ def hyperqueue(slides: Slides):
         overlay_node(pbs_nodes[0], show=node_fragment, color_index=1, mode="down")
         overlay_node(pbs_nodes[1], show=node_fragment, color_index=2)
 
+        arrow = Arrow(size=10)
+        row.box(show=f"{fragment + 2}+").line([
+            (metascheduler.x("50%"), metascheduler.y("0").add(-20)),
+            (metascheduler.x("50%"), metascheduler.y("0").add(-50)),
+            (pbs_nodes[0].x("50%"), metascheduler.y("0").add(-50)),
+            (pbs_nodes[0].x("50%"), metascheduler.y("0").add(-20)),
+        ], stroke_width=2, start_arrow=arrow, end_arrow=arrow)
+
         task_box_2 = task_box.overlay(show=f"{fragment + 3}+")
         task_graph_grid(task_box_2.box(), size=task_size, rows=1, cols=2,
                         task_constructor=functools.partial(pbs_task, offset=3))
@@ -288,7 +297,7 @@ def hyperqueue(slides: Slides):
             (content.x("95%"), row.y("100%").add(margin_line))
         ))
 
-        row = wrapper.box(horizontal=True, width=width, height=300, show="last+")
+        row = wrapper.box(horizontal=True, width=width, height=220, show="last+")
 
         content.box(x=50, y=row.y("[50%]").add(-40), show="last+").text("Meta-scheduling +\nautomatic allocation",
                                                                       style=T(size=label_size))
@@ -299,20 +308,35 @@ def hyperqueue(slides: Slides):
 
         text_box = row.box(p_left=20, p_right=100, horizontal=True)
         text_box.box(p_right=20).text("→")
-        hq_box = text_box.box().text("Meta-scheduler")
-        text_box.box(p_left=20, width=slurm_box_width).text("→ Slurm →")
+        metascheduler = text_box.box().text("Meta-scheduler")
+        slurm_box = text_box.box(p_left=20, width=slurm_box_width).text("→ Slurm →")
 
         pbs_nodes = cluster_1(row.box(x=row.x("100%").add(-25)), size=node_size)
 
-        node(row.box(x=hq_box.x("50%"), y=hq_box.y(0).add(-25), show="next+"), x=0, y=0,
+        fragment = slide.current_fragment() + 1
+        below_slurm_box = row.box(x=slurm_box.x(0), y=slurm_box.y("100%"), width=slurm_box_width,
+                                  show=f"{fragment + 1}+")
+        below_slurm_box.box().text("↑")
+        alloc_row = node_row(below_slurm_box.box(), count=2)
+
+        alloc_template = node(row.box(x=metascheduler.x("50%"), y=alloc_row.y("50%"), show=f"{fragment}+"), x=0, y=0,
              size=node_size, node_args=dict(stroke_dasharray="4", stroke_width="2"))
+        row.box(show=f"{fragment + 1}+").line([
+            (alloc_template.x("100%").add(20), alloc_template.y("50%")),
+            (alloc_row.x("0").add(-20), alloc_template.y("50%")),
+        ], stroke_width=2, end_arrow=arrow)
 
         fragment = slide.current_fragment() + 1
-        overlay_node(pbs_nodes[0], show=f"{fragment}", color_index=None)
-        overlay_node(pbs_nodes[1], show=f"{fragment}", color_index=None)
-        overlay_node(pbs_nodes[0], show=f"{fragment + 1}+", color_index=0, mode="up")
-        overlay_node(pbs_nodes[0], show=f"{fragment + 1}+", color_index=1, mode="down")
-        overlay_node(pbs_nodes[1], show=f"{fragment + 1}+", color_index=2)
+        row.box(show=f"{fragment}+").line([
+            (metascheduler.x("50%"), metascheduler.y("0").add(-20)),
+            (metascheduler.x("50%"), metascheduler.y("0").add(-50)),
+            (pbs_nodes[0].x("50%"), metascheduler.y("0").add(-50)),
+            (pbs_nodes[0].x("50%"), metascheduler.y("0").add(-20)),
+        ], stroke_width=2, start_arrow=arrow, end_arrow=arrow)
+
+        overlay_node(pbs_nodes[0], show=f"{fragment}+", color_index=0, mode="up")
+        overlay_node(pbs_nodes[0], show=f"{fragment}+", color_index=1, mode="down")
+        overlay_node(pbs_nodes[1], show=f"{fragment}+", color_index=2)
 
     # @slides.slide()
     # def autoalloc(slide: Box):
@@ -460,10 +484,10 @@ def hyperqueue(slides: Slides):
 
         slide.box(p_top=100, show="next+").text("Task runtime designed for HPC use-cases")
 
-        row = slide.box(p_top=80, horizontal=True, show="next+")
-        margin = 50
-        row.box(width=400, p_right=margin).image("images/it4i-logo.png")
-        row.box(width=300, p_right=margin).image("images/ligate-logo.png")
+        # row = slide.box(p_top=80, horizontal=True, show="next+")
+        # margin = 50
+        # row.box(width=400, p_right=margin).image("images/it4i-logo.png")
+        # row.box(width=300, p_right=margin).image("images/ligate-logo.png")
 
         # slide.box(show="next+", p_top=40).text("Team effort @ IT4I")
         # slide.box(show="last+").text("(primary contributors: Ada Böhm & me)", style="l2")
@@ -519,10 +543,10 @@ def hyperqueue(slides: Slides):
         content = slide_header_top(slide, "Fractional resources evaluation")
         content.box().image("images/hq-evaluation-fractional-resources.png")
 
-    @slides.slide()
-    def hq_resource_variants(slide: Box):
-        content = slide_header_top(slide, "Resource variants evaluation")
-        content.box().image("images/hq-evaluation-resource-variants.png")
+    # @slides.slide()
+    # def hq_resource_variants(slide: Box):
+    #     content = slide_header_top(slide, "Resource variants evaluation")
+    #     content.box().image("images/hq-evaluation-resource-variants.png")
 
     @slides.slide()
     def hq_sota_comparison(slide: Box):

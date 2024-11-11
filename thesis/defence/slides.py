@@ -16,7 +16,7 @@ from rsds import rsds
 from utils import slide_header_top
 from workflows import workflows
 
-PRODUCTION_BUILD = False
+PRODUCTION_BUILD = True
 
 WIDTH = 1600
 HEIGHT = 900
@@ -114,17 +114,23 @@ def objectives_fulfilled(slide: Box):
     offset = 40
 
     lst = ordered_list(content.box(p_top=80))
-    lst.item(show="next+").text("Identify HPC workflow challenges ✓")
+    lst.item().text("Identify HPC workflow challenges ✓")
     lst.item(show="next+", p_top=offset).text("Design approaches for overcoming them ✓")
     lst2 = lst.ul()
-    lst2.item(show="next+").text("Meta-scheduling approach", style="l2")
-    lst2.item(show="next+").text("Heterogeneous resource management", style="l2")
+    lst2.item().text("Meta-scheduling approach", style="l2")
+    lst2.item().text("Heterogeneous resource management", style="l2")
     lst.item(show="next+", p_top=offset).text("Implement them in a task runtime ✓")
     lst2 = lst.ul()
-    lst2.item(show="next+").text("HyperQueue", style="l2")
+    lst2.item().text("HyperQueue", style="l2")
     lst.item(show="next+", p_top=offset).text("Analyze results on real use-cases ✓")
     lst2 = lst.ul()
-    lst2.item(show="next+").text("LIGATE, CERN", style="l2")
+    lst2.item().text("LIGATE, CERN", style="l2")
+
+
+@slides.slide()
+def outro(slide: Box):
+    slide.box().text("Thank you for your attention", style=T(size=70))
+    slide.box(y="[90%]").text("Slides made with https://github.com/spirali/elsie", style=T(size=40))
 
 
 @slides.slide()
@@ -206,12 +212,6 @@ J. Martinovič, M. Golasowski, K. Slaninová, ~emph{J. Beránek}, M. Šurkovský
 ~emph{Complex, Intelligent, and Software Intensive Systems 2020}""")
 
 
-@slides.slide()
-def outro(slide: Box):
-    slide.box().text("Thank you for your attention", style=T(size=70))
-    slide.box(y="[90%]").text("Slides made with https://github.com/spirali/elsie", style=T(size=40))
-
-
 main_slide_count = len(slides._slides)
 
 questions(slides)
@@ -255,7 +255,7 @@ def ferris(slides: SlideDeck):
         total_steps += steps
 
 numbering_start = 2
-numbering_end = 53
+numbering_end = 49
 
 
 def page_numbering(slides: List[Box]):

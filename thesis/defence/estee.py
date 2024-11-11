@@ -26,23 +26,25 @@ def estee(slides: Slides):
         lst.item(show="next+").text("Which factors affect scheduling the most?")
         lst.item(show="next+").text("How can we simplify scheduler prototyping?")
 
+    # @slides.slide()
+    # def estee_code(slide: Box):
+    #     slide = slide_header_top(slide, "ESTEE")
+
+        # slide.update_style("default", T(size=50))
+        # lst = unordered_list(slide.box())
+        # lst.item().text("Framework for simulating task graph execution")
+        # Discrete event simulation
+        # lst.item(show="next+").text("Python interface designed for prototyping")
+        # lst.item(show="next+").text('"Batteries included"')
+
     @slides.slide()
     def estee_code(slide: Box):
         slide = slide_header_top(slide, "ESTEE")
-
-        slide.update_style("default", T(size=50))
-        lst = unordered_list(slide.box())
-        lst.item().text("Framework for simulating task graph execution")
-        # Discrete event simulation
-        lst.item(show="next+").text("Python interface designed for prototyping")
-        lst.item(show="next+").text('"Batteries included"')
-
-    @slides.slide()
-    def estee_code(slide: Box):
-        slide = slide_header_top(slide, "ESTEE usage example")
         slide.update_style("code", T(size=26))
 
-        row = slide.box(horizontal=True, x=25, p_top=100)
+        slide.box(p_top=80).text("Framework for simulating task graph execution")
+
+        row = slide.box(horizontal=True, x=25, p_top=100, show="next+")
         width = 1030
         codebox: TextBoxItem = code_step(row.box(p_top=30, width=width, y=0), """
 dag = TaskGraph()
@@ -58,15 +60,15 @@ network   = MaxMinFlowNetModel(bandwidth=10*1024)
 
 simulator = Simulator(task_graph, cluster, scheduler, network)
 ~#makespan{makespan}  = simulator.run()
-""", 1, [
+""", 2, [
             list(range(6)),
             list(range(8)),
             list(range(9)),
             list(range(10)),
             list(range(13)),
-        ], language="python", width=width, use_styles=True, return_box=True)
+        ], language="python", width=width, use_styles=True, return_box=True )
         row.box(width=30)
-        row.box(width=500).image("images/estee-architecture.svg")
+        row.box(width=500).image("images/estee-architecture.svg", show_begin=2)
         codebox.inline_box("#makespan", padding=-5, show="next+").rect(color="red", stroke_width=4)
 
     @slides.slide()
@@ -77,10 +79,10 @@ simulator = Simulator(task_graph, cluster, scheduler, network)
         lst = unordered_list(slide.box())
         lst.item().text("Compare scheduler performance")
         lst.item(show="next+").text("Analyze neglected factors")
-        lst2 = lst.ul()
-        lst2.item().text("Knowledge about task durations", style="l2")
-        lst2.item().text("Delay between scheduler invocations", style="l2")
-        lst2.item().text("Network model", style="l2")
+        # lst2 = lst.ul()
+        # lst2.item().text("Knowledge about task durations", style="l2")
+        # lst2.item().text("Delay between scheduler invocations", style="l2")
+        # lst2.item().text("Network model", style="l2")
 
     @slides.slide()
     def estee_chart_1(slide: Box):
@@ -89,7 +91,7 @@ simulator = Simulator(task_graph, cluster, scheduler, network)
 
     @slides.slide()
     def estee_chart_2(slide: Box):
-        content = slide_header_top(slide, "Scheduling delay effect")
+        content = slide_header_top(slide, "Scheduling frequency effect")
         content.box(width="75%").image("images/estee-msd.png")
 
     @slides.slide()
