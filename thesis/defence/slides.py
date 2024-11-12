@@ -88,7 +88,7 @@ workflows(slides)
 
 @slides.slide()
 def task_graph_challenges(slide: Box):
-    slide.box().text("Task graph challenges on HPC clusters", style=TextStyle(size=54))
+    slide.box().text("Workflow challenges on HPC clusters", style=TextStyle(size=54))
 
 
 challenges(slides)

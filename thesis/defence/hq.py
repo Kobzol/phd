@@ -92,15 +92,15 @@ def hyperqueue(slides: Slides):
         lst2.item().text("Massive overhead (millions of allocations)", style="l2")
         lst2.item().text("Allocation count limits", style="l2")
         lst2.item().text("Node granularity", style="l2")
-        lst.item(show="next+", p_top=10).text("One allocation for the whole task graph")
+        lst.item(show="next+", p_top=10).text("One allocation for the whole workflow")
         lst2 = lst.ul()
-        lst2.item().text("Only for small task graphs", style="l2")
+        lst2.item().text("Only for small workflows", style="l2")
         lst2.item().text("Leads to resource waste", style="l2")
-        lst.item(show="next+", p_top=10).text("Split task graph into multiple allocations")
+        lst.item(show="next+", p_top=10).text("Split workflow into multiple allocations")
         lst2 = lst.ul()
         lst2.item().text("Challenging to find good partitioning", style="l2")
         lst2.item().text("No load balancing across allocations", style="l2")
-        lst2.item().text("Difficult dependency management", style="l2")
+        lst2.item().text("Dependencies and fault tolerance are problematic", style="l2")
 
         task_size = 50
         node_size = 60
@@ -172,7 +172,7 @@ def hyperqueue(slides: Slides):
 
     @slides.slide()
     def metascheduling(slide: Box):
-        content = slide_header_top(slide, "Task graph partitioning")
+        content = slide_header_top(slide, "Workflow partitioning")
         content.update_style("default", T(size=42))
 
         margin_bottom = 30
@@ -513,7 +513,7 @@ def hyperqueue(slides: Slides):
         lst.item(show="next+").text("Fault-tolerance")
         lst2 = lst.ul()
         lst2.item().text("Worker and server resilience", style="l2")
-        lst.item(show="next+").text("I/O streaming")
+        lst.item(show="next+").text("Output streaming")
         lst2 = lst.ul()
         lst2.item().text("Reduces networked filesystem contention", style="l2")
         lst.item(show="next+").text("Several programming interfaces")

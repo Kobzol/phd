@@ -42,7 +42,7 @@ def estee(slides: Slides):
         slide = slide_header_top(slide, "ESTEE")
         slide.update_style("code", T(size=26))
 
-        slide.box(p_top=80).text("Framework for simulating task graph execution")
+        slide.box(p_top=80).text("Framework for simulating workflow execution")
 
         row = slide.box(horizontal=True, x=25, p_top=100, show="next+")
         width = 1030
@@ -78,7 +78,7 @@ simulator = Simulator(task_graph, cluster, scheduler, network)
         slide.update_style("default", T(size=45))
         lst = unordered_list(slide.box())
         lst.item().text("Compare scheduler performance")
-        lst.item(show="next+").text("Analyze neglected factors")
+        lst.item(show="next+").text("Analyze factors that affect scheduling")
         # lst2 = lst.ul()
         # lst2.item().text("Knowledge about task durations", style="l2")
         # lst2.item().text("Delay between scheduler invocations", style="l2")
